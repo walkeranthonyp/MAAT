@@ -1,6 +1,6 @@
 ################################
 #
-# MAAT Leaf Model - initialisation script
+# MAAT Leaf Model - example initialisation script
 # 
 # AWalker (walkerap@ornl.gov) 
 # December 2015
@@ -12,7 +12,7 @@
 ### The MAAT model (Multi-Assumption Architecture & Testbed)
 ###################################################################
 
-# This script initialises the leaf photosynthesis version of MAAT
+# This script initialises the leaf and/or canopy photosynthesis version of MAAT
 # - by setting the values of these lists:
 
 # Static Variables:
@@ -51,13 +51,16 @@ leaf.fnames.static <- list(
   rs          = 'f_r_zero',
   rb          = 'f_r_zero'
 )
+canopy.fnames.static <- NA   
 
-leaf.pars.static <- NA
+leaf.pars.static     <- NA
+canopy.pars.static   <- NA
 
-leaf.env.static  <- list(
+leaf.env.static <- list(
   ca_conc = 400,
   par     = 500
 )
+canopy.env.static <- NA
 
 
 
@@ -68,17 +71,20 @@ leaf.env.static  <- list(
 
 # define lists
 leaf.fnames.var <- list(
-  etrans = c('f_j_farquhar1980','f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991'),
-  ri     = c('f_r_zero','f_ri_constant')
+  etrans = c('f_j_farquhar1980','f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991')
+#   ri     = c('f_r_zero','f_ri_constant')
 )
+canopy.fnames.var <- NA
 
 leaf.pars.var <- list(
   avn_25 = rnorm(10,10,1)
 )
+canopy.pars.var <- NA
 
 leaf.env.var <- list(
   temp = c(5,20)
 )
+canopy.env.var <- NA
 
 
 
@@ -87,11 +93,17 @@ leaf.env.var <- list(
 
 init_ls <- list(
   lfs = leaf.fnames.static,
+  cfs = canopy.fnames.static,
   lps = leaf.pars.static,
+  cps = canopy.pars.static,
   les = leaf.env.static,
+  ces = canopy.env.static,
   lfv = leaf.fnames.var,
+  cfv = canopy.fnames.var,
   lpv = leaf.pars.var,
-  lev = leaf.env.var
+  cpv = canopy.pars.var,
+  lev = leaf.env.var,
+  cev = canopy.env.var
 )
 
 

@@ -52,4 +52,3 @@ xyplot(A~leaf.par|leaf.etrans*leaf.rs,out[[1]],type='l',panel=function(...) { pa
 
 
 
-
