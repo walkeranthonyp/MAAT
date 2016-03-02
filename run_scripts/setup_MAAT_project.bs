@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# simple bash script to copy MAAT runfile to a project directory
+# takes the full path of the project directory as an argument
+
+PDIR=$1
+
+mkdir $PDIR
+mkdir $PDIR/logs
+
+cp    ./qsubmit_MAAT.pbs  $PDIR
+cp    ./call_run_MAAT.bs  $PDIR
+cp    ./run_MAAT.R        $PDIR
+cp    ./init_MAAT.R       $PDIR
+
+sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT.pbs
+sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs
+sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R

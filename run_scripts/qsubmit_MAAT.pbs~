@@ -1,0 +1,37 @@
+#!/bin/csh -f
+#===============================================================================
+# GENERIC_USER
+# This is where the batch submission is set.  The above code computes
+# the total number of tasks, nodes, and other things that can be useful
+# here.  Use PBS, BSUB, or whatever the local environment supports.
+#===============================================================================
+
+#PBS -N MAAT
+#PBS -q esd13q
+#PBS -l nodes=1:ppn=32
+#PBS -l walltime=30:00:00
+#PBS -r n
+#PBS -j oe
+#PBS -S /bin/csh -V
+#PBS -M walkerap@ornl.gov
+#PBS -m ea
+#PBS -o #PROJECTDIR#/logs/${PBS_JOBNAME}.o${PBS_JOBID}
+
+
+#limit coredumpsize 1000000
+#limit stacksize unlimited
+
+
+#-----------------------------------------------------------------------
+# Set necessary environment variables
+#-----------------------------------------------------------------------
+
+export R_LIBS_USER='~/bin/Rlibs'
+
+cd "#PROJECTDIR#"
+
+setenv OMP_NUM_THREADS 1
+
+./call_run_MAAT.bs
+
+echo "`date` -- MAAT EXECUTION HAS FINISHED" 
