@@ -582,6 +582,18 @@ f_ri_constant <- function(., ... ) {
   .$pars$ri
 }
 
+f_ri_sphag_wf1998 <- function(.,W=.$state$fwdw_ratio){
+  # Flannagan & Williams 1998 internal resistance of Sphagnum
+  # W is water content ratio (fresh weight / dry weight)
+  # output in  m2s mol-1 
+  # restricts max fwdw is 17 as higher than this would extrapolate beyond the calibration range of the empirical function and all goes weird 
+  
+  if(W>17) W <- 17
+  1 / max( 1e-6 , (-0.195 + 0.1345*W - 0.02565*W^2 + 0.002276*W^3 - 0.00009842*W^4 + 0.000001677*W^5)  )
+}
+
+
+
 # leaf boundary layer
 # leaf boundary layer resistances are all assumed by the solver to be in h2o units  
 f_rb_constant <- function(., ... ) {
@@ -596,6 +608,39 @@ f_rb_constant <- function(., ... ) {
 #   ( .$env$lwind / .$pars$leaf_width )^-0.5 / .$pars$can_ttc
 # }
 
+
+f_rb_water_e2009 <- function(.){
+  # calculates rb in m2s mol-1 h20 
+  # where water level is below 0, returns zero resistance 
+  # assumes water level is in mm
+  
+  # calculates rb in s m-1
+  rb <- ((.$env$water_l-.$env$sphag_l)/1000) / (.$pars$co2_diff * (1 + .$pars$hco_co2_ratio * .$pars$hco_co2_diff_ratio) )   # both of these parameters are temp dependent    
+  if((.$env$water_l-.$env$sphag_l)>0) {
+    # convert to resistance m2s mol-1 h2o
+    #  (not sure h2o is correct for this diffusion through, but it converts to an atmospheric h2o transport equivalent relative to co2 so that it will work in the solver) 
+    rb / f_conv_ms_molm2s1(.) / 1.4
+  } else f_r_zero(.)  
+}
+
+
+
+### SPHAGNUM SPECIFIC FUNCTIONS
+################################
+
+f_fwdw_wl_lin <- function(.){
+  # Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
+  
+  if((.$env$water_l - .$env$sphag_l) > 0) .$pars$fwdw_wl_sat 
+  else .$pars$fwdw_wl_sat + .$pars$fwdw_wl_slope * -(.$env$water_l - .$env$sphag_l) 
+}
+
+f_fwdw_wl_exp <- function(.){
+  # Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
+  
+  if((.$env$water_l - .$env$sphag_l) > 0) exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a*0 )
+  else exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a * (-(.$env$water_l - .$env$sphag_l)/10) ) 
+}
 
 
 
