@@ -1,6 +1,0 @@
-#!/bin/bash
-
-PDIR=#PROJECTDIR#
-
-cd $PDIR
-Rscript run_MAAT.R "multic<-F" > 'out.txt'
