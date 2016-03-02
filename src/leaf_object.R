@@ -68,6 +68,8 @@ leaf_object <-
       .$state_pars$gstar   <- .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Ha=.$pars$Ha.gstar)) # this will probably not give the correct response to a change in atmospheric pressure
       .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax))
       .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax))
+      # for sphagnum model                                   
+      .$state$fwdw_ratio   <- get(.$fnames$fwdw_ratio)(.)
       # conductance/resistance terms
       # - if either of these functions become a function of co2 or assimilation they can be easily moved into the solver
       .$state_pars$rb      <- get(.$fnames$rb)(.)
@@ -84,6 +86,9 @@ leaf_object <-
       # run photosynthesis
       # assume infinite conductances to initialise solver
       .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
+      # there is a catch 22 with the calculation of cc, make the lower bound zero and it can screw up the solver
+      # remove the zero bound and at very low ca -gstar/cc can be lower than it should be making assimilation more negative than it should be
+#       if(.$state$ca < .$state_pars$gstar) .$fnames$gas_diff <- 'f_ficks_ci_bound0' else .$fnames$gas_diff <- 'f_ficks_ci' 
       # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
       .$state$A       <- get(.$fnames$solver)(.)      
       # assign the limitation state - assumes the minimum is the dominant limiting rate
@@ -206,6 +211,9 @@ leaf_object <-
       Kc      = numeric(0),   #  Pa
       Ko      = numeric(0),   # kPa
       gstar   = numeric(0),   #  Pa
+#       gb      = numeric(0), # mol m-2 s-1 
+#       gs      = numeric(0), # mol m-2 s-1 
+#       gi      = numeric(0), # mol m-2 s-1 
       rb      = numeric(0),   # m2s mol-1 
       rs      = numeric(0),   # m2s mol-1 
       ri      = numeric(0),   # m2s mol-1     

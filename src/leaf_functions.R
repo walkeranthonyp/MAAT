@@ -273,6 +273,11 @@ f_tpu_c1991 <- function(.) {
   .$state_pars$vcmax / 2 # or should this be temperature adjusted vcmax?
 }
 
+f_CAPSphag_wf1998 <- function(.) {
+  s <- -0.656 + 1.654 * log10(.$state$fwdw_ratio)  
+  if(s>1) 1 else s
+} 
+
 
 
 ### STOMATAL & RELATED CONDUCTANCE / RESISTANCE FUNCTIONS
@@ -285,6 +290,21 @@ f_conv_ms_molm2s1 <- function(.){
 
 f_r_zero <- function(.,...){
   0
+}
+
+# leaf boundary layer
+f_rb_water_e2009 <- function(.){
+  # calculates rb in s m-1, then converts to m2s mol-1
+  # where water level is below 0, returns zero resistance 
+  
+  # assumes water level is in mm
+  
+  rb <- ((.$env$water_l-.$env$sphag_l)/1000) / (.$pars$co2_diff * (1 + .$pars$hco_co2_ratio * .$pars$hco_co2_diff_ratio) )   # both of these parameters are temp dependent    
+  
+  if((.$env$water_l-.$env$sphag_l)>0) {
+    # convert to resistance m2s mol-1
+    rb / f_conv_ms_molm2s1(.)
+  } else f_r_zero(.)  
 }
 
 # stomata
@@ -317,6 +337,34 @@ f_rs_ball1987 <- function(.,A=.$state$A,c=.$state$cb){
 # internal/mesophyll
 f_ri_constant <- function(.,...){
   .$pars$ri
+}
+
+f_ri_sphag_wf1998 <- function(.,W=.$state$fwdw_ratio){
+  # Flannagan & Williams 1998 internal resistance of Sphagnum
+  # W is water content ratio (fresh weight / dry weight)
+  # output in  m2s mol-1 
+  # restricts max fwdw is 17 as higher than this would extrapolate beyond the calibration range of the empirical function and all goes weird 
+  
+  if(W>17) W <- 17
+  1 / max( 1e-6 , (-0.195 + 0.1345*W - 0.02565*W^2 + 0.002276*W^3 - 0.00009842*W^4 + 0.000001677*W^5)  )
+}
+
+
+
+### SPHAGNUM SPECIFIC FUNCTIONS
+################################
+f_fwdw_wl_lin <- function(.){
+  # Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
+  
+  if((.$env$water_l - .$env$sphag_l) > 0) .$pars$fwdw_wl_sat 
+  else .$pars$fwdw_wl_sat + .$pars$fwdw_wl_slope * -(.$env$water_l - .$env$sphag_l) 
+}
+
+f_fwdw_wl_exp <- function(.){
+  # Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
+  
+  if((.$env$water_l - .$env$sphag_l) > 0) exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a*0 )
+  else exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a * (-(.$env$water_l - .$env$sphag_l)/10) ) 
 }
 
 
