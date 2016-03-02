@@ -273,7 +273,7 @@ canopy_object <-
       leaf_cores = 1,
       G          = 0.5,        # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
       can_clump  = 1,          # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-      k_layer    = 0,          # used by some to determine light scaling, not the correvct solution to the simplifying assumpotion of Beer's law (Wang 2003) 
+      k_layer    = 0,          # used by some to determine light scaling, not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
       alb_soil   = 0.15,       # soil albedo
       leaf_reflectance = 0.075 # leaf reflectance
     )
@@ -308,7 +308,6 @@ canopy_object <-
       maat$vars$fnames   <- comb_init_list(lls=.$init_ls$lfv,cls=.$init_ls$cfv)
       maat$vars$pars     <- comb_init_list(lls=.$init_ls$lpv,cls=.$init_ls$cpv)
       maat$vars$env      <- comb_init_list(lls=.$init_ls$lev,cls=.$init_ls$cev)
-      
       
 #       # Static during runtime
 #       # add prefix to list names
