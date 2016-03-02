@@ -1019,6 +1019,69 @@ wrapper_object <-
       # list(df,p1)
     }    
 
+    # general factorial test with canopy object, with or without metdata
+    .test_can <- function(.,metd=T,mc=T,pr=4,verbose=F) {
+      
+      # source directory
+      source('canopy_object.R')
+      library(lattice)
+      
+      # clone the model object
+      .$model      <- as.proto(canopy_object$as.list(),parent=.)
+      .$model$leaf <- as.proto(leaf_object$as.list(),parent=.$model)      
+
+      # define parameters for the model
+      .$model$pars$verbose       <- verbose      
+      .$model$leaf$pars$cverbose <- verbose      
+      .$model$state$mass_a       <- 175
+      .$model$state$C_to_N       <- 40
+      
+      # define parameters for the wrapper
+      .$wpars$multic       <- mc  # multicore the ensemble
+      .$wpars$procs        <- pr  # number of cores to use if above is true
+      .$wpars$UQ           <- F   # run a UQ style ensemble, or if faslse a fully factorial ensemble 
+      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening 
+      
+      # define meteorological and environment dataset
+      metdata <- expand.grid(list(canopy.par_dir = 500,canopy.ca_conc = seq(10,1200,50)))      
+      if(metd) .$dataf$met <- metdata
+      
+      # Define the parameters and model functions that are to be varied 
+      .$vars$fnames <- list(
+        canopy.can_scale_light = c('f_canlight_beerslaw_wrong','f_canlight_beerslaw'),
+#         leaf.etrans            = c('f_j_farquhar1980','f_j_collatz1991')
+        leaf.rs                = c('f_rs_medlyn2011','f_r_zero')
+      )
+      
+      .$vars$env <- list(
+#         leaf.vpd  = c(1,2),
+        leaf.temp = c(5,20)
+      )
+#       .$vars$env <- NA
+      
+      .$vars$pars <- list(
+        canopy.lai = seq(2,6,2),
+        canopy.G   = seq(0.4,0.6,0.1)
+      )
+#       .$vars$pars <- NA
+      
+      # Run model
+      st <- system.time(
+        .$run()
+      )
+      print('',quote=F)
+      print('Run time:',quote=F)
+      print(st)
+      print('',quote=F)
+      
+      # process & record output
+      df <- .$output()
+      p1 <- xyplot(A~canopy.ca_conc|canopy.can_scale_light*leaf.rs,df,groups=canopy.lai,type='l',abline=5,auto.key=T)
+#       p1 <- xyplot(A~canopy.ca_conc|canopy.can_scale_light*leaf.temp,df,groups=leaf.rs,type='l',abline=5,auto.key=T)
+#       p1 <- xyplot(A~canopy.ca_conc|canopy.can_scale_light*leaf.temp,df,groups=leaf.etrans,type='l',abline=5,auto.key=T)
+      list(df,p1)
+    }
+      
     # test function for Ye method Sobol process sensitivity analysis
     .test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
       
@@ -1082,7 +1145,7 @@ wrapper_object <-
       .$dynamic$env <- list(
         leaf.ca_conc  = c(400,600)
       )
-      
+
       # Run model
       st <- system.time(
         .$run()
