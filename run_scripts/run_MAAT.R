@@ -56,7 +56,10 @@ multic  <- F
 procs   <- 4   
 
 # run a UQ style ensemble, or if -uq- is false a fully factorial ensemble 
-uq      <- F      
+uq      <- T      
+
+# ensemble number for a UQ style ensemble, not used if if -uq- is false 
+n       <- 10      
 
 # run options
 # model object to use, currently leaf or canopy
@@ -66,13 +69,16 @@ mod_obj <- 'leaf'
 metdata <- NULL 
 
 # initialisation data file name
-init    <- 'init_MAAT.R' 
+init    <- 'init_MAAT' 
 
-# output file name prefix
-of_pre  <- NULL 
+# run i.d. - used as suffix/prefix for in/out files
+runid   <- NULL 
 
-# output file name
+# basic output file name
 of_main <- 'out'
+
+# output file format
+of_format <- 'rds'
 
 
 
@@ -96,6 +102,9 @@ if(length(commandArgs(T))>=1) {
   }
 }
 
+print('',quote=F)
+print(paste('Run ID:',runid) ,quote=F)
+
 # set default values if not specified on command line
 # - these are set after parsing command line arguments as they depend on other arguments that could be set on the command line
 if(is.null(of_main)) of_main <- proj
@@ -107,6 +116,10 @@ odir   <- paste(odir1,date,sep='/')
 if(!file.exists(odir1)) dir.create(odir1)
 if(!file.exists(odir))  dir.create(odir)
 
+# create input/output filenames
+initf  <- if(is.null(runid)) paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
+ofname <- if(is.null(runid)) of_main else paste(runid,of_main,sep='_')
+
 
 
 ###################################################################
@@ -117,10 +130,6 @@ if(!file.exists(odir))  dir.create(odir)
 setwd(srcdir)
 source('wrapper_object.R')
 source(paste(mod_obj,'object.R',sep='_'))
-
-# load init file 
-setwd(pdir)
-source(init)
 
 
 
@@ -142,11 +151,12 @@ maat <- wrapper_object$.build(model=model)
 maat$wpars$multic       <- multic  
 maat$wpars$procs        <- procs   
 maat$wpars$UQ           <- uq       
+maat$wpars$n            <- n       
 maat$model$pars$verbose <- F
 
 # load init list 
 setwd(pdir)
-source(init)
+source(initf)
 
 # add init list to wrapper
 maat$init_ls <- init_ls
@@ -195,7 +205,7 @@ print(st,quote=F)
 # process & record output
 setwd(odir)
 df_out <- maat$output()
-write_to_file(df_out,paste(of_pre,of_main,sep=''))
+write_to_file(df_out,ofname,type=of_format)
 
 
 
