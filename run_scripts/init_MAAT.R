@@ -26,6 +26,7 @@
 
 # fnames.var
 # pars.var     
+# parsB.var - for process UQ     
 # env.var
 
 # This script must set the values of the above 6 lists, even if their value is NA
@@ -40,24 +41,27 @@
 # define lists
 leaf.fnames.static <- list(
   solver_func = 'f_A_r_leaf',
-  gstar       = 'f_temp_scalar_Arrhenius',
-  Kc          = 'f_temp_scalar_Arrhenius',
-  Ko          = 'f_temp_scalar_Arrhenius',
-  vcmax       = 'f_vcmax_lin',
+  gstar       = 'f_temp_scalar_no_response',
+  Kc          = 'f_temp_scalar_no_response',
+  Ko          = 'f_temp_scalar_no_response',
+  vcmax       = 'f_constant_vcmax',
   jmax        = 'f_jmax_walker2014',
-  vcmax_tcor  = 'f_temp_scalar_modArrhenius',
-  jmax_tcor   = 'f_temp_scalar_modArrhenius',
+  vcmax_tcor  = 'f_temp_scalar_no_response',
+  jmax_tcor   = 'f_temp_scalar_no_response',
   respiration = 'f_rd_collatz1991', 
+  ri          = 'f_r_zero',
   rs          = 'f_r_zero',
   rb          = 'f_r_zero'
-)
+  )
 
-leaf.pars.static <- NA
+leaf.pars.static <- list(
+  atref.vcmax  = 50
+  )
 
 leaf.env.static  <- list(
-  ca_conc = 400,
-  par     = 500
-)
+  par     = 1000,
+  temp    = 25
+  )
 
 
 
@@ -68,16 +72,19 @@ leaf.env.static  <- list(
 
 # define lists
 leaf.fnames.var <- list(
-  etrans = c('f_j_farquhar1980','f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991'),
-  ri     = c('f_r_zero','f_ri_constant')
+  etrans = c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991')
 )
 
 leaf.pars.var <- list(
-  avn_25 = rnorm(10,10,1)
+  e_ajv_25 = rnorm(n,1,0.02)
+)
+
+leaf.parsB.var <- list(
+  e_bjv_25 = rnorm(3*n^2,0.89,0.05)
 )
 
 leaf.env.var <- list(
-  temp = c(5,20)
+  ca_conc = c(280,400,600)
 )
 
 
@@ -86,12 +93,13 @@ leaf.env.var <- list(
 ###############################
 
 init_ls <- list(
-  lfs = leaf.fnames.static,
-  lps = leaf.pars.static,
-  les = leaf.env.static,
-  lfv = leaf.fnames.var,
-  lpv = leaf.pars.var,
-  lev = leaf.env.var
+  lfs  = leaf.fnames.static,
+  lps  = leaf.pars.static,
+  les  = leaf.env.static,
+  lfv  = leaf.fnames.var,
+  lpv  = leaf.pars.var,
+  lpBv = leaf.parsB.var,
+  lev  = leaf.env.var
 )
 
 
