@@ -3,4 +3,4 @@
 PDIR="#PROJECTDIR#"
 
 cd $PDIR
-Rscript run_MAAT.R "multic<-F" > "out.txt"
+Rscript run_MAAT.R "multic<-F" > "./logs/out.txt"

@@ -66,7 +66,7 @@ mod_obj <- 'leaf'
 metdata <- NULL 
 
 # initialisation data file name
-init    <- 'init_MAAT.R' 
+init    <- 'init_MAAT_PEcAn.R' 
 
 # output file name prefix
 of_pre  <- NULL 
