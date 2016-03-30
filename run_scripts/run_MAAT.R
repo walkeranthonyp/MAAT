@@ -40,7 +40,7 @@ rm(list=ls())
 # source directory (full path) 
 # - must be added (here or as a commandline option to this script) before model will run
 # - can be modified to target source copied to a static directory rather that a reposiotory with version control 
-srcdir  <- NULL 
+srcdir  <- "#SOURCEDIR#" 
 # project directory (full path)
 pdir    <- "#PROJECTDIR#"
 # meteorological data directory (full path)
