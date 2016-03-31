@@ -34,7 +34,11 @@ wrapper_object <-
       maat
     }
     
-    
+    # clean function to reset object
+    clean <- function(.) {
+      for(d in 1:length(.$dataf)) if(!is.null(.$dataf[[d]])) .$dataf[[d]] <- NA
+      gc()
+    }
     
     ###########################################################################
     # Main run function
@@ -56,15 +60,17 @@ wrapper_object <-
       
       # create UQ dataframe  
       # expand the fnames and driving variables  
-      .$dataf$fnames <- if(!is.na(.$vars$fnames[1])) expand.grid(.$vars$fnames,stringsAsFactors=F) else NULL
-      .$dataf$env    <- if(!is.na(.$vars$env[1]))    expand.grid(.$vars$env,stringsAsFactors=F)    else NULL
+      .$dataf$fnames  <- if(!is.na(.$vars$fnames[1])) expand.grid(.$vars$fnames,stringsAsFactors=F) else NULL
+      .$dataf$env     <- if(!is.na(.$vars$env[1]))    expand.grid(.$vars$env,stringsAsFactors=F   ) else NULL
       # bind the parameter vectors OR expand pre-determined parameter vectors 
       # - this could be modified to allow a distribution function to be specifed
       if(.$wpars$UQ) { 
-        # yet to solve is how to fix parameters to a relevant function (not sure that would be necessary)
-        .$dataf$pars <- if(!is.na(.$vars$pars[1]))   as.data.frame(do.call(cbind,.$vars$pars))     else NULL
+        # yet to solve is how to fix parameters to a relevant function (not 100% necessary, especially for MC runs). However the ATS does this in a rigorous way allowing dynamic object construction. 
+        .$dataf$pars  <- if(!is.na(.$vars$pars[1]))   as.data.frame(do.call(cbind,.$vars$pars ))   else stop
+        .$dataf$parsB <- if(!is.na(.$vars$parsB[1]))  as.data.frame(do.call(cbind,.$vars$parsB))   else stop
+        if(.$wpars$sobol) .$dataf$pars  <- cbind(.$dataf$pars,.$dataf$parsB)
       } else {
-        .$dataf$pars <- if(!is.na(.$vars$pars[1]))   expand.grid(.$vars$pars,stringsAsFactors=F)   else NULL
+        .$dataf$pars  <- if(!is.na(.$vars$pars[1]))   expand.grid(.$vars$pars,stringsAsFactors=F)  else NULL
       } 
       
       # add an extra column to the dataframes if they have only one column
@@ -76,18 +82,60 @@ wrapper_object <-
       
       # calculate dataframe lengths, if no dataframe return 1
       # - used to set the number of iterations in the run functions  
-      .$dataf$lf <- ( if(is.null(.$dataf$fnames)|(sum(dim(.$dataf$fnames)==0)==2)) 1 else length(.$dataf$fnames[,1]) )
-      .$dataf$lp <- ( if(is.null(.$dataf$pars)|(sum(dim(.$dataf$pars)==0)==2)    ) 1 else length(.$dataf$pars[,1])   )
-      .$dataf$le <- ( if(is.null(.$dataf$env)|(sum(dim(.$dataf$env)==0)==2)      ) 1 else length(.$dataf$env[,1])    )
-      .$dataf$lm <- ( if(is.null(.$dataf$met)|(sum(dim(.$dataf$met)==0)==2)      ) 1 else length(.$dataf$met[,1])    )
+      # - parameter lengths 
+      .$dataf$lf <- if(is.null(.$dataf$fnames)|(sum(dim(.$dataf$fnames)==0)==2)) 1 else length(.$dataf$fnames[,1]) 
+      .$dataf$le <- if(is.null(.$dataf$env)|(sum(dim(.$dataf$env)==0)==2)      ) 1 else length(.$dataf$env[,1])    
+      .$dataf$lm <- if(is.null(.$dataf$met)|(sum(dim(.$dataf$met)==0)==2)      ) 1 else length(.$dataf$met[,1])    
+      if(.$wpars$UQ&!.$wpars$sobol) { .$dataf$lp <- .$wpars$n ; .$dataf$lpB <- .$wpars$n^2 } 
+      else                            .$dataf$lp <- ( if( is.null(.$dataf$pars)|(sum(dim(.$dataf$pars)==0)==2) ) 1 else length(.$dataf$pars[,1])   )
       
       # output summary of maat setup
       .$print_data()
       
       # run model
       .$print_run()
-      .$dataf$out <- if(.$wpars$multic) as.data.frame(do.call(rbind,mclapply(1:.$dataf$lf,.$runf,mc.cores=.$wpars$procs)))
-                     else               as.data.frame(do.call(rbind,  lapply(1:.$dataf$lf,.$runf)))
+      
+#       .$dataf$out <-
+#         # multicore or not
+#         if(.$wpars$multic) {
+#           # UQ run or not
+#           if(.$wpars$UQ&!.$wpars$sobol) as.data.frame(do.call(rbind,mclapply(1:.$dataf$lp,.$run_parA,mc.cores=.$wpars$procs)))
+#           else                          as.data.frame(do.call(rbind,mclapply(1:.$dataf$lf,.$runf,    mc.cores=.$wpars$procs)))
+#         } else {
+#           # UQ run or not
+#           if(.$wpars$UQ&!.$wpars$sobol) as.data.frame(do.call(rbind,  lapply(1:.$dataf$lp,.$run_parA)))
+#           else                          as.data.frame(do.call(rbind,  lapply(1:.$dataf$lf,.$runf)))
+#         }
+
+      .$dataf$out <-
+        as.data.frame(
+          do.call(
+            rbind, {
+              # multicore or not
+              if(.$wpars$multic) {
+                # UQ run or not
+                if(.$wpars$UQ&!.$wpars$sobol) mclapply(1:.$dataf$lp,.$run_parA,mc.cores=.$wpars$procs)
+                else                          mclapply(1:.$dataf$lf,.$runf,    mc.cores=.$wpars$procs)
+              } else {
+                # UQ run or not
+                if(.$wpars$UQ&!.$wpars$sobol)   lapply(1:.$dataf$lp,.$run_parA)
+                else                            lapply(1:.$dataf$lf,.$runf)
+              }
+            }
+        ))
+      
+      # if Sobol analysis run saltellis output from parameter matrices ABi
+      # output from parameter matrices A & B already generated by the above function
+        if(.$wpars$sobol) {
+          print('Saltelli matrix AB completed',quote=F)
+          print('',quote=F)      
+          .$dataf$out_saltelli <-
+            if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs)
+            else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
+          print('Saltelli array Abi completed',quote=F)
+          print('',quote=F)      
+        } else NA             
+      
       print("output ::",quote=F)
       print(paste('length :',length(.$dataf$out[,1])))
       print(head(.$dataf$out),quote=F)
@@ -114,7 +162,14 @@ wrapper_object <-
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
       # call next run function
-      data.frame(do.call(rbind,lapply(1:.$dataf$lp,.$runp)))      
+#       data.frame(do.call(rbind,lapply(1:.$dataf$lp,.$runp)))
+      data.frame(
+        do.call(
+          rbind, {
+            if(.$wpars$multic) mclapply(1:.$dataf$lp,.$runp,mc.cores=floor(.$wpars$procs/.$dataf$lf))
+            else                 lapply(1:.$dataf$lp,.$runp)
+          }
+      ))
     }
     
     runp <- function(.,j) {
@@ -145,6 +200,160 @@ wrapper_object <-
       }  
     }
     
+    # Sobol al la Saltelli
+    #################################
+    
+#     # Step 2 described in the WORD file to generate random parameter samples
+#     # Initialise vectors
+#     # Generate random parameter samples
+#     X  <- rnorm(2*N) 
+#     Y  <- rnorm(2*N)
+#     # combine into a single matrix
+#     pm <- cbind(X,Y)
+#     
+#     # generate function output vector & matrix
+#     g  <- numeric(2*N) # this is the output vector from the two parameter matrices A & B
+#     gp <- matrix(0,N,k) # where k is the number of parameters i.e. the same dims as matrices A, B, & AB
+#     
+#     for (i in 1:2*N ) {    
+#       # Step 3 described in the WORD file to execute the model using the parameter samples
+#       # Calculate model output g using parameters in row i
+#       g[i] <- func(pm[i,])
+#       
+#       # Step 4 described in the WORD file to execute the model using the replaced parameter samples
+#       if (i > N) {
+#         # Caculate model output g using replaced parameters 
+#         for(p in 1:k) { 
+#           sub       <- rep(i-N,k)
+#           sub[p]    <- i
+#           smat      <- cbind(sub,1:k)
+#           gp[i-N,k] <- func(pm[smat])
+#         }
+#       }
+#     }
+#     
+#     list(g,gp)
+
+    runf_saltelli <- function(.,i) {
+      # This wrapper function is called from an lapply or mclappy function to run this model over every row of a dataframe
+      # assumes that each row of the dataframe are independent and non-sequential
+      
+      # configure function names in the model
+      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[i,]),F)
+      if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
+      
+      # call next run function
+      if(.$wpars$multic) mclapply(1:.$dataf$le,.$rune_saltelli,mc.cores=floor(.$wpars$procs/.$dataf$lf))
+      else                 lapply(1:.$dataf$le,.$rune_saltelli)
+    }
+
+    rune_saltelli <- function(.,k) {
+      # This wrapper function is called from an lapply or mclappy function to run this model over every row of a dataframe
+      # assumes that each row of the dataframe are independent and non-sequential
+      
+      # configure environment in the model
+      if(!is.null(.$dataf$env)) .$model$configure(func='write_env',df=.$dataf$env[k,],F)
+      if(.$wpars$cverbose) .$printc('env',.$dataf$env[k,])
+      
+      # call parameter matrix run function
+      if(is.null(.$dataf$met)){
+        omatl <- lapply(1:dim(.$dataf$pars)[2],.$runpmat_saltelli)
+        # convert to 3 dim array
+        array( unlist(omatl) , c(dim(omatl[[1]]),length(omatl)) )
+      } else {
+        print('Met data run not yet supported with Sobol',quote=F)
+        stop
+      }  
+    }
+    
+    runpmat_saltelli <- function(.,p) {
+      # returns a numeric matrix
+      do.call(rbind,lapply((.$wpars$n+1):.$dataf$lp,.$runp_saltelli,pk=p))      
+    }
+    
+    runp_saltelli <- function(.,j,pk) {
+      # This wrapper function is called from an lapply or mclappy function to run this model over every row of a dataframe
+      # assumes that each row of the dataframe are independent and non-sequential
+      
+      # create index matrix to create row on matrix ABi for the .$dataf$par matrix (which is matrix A stacked on top of matrix B)
+      sub     <- rep(j-.$wpars$n,dim(.$dataf$pars)[2])
+      sub[pk] <- j
+      smat    <- cbind(sub,1:dim(.$dataf$pars)[2])      
+      
+      # create a dataframe from vector and add names
+      psdf        <- data.frame(t(.$dataf$pars[smat]))
+      names(psdf) <- names(.$dataf$pars)
+      
+      # configure parameters in the model
+      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=psdf,F)
+      if(.$wpars$cverbose) .$printc('pars',psdf)
+      
+#       # call environment run function
+#       data.frame(do.call(rbind,lapply(1:.$dataf$le,.$rune)))      
+
+#       print('par here')
+      
+      # run model
+      # - this requires a numeric vector for the output
+      # - warnings are suppressed because character strings are converted to NAs which comes with a warning   
+      suppressWarnings(as.numeric( .$model$run() ))        
+    }
+    
+    
+    
+    ###########################################################################
+    # nested run functions for Process Sensitivity Analysis after Ye etal 201? - 2 process case 
+    
+    # This case will be specific to the core enzyme kinetic model of 6 equations and a solver as described in the documentation
+    # In reality the two processes are the overall model vs electron transport models (including the Jmax~Vcmax relationship)
+
+    # The Ye method is a nested system of loops, two loops for each process
+    # - the first loop over each process representation of process A, the second the parameter sampling loop common to MC methods
+    # - for this test case process A is the overall model, process B the electron transport model
+    # - therefore the initial loop for process A consists of a single iteration so is not needed as a loop - function names will be set during init 
+    
+    # below is the loop structure:
+    # Loop 1: parameter loop for process A             - use standard location for variable parameter values
+    # Loop 2: process representation loop for proces B - use standard location for variable function values
+    # Loop 3: parameter loop for proces B              - use an additrional non-standard location for variable parameter values
+    
+    run_parA <- function(.,h) {
+      # This wrapper function is called from an lapply or mclappy function to run this model over every row of a dataframe
+      # assumes that each row of the dataframe are independent and non-sequential
+      
+      # configure parameters in the model
+      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=data.frame(.$dataf$pars[h,]),F)
+      if(.$wpars$cverbose) .$printc('pars',.$dataf$pars[h,])
+      
+      # call process B process representation run function
+      data.frame(do.call(rbind,lapply(1:.$dataf$lf,.$run_repB,offset=h)))      
+    }
+
+    run_repB <- function(.,i,offset) {
+      # This wrapper function is called from an lapply or mclappy function to run this model over every row of a dataframe
+      # assumes that each row of the dataframe are independent and non-sequential
+      
+      # configure function names in the model
+      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[i,]),F)
+      if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
+      
+      # call process B parameter run function
+      os <- 3*.$wpars$n*(offset - 1) + .$wpars$n*(i-1)     
+      data.frame(do.call(rbind,lapply((os+1):(os+.$wpars$n),.$run_parB)))      
+    }
+    
+    run_parB <- function(.,j) {
+      # This wrapper function is called from an lapply or mclappy function to run this model over every row of a dataframe
+      # assumes that each row of the dataframe are independent and non-sequential
+      
+      # configure parameters in the model
+      if(!is.null(.$dataf$parsB)) .$model$configure(func='write_pars',df=data.frame(.$dataf$parsB[j,]),F)
+      if(.$wpars$cverbose) .$printc('pars',.$dataf$parsB[j,])
+      
+      # call the environment run function to loop over CO2 values
+      data.frame(do.call(rbind,lapply(1:.$dataf$le,.$rune)))
+    }
+        
     
     
     ###########################################################################
@@ -169,27 +378,37 @@ wrapper_object <-
     vars <- list( 
       fnames = NA,
       pars   = NA,
+      parsB  = NA,
       env    = NA
     )
     
     # input/output data frames
-    # all expected to be of class 'dataframe'
-    dataf  <- list( # currently dataframes but could be matrices
+    # currently dataframes with an associated length
+    dataf  <- list( 
       fnames = NULL,
+      lf     = NULL,
       pars   = NULL,
+      lp     = NULL,
+      parsB  = NULL,
+      lpB    = NULL,
       env    = NULL,
-      met    = NULL, # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example 
-      obs    = NULL, # a dataframe of observations against which to valiadate/ calculate likelihood of model
-      obsse  = NULL, # a dataframe of observation errors for the obs data, must exactly match the above dataframe
-      out    = NULL  # output dataframe
+      le     = NULL,
+      met    = NULL,          # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example 
+      lm     = NULL,
+      obs    = NULL,          # a dataframe of observations against which to valiadate/ calculate likelihood of model
+      obsse  = NULL,          # a dataframe of observation errors for the obs data, must exactly match the above dataframe
+      out    = NULL,          # output dataframe
+      out_saltelli = NULL     # saltelli output list 
     )
     
     # parameters specific to the wrapper object
     wpars <- list(
-      multic   = F,  # multicore the simulation
-      procs    = 6,  # number of processors to use if multic = T
-      cverbose = F,  # write configuration output during runtime 
-      UQ       = F,  # run a UQ analysis
+      multic   = F,           # multicore the simulation
+      procs    = 6,           # number of processors to use if multic = T
+      cverbose = F,           # write configuration output during runtime 
+      UQ       = F,           # run a UQ analysis
+      n        = numeric(1),  # emsemble number in parameteric UQ
+      sobol    = F,           # run a Sobol parameter sensitivity analysis
       unit_testing = F
     )
     
@@ -199,21 +418,47 @@ wrapper_object <-
     # Output processing functions
     
     combine <- function(.,i,df) suppressWarnings(data.frame(.$dataf$met,df[i,]))
-        
+    
     output  <- function(.){
       # function that combines the "vars", "met", and "out" dataframes correctly for output 
       return(
         # if vars
         if(is.null(.$dataf$env)+is.null(.$dataf$pars)+is.null(.$dataf$fnames) < 3) {
-          vpars <- if(is.null(.$dataf$pars))  NULL  else if(.$wpars$UQ) .$vars$pars[1] else .$vars$pars
-          if(is.null(.$dataf$env))    .$vars$env    <- NULL
-          if(is.null(.$dataf$fnames)) .$vars$fnames <- NULL
-             
-          vardf <- expand.grid(c(.$vars$env,vpars,.$vars$fnames),stringsAsFactors=F)        
+#           vpars <- if(is.null(.$dataf$pars))  NULL  else if(.$wpars$UQ) .$vars$pars[1] else .$vars$pars
+          vpars   <- if(is.null(.$dataf$pars))   NULL  else .$vars$pars[[1]]
+          venv    <- if(is.null(.$dataf$env))    NULL  else .$vars$env
+          vfnames <- if(is.null(.$dataf$fnames)) NULL  else .$vars$fnames
+#           vparsB  <- if(.$wpars$UQ) .$vars$parsB[[1]]  else NULL
+          
+          if(.$wpars$UQ&!.$wpars$sobol) {
+            vpars   <- matrix(unlist(.$vars$pars),.$wpars$n) 
+            vparsB  <- matrix(unlist(.$vars$parsB),.$dataf$lf*.$wpars$n^2)  
+            vardf   <- suppressWarnings(cbind( 
+              apply(vpars,2,function(v) rep(v,each=.$dataf$le*3*.$wpars$n) ),
+              rep(rep(unlist(vfnames),each=.$dataf$le*.$wpars$n),.$wpars$n) ,
+              apply(vparsB,2,function(v) rep(v,each=.$dataf$le) ),
+              rep(unlist(venv),.$dataf$le*.$wpars$n^2) 
+            ))
+            vardf        <- as.data.frame(vardf)
+            names(vardf) <- c(names(.$vars$pars),names(vfnames),names(.$vars$parsB),names(venv))
+          
+          } else if(.$wpars$sobol) { 
+            vpars   <- .$dataf$pars
+            vpars   <- as.data.frame(apply(vpars,2,function(v) rep(v,each=.$dataf$le) ))
+            vardf   <- suppressWarnings(cbind( 
+              rep(unlist(vfnames),each=.$dataf$le*2*.$wpars$n),
+              vpars,
+              unlist(venv) 
+            ))
+            vardf        <- as.data.frame(vardf)
+            names(vardf) <- c(names(vfnames),names(.$dataf$pars),names(venv))
+            
+          } else 
+            vardf <- expand.grid(c(venv,vpars,vfnames),stringsAsFactors=F)        
           
           # if no met data
           if(is.null(.$dataf$met)) {
-            cbind(vardf,.$dataf$out)
+            suppressWarnings(cbind(vardf,.$dataf$out))
 
           # if met data
           } else  {
@@ -232,17 +477,50 @@ wrapper_object <-
       )
     }
     
-    print_data <- function(.){
+    output_saltelli <- function(.) {
+      # creates output for a saltelli Sobol sensitivity analysis 
+      # A and B matrices are stacked in a single matrix, which for each model and environment combination are then stored in an array 
+
+      # AB output is an array
+      # - dim 1 (rows)   model combination
+      # - dim 2 (cols)   environment combination
+      # - dim 3 (slices) sample
+      # - dim 4          output variable
+      
+      # ABi output is a nested list
+      # - list 1 model combination
+      # - list 2 environment combination
+      # - list 2 is composed of 3 dimesional output arrays 
+      #    - dim 1 (rows)   sample
+      #    - dim 2 (cols)   output variable
+      #    - dim 3 (slices) parameter that has used value from matrix B while all other par values are from matrix A
+      
+      # create AB output matrix array
+      # - suppressWarnings on the as.numeric call as there can be character strings in .$dataf$out which cause warnings when converted to NAs
+      ab_mat_out  <- array(suppressWarnings(as.numeric(unlist(.$dataf$out))),c(.$dataf$le,2*.$wpars$n,.$dataf$lf,length(.$dataf$out)))
+      tab_mat_out <- aperm(ab_mat_out,c(3,1,2,4))
+      
+#       list(maat_out=.$output(),AB=tab_mat_out,ABi=.$dataf$out_saltelli)
+      list(AB=tab_mat_out,ABi=.$dataf$out_saltelli)
+    }
+    
+    print_data <- function(.) {
       print('',quote=F)
       print("MAAT :: summary of data",quote=F)
       print('',quote=F)
-      if(is.null(.$dataf$met)) {
-        print(paste('ensemble number:',.$dataf$lf*.$dataf$lp*.$dataf$le*.$dataf$lm),quote=F)        
-      } else {
-        print(paste('ensemble number:',.$dataf$lf*.$dataf$lp*.$dataf$le),quote=F)        
+
+      ens_n <- 
+        if(.$wpars$UQ) {
+          if(.$wpars$sobol) .$dataf$lf*.$wpars$n*(2+dim(.$dataf$pars)[2])*.$dataf$le
+          else              .$dataf$lf*.$wpars$n^2*.$dataf$le
+        } else .$dataf$lf*.$dataf$lp *.$dataf$le
+      
+      print(paste('ensemble number:',ens_n),quote=F)
+      if(!is.null(.$dataf$met)) {
         print(paste('timesteps in met data:',.$dataf$lm),quote=F)                
-        print(paste('total number of timesteps:',.$dataf$lf*.$dataf$lp*.$dataf$le*.$dataf$lm),quote=F)                
+        print(paste('total number of timesteps:',ens_n*.$dataf$lm),quote=F)                
       }
+      
       print('',quote=F)
       print('',quote=F)
       print("fnames ::",quote=F)

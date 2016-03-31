@@ -308,16 +308,23 @@ leaf_object <-
       maat$vars$fnames   <- comb_init_list(lls=.$init_ls$lfv)
       maat$vars$pars     <- comb_init_list(lls=.$init_ls$lpv)
       maat$vars$env      <- comb_init_list(lls=.$init_ls$lev)
+      
+      if(maat$wpars$UQ) maat$vars$parsB <- comb_init_list(lls=.$init_ls$lpBv)
     }
     
     configure <- function(.,func,df,o=T){
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
       
+#       print(func)
+#       print(df)
+      
       # name and assign the UQ variables
       uqvars     <- names(df)
       prefix     <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
       lapply(uqvars[which(prefix=='leaf')], func, .=., df=df)
+
+#       print(func)
       
       if(.$pars$cverbose&o) {
         print('',quote=F)

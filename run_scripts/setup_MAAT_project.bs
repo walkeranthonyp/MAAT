@@ -12,6 +12,7 @@ cp    ./qsubmit_MAAT.pbs  $PDIR
 cp    ./call_run_MAAT.bs  $PDIR
 cp    ./run_MAAT.R        $PDIR
 cp    ./init_MAAT.R       $PDIR
+cp    ./analysis_MAAT.R   $PDIR
 
 sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT.pbs
 sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs

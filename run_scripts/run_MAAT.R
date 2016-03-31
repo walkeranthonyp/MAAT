@@ -59,7 +59,16 @@ procs   <- 4
 uq      <- T      
 
 # ensemble number for a UQ style ensemble, not used if if -uq- is false 
-n       <- 10      
+psa_n   <- 10      
+
+# run a Saltelli Sobol ensemble, run in addition to process sensitivity ensemble if -uq- is true, not used if if -uq- is false 
+sobol   <- T      
+
+# run only the sobol mc
+sobol_only  <- F
+
+# multiplier on process ensemble n for Sobol ensemble n
+sobol_nmult <- 100      
 
 # run options
 # model object to use, currently leaf or canopy
@@ -117,8 +126,9 @@ if(!file.exists(odir1)) dir.create(odir1)
 if(!file.exists(odir))  dir.create(odir)
 
 # create input/output filenames
-initf  <- if(is.null(runid)) paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
-ofname <- if(is.null(runid)) of_main else paste(runid,of_main,sep='_')
+initf   <- if(is.null(runid)) paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
+ofname  <- if(is.null(runid)) of_main else paste(runid,of_main,sep='_')
+sofname <- if(is.null(runid)) of_main else paste(runid,of_main,'sobol',sep='_')
 
 
 
@@ -151,8 +161,12 @@ maat <- wrapper_object$.build(model=model)
 maat$wpars$multic       <- multic  
 maat$wpars$procs        <- procs   
 maat$wpars$UQ           <- uq       
-maat$wpars$n            <- n       
+maat$wpars$n            <- psa_n       
 maat$model$pars$verbose <- F
+
+# define number first and second loop parameter samples
+n  <- psa_n
+nB <- 3*psa_n^2
 
 # load init list 
 setwd(pdir)
@@ -191,22 +205,63 @@ if(kill) stop
 ##################################
 ###  Run MAAT
 
-maat$model$pars$verbose  <- F
+if(!sobol_only) {
+  maat$model$pars$verbose  <- F
+  
+  st <- system.time(
+    maat$run()
+  )
+  print('',quote=F)
+  print('MAAT runtime:',quote=F)
+  print(st,quote=F)
+  
+  # process & record output
+  setwd(odir)
+  df_out <- maat$output()
+  write_to_file(df_out,ofname,type=of_format)  
+  
+  # delete memory hungry dataframes etc
+  rm(df_out)
+  maat$clean()
+  gc()
+  
+}
 
-st <- system.time(
-  maat$run()
-)
-print('',quote=F)
-print('MAAT runtime:',quote=F)
-print(st,quote=F)
 
 
+##################################
+### run Saltelli algorithm for Sobol analysis if requested
 
-# process & record output
-setwd(odir)
-df_out <- maat$output()
-write_to_file(df_out,ofname,type=of_format)
-
-
+if(sobol) {
+  
+  # reconfigure ensemble parameters
+  maat$wpars$sobol <- sobol
+  maat$wpars$n     <- psa_n * sobol_nmult
+  n <- nB          <- 2 * psa_n * sobol_nmult
+  
+  # reconfigure parameter samples 
+  setwd(pdir)
+  source(initf)
+  
+  # add reconfigured init list to wrapper
+  maat$init_ls <- init_ls
+  
+  # run reconfigured MAAT
+  print('',quote=F)
+  print('',quote=F)
+  print('Run Sobol',quote=F)
+  st <- system.time(
+    maat$run()
+  )
+  print('',quote=F)
+  print('MAAT Sobol runtime:',quote=F)
+  print(st,quote=F)
+  
+  # write output
+  sobol_out <- maat$output_saltelli()
+  setwd(odir)
+  write_to_file(sobol_out,sofname,type=of_format)
+  
+}
 
 

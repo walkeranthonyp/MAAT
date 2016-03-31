@@ -1,7 +1,10 @@
 #!/bin/bash
 
 PDIR="#PROJECTDIR#"
+RUNID="#USERDEFINED#"
+
 YMD=`date +%Y-%m-%d`
 
-cd    $PDIR
-Rscript run_MAAT.R "multic<-F" > "./logs/${YMD}out.txt"
+cd $PDIR
+Rscript run_MAAT.R "runid<-'${RUNID}'" "multic<-F" > "./logs/${YMD}_${RUNID}_runlog.txt"
+
