@@ -118,9 +118,9 @@ setwd(srcdir)
 source('wrapper_object.R')
 source(paste(mod_obj,'object.R',sep='_'))
 
-# load init file 
-setwd(pdir)
-source(init)
+# # load init file 
+# setwd(pdir)
+# source(init)
 
 
 
@@ -133,7 +133,7 @@ model <- get(paste(mod_obj,'object',sep='_'))$.build()
 
 
 ##################################
-# Configure and initialise the MAAT wrapper
+# Configure the MAAT wrapper
 
 # build and clone the maat wrapper object
 maat <- wrapper_object$.build(model=model)
@@ -144,12 +144,42 @@ maat$wpars$procs        <- procs
 maat$wpars$UQ           <- uq       
 maat$model$pars$verbose <- F
 
-# load init list 
+
+
+##################################
+# Initialise the MAAT wrapper
+
+# load init xml's & list 
 setwd(pdir)
-source(init)
+# if(xml) {
+
+# read default
+init_default <- readXML('leaf_default.xml')
+
+# read user defined values of static variables
+if(file.exists('leaf_user_static.xml')) {
+  init_user    <- readXML('leaf_user_static.xml')
+  init_static  <- fuselists(init_default,init_user)
+  init_static  <- evalXMLlist(init_static)
+} else init_static <- init_default
+
+# write static parameters used in simulation
+listtoXML('setup_static.xml','static', sublist=init_static)
+
+# read user defined values of dynamic variables
+if(file.exists('leaf_user_dynamic.xml')) {
+  init_dynamic <- readXML('leaf_user_dynamic.xml')
+  init_dynamic <- evalXMLlist(init_dynamic)
+} else init_dynamic <- list(leaf = list(fnames=NA,pars=NA,env=NA))
+
+# otherwise read init list R script (this has not yet been modified to conform with the new init xml/list structure)
+# } else source(init)
 
 # add init list to wrapper
-maat$init_ls <- init_ls
+# maat$init_ls <- init_ls
+maat$init_static  <- init_static
+maat$init_dynamic <- init_dynamic
+
 
 
 ##################################

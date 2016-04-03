@@ -150,8 +150,10 @@ wrapper_object <-
     ###########################################################################
     # variables that are to be varied in the SA/UQ
     
-    # initialisation list
-    init_ls <- NA
+    # initialisation lists
+#     init_ls <- NA
+    init_static  <- NA
+    init_dynamic <- NA
     
     # static variables
     # all expected to be of class 'list'

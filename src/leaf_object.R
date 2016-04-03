@@ -296,18 +296,28 @@ leaf_object <-
       # expects to be housed within the wrapper object, and for the wrapper object to be named maat 
       
       comb_init_list <- function(.,lls) {
-        nas <- sum(is.na(lls))
-        if(nas>1) stop else if(nas==0) names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
-        if(nas==0) lls else NA
+        if(sum(is.na(lls))==length(lls)) NA
+        else {
+          names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
+          lls
+        }
       }
             
-      maat$static$fnames <- comb_init_list(lls=.$init_ls$lfs)
-      maat$static$pars   <- comb_init_list(lls=.$init_ls$lps)
-      maat$static$env    <- comb_init_list(lls=.$init_ls$les)
+#       maat$static$fnames <- comb_init_list(lls=.$init_ls$lfs)
+#       maat$static$pars   <- comb_init_list(lls=.$init_ls$lps)
+#       maat$static$env    <- comb_init_list(lls=.$init_ls$les)
+#       
+#       maat$vars$fnames   <- comb_init_list(lls=.$init_ls$lfv)
+#       maat$vars$pars     <- comb_init_list(lls=.$init_ls$lpv)
+#       maat$vars$env      <- comb_init_list(lls=.$init_ls$lev)
+    
+      maat$static$fnames <- comb_init_list(lls=.$init_static$leaf$fnames)
+      maat$static$pars   <- comb_init_list(lls=.$init_static$leaf$pars)
+      maat$static$env    <- comb_init_list(lls=.$init_static$leaf$env)
       
-      maat$vars$fnames   <- comb_init_list(lls=.$init_ls$lfv)
-      maat$vars$pars     <- comb_init_list(lls=.$init_ls$lpv)
-      maat$vars$env      <- comb_init_list(lls=.$init_ls$lev)
+      maat$vars$fnames   <- comb_init_list(lls=.$init_dynamic$leaf$fnames)
+      maat$vars$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
+      maat$vars$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
     }
     
     configure <- function(.,func,df,o=T){

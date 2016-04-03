@@ -28,16 +28,18 @@ cp    $run_scripts/run_MAAT.R        $PDIR && chmod 755 ${PDIR}/run_MAAT.R
 ##cp    ./init_MAAT.R       $PDIR
 cp    $run_scripts/init_MAAT_PEcAn.R $PDIR && chmod 755 ${PDIR}/init_MAAT_PEcAn.R
 #cp    ./init_MAAT_PEcAn.R $PDIR
+cp    $source/leaf_default.xml       $PDIR && chmod 755 ${PDIR}/leaf_default.xml
+cp    $source/leaf_user_static.xml   $PDIR && chmod 755 ${PDIR}/leaf_user_static.xml
 
 # if else
 if [[ $OSTYPE == darwin* ]]; then
    sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT.pbs
    sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs
    sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
-   sed -i '' "s@#SOURCEDIR#@$source@"  ${PDIR}/run_MAAT.R
+   sed -i '' "s@#SOURCEDIR#@$source@" ${PDIR}/run_MAAT.R
 else
-   sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
-   sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT.pbs
-   sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs
-   sed -i "s@#SOURCEDIR#@$source@"  ${PDIR}/run_MAAT.R
+   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
+   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT.pbs
+   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs
+   sed -i    "s@#SOURCEDIR#@$source@" ${PDIR}/run_MAAT.R
 fi
