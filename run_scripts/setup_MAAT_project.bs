@@ -4,42 +4,43 @@
 # takes the full path of the project directory as an argument
 
 PDIR=$1
-run_scripts=$PWD/run_scripts
-source=$PWD/src/
+#run_scripts=$PWD/run_scripts
+run_scripts=${2-$PWD/run_scripts}
+#source=$PWD/src/
+src=${3-$PWD/src}
 
 echo " "
 echo "Run directory: "
 echo $PDIR
 echo " "
 echo " "
+echo "Run scripts directory:"
+echo $run_scripts
+echo " "
+echo " "
 echo "Source directory: "
-echo $source
+echo $src
 echo " "
 
 mkdir $PDIR
 mkdir $PDIR/logs
 
 cp    $run_scripts/qsubmit_MAAT.pbs  $PDIR && chmod 755 ${PDIR}/qsubmit_MAAT.pbs
-#cp    $run_scripts/qsubmit_MAAT.pbs  $PDIR
 cp    $run_scripts/call_run_MAAT.bs  $PDIR && chmod 755 ${PDIR}/call_run_MAAT.bs
-#cp    ./call_run_MAAT.bs  $PDIR
 cp    $run_scripts/run_MAAT.R        $PDIR && chmod 755 ${PDIR}/run_MAAT.R
-#cp    ./run_MAAT.R        $PDIR
-##cp    ./init_MAAT.R       $PDIR
 cp    $run_scripts/init_MAAT_PEcAn.R $PDIR && chmod 755 ${PDIR}/init_MAAT_PEcAn.R
-#cp    ./init_MAAT_PEcAn.R $PDIR
-cp    $source/leaf_default.xml       $PDIR && chmod 755 ${PDIR}/leaf_default.xml
-cp    $source/leaf_user_static.xml   $PDIR && chmod 755 ${PDIR}/leaf_user_static.xml
+cp    $src/leaf_default.xml       $PDIR && chmod 755 ${PDIR}/leaf_default.xml
+cp    $src/leaf_user_static.xml   $PDIR && chmod 755 ${PDIR}/leaf_user_static.xml
 
 # if else
 if [[ $OSTYPE == darwin* ]]; then
    sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT.pbs
    sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs
    sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
-   sed -i '' "s@#SOURCEDIR#@$source@" ${PDIR}/run_MAAT.R
+   sed -i '' "s@#SOURCEDIR#@$src@" ${PDIR}/run_MAAT.R
 else
    sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
    sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT.pbs
    sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs
-   sed -i    "s@#SOURCEDIR#@$source@" ${PDIR}/run_MAAT.R
+   sed -i    "s@#SOURCEDIR#@$src@" ${PDIR}/run_MAAT.R
 fi
