@@ -22,8 +22,8 @@ echo "Source directory: "
 echo $src
 echo " "
 
-mkdir $PDIR
-mkdir $PDIR/logs
+mkdir $PDIR >/dev/null 2>&1
+mkdir $PDIR/logs >/dev/null 2>&1
 
 cp    $run_scripts/qsubmit_MAAT.pbs  $PDIR && chmod 755 ${PDIR}/qsubmit_MAAT.pbs
 cp    $run_scripts/call_run_MAAT.bs  $PDIR && chmod 755 ${PDIR}/call_run_MAAT.bs
