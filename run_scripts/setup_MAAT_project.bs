@@ -4,23 +4,8 @@
 # takes the full path of the project directory as an argument
 
 PDIR=$1
-#run_scripts=$PWD/run_scripts
 run_scripts=${2-$PWD/run_scripts}
-#source=$PWD/src/
 src=${3-$PWD/src}
-
-echo " "
-echo "Run directory: "
-echo $PDIR
-echo " "
-echo " "
-echo "Run scripts directory:"
-echo $run_scripts
-echo " "
-echo " "
-echo "Source directory: "
-echo $src
-echo " "
 
 mkdir $PDIR >/dev/null 2>&1
 mkdir $PDIR/logs >/dev/null 2>&1
