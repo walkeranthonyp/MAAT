@@ -47,6 +47,8 @@ pdir    <- "#PROJECTDIR#"
 mdir    <- NULL 
 # evalutaion data directory (full path)
 edir    <- NULL 
+# output data directory (full path)
+odir    <- NULL 
 
 # wrapper object options
 # multicore the ensemble
@@ -101,12 +103,13 @@ if(length(commandArgs(T))>=1) {
 if(is.null(of_main)) of_main <- proj
 
 # create output directory
-date   <- Sys.Date()
-odir1  <- paste(pdir,'results',sep='/')
-odir   <- paste(odir1,date,sep='/')
-if(!file.exists(odir1)) dir.create(odir1)
-if(!file.exists(odir))  dir.create(odir)
-
+if(is.null(odir)) {
+  date   <- Sys.Date()
+  odir1  <- paste(pdir,'results',sep='/')
+  odir   <- paste(odir1,date,sep='/')
+  if(!file.exists(odir1)) dir.create(odir1)
+  if(!file.exists(odir))  dir.create(odir)
+}
 
 
 ###################################################################
