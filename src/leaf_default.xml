@@ -1,27 +1,27 @@
 <default>
   <leaf>
     <fnames>
-      <gstar_tcor>f_temp_scalar_quadratic_bf1985</gstar_tcor>
-      <Kc_tcor>f_temp_scalar_Arrhenius</Kc_tcor>
-      <Ko_tcor>f_temp_scalar_Arrhenius</Ko_tcor>
-      <vcmax>f_constant_vcmax</vcmax>
-      <jmax>f_jmax_walker2014</jmax>
-      <tpu>f_constant_tpu</tpu>
-      <vcmax_tcor>f_temp_scalar_no_response</vcmax_tcor>
-      <jmax_tcor>f_temp_scalar_no_response</jmax_tcor>
-      <etrans>f_j_harley1992</etrans>
-      <wc>f_wc_farquhar1980</wc>
-      <wj>f_wj_generic</wj>
-      <wp>f_wp_vonc2000</wp>
-      <gas_diff>f_ficks_ci_bound0</gas_diff>
-      <respiration>f_rd_collatz1991</respiration>
-      <fwdw_ratio>f_none</fwdw_ratio>
-      <ri>f_r_zero</ri>
-      <rs>f_r_zero</rs>
-      <rb>f_r_zero</rb>
-      <solver>f_R_Brent_solver</solver>
-      <solver_func>f_A_r_leaf</solver_func>
-      <Alim>f_lim_farquhar1980</Alim>
+      <gstar_tcor>'f_temp_scalar_quadratic_bf1985'</gstar_tcor>
+      <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
+      <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
+      <vcmax>'f_constant_vcmax'</vcmax>
+      <jmax>'f_jmax_walker2014'</jmax>
+      <tpu>'f_constant_tpu'</tpu>
+      <vcmax_tcor>'f_temp_scalar_no_response'</vcmax_tcor>
+      <jmax_tcor>'f_temp_scalar_no_response'</jmax_tcor>
+      <etrans>'f_j_harley1992'</etrans>
+      <wc>'f_wc_farquhar1980'</wc>
+      <wj>'f_wj_generic'</wj>
+      <wp>'f_wp_vonc2000'</wp>
+      <gas_diff>'f_ficks_ci_bound0'</gas_diff>
+      <respiration>'f_rd_collatz1991'</respiration>
+      <fwdw_ratio>'f_none'</fwdw_ratio>
+      <ri>'f_r_zero'</ri>
+      <rs>'f_r_zero'</rs>
+      <rb>'f_r_zero'</rb>
+      <solver>'f_R_Brent_solver'</solver>
+      <solver_func>'f_A_r_leaf'</solver_func>
+      <Alim>'f_lim_farquhar1980'</Alim>
     </fnames>
     <pars>
       <a>0.8</a>
