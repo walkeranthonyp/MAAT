@@ -121,10 +121,6 @@ setwd(srcdir)
 source('wrapper_object.R')
 source(paste(mod_obj,'object.R',sep='_'))
 
-# # load init file 
-# setwd(pdir)
-# source(init)
-
 
 
 ##################################
@@ -153,13 +149,13 @@ maat$model$pars$verbose <- F
 # Initialise the MAAT wrapper
 
 # load init xml's & list 
-setwd(pdir)
 # if(xml) {
 
 # read default
 init_default <- readXML('leaf_default.xml')
 
 # read user defined values of static variables
+setwd(pdir)
 if(file.exists('leaf_user_static.xml')) {
   init_user    <- readXML('leaf_user_static.xml')
   init_static  <- fuselists(init_default,init_user)
