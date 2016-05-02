@@ -185,15 +185,68 @@ maat$init_dynamic <- init_dynamic
 # Load meteorological and environment dataset
 # - each ensemble member is run over this entire dataframe
 # - not used unless specified
-# - the data frame must have a minimum of two columns 
+
+# # - the data frame must have a minimum of two columns 
+# kill <- F
+# if(!is.null(metdata)) {
+#   setwd(mdir)
+#   if(file.exists(metdata)) {
+#     maat$dataf$met <- read.csv(metdata,strip.white=T)    
+#   } else {
+#     print('',quote=F)
+#     print('File:',quote=F)
+#     print(metdata,quote=F)
+#     print('does not exist in:',quote=F)
+#     print(mdir,quote=F)
+#     kill <- T
+#     stop
+#   }
+#   setwd(pdir)
+# }
+
 kill <- F
 if(!is.null(metdata)) {
-  setwd(mdir)
-  if(file.exists(metdata)) {
-    maat$dataf$met <- read.csv(metdata,strip.white=T)    
+  # read user defined met data translator
+  if(file.exists('leaf_user_met.xml')) {
+    met_trans <- readXML('leaf_user_met.xml')
+    met_trans <- evalXMLlist(init_dynamic)
+    if(any(names(met_trans)==mod_obj)) met_trans <- met_trans[[which(names(met_trans)==mod_obj)]]
+    else {
+      print('',quote=F)
+      print('Met translator file:',quote=F)
+      print('leaf_user_met.xml',quote=F)
+      print('does not contain list for:',quote=F)
+      print(mod_obj,quote=F)      
+      kill <- T
+    }
+      
   } else {
     print('',quote=F)
-    print('File:',quote=F)
+    print('Met translator file:',quote=F)
+    print('leaf_user_met.xml',quote=F)
+    print('does not exist in:',quote=F)
+    print(pdir,quote=F)
+    kill <- T
+    stop    
+  }
+
+  # read metdata file
+  setwd(mdir)
+  if(file.exists(metdata)&!kill) {
+    metdf <- read.csv(metdata,strip.white=T)  
+    # reduce data to variables listed in met_tran
+    metdf <- metdf[,which( sapply(met_trans,function(l) l) %in% names(metdf) ) ] 
+    
+    # rename to maat variables
+    names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
+    
+    # add to MAAT object
+    maat$dataf$met <- metdf 
+    rm(metdf)
+      
+  } else {
+    print('',quote=F)
+    print('Met data file:',quote=F)
     print(metdata,quote=F)
     print('does not exist in:',quote=F)
     print(mdir,quote=F)

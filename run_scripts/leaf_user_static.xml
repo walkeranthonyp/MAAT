@@ -1,4 +1,4 @@
-<default>
+<static>
   <leaf>
     <fnames>
       <etrans>'f_j_collatz1991'</etrans>
@@ -10,4 +10,4 @@
       <ca_conc>600</ca_conc>
     </env>
   </leaf>
-</default>
+</static>

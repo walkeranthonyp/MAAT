@@ -16,6 +16,7 @@ cp    $run_scripts/run_MAAT.R            $PDIR && chmod 755 ${PDIR}/run_MAAT.R
 #cp    $run_scripts/init_MAAT_PEcAn.R $PDIR && chmod 755 ${PDIR}/init_MAAT_PEcAn.R
 cp    $run_scripts/leaf_user_static.xml  $PDIR && chmod 755 ${PDIR}/leaf_user_static.xml
 cp    $run_scripts/leaf_user_dynamic.xml $PDIR && chmod 755 ${PDIR}/leaf_user_dynamic.xml
+cp    $run_scripts/leaf_user_met.xml     $PDIR && chmod 755 ${PDIR}/leaf_user_met.xml
 
 # if else
 if [[ $OSTYPE == darwin* ]]; then
