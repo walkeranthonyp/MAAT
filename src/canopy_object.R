@@ -198,8 +198,8 @@ canopy_object <-
     state <- list(
       # External
       lai     = numeric(0),      # 1.5 for Sphagnum Williams & Flannagan, 1998
-      mass_a  = numeric(0),
-      C_to_N  = numeric(0),
+      mass_a  = 10,
+      C_to_N  = 40,
       totalN  = numeric(0),
       
       # Calculated state
@@ -299,13 +299,13 @@ canopy_object <-
 #         if(!is.na(cls)&is.na(comb_ls)) cls else c(comb_ls,cls) 
       }
       
-      maat$static$fnames <- comb_init_list(lls=init_ls$lfs,cls=init_ls$cfs)
-      maat$static$pars   <- comb_init_list(lls=init_ls$lps,cls=init_ls$cps)
-      maat$static$env    <- comb_init_list(lls=init_ls$les,cls=init_ls$ces)
+      maat$static$fnames <- comb_init_list(lls=.$init_ls$lfs,cls=.$init_ls$cfs)
+      maat$static$pars   <- comb_init_list(lls=.$init_ls$lps,cls=.$init_ls$cps)
+      maat$static$env    <- comb_init_list(lls=.$init_ls$les,cls=.$init_ls$ces)
 
-      maat$vars$fnames   <- comb_init_list(lls=init_ls$lfv,cls=init_ls$cfv)
-      maat$vars$pars     <- comb_init_list(lls=init_ls$lpv,cls=init_ls$cpv)
-      maat$vars$env      <- comb_init_list(lls=init_ls$lev,cls=init_ls$cev)
+      maat$vars$fnames   <- comb_init_list(lls=.$init_ls$lfv,cls=.$init_ls$cfv)
+      maat$vars$pars     <- comb_init_list(lls=.$init_ls$lpv,cls=.$init_ls$cpv)
+      maat$vars$env      <- comb_init_list(lls=.$init_ls$lev,cls=.$init_ls$cev)
       
       
 #       # Static during runtime
