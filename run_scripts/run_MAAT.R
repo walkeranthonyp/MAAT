@@ -207,10 +207,11 @@ maat$init_dynamic <- init_dynamic
 kill <- F
 if(!is.null(metdata)) {
   # read user defined met data translator
+  setwd(pdir)
   if(file.exists('leaf_user_met.xml')) {
     met_trans <- readXML('leaf_user_met.xml')
-    met_trans <- evalXMLlist(init_dynamic)
-    if(any(names(met_trans)==mod_obj)) met_trans <- met_trans[[which(names(met_trans)==mod_obj)]]
+    met_trans <- evalXMLlist(met_trans)
+    if(any(names(met_trans)==mod_obj)) met_trans <- met_trans[[which(names(met_trans)==mod_obj)]]$env
     else {
       print('',quote=F)
       print('Met translator file:',quote=F)
@@ -234,10 +235,13 @@ if(!is.null(metdata)) {
   setwd(mdir)
   if(file.exists(metdata)&!kill) {
     metdf <- read.csv(metdata,strip.white=T)  
-    # reduce data to variables listed in met_tran
-    metdf <- metdf[,which( sapply(met_trans,function(l) l) %in% names(metdf) ) ] 
     
-    # rename to maat variables
+    # order met data in metfile according to that specified in the leaf_user_met.XML 
+    # - need to add a trap to catch met data files that do not contain all the data specified in leaf_user_met.XML 
+    cols  <- match(unlist(sapply(met_trans,function(l) l)),names(metdf))
+    metdf <- metdf[,cols] 
+        
+    # rename to maat variables as defined in leaf_user_met.XML and prefix with the model object for compatibility with the configure function
     names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
     
     # add to MAAT object
@@ -255,7 +259,6 @@ if(!is.null(metdata)) {
   }
   setwd(pdir)
 }
-
 if(kill) stop
 
 
