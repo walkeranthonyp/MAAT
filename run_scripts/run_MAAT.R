@@ -241,9 +241,18 @@ if(!is.null(metdata)) {
     cols  <- match(unlist(sapply(met_trans,function(l) l)),names(metdf))
     metdf <- metdf[,cols] 
         
-    # rename to maat variables as defined in leaf_user_met.XML and prefix with the model object for compatibility with the configure function
-    names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
-    
+    # if time variable specified put it first and don't rename it
+    if('time'%in%names(met_trans)) {
+      tcol  <- which(names(met_trans)=='time')
+      metdf <- metdf[, c(tcol,c(1:length(metdf))[-tcol]) ]
+      
+      # rename to maat variables as defined in leaf_user_met.XML and prefix with the model object for compatibility with the configure function
+      names(metdf)[1] <- 'time'               
+      names(metdf)[2:length(metdf)] <- paste(mod_obj,names(met_trans)[-tcol],sep='.')
+    } else {
+      names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
+    }
+        
     # add to MAAT object
     maat$dataf$met <- metdf 
     rm(metdf)
