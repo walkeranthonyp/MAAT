@@ -1,6 +1,7 @@
 #!/bin/bash
 
 PDIR="#PROJECTDIR#"
+YMD=`date +%Y-%m-%d`
 
-cd $PDIR
-Rscript run_MAAT.R "multic<-F" > "./logs/out.txt"
+cd    $PDIR
+Rscript run_MAAT.R "multic<-F" > "./logs/${YMD}out.txt"
