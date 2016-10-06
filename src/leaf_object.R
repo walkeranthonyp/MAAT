@@ -315,13 +315,13 @@ leaf_object <-
         if(nas==0) lls else NA
       }
             
-      maat$static$fnames <- comb_init_list(lls=.$init_ls$lfs)
-      maat$static$pars   <- comb_init_list(lls=.$init_ls$lps)
-      maat$static$env    <- comb_init_list(lls=.$init_ls$les)
+      maat$static$fnames <- comb_init_list(lls=.$init_static$leaf$fnames)
+      maat$static$pars   <- comb_init_list(lls=.$init_static$leaf$pars)
+      maat$static$env    <- comb_init_list(lls=.$init_static$leaf$env)
       
-      maat$vars$fnames   <- comb_init_list(lls=.$init_ls$lfv)
-      maat$vars$pars     <- comb_init_list(lls=.$init_ls$lpv)
-      maat$vars$env      <- comb_init_list(lls=.$init_ls$lev)
+      maat$vars$fnames   <- comb_init_list(lls=.$init_dynamic$leaf$fnames)
+      maat$vars$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
+      maat$vars$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
     }
     
     configure <- function(.,func,df,o=T){
