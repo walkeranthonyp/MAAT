@@ -115,23 +115,35 @@ leaf_object <-
     # Output functions
 
     #output processing function
-    # -- returns a vector of outputs
+    # -- returns a list of outputs
     output <- function(.){
       if(.$pars$output=='run') {
-        list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,respiration=.$state$respiration,lim=.$state$lim) 
+        lout <- 
+          list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
+               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
+               respiration=.$state$respiration,lim=.$state$lim)
         
       } else if(.$pars$output=='all_lim') {
-        list(A=.$state$A,wc=.$state$wc,wj=.$state$wj,wp=.$state$wp,
-             cc=.$state$cc,ci=.$state$ci,ca=.$state$ca,
-             gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
-             respiration=.$state$respiration,lim=.$state$lim)     
+        lout <- 
+          list(A=.$state$A,wc=.$state$wc,wj=.$state$wj,wp=.$state$wp,
+               cc=.$state$cc,ci=.$state$ci,ca=.$state$ca,
+               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
+               respiration=.$state$respiration,lim=.$state$lim)     
         
       } else if(.$pars$output=='full') {
-        c(.$state,.$state_pars)
-
+        lout <- c(.$state,.$state_pars)
+        
       } else if(.$pars$output=='sphagnum') {
-        list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,respiration=.$state$respiration,lim=.$state$lim,fwdw=.$state$fwdw_ratio) 
+        lout <-
+          list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
+               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
+               respiration=.$state$respiration,lim=.$state$lim,fwdw=.$state$fwdw_ratio) 
+        
       }
+      
+      if(.$pars$diag) c( lout, list(A_noR=.$state$A_noR,transition=.$state$transition) ) 
+      else            lout
+      
     }    
     
     
@@ -255,8 +267,8 @@ leaf_object <-
       g1_leuning    = 5,          # Leuning 1995 gs slope                                  ()
       d0            = 2,          # Leuning 1995 D0                                        ()
       g1_ball       = 5,          # Ball 1987 gs slope                                     ()
-      gi            = 0.035,      # mesophyll conductance                                                (molm-2s-1Pa-1)
-      ri            = 1/0.035,    # mesophyll resistance                                                 (m2sPa mol-1)
+      gi            = 0.15,       # mesophyll conductance                                  (molm-2s-1 - expressed in these units for consistency with other conductance terms, often expressed in the literature per unit Pa)
+      ri            = 1/0.15,     # mesophyll resistance                                   (m2s mol-1 - expressed in these units for consistency with other resistance terms, often expressed in the literature multiplied by Pa)
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
       hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
       hco_co2_diff_ratio = 0.56,  # ratio of HCO and CO2 diffusivity in water  
@@ -390,9 +402,12 @@ leaf_object <-
       .$run()
     }
     
-    .test_aci <- function(.,verbose=F,verbose_loop=F,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1200,50)){
-      .$pars$verbose      <- verbose
-      .$pars$verbose_loop <- verbose_loop
+    .test_aci <- function(.,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1200,50), 
+                          verbose=F,verbose_loop=F,diag=F) {
+      
+      .$pars$verbose       <- verbose
+      .$pars$verbose_loop  <- verbose_loop
+      .$pars$diag          <- diag
       
       if(verbose) str.proto(.)
       
@@ -402,22 +417,29 @@ leaf_object <-
       .$pars$output        <- 'all_lim'
       
       .$dataf     <- list()
-      .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))
-      
+      .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
       .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-
+      
       print(cbind(.$dataf$met,.$dataf$out))
       p1 <- xyplot(A~cc|as.factor(.$dataf$met$leaf.par),.$dataf$out,groups=unlist(lim),abline=0,
-                   ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[c]*' [Pa]'))
+                   ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[c]*' [Pa]'),
+                   panel=function(subscripts=subscripts,...) {
+                     if(diag) {
+                       panel.abline(v=.$dataf$out$transition[subscripts][1])
+                       panel.points(y=.$dataf$out$A_noR[subscripts],x=.$dataf$out$cc[subscripts],col='black')                       
+                     }
+                     panel.xyplot(subscripts=subscripts,...)
+                   })
       print(p1)
     }
-
     
-    .test_aci_light <- function(.,verbose=F,verbose_loop=F,output=F,
-                                leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50)){
-
-      .$pars$verbose      <- verbose
-      .$pars$verbose_loop <- verbose_loop
+    
+    .test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50),
+                                verbose=F,verbose_loop=F,output=F,diag=F) {
+      
+      .$pars$verbose       <- verbose
+      .$pars$verbose_loop  <- verbose_loop
+      .$pars$diag          <- diag
       
       if(verbose) str.proto(.)
       
@@ -425,23 +447,38 @@ leaf_object <-
       .$fnames$rs          <- 'f_ri_constant'
       .$fnames$solver_func <- 'f_A_r_leaf'
       .$pars$output        <- 'all_lim'
-
+      
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))
       
       .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
       .$dataf$out_full <- cbind(.$dataf$met,.$dataf$out)
-
-      p1 <- xyplot(A~ci,.$dataf$out_full,subset=leaf.par==1010,abline=0,groups=unlist(lim),
-                   ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[i]*' [Pa]'))
+      
+      p1 <- xyplot(A~cc,.$dataf$out_full,subset=leaf.par==1010,abline=0,groups=unlist(lim),
+                   ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[c]*' [Pa]'),
+                   panel=function(subscripts=subscripts,...) {
+                     if(diag) {
+                       panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                       panel.points(y=.$dataf$out_full$A_noR[subscripts],x=.$dataf$out_full$cc[subscripts],col='black')                       
+                     }
+                     panel.xyplot(subscripts=subscripts,...)
+                   })
+      
       p2 <- xyplot(A~leaf.par,.$dataf$out_full,subset=leaf.ca_conc==401,abline=0,groups=unlist(lim),
-                   ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression('PAR ['*mu*mol*' '*m^-2*s-1*']'))
+                   ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression('PAR ['*mu*mol*' '*m^-2*s-1*']'),
+                   panel=function(subscripts=subscripts,...) {
+                     if(diag) {
+                       #                        panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                       panel.points(y=.$dataf$out_full$A_noR[subscripts],x=.$dataf$out_full$leaf.par[subscripts],col='black')                       
+                     }
+                     panel.xyplot(subscripts=subscripts,...)
+                   })
       
       print(p1,split=c(1,1,2,1),more=T)
       print(p2,split=c(2,1,2,1),more=F)
       if(output) .$dataf$out_full
     }
-
+    
     #######################################################################        
     # end object      
 })
