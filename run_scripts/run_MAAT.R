@@ -58,7 +58,7 @@ multic  <- F
 procs   <- 4   
 
 # run a UQ style ensemble, or if -uq- is false a fully factorial ensemble 
-uq      <- T      
+uq      <- F      
 
 # ensemble number for a UQ style ensemble, not used if if -uq- is false 
 n       <- 10      
@@ -79,8 +79,8 @@ runid   <- NULL
 # basic output file name
 of_main <- 'out'
 
-# output file format
-of_format <- 'rds'
+# output file format.  supported: rds, csv (default)
+of_format <- 'csv'
 
 
 
@@ -112,11 +112,13 @@ print(paste('Run ID:',runid) ,quote=F)
 if(is.null(of_main)) of_main <- proj
 
 # create output directory
-date   <- Sys.Date()
-odir1  <- paste(pdir,'results',sep='/')
-odir   <- paste(odir1,date,sep='/')
-if(!file.exists(odir1)) dir.create(odir1)
-if(!file.exists(odir))  dir.create(odir)
+if(is.null(odir)) {
+  date   <- Sys.Date()
+  odir1  <- paste(pdir,'results',sep='/')
+  odir   <- paste(odir1,date,sep='/')
+  if(!file.exists(odir1)) dir.create(odir1)
+  if(!file.exists(odir))  dir.create(odir)
+}
 
 # create input/output filenames
 initf  <- if(is.null(runid)) paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
