@@ -24,6 +24,7 @@
       <Alim>'f_lim_farquhar1980'</Alim>
     </fnames>
     <pars>
+      <diag>F</diag>
       <a>0.8</a>
       <f>0.23</f>
       <theta>0.9</theta>

@@ -287,9 +287,9 @@ leaf_object <-
       reftemp.Kc    = 25,         # reference temperature at which Kc scalar = 1            (oC)
       reftemp.Ko    = 25,         # reference temperature at which Ko scalar = 1            (oC)
       reftemp.gstar = 25,         # reference temperature at which gamma star scalar = 1    (oC)
-      atref.rd      = 0,          # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
-      atref.vcmax   = 0,          # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
-      atref.jmax    = 0,          # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
+      atref.rd      = 2,          # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
+      atref.vcmax   = 50,         # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
+      atref.jmax    = 100,        # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
       atref.tpu     = 10,         # tpu at ref temp (usually 25oC)   - used to set TPU as a parameter                       (umolm-2s-1)
       atref.Kc      = 40.49,      # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
       atref.Ko      = 27.84,      # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
@@ -322,9 +322,14 @@ leaf_object <-
       # expects to be housed within the wrapper object, and for the wrapper object to be named maat 
       
       comb_init_list <- function(.,lls) {
-        nas <- sum(is.na(lls))
-        if(nas>1) stop else if(nas==0) names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
-        if(nas==0) lls else NA
+#         nas <- sum(is.na(lls))
+#         if(nas>1) stop else if(nas==0) names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
+#         if(nas==0) lls else NA
+        if(sum(is.na(lls))==length(lls)) NA
+        else {
+          names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
+          lls
+        }
       }
             
       maat$static$fnames <- comb_init_list(lls=.$init_static$leaf$fnames)
