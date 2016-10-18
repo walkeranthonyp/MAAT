@@ -81,24 +81,38 @@ leaf_object <-
       # calculate physiological state
       # respiration
       .$state$respiration <- get(.$fnames$respiration)(.)
-      # diagnostic calculations
-      if(.$pars$diag) {
+      # if PAR > 0
+      if(.$env$par > 0) {
+        # diagnostic calculations
+        if(.$pars$diag) {
+          # assume infinite conductances to initialise solver
+          .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
+          .$state$A_noR      <- f_A_r_leaf_noR(.)
+          .$state$transition <- transition_cc(.)
+        }
+        # run photosynthesis
         # assume infinite conductances to initialise solver
         .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
-        .$state$A_noR      <- f_A_r_leaf_noR(.)
-        .$state$transition <- transition_cc(.)
+        # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
+        .$state$A       <- get(.$fnames$solver)(.)      
+        # assign the limitation state - assumes the minimum is the dominant limiting rate
+        .$state$lim     <- c('wc','wj','wp')[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
+        # after the fact calculations
+        .$state_pars$rs <- get(.$fnames$rs)(.)
+        .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca)
+        .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rs,c=.$state$cb)        
       }
-      # run photosynthesis
-      # assume infinite conductances to initialise solver
-      .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
-      # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-      .$state$A       <- get(.$fnames$solver)(.)      
-      # assign the limitation state - assumes the minimum is the dominant limiting rate
-      .$state$lim     <- c('wc','wj','wp')[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
-      # after the fact calculations
-      .$state_pars$rs <- get(.$fnames$rs)(.)
-      .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca)
-      .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rs,c=.$state$cb)
+      # if PAR < 0
+      else {
+        # assume infinite conductances when concentration gradient is small
+        # - this ignores the build up of CO2 within the leaf due to respiration and potentially high rs 
+        .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
+        .$state$A_noR      <- NA
+        .$state$transition <- NA
+        .$state$A          <- -.$state$respiration      
+        .$state$lim        <- 'night'       
+        .$state_pars$rs    <- get(.$fnames$rs)(.)
+      }
       
       # print to screen
       if(.$pars$verbose) {
@@ -417,7 +431,7 @@ leaf_object <-
       if(verbose) str.proto(.)
       
       .$fnames$ri          <- 'f_r_zero'
-      .$fnames$rs          <- 'f_ri_constant'
+#       .$fnames$rs          <- 'f_ri_constant'
       .$fnames$solver_func <- 'f_A_r_leaf'
       .$pars$output        <- 'all_lim'
       
