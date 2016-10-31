@@ -50,14 +50,14 @@ f_canlight_pars <- function(.){
 # Beer's Law
 # - these need to be a number of different but similar functions that allow all the commonly used implementations of Beer's Law
 # - e.g. accounting for diffuse light, adjusting k by m or not, e.t.c.
-f_canlight_beerslaw <- function(.,l,...){
+f_canlight_beerslaw_goudriaan <- function(.,l,...){
   # calculates direct beam light attenuation through the canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
   
   .$state_pars$k_dir * .$env$par_dir * exp(-.$state_pars$k_dir*(l-.$pars$k_layer))
 }
 
-f_canlight_beerslaw_wrong <- function(.,l,...){
+f_canlight_beerslaw <- function(.,l,...){
   # misconstrued Beer's Law - ignores conversion of incident light per unit ground area to incident light per unit leaf area
   
   # calculates direct beam light attenuation through the canopy

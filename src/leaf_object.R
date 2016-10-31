@@ -228,6 +228,8 @@ leaf_object <-
       output        = 'run',      # type of output from run function
       # photosynthetic parameters
       # deprecated    alpha    = 0.24,         # harley 1992 alpha - Williams & Flannagan 1998 use 0.21 but calculate 0.25 
+      # alpha in the MAAT model is considered the intrinsic quantum efficiency of electron transport, mol e mol-1 photons, and is calculated as (1-f)/2
+      # a * alpha is the apparent quantum efficiency of electron transport
       a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
       f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
       theta         = 0.90,       # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)

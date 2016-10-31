@@ -362,6 +362,7 @@ f_fwdw_wl_lin <- function(.){
 
 f_fwdw_wl_exp <- function(.){
   # Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
+  # Strack & Price 2009
   
   if((.$env$water_l - .$env$sphag_l) > 0) exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a*0 )
   else exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a * (-(.$env$water_l - .$env$sphag_l)/10) ) 

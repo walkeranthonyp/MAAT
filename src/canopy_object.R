@@ -271,7 +271,7 @@ canopy_object <-
       leaf_cores = 1,
       G          = 0.5,        # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
       can_clump  = 1,          # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-      k_layer    = 0.5,          # determines light scaling in each layer, i.e. does LAI layer 1 receive: all full sun (k.layer=1), some full sun (k.layer=0.5), or no full sun (k.layer=0)
+      k_layer    = 0,          # used by some to determine light scaling, not the correvct solution to the simplifying assumpotion of Beer's law (Wang 2003) 
       alb_soil   = 0.15,       # soil albedo
       leaf_reflectance = 0.075 # leaf reflectance
     )
