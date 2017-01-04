@@ -191,7 +191,7 @@ leaf_object <-
     )
     
     # leaf environment
-    env  <- list(
+    env <- list(
       ca_conc   = numeric(0),          # (umol mol-1)
       o2_conc   = 0.21,                # ( mol mol-1)
       par       = numeric(0),          # (umol photons m-2 s-1)
@@ -204,7 +204,7 @@ leaf_object <-
       )
     
     # leaf state
-    state  <- list(
+    state <- list(
       #environmental state
       oi = numeric(0),                 # atmospheric & internal O2  (kPa)
       ca = numeric(0),                 # atmospheric CO2            ( Pa)
@@ -252,7 +252,7 @@ leaf_object <-
     )
     
     #leaf parameters
-    pars   <- list(
+    pars <- list(
       verbose       = F,          # write diagnostic output during runtime 
       verbose_loop  = F,          # write diagnostic output on the solver during runtime 
       cverbose      = F,          # write configuration output during runtime 
