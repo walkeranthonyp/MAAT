@@ -6,6 +6,7 @@
 #
 ################################
 
+library(xtable)
 
 
 #####################################################
@@ -52,7 +53,9 @@ calc_process_sensitivity <- function(df,colname,n,nA=1,nB=3,...) {
   var_p <- c(var_A,var_B)
   
   # output a list of a scalar of total variance, and a matrix of variance caused by each process, and their proportion of total variance
-  list(mean=mean(f),total_var=var_t,total_sd=var_t^0.5,par_var=var_p,sensitivity=var_p/var_t)
+  Tvar <- c(mean=mean(f),total_var=var_t,total_sd=var_t^0.5)
+  
+  list(Tvar=Tvar,par_var=var_p,sensitivity=var_p/var_t)
 }
 
 
@@ -155,7 +158,12 @@ func_sobol_sensitivity <- function(sn,k,ABout,ABiout) {
   st  <- ev/v_t
   
   # a model and scenario name would be useful in this output list - would need to be added to the output from the wrapper 
-  list(mean=mean(g),total_var=v_t,total_sd=v_t^0.5,par_var=rbind(vv,ev),sensitivity=rbind(si,st))
+  Tvar <- c(mean=mean(ABout),total_var=v_t,total_sd=v_t^0.5)
+  list(Tvar=Tvar,pvar=vv,pe=ev,sensitivityi=si,sensitivityT=st)
+            
+#   list(Tvar=Tvar,par_var=rbind(vv,ev),sensitivity=rbind(si,st))
+            
+#   list(mean=mean(ABout),total_var=v_t,total_sd=v_t^0.5,par_var=rbind(vv,ev),sensitivity=rbind(si,st))
 }
 
 
@@ -181,20 +189,37 @@ calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
   # list processing function 
   # - creates a weighted average across list elements from a Sobol list 
   # - same dimensions as the list dimensions of ABi
+#   average_list <- function(inlist,prob) {
+#     total_var <- sum( sapply(inlist,function(l) l$Tvar[2]) * prob)
+#     list(
+#       Tvar = t(as.matrix(c(
+#         mean      = sum( sapply(inlist,function(l) l$Tvar[1]) * prob),
+#         total_var = total_var,
+#         total_sd  = total_var^0.5
+#       ))),
+#       par_var   = rbind(
+#         apply( sapply(inlist,function(l) l$par_var[1,]) ,1,function(v) sum(v*prob)),
+#         apply( sapply(inlist,function(l) l$par_var[2,]) ,1,function(v) sum(v*prob))
+#       ), 
+#       sensitivity = rbind(
+#         apply( sapply(inlist,function(l) l$par_var[1,]) ,1,function(v) sum(v*prob))/total_var,
+#         apply( sapply(inlist,function(l) l$par_var[2,]) ,1,function(v) sum(v*prob))/total_var
+#       ) 
+#     )
+#   }
+  
   average_list <- function(inlist,prob) {
-    total_var <- sum( sapply(inlist,function(l) l$total_var) * prob)
+    total_var <- sum( sapply(inlist,function(l) l$Tvar[2]) * prob)
     list(
-      mean      = sum( sapply(inlist,function(l) l$mean) * prob),
-      total_var = total_var,
-      total_sd  = total_var^0.5,
-      par_var   = rbind(
-        apply( sapply(inlist,function(l) l$par_var[1,]) ,1,function(v) sum(v*prob)),
-        apply( sapply(inlist,function(l) l$par_var[2,]) ,1,function(v) sum(v*prob))
-      ), 
-      sensitivity = rbind(
-        apply( sapply(inlist,function(l) l$par_var[1,]) ,1,function(v) sum(v*prob))/total_var,
-        apply( sapply(inlist,function(l) l$par_var[2,]) ,1,function(v) sum(v*prob))/total_var
-      ) 
+      Tvar = c(
+        mean        = sum( sapply(inlist,function(l) l$Tvar[1]) * prob),
+        total_var   = total_var,
+        total_sd    = total_var^0.5
+      ),
+      pvar          = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob)),
+      pe            = apply( sapply(inlist,function(l) l$pe) ,1,function(v) sum(v*prob)),
+      sensitivity1  = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob))/total_var,
+      sensitivityT  = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob))/total_var
     )
   }
   
@@ -214,6 +239,7 @@ calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
     # scenario loop
     for(e in 1:nscen) {
       out1 <- list(func_sobol_sensitivity(sn,k,outdata$AB[m,e,,delta],outdata$ABi[[m]][[e]][,delta,]))      
+#       out1 <- func_sobol_sensitivity(sn,k,outdata$AB[m,e,,delta],outdata$ABi[[m]][[e]][,delta,])      
       out2 <- if(e==1) out1 else c(out2,out1)
     }
     sensout <- if(m==1) list(out2) else c(sensout,list(out2))
@@ -222,6 +248,7 @@ calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
   # calculate Sobol including scenario uncertainty
   # hold model constant  
   for(m in 1:nmod) {
+#     print(sensout)
     out1 <- average_list(sensout[[m]],pscen)
     outs <- if(m==1) list(out1) else c(outs,list(out1))
   }
@@ -243,7 +270,83 @@ calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
 }
 
 
+# write Latex doc
+write_Latex <- function(obj,fname,func=write_list_Latex,call=F,...) {
+  write("\\documentclass[10pt]{article}",fname)
+  write("\\usepackage{booktabs}",fname,append=T)
+  write("\\usepackage{placeins}",fname,append=T)
+#   write("\\usepackage[section]{placeins}",fname,append=T)
+  write("\\begin{document}",fname,append=T)
 
+  func(obj,fname,...)
+  
+  write("\\end{document}",fname,append=T)  
+  if(call) system(paste('pdflatex',fname)) 
+}
+
+write_table_Latex <- function(sub,fname,cnames=NULL,rnames=NULL,capname=NULL) {
+  if(!is.null(cnames)) colnames(combtable)  <- cnames
+  print.xtable.apw(sub,cap=capname,file=fname,append=T,include.rownames=!is.null(rnames))      
+}
+
+write_tablelist_Latex <- function(slist,fname,cnames=NULL,rnames=NULL,capname=NULL) {
+  for(i in 1:length(slist)) {
+    write_table_Latex(slist[[i]],fname,capname=capname[i])
+  }
+}
+
+# write list recursively
+write_list_Latex <- function(sublist,fname) {
+  for(i in 1:length(sublist)) {
+      if(typeof(sublist[[i]]) == "list") {
+        write_list_Latex(sublist[[i]],fname)
+      } else {
+        if(class(sublist[[i]]) == "numeric") print.xtable.apw(t(as.matrix(sublist[[i]])),cap=names(sublist)[1],file=fname,append=T) else print.xtable.apw(sublist[[i]],cap=names(sublist)[1],file=fname,append=T) 
+      } 
+
+  }
+  write("\\FloatBarrier",fname,append=T)
+}
+
+# write list recursively, combine lowest level list
+write_list_Latex_comb <- function(sublist,fname,cnames=NULL,rnames=NULL,...) {
+  if(typeof(sublist[[1]]) != "list") {
+    write_list_Latex(sublist,fname)
+    
+  } else if(typeof(sublist[[1]][[1]]) == "list") {
+    for(i in 1:length(sublist)) {
+      write_list_Latex_comb(sublist[[i]],fname,cnames,rnames)
+    }
+    
+  } else {
+    for(li in 1:length(sublist[[1]])) {
+      combtable <- do.call('rbind',lapply(sublist,function(l) l[[li]]))
+      print(combtable)
+      print(cnames)
+      print(rnames)
+      if(length(rnames)==dim(combtable)[1]) row.names(combtable) <- rnames
+      if(length(cnames)==dim(combtable)[2]) colnames(combtable)  <- cnames
+      print.xtable.apw(combtable,cap=names(sublist[[1]])[li],file=fname,append=T)      
+    }
+  } 
+  write("\\FloatBarrier",fname,append=T)
+}
+
+
+print.xtable.apw <- function(x,cap=NULL,...){
+  
+  print(xtable(x,caption=cap,...),
+        floating=T,
+        caption.placement='top',
+        hline.after=NULL,
+        add.to.row=list(pos=list(-1,0, nrow(x)),
+                        command=c(
+                          '\\toprule\n',
+                          '\\midrule\n',
+                          '\\bottomrule\n')),
+        table.placement='H',
+        ...)
+}
 
 
 

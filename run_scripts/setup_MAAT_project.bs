@@ -17,3 +17,4 @@ cp    ./analysis_MAAT.R   $PDIR
 sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT.pbs
 sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs
 sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
+sed -i "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/analysis_MAAT.R
