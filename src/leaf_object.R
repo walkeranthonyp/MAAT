@@ -293,7 +293,9 @@ leaf_object <-
     
     # initialisation function
     init <- function(.) {
-      # expects to be housed within the wrapper object, and for the wrapper object to be named maat 
+      # when run this function expects this model object to be cloned within the wrapper object, 
+      # and for the wrapper object to be named maat
+      # the 'init' function resides in the model as initialisation depends on the hierarchical structure of the model (e.g. leaf within canopy )
       
       comb_init_list <- function(.,lls) {
         nas <- sum(is.na(lls))
@@ -309,7 +311,10 @@ leaf_object <-
       maat$vars$pars     <- comb_init_list(lls=.$init_ls$lpv)
       maat$vars$env      <- comb_init_list(lls=.$init_ls$lev)
       
-      if(maat$wpars$UQ) maat$vars$parsB <- comb_init_list(lls=.$init_ls$lpBv)
+      if(maat$wpars$UQ) { 
+        maat$vars$fnamesB <- comb_init_list(lls=.$init_ls$lfBv)
+        maat$vars$parsB   <- comb_init_list(lls=.$init_ls$lpBv)
+      }
     }
     
     configure <- function(.,func,df,o=T){

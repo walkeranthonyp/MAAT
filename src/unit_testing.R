@@ -49,6 +49,29 @@ xyplot(gs~leaf.par|leaf.etrans*leaf.rs,out[[1]],groups=leaf.temp,type='l',panel=
 xyplot(A~leaf.par|leaf.etrans*leaf.rs,out[[1]],type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
 
 
+# Leaf, Ye SA
+rm(list=ls())
+source('wrapper_object.R')
+library(lattice)
+out <- wrapper_object$.test_ye(mc=T,oconf=F)
+
+out
+out[[1]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
