@@ -62,28 +62,12 @@ wrapper_object <-
       # expand the fnames and driving variables  
       .$dataf$fnames  <- if(!is.na(.$vars$fnames[1])) expand.grid(.$vars$fnames,stringsAsFactors=F) else NULL
       .$dataf$env     <- if(!is.na(.$vars$env[1]))    expand.grid(.$vars$env,stringsAsFactors=F   ) else NULL
-      # - once Ye method has been generalised this can be revised and moved to the initial A/B selection loop
-      # if(.$wpars$UQ) {
-      #   if(.$wpars$sobol) {
-      #     .$dataf$fnames  <- if(!is.na(.$vars$fnames[1]))  expand.grid(c(.$vars$fnames,.$vars$fnamesB),stringsAsFactors=F) else NULL
-      #   # } else {
-      #   #   .$dataf$fnamesB <- if(!is.na(.$vars$fnamesB[1])) expand.grid(.$vars$fnamesB,stringsAsFactors=F) else stop()
-      #   }
-      # }
       # bind the parameter vectors OR expand pre-determined parameter vectors 
-      # - this could be modified to allow a distribution function to be specifed
-      if(.$wpars$UQ) { 
-        # yet to solve is how to fix parameters to a relevant function (not 100% necessary, especially for MC runs). 
-        # - however the ATS does this in a rigorous way allowing dynamic object construction.
-        # - this will also be needed for generalising the Ye method to switch between process A and process(es) B
-        .$dataf$pars    <- if(!is.na(.$vars$pars[1] ))   as.data.frame(do.call(cbind,.$vars$pars ))     else stop()
-        # - once Ye method has been generalised this can be moved to the initial A/B selection loop
-# .$dataf$parsB   <- if(!is.na(.$vars$parsB[1]))   as.data.frame(do.call(cbind,.$vars$parsB))     else stop()
-        # this if for sobol is for sobol intended to be used in conjunction with a process rep analysis
-        # - once Ye method has been generalised this can probably be removed
-# if(.$wpars$sobol) .$dataf$pars  <- cbind(.$dataf$pars,.$dataf$parsB)
+      # - 
+      if(.$wpars$UQ&.$wpars$sobol&!.$wpars$eval_strings) { 
+        .$dataf$pars    <- if(!is.na(.$vars$pars[1] ))   as.data.frame(do.call(cbind,.$vars$pars )) else stop()
       } else {
-        .$dataf$pars  <- if(!is.na(.$vars$pars[1]))   expand.grid(.$vars$pars,stringsAsFactors=F)  else NULL
+        .$dataf$pars  <- if(!is.na(.$vars$pars[1]))   expand.grid(.$vars$pars,stringsAsFactors=F)   else NULL
       } 
       
       # add an extra column to the dataframes if they have only one column
@@ -101,12 +85,16 @@ wrapper_object <-
       .$dataf$le <- if(is.null(.$dataf$env)|(sum(dim(.$dataf$env)==0)==2)      ) 1 else length(.$dataf$env[,1])    
       .$dataf$lm <- if(is.null(.$dataf$met)|(sum(dim(.$dataf$met)==0)==2)      ) 1 else length(.$dataf$met[,1])    
       if(.$wpars$UQ&!.$wpars$sobol) {
-        .$dataf$lf  <- length(.$vars$fnames) 
-        .$dataf$lfB <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
-        .$dataf$lp  <- .$wpars$n 
-        .$dataf$lpB <- .$wpars$n^2 # not sure this line is needed anymore, the above line should be sufficient
-      } 
-      
+        .$dataf$lf <- length(.$vars$fnames)
+        # check input parameter names and process assignment are correct
+        test_in <- length(.$vars$pars) - length(.$vars$pars_proc)
+        if(test_in!=0) stop('Parameter input vectors - pars & pars_proc - are not the same length')
+        if(.$wpars$eval_string) {
+          test_in <- length(.$vars$pars_eval) - length(.$vars$pars_proc)
+          if(test_in!=0) stop('Parameter input vectors - pars_eval & pars_proc - are not the same length')
+        }
+      }
+        
       # output summary of maat setup
       .$print_data()
       
@@ -115,8 +103,8 @@ wrapper_object <-
       
       # process UQ run, or either general variable run or matrix A and B of Saltelli method
       if(.$wpars$UQ&!.$wpars$sobol) {
-        if(.$wpars$multic) mclapply(1:.$dataf$lf,.$run_general_process_SA,mc.cores=.$wpars$procs)
-        else                 lapply(1:.$dataf$lf,.$run_general_process_SA)
+        # process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure  
+        lapply(1:.$dataf$lf,.$run_general_process_SA)
       } else {
         .$dataf$out <-
           as.data.frame(
@@ -308,17 +296,9 @@ wrapper_object <-
     
     
     ###########################################################################
-    # nested run functions for Process Sensitivity Analysis after Ye etal 201? - 2 process case 
+    # nested run functions for Process Sensitivity Analysis after Ye etal 201? 
     
-    # This case will be specific to the core enzyme kinetic model of 6 equations and a solver as described in the documentation
-    # In reality the two processes are the overall model vs electron transport models (including the Jmax~Vcmax relationship)
-
-    # The Ye method is a nested system of loops, two loops for each process
-    # - the first loop over each process representation of process A, the second the parameter sampling loop common to MC methods
-    # - for this test case process A is the overall model, process B the electron transport model
-    # - therefore the initial loop for process A consists of a single iteration so is not needed as a loop - function names will be set during init 
-    
-    # below is the loop structure:
+    # The Ye method is a nested system of loops implemented by apply type functions
     # Loop 1: switch process A process B loop         
     # Loop 2: process loop for process A               - use standard location for variable function values
     # Loop 3: parameter loop for process A             - use standard location for variable parameter values
@@ -338,45 +318,55 @@ wrapper_object <-
       # create the fnames dataframes for process A and process B
       .$dataf$fnames  <- if(!is.na(.$vars$fnames[f]))  expand.grid(.$vars$fnames[f] ,stringsAsFactors=F) else stop()
       .$dataf$fnamesB <- if(!is.na(.$vars$fnames[-f])) expand.grid(.$vars$fnames[-f],stringsAsFactors=F) else stop()
-
-      # check input parameter names and process assignment are correct
-      # - this should go in a higher level run function as it only needs to be run once
-      test_in <- length(.$vars$pars) - length(.$vars$pars_proc)
-      if(test_in!=0) stop()
-
+      
+      # determine the number of the rows in process dataframes
+      .$dataf$lfA <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
+      .$dataf$lfB <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
+      
       # partition the parameters to process A and and process B
       .$procA_name <- names(.$vars$fnames)[f]
       .$procA_subs <- which(unlist(.$vars$pars_proc)==.$procA_name)
 
+      # evaluate parameter strings to sample vectors
+      # - this allows a distribution function to be specifed
+      # - also allows the dynamic calcuation of n for process A and B parameter samples
+      if(.$wpars$eval_string) {
+        n <- .$wpars$n
+        .$vars$pars[.$procA_subs ] <- lapply(.$vars$pars_eval[.$procA_subs ],function(cs) eval(parse(text=cs)))
+        n <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
+        .$vars$pars[-.$procA_subs] <- lapply(.$vars$pars_eval[-.$procA_subs],function(cs) eval(parse(text=cs)))
+      }
+      
       # bind the parameter vectors 
-      # - this needs to be modified to allow a distribution function to be specifed
-      # - also need to calcuate dynamic nuber of par samples for process A and B parameters samples
-      .$dataf$pars    <- if(!is.na(.$vars$pars[1]))    as.data.frame(do.call(cbind,.$vars$pars[.$procA_subs] )) else stop()
-      .$dataf$parsB   <- if(!is.na(.$vars$pars[2]))    as.data.frame(do.call(cbind,.$vars$pars[-.$procA_subs])) else stop()
+      .$dataf$pars  <- if(!is.na(.$vars$pars[1])) as.data.frame(do.call(cbind,.$vars$pars[.$procA_subs] )) else stop()
+      .$dataf$parsB <- if(!is.na(.$vars$pars[2])) as.data.frame(do.call(cbind,.$vars$pars[-.$procA_subs])) else stop()
 
+      # determine the number of the rows in parameter dataframes
+      .$dataf$lp  <- .$wpars$n 
+      .$dataf$lpB <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
+      
       # add an extra column to the dataframes if they have only one column
       # - this prevents them being coerced to a vector in further functions
-      if(!is.null(.$dataf$fnames))  if(dim(.$dataf$fnames)[2]==1)  .$dataf$fnames  <- data.frame(.$dataf$fnames,NA) 
-      if(!is.null(.$dataf$fnamesB)) if(dim(.$dataf$fnamesB)[2]==1) .$dataf$fnamesB <- data.frame(.$dataf$fnamesB,NA) 
-      if(!is.null(.$dataf$pars))    if(dim(.$dataf$pars)[2]==1)    .$dataf$pars    <- data.frame(.$dataf$pars,NA) 
-      if(!is.null(.$dataf$parsB))   if(dim(.$dataf$parsB)[2]==1)   .$dataf$parsB   <- data.frame(.$dataf$parsB,NA) 
-      
-      # determine the number of the rows in dataframes
-      .$dataf$lfA <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
-      .$dataf$lfB <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
-      .$dataf$lp  <- .$wpars$n 
-      .$dataf$lpB <- .$wpars$n^2
+      if(!is.null(.$dataf$fnames))  if(dim(.$dataf$fnames)[2]==1)  .$dataf$fnames  <- data.frame(.$dataf$fnames,NA)
+      if(!is.null(.$dataf$fnamesB)) if(dim(.$dataf$fnamesB)[2]==1) .$dataf$fnamesB <- data.frame(.$dataf$fnamesB,NA)
+      if(!is.null(.$dataf$pars))    if(dim(.$dataf$pars)[2]==1)    .$dataf$pars    <- data.frame(.$dataf$pars,NA)
+      if(!is.null(.$dataf$parsB))   if(dim(.$dataf$parsB)[2]==1)   .$dataf$parsB   <- data.frame(.$dataf$parsB,NA)
       
       # call the below run function
       .$dataf$out <-
         data.frame(
           do.call(rbind,
-                  if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs/.$dataf$lf)
+                  if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs)
                   else                 lapply(1:.$dataf$lfA, .$run_repA)
           ))
       
       # output an .RDS for each process AB combination
       print(.$output())
+      
+      # process & record output
+      if(.$wpars$unit_testing) { setwd('~/tmp') ; ofname <- 'Ye_test' } else setwd(odir)
+      write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')  
+      
     }
     
     run_repA <- function(.,g) {
@@ -391,7 +381,7 @@ wrapper_object <-
       # data.frame(do.call(rbind,lapply(1:.$dataf$lp,.$run_parA,offset=g)))      
       data.frame(
         do.call(rbind,
-                if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=g,mc.cores=floor(.$wpars$procs/.$dataf$lf/.$dataf$lfA))
+                if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=g,mc.cores=floor(.$wpars$procs/.$dataf$lfA))
                 else                 lapply(1:.$dataf$lp,.$run_parA,offset=g)
       ))
     }
@@ -458,11 +448,13 @@ wrapper_object <-
     # each list in the 'vars' list comprise vectors of the values for each variable, labelled by the variable name
     # each of these lists is expanded factorially by expand.grid and placed into the below list of dataframes
     vars <- list( 
-      fnames  = NA,
-      fnamesB = NA,
-      pars    = NA,
-      parsB   = NA,
-      env     = NA
+      fnames    = NA,
+      fnamesB   = NA,
+      pars      = NA,
+      pars_proc = NA,
+      pars_eval = NA,
+      parsB     = NA,
+      env       = NA
     )
     
     # input/output data frames
@@ -520,34 +512,32 @@ wrapper_object <-
           # if Ye (i.e. process) UQ - need to write a function to do this
           # the number of rows in the resultant dataframe should be lf*lfB*n^2*le
           if(.$wpars$UQ&!.$wpars$sobol) {
-            # parsA matrix
-            vpars    <- as.matrix(.$dataf$pars) 
-            # parsB matrix
-            vparsB   <- as.matrix(.$dataf$parsB)
-
-            vfnames  <- .$dataf$fnames
+            # convert dfs to matrices - this should probably be done at the beginning due to efficiency of matrices vs dataframes
+            vfnames  <- as.matrix(.$dataf$fnames)
             vfnamesB <- as.matrix(.$dataf$fnamesB)
+            vpars    <- as.matrix(.$dataf$pars) 
+            vparsB   <- as.matrix(.$dataf$parsB)
+            venv     <- as.matrix(.$dataf$env)
             
             # combine input into a single dataframe in order of output dataframe,
             #  - i.e. repeats lines in input dataframes/matrices to align with output
             # vardf    <- suppressWarnings(cbind(
             vardf    <- cbind(
               # fnames of process A - length lf * lfB * le * n^2
-              rep(unlist(vfnames),each=.$dataf$lfB*.$dataf$le*.$wpars$n^2),
+              apply(vfnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
               # pars of process A
-              apply(vpars,2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lf) ),
+              apply(vpars,   2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lfA) ),
               # fnames of process B
-              apply(vfnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lf*.$wpars$n) ),
+              apply(vfnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lfA*.$wpars$n) ),
               # parsB
-              apply(vparsB,2,function(v) rep(v,each=.$dataf$le) ),
+              apply(vparsB,  2,function(v) rep(v,each=.$dataf$le) ),
               # environment
-              unlist(venv) 
+              apply(venv,    2,function(v) rep(v,.$dataf$lfA*.$dataf$lfB*.$wpars$n^2) )
             )#)
             
-            # add names to dataframe
+            # convert to dataframe
             vardf        <- as.data.frame(vardf)
-            # names(vardf) <- c(names(vfnames),names(.$vars$pars),names(vfnamesB),names(.$vars$parsB),names(venv))
-          
+
           } else if(.$wpars$sobol) { 
             vpars   <- .$dataf$pars
             vpars   <- as.data.frame(apply(vpars,2,function(v) rep(v,each=.$dataf$le) ))
@@ -725,7 +715,7 @@ wrapper_object <-
     }    
 
     # test function for Ye method Sobol process sensitivity analysis
-    .test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F) {
+    .test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
       
       # source directory
       source('leaf_object.R')
@@ -742,7 +732,9 @@ wrapper_object <-
       .$wpars$UQ           <- T   # run a UQ/SA style ensemble 
       .$wpars$sobol        <- F   # Ye style SA ensemble 
       .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
-      .$wpars$n            <- 3   # number of parameter samples in each loop 
+      .$wpars$n            <- n   # number of parameter samples in each loop 
+      .$wpars$eval_strings <- T   # parameters are passed as strings to be evaluated to allow for different sample numbers 
+      .$coef_var           <- 0.1
       
       ### Define static variables 
       ###############################
@@ -756,7 +748,7 @@ wrapper_object <-
       # - the wrapper object takes care of combining these lists into the full ensemble      
       .$vars$fnames <- list(
         leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
-        leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991')
+        leaf.etrans = c('f_j_farquharwong1984','f_j_collatz1991','f_j_harley1992')
       )
 
       # .$vars$fnamesB <- list(
@@ -764,13 +756,18 @@ wrapper_object <-
       # )
       
       .$model$fnames$vcmax <- 'f_vcmax_lin'
-      coef_var <- 0.1
-      n        <- 4 * 9 # lf * lfB * n^2
       .$vars$pars <- list(
-        leaf.avn_25   = 9:11,
-        leaf.bvn_25   = 4:6,
-        leaf.theta    = 0.9 * rnorm(n,1,coef_var),
-        leaf.e_ajv_25 = 0.9 * rnorm(n,1,coef_var)
+        leaf.avn_25   = NA,
+        leaf.bvn_25   = NA,
+        leaf.theta    = NA,
+        leaf.e_ajv_25 = NA
+      )
+
+      .$vars$pars_eval <- list(
+        leaf.avn_25   = ' 10 * rnorm(n,1,.$coef_var)',
+        leaf.bvn_25   = '  5 * rnorm(n,1,.$coef_var)',
+        leaf.theta    = '0.9 * rnorm(n,1,.$coef_var)',
+        leaf.e_ajv_25 = '0.9 * rnorm(n,1,.$coef_var)'
       )
       
       .$vars$pars_proc <- list(

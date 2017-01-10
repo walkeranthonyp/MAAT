@@ -157,76 +157,6 @@ leaf_object <-
       Alim        = 'f_lim_farquhar1980'
     )
     
-    # processes that leaf parameters belong to
-    # - the values in this list should take ONLY the names of the enries in the above 'fnames' list 
-    pars_proc   <- list(
-      # photosynthetic parameters
-      a             = 'etrans',           # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
-      f             = 'etrans',           # fraction of absorbed PAR not collected by photosystems (unitless)
-      theta         = 'etrans',           # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
-      theta_collatz = 'Alim',             # curvature of 1st limitation quadratic in Collatz 1991  (unitless)
-      beta_collatz  = 'Alim',             # curvature of 2nd limitation quadratic in Collatz 1991  (unitless)
-      avn_25        = 'vcmax',            # intercept of linear vcmax25 to leaf N relationship     (umolm-2s-1)
-      bvn_25        = 'vcmax',            # slope of linear vcmax25 to leaf N relationship         (umolm-2s-1g-1 N)
-      ajv_25        = 'jmax',             # intercept of linear jmax25 to vcmax25 relationship     (umolm-2s-1)
-      bjv_25        = 'jmax',             # slope of linear jmax25 to vcmax25 relationship         (unitless)
-      e_ajv_25      = 'jmax',             # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
-      e_bjv_25      = 'jmax',             # slope of log-log jmax25 to vcmax25 relationship        (unitless)
-      flnr          = 'vcmax',            # fraction of leafN in RuBisCO -- PFT specific           (unitless)
-      fnr           = 'vcmax',            # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
-      Rsa           = 'vcmax',            # specific activity of RuBisCO                           ()
-      wp_alpha      = 'wp',               # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
-      # resistance parameters
-      g0            = 'rs',               # Medlyn 2011 min gs                                     (molm-2s-1)
-      g1_medlyn     = 'rs',               # Medlyn 2011 gs slope                                   ()
-      g1_leuning    = 'rs',               # Leuning 1995 gs slope                                  ()
-      d0            = 'rs',               # Leuning 1995 D0                                        ()
-      g1_ball       = 'rs',               # Ball 1987 gs slope                                     ()
-      gi            = 'ri',               # mesophyll conductance                                                (molm-2s-1Pa-1)
-      ri            = 'ri',               # mesophyll resistance                                                 (m2sPa mol-1)
-      co2_diff      = 'rb',               # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
-      hco_co2_ratio = 'rb',               # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
-      hco_co2_diff_ratio = 'rb',          # ratio of HCO and CO2 diffusivity in water  
-      fwdw_wl_slope = 'ri',               # delta sphagnum fwdw ratio per mm of decrease in water level    (mm-1) , currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
-      fwdw_wl_sat   = 'ri',               # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
-      fwdw_wl_exp_a = 'ri',               # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
-      fwdw_wl_exp_b = 'ri',               # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
-      # respiration parameters
-      rd            = 'respiration',      # rd as a constant,                                      (umolm-2s-1)
-      rd_prop_vcmax = 'respiration',      # rd as a proportion of Vcmax, Williams & Flannagan 1998 ~ 0.1         (unitless)
-      rd_prop_N     = 'respiration',      # rd as a proportion of leaf N                           (umols-1g-1)
-      # temperature response parameters
-      reftemp.rd    = 'respiration_tcor', # reference temperature at which rd scalar = 1            (oC) 
-      reftemp.vcmax = 'vcmax_tcor',       # reference temperature at which Vcmax scalar = 1         (oC) 
-      reftemp.jmax  = 'jmax_tcor',        # reference temperature at which Jmax scalar = 1          (oC)
-      reftemp.Kc    = 'Kc_tcor',          # reference temperature at which Kc scalar = 1            (oC)
-      reftemp.Ko    = 'Ko_tcor',          # reference temperature at which Ko scalar = 1            (oC)
-      reftemp.gstar = 'gstar_tcor',       # reference temperature at which gamma star scalar = 1    (oC)
-      atref.rd      = 'respiration_tcor', # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
-      atref.vcmax   = 'vcmax_tcor',       # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
-      atref.jmax    = 'jmax_tcor',        # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
-      atref.tpu     = 'tpu_tcor',         # tpu at ref temp (usually 25oC)   - used to set TPU as a parameter                       (umolm-2s-1)
-      atref.Kc      = 'Kc_tcor',          # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
-      atref.Ko      = 'Ko_tcor',          # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
-      atref.gstar   = 'gstar_tcor',       # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
-      atref.vomax   = 'vomax_tcor',
-      Ha.vcmax      = 'vcmax_tcor',       # activation energy of Vcmax                              (J mol-1)
-      Ha.jmax       = 'jmax_tcor',        # activation energy of Jmax                               (J mol-1)
-      Ha.Kc         = 'Kc_tcor',
-      Ha.Ko         = 'Kc_tcor',
-      Ha.gstar      = 'gstar_tcor',
-      Ha.vomax      = 'vomax_tcor',
-      Hd.vcmax      = 'vcmax_tcor',       # deactivation energy of Vcmax                            (J mol-1)
-      Hd.jmax       = 'jmax_tcor',        # deactivation energy of Jmax                             (J mol-1)
-      Topt.vcmax    = 'vcmax_tcor',       # temperature optimum of Vcmax                            (oC)
-      Topt.jmax     = 'jmax_tcor',        # temperature optimum of Jmax                             (oC)
-      deltaS.vcmax  = 'vcmax_tcor',       # 
-      deltaS.jmax   = 'jmax_tcor',        #
-      
-      #physical constants
-      R   = NA               # molar gas constant                                      (m2 kg s-2 K-1 mol-1  ==  Pa m3 mol-1K-1)
-    )
-    
     #leaf parameters
     pars   <- list(
       # photosynthetic parameters
@@ -315,7 +245,7 @@ leaf_object <-
       temp      = 25,                  # (oC)
       vpd       = 2,                   # (kPa)
       atm_press = 101325               # ( Pa)
-      )
+    )
     
     # leaf state
     state  <- list(
@@ -385,10 +315,10 @@ leaf_object <-
       maat$vars$pars     <- comb_init_list(lls=.$init_ls$lpv)
       maat$vars$env      <- comb_init_list(lls=.$init_ls$lev)
       
-      if(maat$wpars$UQ) { 
-        maat$vars$fnamesB <- comb_init_list(lls=.$init_ls$lfBv)
-        maat$vars$parsB   <- comb_init_list(lls=.$init_ls$lpBv)
-      }
+      # if(maat$wpars$UQ) { 
+      #   maat$vars$fnamesB <- comb_init_list(lls=.$init_ls$lfBv)
+      #   maat$vars$parsB   <- comb_init_list(lls=.$init_ls$lpBv)
+      # }
     }
     
     configure <- function(.,func,df,o=T){
@@ -421,7 +351,7 @@ leaf_object <-
       # typically used to run the model using data collected at a specific site and to compare against observations
       
       # expects .$dataf$met to exist in the object, usually in a parent "wrapper" object
-      # any "env" variables specified in the "drv$env" dataframe and specified here will be overwritten by the values specified here 
+      # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
       
       # met data assignment
       .$configure(func='write_env',df=.$dataf$met[l,],F)
