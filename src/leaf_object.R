@@ -39,8 +39,8 @@ leaf_object <-
     
     run   <- function(.,verbose=F) {
       
-      if(verbose) .$pars$verbose
-#       if(.$pars$cverbose) {
+      if(verbose) .$cpars$verbose
+#       if(.$cpars$cverbose) {
 #         print('',quote=F)
 #         print('Leaf configuration:',quote=F)
 #         print(unlist(.$fnames),quote=F)
@@ -74,7 +74,7 @@ leaf_object <-
       .$state_pars$ri      <- get(.$fnames$ri)(.)  
       
       # print state parameters to screen
-      if(.$pars$verbose) {
+      if(.$cpars$verbose) {
         print(.$state_pars)
       }  
       
@@ -94,7 +94,7 @@ leaf_object <-
       .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rs,c=.$state$cb)
       
       # print to screen
-      if(.$pars$verbose) {
+      if(.$cpars$verbose) {
         print(.$state)
       }
       
@@ -110,19 +110,19 @@ leaf_object <-
     #output processing function
     # -- returns a vector of outputs
     output <- function(.){
-      if(.$pars$output=='run') {
+      if(.$cpars$output=='run') {
         list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,respiration=.$state$respiration,lim=.$state$lim) 
         
-      } else if(.$pars$output=='all_lim') {
+      } else if(.$cpars$output=='all_lim') {
         list(A=.$state$A,wc=.$state$wc,wj=.$state$wj,wp=.$state$wp,
              cc=.$state$cc,ci=.$state$ci,ca=.$state$ca,
              gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
              respiration=.$state$respiration,lim=.$state$lim)     
         
-      } else if(.$pars$output=='full') {
+      } else if(.$cpars$output=='full') {
         c(.$state,.$state_pars)
 
-      } else if(.$pars$output=='sphagnum') {
+      } else if(.$cpars$output=='sphagnum') {
         list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,respiration=.$state$respiration,lim=.$state$lim,fwdw=.$state$fwdw_ratio) 
       }
     }    
@@ -157,67 +157,78 @@ leaf_object <-
       Alim        = 'f_lim_farquhar1980'
     )
     
-    # leaf environment
-    env  <- list(
-      ca_conc   = numeric(0),          # (umol mol-1)
-      o2_conc   = 0.21,                # ( mol mol-1)
-      par       = numeric(0),          # (umol photons m-2 s-1)
-      water_l   = numeric(0),          # (mm) water level relative to hollow surfwce
-      sphag_l   = 0,                   # (mm) Sphagnum surfwce relative to hollow surfwce
-      temp      = 25,                  # (oC)
-      vpd       = 2,                   # (kPa)
-      atm_press = 101325               # ( Pa)
-      )
-    
-    # leaf state
-    state  <- list(
-      #environmental state
-      oi = numeric(0),                 # atmospheric & internal O2  (kPa)
-      ca = numeric(0),                 # atmospheric CO2            ( Pa)
-      cb = numeric(0),                 # boundary layer CO2         ( Pa)
-      ci = numeric(0),                 # leaf internal CO2          ( Pa) 
-      cc = numeric(0),                 # chloroplast CO2            ( Pa)
-      leaf_temp = numeric(0),          # leaf temperature           (oC)
+    # processes that leaf parameters belong to
+    # - the values in this list should take ONLY the names of the enries in the above 'fnames' list 
+    pars_proc   <- list(
+      # photosynthetic parameters
+      a             = 'etrans',           # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
+      f             = 'etrans',           # fraction of absorbed PAR not collected by photosystems (unitless)
+      theta         = 'etrans',           # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
+      theta_collatz = 'Alim',             # curvature of 1st limitation quadratic in Collatz 1991  (unitless)
+      beta_collatz  = 'Alim',             # curvature of 2nd limitation quadratic in Collatz 1991  (unitless)
+      avn_25        = 'vcmax',            # intercept of linear vcmax25 to leaf N relationship     (umolm-2s-1)
+      bvn_25        = 'vcmax',            # slope of linear vcmax25 to leaf N relationship         (umolm-2s-1g-1 N)
+      ajv_25        = 'jmax',             # intercept of linear jmax25 to vcmax25 relationship     (umolm-2s-1)
+      bjv_25        = 'jmax',             # slope of linear jmax25 to vcmax25 relationship         (unitless)
+      e_ajv_25      = 'jmax',             # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
+      e_bjv_25      = 'jmax',             # slope of log-log jmax25 to vcmax25 relationship        (unitless)
+      flnr          = 'vcmax',            # fraction of leafN in RuBisCO -- PFT specific           (unitless)
+      fnr           = 'vcmax',            # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
+      Rsa           = 'vcmax',            # specific activity of RuBisCO                           ()
+      wp_alpha      = 'wp',               # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
+      # resistance parameters
+      g0            = 'rs',               # Medlyn 2011 min gs                                     (molm-2s-1)
+      g1_medlyn     = 'rs',               # Medlyn 2011 gs slope                                   ()
+      g1_leuning    = 'rs',               # Leuning 1995 gs slope                                  ()
+      d0            = 'rs',               # Leuning 1995 D0                                        ()
+      g1_ball       = 'rs',               # Ball 1987 gs slope                                     ()
+      gi            = 'ri',               # mesophyll conductance                                                (molm-2s-1Pa-1)
+      ri            = 'ri',               # mesophyll resistance                                                 (m2sPa mol-1)
+      co2_diff      = 'rb',               # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
+      hco_co2_ratio = 'rb',               # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
+      hco_co2_diff_ratio = 'rb',          # ratio of HCO and CO2 diffusivity in water  
+      fwdw_wl_slope = 'ri',               # delta sphagnum fwdw ratio per mm of decrease in water level    (mm-1) , currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
+      fwdw_wl_sat   = 'ri',               # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
+      fwdw_wl_exp_a = 'ri',               # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
+      fwdw_wl_exp_b = 'ri',               # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
+      # respiration parameters
+      rd            = 'respiration',      # rd as a constant,                                      (umolm-2s-1)
+      rd_prop_vcmax = 'respiration',      # rd as a proportion of Vcmax, Williams & Flannagan 1998 ~ 0.1         (unitless)
+      rd_prop_N     = 'respiration',      # rd as a proportion of leaf N                           (umols-1g-1)
+      # temperature response parameters
+      reftemp.rd    = 'respiration_tcor', # reference temperature at which rd scalar = 1            (oC) 
+      reftemp.vcmax = 'vcmax_tcor',       # reference temperature at which Vcmax scalar = 1         (oC) 
+      reftemp.jmax  = 'jmax_tcor',        # reference temperature at which Jmax scalar = 1          (oC)
+      reftemp.Kc    = 'Kc_tcor',          # reference temperature at which Kc scalar = 1            (oC)
+      reftemp.Ko    = 'Ko_tcor',          # reference temperature at which Ko scalar = 1            (oC)
+      reftemp.gstar = 'gstar_tcor',       # reference temperature at which gamma star scalar = 1    (oC)
+      atref.rd      = 'respiration_tcor', # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
+      atref.vcmax   = 'vcmax_tcor',       # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
+      atref.jmax    = 'jmax_tcor',        # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
+      atref.tpu     = 'tpu_tcor',         # tpu at ref temp (usually 25oC)   - used to set TPU as a parameter                       (umolm-2s-1)
+      atref.Kc      = 'Kc_tcor',          # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
+      atref.Ko      = 'Ko_tcor',          # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
+      atref.gstar   = 'gstar_tcor',       # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
+      atref.vomax   = 'vomax_tcor',
+      Ha.vcmax      = 'vcmax_tcor',       # activation energy of Vcmax                              (J mol-1)
+      Ha.jmax       = 'jmax_tcor',        # activation energy of Jmax                               (J mol-1)
+      Ha.Kc         = 'Kc_tcor',
+      Ha.Ko         = 'Kc_tcor',
+      Ha.gstar      = 'gstar_tcor',
+      Ha.vomax      = 'vomax_tcor',
+      Hd.vcmax      = 'vcmax_tcor',       # deactivation energy of Vcmax                            (J mol-1)
+      Hd.jmax       = 'jmax_tcor',        # deactivation energy of Jmax                             (J mol-1)
+      Topt.vcmax    = 'vcmax_tcor',       # temperature optimum of Vcmax                            (oC)
+      Topt.jmax     = 'jmax_tcor',        # temperature optimum of Jmax                             (oC)
+      deltaS.vcmax  = 'vcmax_tcor',       # 
+      deltaS.jmax   = 'jmax_tcor',        #
       
-      #leaf state - calculated by canopy object so need initialisation
-      leafN_area = 2,                  # leaf N per unit area       (g N m-2)
-      fwdw_ratio = 5,                  # fresh weight dry weight ratio, used for Sphagnum conductance term 
-      
-      #calculated state
-      J  = numeric(0),                 # electron transport rate                            (umol electrons m-2 s-1) 
-      wc = numeric(0),                 # Carboxylaton limited rate of net asssimilation     (umol m-2 s-1)
-      wj = numeric(0),                 # light limited rate of carboxylation                (umol m-2 s-1)
-      wp = numeric(0),                 # TPU limited rate of carboxylation                  (umol m-2 s-1)
-      A            = numeric(0),       # actual rate of carboxylation                       (umol m-2 s-1)
-      respiration  = numeric(0),       # actual rate of respiration                         (umol m-2 s-1)
-      lim          = character(0)      # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
-    )
-    
-    # results from solver
-    solver_out = NULL
-    
-    #leaf state parameters (i.e. calculated parameters)
-    state_pars <- list(
-      vcmax   = numeric(0),   # umol m-2 s-1
-      vcmaxlt = numeric(0),   # umol m-2 s-1
-      jmax    = numeric(0),   # umol m-2 s-1
-      jmaxlt  = numeric(0),   # umol m-2 s-1
-      tpu     = numeric(0),   # umol m-2 s-1
-      Kc      = numeric(0),   #  Pa
-      Ko      = numeric(0),   # kPa
-      gstar   = numeric(0),   #  Pa
-      rb      = numeric(0),   # m2s mol-1 
-      rs      = numeric(0),   # m2s mol-1 
-      ri      = numeric(0),   # m2s mol-1     
-      alpha   = numeric(0)    # mol electrons mol-1 absorbed photosynthetically active photons
+      #physical constants
+      R   = NA               # molar gas constant                                      (m2 kg s-2 K-1 mol-1  ==  Pa m3 mol-1K-1)
     )
     
     #leaf parameters
     pars   <- list(
-      verbose       = F,          # write diagnostic output during runtime 
-      verbose_loop  = F,          # write diagnostic output on the solver during runtime 
-      cverbose      = F,          # write configuration output during runtime 
-      output        = 'run',      # type of output from run function
       # photosynthetic parameters
       # deprecated    alpha    = 0.24,         # harley 1992 alpha - Williams & Flannagan 1998 use 0.21 but calculate 0.25 
       a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
@@ -285,6 +296,69 @@ leaf_object <-
       #physical constants
       R   = 8.31446               # molar gas constant                                      (m2 kg s-2 K-1 mol-1  ==  Pa m3 mol-1K-1)
     )
+    
+    # run control parameters
+    cpars <- list(
+      verbose       = F,          # write diagnostic output during runtime 
+      verbose_loop  = F,          # write diagnostic output on the solver during runtime 
+      cverbose      = F,          # write configuration output during runtime 
+      output        = 'run'       # type of output from run function
+    )
+    
+    # leaf environment
+    env  <- list(
+      ca_conc   = numeric(0),          # (umol mol-1)
+      o2_conc   = 0.21,                # ( mol mol-1)
+      par       = numeric(0),          # (umol photons m-2 s-1)
+      water_l   = numeric(0),          # (mm) water level relative to hollow surfwce
+      sphag_l   = 0,                   # (mm) Sphagnum surfwce relative to hollow surfwce
+      temp      = 25,                  # (oC)
+      vpd       = 2,                   # (kPa)
+      atm_press = 101325               # ( Pa)
+      )
+    
+    # leaf state
+    state  <- list(
+      #environmental state
+      oi = numeric(0),                 # atmospheric & internal O2  (kPa)
+      ca = numeric(0),                 # atmospheric CO2            ( Pa)
+      cb = numeric(0),                 # boundary layer CO2         ( Pa)
+      ci = numeric(0),                 # leaf internal CO2          ( Pa) 
+      cc = numeric(0),                 # chloroplast CO2            ( Pa)
+      leaf_temp = numeric(0),          # leaf temperature           (oC)
+      
+      #leaf state - calculated by canopy object so need initialisation
+      leafN_area = 2,                  # leaf N per unit area       (g N m-2)
+      fwdw_ratio = 5,                  # fresh weight dry weight ratio, used for Sphagnum conductance term 
+      
+      #calculated state
+      J  = numeric(0),                 # electron transport rate                            (umol electrons m-2 s-1) 
+      wc = numeric(0),                 # Carboxylaton limited rate of net asssimilation     (umol m-2 s-1)
+      wj = numeric(0),                 # light limited rate of carboxylation                (umol m-2 s-1)
+      wp = numeric(0),                 # TPU limited rate of carboxylation                  (umol m-2 s-1)
+      A            = numeric(0),       # actual rate of carboxylation                       (umol m-2 s-1)
+      respiration  = numeric(0),       # actual rate of respiration                         (umol m-2 s-1)
+      lim          = character(0)      # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
+    )
+    
+    # results from solver
+    solver_out = NULL
+    
+    #leaf state parameters (i.e. calculated parameters)
+    state_pars <- list(
+      vcmax   = numeric(0),   # umol m-2 s-1
+      vcmaxlt = numeric(0),   # umol m-2 s-1
+      jmax    = numeric(0),   # umol m-2 s-1
+      jmaxlt  = numeric(0),   # umol m-2 s-1
+      tpu     = numeric(0),   # umol m-2 s-1
+      Kc      = numeric(0),   #  Pa
+      Ko      = numeric(0),   # kPa
+      gstar   = numeric(0),   #  Pa
+      rb      = numeric(0),   # m2s mol-1 
+      rs      = numeric(0),   # m2s mol-1 
+      ri      = numeric(0),   # m2s mol-1     
+      alpha   = numeric(0)    # mol electrons mol-1 absorbed photosynthetically active photons
+    )
         
     
     
@@ -331,7 +405,7 @@ leaf_object <-
 
 #       print(func)
       
-      if(.$pars$cverbose&o) {
+      if(.$cpars$cverbose&o) {
         print('',quote=F)
         print('Leaf configure:',quote=F)
         print(prefix,quote=F)
@@ -374,9 +448,9 @@ leaf_object <-
         str.proto(.)
         print(.$env)
       }
-      .$pars$verbose       <- verbose
-      .$pars$verbose_loop  <- verbose_loop
-      .$pars$output        <-'full'
+      .$cpars$verbose       <- verbose
+      .$cpars$verbose_loop  <- verbose_loop
+      .$cpars$output        <-'full'
       
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- 'f_ri_constant'
@@ -389,8 +463,8 @@ leaf_object <-
     }
     
     .test_aci <- function(.,verbose=F,verbose_loop=F,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1200,50)){
-      .$pars$verbose      <- verbose
-      .$pars$verbose_loop <- verbose_loop
+      .$cpars$verbose      <- verbose
+      .$cpars$verbose_loop <- verbose_loop
       
       if(verbose) str.proto(.)
       
@@ -414,8 +488,8 @@ leaf_object <-
     .test_aci_light <- function(.,verbose=F,verbose_loop=F,output=F,
                                 leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50)){
 
-      .$pars$verbose      <- verbose
-      .$pars$verbose_loop <- verbose_loop
+      .$cpars$verbose      <- verbose
+      .$cpars$verbose_loop <- verbose_loop
       
       if(verbose) str.proto(.)
       

@@ -63,13 +63,13 @@ wrapper_object <-
       .$dataf$fnames  <- if(!is.na(.$vars$fnames[1])) expand.grid(.$vars$fnames,stringsAsFactors=F) else NULL
       .$dataf$env     <- if(!is.na(.$vars$env[1]))    expand.grid(.$vars$env,stringsAsFactors=F   ) else NULL
       # - once Ye method has been generalised this can be revised and moved to the initial A/B selection loop
-      if(.$wpars$UQ) {
-        if(.$wpars$sobol) {
-          .$dataf$fnames  <- if(!is.na(.$vars$fnames[1]))  expand.grid(c(.$vars$fnames,.$vars$fnamesB),stringsAsFactors=F) else NULL
-        } else {
-          .$dataf$fnamesB <- if(!is.na(.$vars$fnamesB[1])) expand.grid(.$vars$fnamesB,stringsAsFactors=F) else stop()
-        }
-      }
+      # if(.$wpars$UQ) {
+      #   if(.$wpars$sobol) {
+      #     .$dataf$fnames  <- if(!is.na(.$vars$fnames[1]))  expand.grid(c(.$vars$fnames,.$vars$fnamesB),stringsAsFactors=F) else NULL
+      #   # } else {
+      #   #   .$dataf$fnamesB <- if(!is.na(.$vars$fnamesB[1])) expand.grid(.$vars$fnamesB,stringsAsFactors=F) else stop()
+      #   }
+      # }
       # bind the parameter vectors OR expand pre-determined parameter vectors 
       # - this could be modified to allow a distribution function to be specifed
       if(.$wpars$UQ) { 
@@ -78,10 +78,10 @@ wrapper_object <-
         # - this will also be needed for generalising the Ye method to switch between process A and process(es) B
         .$dataf$pars    <- if(!is.na(.$vars$pars[1] ))   as.data.frame(do.call(cbind,.$vars$pars ))     else stop()
         # - once Ye method has been generalised this can be moved to the initial A/B selection loop
-        .$dataf$parsB   <- if(!is.na(.$vars$parsB[1]))   as.data.frame(do.call(cbind,.$vars$parsB))     else stop()
+# .$dataf$parsB   <- if(!is.na(.$vars$parsB[1]))   as.data.frame(do.call(cbind,.$vars$parsB))     else stop()
         # this if for sobol is for sobol intended to be used in conjunction with a process rep analysis
         # - once Ye method has been generalised this can probably be removed
-        if(.$wpars$sobol) .$dataf$pars  <- cbind(.$dataf$pars,.$dataf$parsB)
+# if(.$wpars$sobol) .$dataf$pars  <- cbind(.$dataf$pars,.$dataf$parsB)
       } else {
         .$dataf$pars  <- if(!is.na(.$vars$pars[1]))   expand.grid(.$vars$pars,stringsAsFactors=F)  else NULL
       } 
@@ -97,15 +97,15 @@ wrapper_object <-
       # - used to set the number of iterations in the run functions  
       # - parameter lengths 
       .$dataf$lf <- if(is.null(.$dataf$fnames)|(sum(dim(.$dataf$fnames)==0)==2)) 1 else length(.$dataf$fnames[,1]) 
+      .$dataf$lp <- if(is.null(.$dataf$pars)|(sum(dim(.$dataf$pars)==0)==2) )    1 else length(.$dataf$pars[,1])
       .$dataf$le <- if(is.null(.$dataf$env)|(sum(dim(.$dataf$env)==0)==2)      ) 1 else length(.$dataf$env[,1])    
       .$dataf$lm <- if(is.null(.$dataf$met)|(sum(dim(.$dataf$met)==0)==2)      ) 1 else length(.$dataf$met[,1])    
       if(.$wpars$UQ&!.$wpars$sobol) {
+        .$dataf$lf  <- length(.$vars$fnames) 
         .$dataf$lfB <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
         .$dataf$lp  <- .$wpars$n 
         .$dataf$lpB <- .$wpars$n^2 # not sure this line is needed anymore, the above line should be sufficient
-      } else {
-        .$dataf$lp  <- if(is.null(.$dataf$pars)|(sum(dim(.$dataf$pars)==0)==2) ) 1      else length(.$dataf$pars[,1])
-      }
+      } 
       
       # output summary of maat setup
       .$print_data()
@@ -113,23 +113,22 @@ wrapper_object <-
       # run model
       .$print_run()
       
-      .$dataf$out <-
-        as.data.frame(
-          do.call(
-            rbind, {
-              # multicore or not
-              if(.$wpars$multic) {
-                # process UQ run, or either general variable run or matrix A and B of Saltelli method
-                if(.$wpars$UQ&!.$wpars$sobol) mclapply(1:.$dataf$lf, .$run_repA, mc.cores=.$wpars$procs)
-                else                          mclapply(1:.$dataf$lf, .$runf,     mc.cores=.$wpars$procs)
-              } else {
-                # process UQ run, or either general variable run or matrix A and B of Saltelli method
-                if(.$wpars$UQ&!.$wpars$sobol)   lapply(1:.$dataf$lf, .$run_repA)
-                else                            lapply(1:.$dataf$lf, .$runf)
+      # process UQ run, or either general variable run or matrix A and B of Saltelli method
+      if(.$wpars$UQ&!.$wpars$sobol) {
+        if(.$wpars$multic) mclapply(1:.$dataf$lf,.$run_general_process_SA,mc.cores=.$wpars$procs)
+        else                 lapply(1:.$dataf$lf,.$run_general_process_SA)
+      } else {
+        .$dataf$out <-
+          as.data.frame(
+            do.call(
+              rbind, {
+                # multicore or not
+                if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf,mc.cores=.$wpars$procs)
+                else                 lapply(1:.$dataf$lf,.$runf)
               }
-            }
-        ))
-      
+            ))
+      }
+        
       # if Sobol analysis run saltellis output from parameter matrices ABi
       # output from parameter matrices A & B already generated by the above function
         if(.$wpars$sobol) {
@@ -320,10 +319,66 @@ wrapper_object <-
     # - therefore the initial loop for process A consists of a single iteration so is not needed as a loop - function names will be set during init 
     
     # below is the loop structure:
-    # Loop 1: parameter loop for process A             - use standard location for variable parameter values
-    # Loop 2: process representation loop for proces B - use standard location for variable function values
-    # Loop 3: parameter loop for proces B              - use an additional non-standard location for variable parameter values
+    # Loop 1: switch process A process B loop         
+    # Loop 2: process loop for process A               - use standard location for variable function values
+    # Loop 3: parameter loop for process A             - use standard location for variable parameter values
+    # Loop 4: process representation loop for proces B - use an additional non-standard location for variable function values
+    # Loop 5: parameter loop for proces B              - use an additional non-standard location for variable parameter values
+    # Loop 6: environment loop                         - use standard location for variable environment values
+    
+    run_general_process_SA <- function(.,f) {
+      # this function is the overall wrapper function to run a generic process sensitivity analysis
+      # The principle is to create a loop that runs the process SA nested loops once for each process to be analysed
+      # This separates out the process in question - process A - from the other process(es) - process B (can be more than one process).
+      # This function partitions the parameters to process A and and process B, 
+      # then creates the fnames and pars dataframes for process A and process B,
+      # calls the below run function,
+      # outputs an .RDS for each process segregation
 
+      # create the fnames dataframes for process A and process B
+      .$dataf$fnames  <- if(!is.na(.$vars$fnames[f]))  expand.grid(.$vars$fnames[f] ,stringsAsFactors=F) else stop()
+      .$dataf$fnamesB <- if(!is.na(.$vars$fnames[-f])) expand.grid(.$vars$fnames[-f],stringsAsFactors=F) else stop()
+
+      # check input parameter names and process assignment are correct
+      # - this should go in a higher level run function as it only needs to be run once
+      test_in <- length(.$vars$pars) - length(.$vars$pars_proc)
+      if(test_in!=0) stop()
+
+      # partition the parameters to process A and and process B
+      .$procA_name <- names(.$vars$fnames)[f]
+      .$procA_subs <- which(unlist(.$vars$pars_proc)==.$procA_name)
+
+      # bind the parameter vectors 
+      # - this needs to be modified to allow a distribution function to be specifed
+      # - also need to calcuate dynamic nuber of par samples for process A and B parameters samples
+      .$dataf$pars    <- if(!is.na(.$vars$pars[1]))    as.data.frame(do.call(cbind,.$vars$pars[.$procA_subs] )) else stop()
+      .$dataf$parsB   <- if(!is.na(.$vars$pars[2]))    as.data.frame(do.call(cbind,.$vars$pars[-.$procA_subs])) else stop()
+
+      # add an extra column to the dataframes if they have only one column
+      # - this prevents them being coerced to a vector in further functions
+      if(!is.null(.$dataf$fnames))  if(dim(.$dataf$fnames)[2]==1)  .$dataf$fnames  <- data.frame(.$dataf$fnames,NA) 
+      if(!is.null(.$dataf$fnamesB)) if(dim(.$dataf$fnamesB)[2]==1) .$dataf$fnamesB <- data.frame(.$dataf$fnamesB,NA) 
+      if(!is.null(.$dataf$pars))    if(dim(.$dataf$pars)[2]==1)    .$dataf$pars    <- data.frame(.$dataf$pars,NA) 
+      if(!is.null(.$dataf$parsB))   if(dim(.$dataf$parsB)[2]==1)   .$dataf$parsB   <- data.frame(.$dataf$parsB,NA) 
+      
+      # determine the number of the rows in dataframes
+      .$dataf$lfA <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
+      .$dataf$lfB <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
+      .$dataf$lp  <- .$wpars$n 
+      .$dataf$lpB <- .$wpars$n^2
+      
+      # call the below run function
+      .$dataf$out <-
+        data.frame(
+          do.call(rbind,
+                  if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs/.$dataf$lf)
+                  else                 lapply(1:.$dataf$lfA, .$run_repA)
+          ))
+      
+      # output an .RDS for each process AB combination
+      print(.$output())
+    }
+    
     run_repA <- function(.,g) {
       # This wrapper function is called from an lapply or mclappy function to run this model over every row of a dataframe
       # assumes that each row of the dataframe are independent and non-sequential
@@ -336,7 +391,7 @@ wrapper_object <-
       # data.frame(do.call(rbind,lapply(1:.$dataf$lp,.$run_parA,offset=g)))      
       data.frame(
         do.call(rbind,
-                if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=g,mc.cores=floor(.$wpars$procs/.$dataf$lf))
+                if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=g,mc.cores=floor(.$wpars$procs/.$dataf$lf/.$dataf$lfA))
                 else                 lapply(1:.$dataf$lp,.$run_parA,offset=g)
       ))
     }
@@ -415,6 +470,7 @@ wrapper_object <-
     dataf  <- list( 
       fnames  = NULL,
       lf      = NULL,
+      lfA     = NULL,
       fnamesB = NULL,
       lfB     = NULL,
       pars    = NULL,
@@ -464,10 +520,13 @@ wrapper_object <-
           # if Ye (i.e. process) UQ - need to write a function to do this
           # the number of rows in the resultant dataframe should be lf*lfB*n^2*le
           if(.$wpars$UQ&!.$wpars$sobol) {
-            # pars matrix
-            vpars    <- matrix(unlist(.$vars$pars),.$wpars$n) 
+            # parsA matrix
+            vpars    <- as.matrix(.$dataf$pars) 
             # parsB matrix
-            vparsB   <- matrix(unlist(.$vars$parsB),.$dataf$lf*.$dataf$lfB*.$wpars$n^2)
+            vparsB   <- as.matrix(.$dataf$parsB)
+
+            vfnames  <- .$dataf$fnames
+            vfnamesB <- as.matrix(.$dataf$fnamesB)
             
             # combine input into a single dataframe in order of output dataframe,
             #  - i.e. repeats lines in input dataframes/matrices to align with output
@@ -475,12 +534,11 @@ wrapper_object <-
             vardf    <- cbind(
               # fnames of process A - length lf * lfB * le * n^2
               rep(unlist(vfnames),each=.$dataf$lfB*.$dataf$le*.$wpars$n^2),
-              # pars
+              # pars of process A
               apply(vpars,2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lf) ),
               # fnames of process B
-              # rep(rep(unlist(vfnames),each=.$dataf$le*.$wpars$n),.$wpars$n) ,
-              rep(rep(unlist(vfnamesB),each=.$dataf$le*.$wpars$n),.$dataf$lf*.$wpars$n),
-              # parsB - this will need to be broadened to a matrix when this function is expanded to > 2 processes
+              apply(vfnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lf*.$wpars$n) ),
+              # parsB
               apply(vparsB,2,function(v) rep(v,each=.$dataf$le) ),
               # environment
               unlist(venv) 
@@ -488,7 +546,7 @@ wrapper_object <-
             
             # add names to dataframe
             vardf        <- as.data.frame(vardf)
-            names(vardf) <- c(names(vfnames),names(.$vars$pars),names(vfnamesB),names(.$vars$parsB),names(venv))
+            # names(vardf) <- c(names(vfnames),names(.$vars$pars),names(vfnamesB),names(.$vars$parsB),names(venv))
           
           } else if(.$wpars$sobol) { 
             vpars   <- .$dataf$pars
@@ -697,25 +755,37 @@ wrapper_object <-
       # add the SA/UQ variables to the maat wrapper object
       # - the wrapper object takes care of combining these lists into the full ensemble      
       .$vars$fnames <- list(
-        leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991')
-      )
-
-      .$vars$fnamesB <- list(
+        leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
         leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991')
       )
+
+      # .$vars$fnamesB <- list(
+      #   leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991')
+      # )
       
       .$model$fnames$vcmax <- 'f_vcmax_lin'
-      .$vars$pars <- list(
-        leaf.avn_25 = 9:11,
-        leaf.bvn_25 = 4:6
-      )
-
       coef_var <- 0.1
       n        <- 4 * 9 # lf * lfB * n^2
-      .$vars$parsB <- list(
-        theta       = 0.9 * rnorm(n,1,coef_var),
-        e_ajv_25    = 0.9 * rnorm(n,1,coef_var)
+      .$vars$pars <- list(
+        leaf.avn_25   = 9:11,
+        leaf.bvn_25   = 4:6,
+        leaf.theta    = 0.9 * rnorm(n,1,coef_var),
+        leaf.e_ajv_25 = 0.9 * rnorm(n,1,coef_var)
       )
+      
+      .$vars$pars_proc <- list(
+        leaf.avn_25   = 'leaf.Alim',
+        leaf.bvn_25   = 'leaf.Alim',
+        leaf.theta    = 'leaf.etrans',
+        leaf.e_ajv_25 = 'leaf.etrans'
+      ) 
+
+      # coef_var <- 0.1
+      # n        <- 4 * 9 # lf * lfB * n^2
+      # .$vars$parsB <- list(
+      #   theta       = 0.9 * rnorm(n,1,coef_var),
+      #   e_ajv_25    = 0.9 * rnorm(n,1,coef_var)
+      # )
       
       .$vars$env <- list(
         leaf.ca_conc  = c(400,600)
