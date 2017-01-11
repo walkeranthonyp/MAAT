@@ -51,13 +51,12 @@ xyplot(A~leaf.par |leaf.etrans*leaf.rs,out[[1]],type='l',panel=function(...) { p
 
 # Leaf, Ye SA
 rm(list=ls())
-wd <- getwd()
 source('wrapper_object.R')
 library(lattice)
-out <- wrapper_object$.test_ye(mc=T,oconf=F,n=4)
+out <- wrapper_object$.test_ye(mc=T,oconf=F,n=5)
 
 out
-out[[1]]
+out[[2]]
 
 
 

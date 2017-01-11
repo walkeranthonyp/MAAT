@@ -316,8 +316,8 @@ wrapper_object <-
       # outputs an .RDS for each process segregation
 
       # create the fnames dataframes for process A and process B
-      .$dataf$fnames  <- if(!is.na(.$vars$fnames[f]))  expand.grid(.$vars$fnames[f] ,stringsAsFactors=F) else stop()
-      .$dataf$fnamesB <- if(!is.na(.$vars$fnames[-f])) expand.grid(.$vars$fnames[-f],stringsAsFactors=F) else stop()
+      .$dataf$fnames  <- if(!is.na(.$vars$fnames[f]))  as.matrix(expand.grid(.$vars$fnames[f] ,stringsAsFactors=F)) else stop()
+      .$dataf$fnamesB <- if(!is.na(.$vars$fnames[-f])) as.matrix(expand.grid(.$vars$fnames[-f],stringsAsFactors=F)) else stop()
       
       # determine the number of the rows in process dataframes
       .$dataf$lfA <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
@@ -338,19 +338,21 @@ wrapper_object <-
       }
       
       # bind the parameter vectors 
-      .$dataf$pars  <- if(!is.na(.$vars$pars[1])) as.data.frame(do.call(cbind,.$vars$pars[.$procA_subs] )) else stop()
-      .$dataf$parsB <- if(!is.na(.$vars$pars[2])) as.data.frame(do.call(cbind,.$vars$pars[-.$procA_subs])) else stop()
+      # .$dataf$pars  <- if(!is.na(.$vars$pars[1])) as.data.frame(do.call(cbind,.$vars$pars[.$procA_subs] )) else stop()
+      # .$dataf$parsB <- if(!is.na(.$vars$pars[2])) as.data.frame(do.call(cbind,.$vars$pars[-.$procA_subs])) else stop()
+      .$dataf$pars  <- if(!is.na(.$vars$pars[1])) do.call(cbind,.$vars$pars[.$procA_subs] ) else stop()
+      .$dataf$parsB <- if(!is.na(.$vars$pars[2])) do.call(cbind,.$vars$pars[-.$procA_subs]) else stop()
 
       # determine the number of the rows in parameter dataframes
       .$dataf$lp  <- .$wpars$n 
       .$dataf$lpB <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
       
-      # add an extra column to the dataframes if they have only one column
-      # - this prevents them being coerced to a vector in further functions
-      if(!is.null(.$dataf$fnames))  if(dim(.$dataf$fnames)[2]==1)  .$dataf$fnames  <- data.frame(.$dataf$fnames,NA)
-      if(!is.null(.$dataf$fnamesB)) if(dim(.$dataf$fnamesB)[2]==1) .$dataf$fnamesB <- data.frame(.$dataf$fnamesB,NA)
-      if(!is.null(.$dataf$pars))    if(dim(.$dataf$pars)[2]==1)    .$dataf$pars    <- data.frame(.$dataf$pars,NA)
-      if(!is.null(.$dataf$parsB))   if(dim(.$dataf$parsB)[2]==1)   .$dataf$parsB   <- data.frame(.$dataf$parsB,NA)
+      # # add an extra column to the dataframes if they have only one column
+      # # - this prevents them being coerced to a vector in further functions
+      # if(!is.null(.$dataf$fnames))  if(dim(.$dataf$fnames)[2]==1)  .$dataf$fnames  <- data.frame(.$dataf$fnames,NA)
+      # if(!is.null(.$dataf$fnamesB)) if(dim(.$dataf$fnamesB)[2]==1) .$dataf$fnamesB <- data.frame(.$dataf$fnamesB,NA)
+      # if(!is.null(.$dataf$pars))    if(dim(.$dataf$pars)[2]==1)    .$dataf$pars    <- data.frame(.$dataf$pars,NA)
+      # if(!is.null(.$dataf$parsB))   if(dim(.$dataf$parsB)[2]==1)   .$dataf$parsB   <- data.frame(.$dataf$parsB,NA)
       
       # call the below run function
       .$dataf$out <-
@@ -361,12 +363,17 @@ wrapper_object <-
           ))
       
       # output an .RDS for each process AB combination
-      print(.$output())
+      # print(.$output())
       
       # process & record output
-      if(.$wpars$unit_testing) { setwd('~/tmp') ; ofname <- 'Ye_test' } else setwd(odir)
+      if(.$wpars$unit_testing) { 
+        hd     <- getwd()
+        setwd('~/tmp')
+        ofname <- 'Ye_test' 
+      } else setwd(odir)
+
       write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')  
-      
+      setwd(hd)
     }
     
     run_repA <- function(.,g) {
@@ -374,14 +381,17 @@ wrapper_object <-
       # assumes that each row of the dataframe are independent and non-sequential
       
       # configure function names in the model
-      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[g,]),F)
+      # print(.$dataf$fnames)
+      # print(.$dataf$fnames[g,])
+      # if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[g,]),F)
+      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[g,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[g,])
       
       # call process A parameter run function
       # data.frame(do.call(rbind,lapply(1:.$dataf$lp,.$run_parA,offset=g)))      
       data.frame(
         do.call(rbind,
-                if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=g,mc.cores=floor(.$wpars$procs/.$dataf$lfA))
+                if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=g,mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1) )
                 else                 lapply(1:.$dataf$lp,.$run_parA,offset=g)
       ))
     }
@@ -391,7 +401,8 @@ wrapper_object <-
       # assumes that each row of the dataframe are independent and non-sequential
       
       # configure parameters in the model
-      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=data.frame(.$dataf$pars[h,]),F)
+      # if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=data.frame(.$dataf$pars[h,]),F)
+      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=.$dataf$pars[h,],F)
       if(.$wpars$cverbose) .$printc('pars',.$dataf$pars[h,])
       
       # call process B process representation run function
@@ -405,7 +416,8 @@ wrapper_object <-
       # assumes that each row of the dataframe are independent and non-sequential
       
       # configure function names in the model
-      if(!is.null(.$dataf$fnamesB)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnamesB[i,]),F)
+      # if(!is.null(.$dataf$fnamesB)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnamesB[i,]),F)
+      if(!is.null(.$dataf$fnamesB)) .$model$configure(func='write_fnames',df=.$dataf$fnamesB[i,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnamesB[i,])
       
       # call process B parameter run function
@@ -419,7 +431,8 @@ wrapper_object <-
       # assumes that each row of the dataframe are independent and non-sequential
       
       # configure parameters in the model
-      if(!is.null(.$dataf$parsB)) .$model$configure(func='write_pars',df=data.frame(.$dataf$parsB[j,]),F)
+      # if(!is.null(.$dataf$parsB)) .$model$configure(func='write_pars',df=data.frame(.$dataf$parsB[j,]),F)
+      if(!is.null(.$dataf$parsB)) .$model$configure(func='write_pars',df=.$dataf$parsB[j,],F)
       if(.$wpars$cverbose) .$printc('pars',.$dataf$parsB[j,])
       
       # call the environment run function to loop over CO2 values
@@ -513,11 +526,16 @@ wrapper_object <-
           # the number of rows in the resultant dataframe should be lf*lfB*n^2*le
           if(.$wpars$UQ&!.$wpars$sobol) {
             # convert dfs to matrices - this should probably be done at the beginning due to efficiency of matrices vs dataframes
-            vfnames  <- as.matrix(.$dataf$fnames)
-            vfnamesB <- as.matrix(.$dataf$fnamesB)
-            vpars    <- as.matrix(.$dataf$pars) 
-            vparsB   <- as.matrix(.$dataf$parsB)
-            venv     <- as.matrix(.$dataf$env)
+            # vfnames  <- as.matrix(.$dataf$fnames)
+            # vfnamesB <- as.matrix(.$dataf$fnamesB)
+            # vpars    <- as.matrix(.$dataf$pars) 
+            # vparsB   <- as.matrix(.$dataf$parsB)
+            # venv     <- as.matrix(.$dataf$env)
+            vfnames  <- .$dataf$fnames
+            vfnamesB <- .$dataf$fnamesB
+            vpars    <- .$dataf$pars 
+            vparsB   <- .$dataf$parsB
+            venv     <- .$dataf$env
             
             # combine input into a single dataframe in order of output dataframe,
             #  - i.e. repeats lines in input dataframes/matrices to align with output
