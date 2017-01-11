@@ -54,28 +54,35 @@ wrapper_object <-
       if(!.$wpars$unit_testing) .$model$init()
       
       # initialise model with static variables
-      .$model$configure(func='write_fnames',df=data.frame(.$static$fnames,stringsAsFactors=F) )
-      .$model$configure(func='write_pars',  df=data.frame(.$static$pars,stringsAsFactors=F)   )
-      .$model$configure(func='write_env',   df=data.frame(.$static$env,stringsAsFactors=F)    )      
+      # .$model$configure(func='write_fnames',df=data.frame(.$static$fnames,stringsAsFactors=F) )
+      # .$model$configure(func='write_pars',  df=data.frame(.$static$pars,stringsAsFactors=F)   )
+      # .$model$configure(func='write_env',   df=data.frame(.$static$env,stringsAsFactors=F)    )      
+      .$model$configure(func='write_fnames',df=t(as.matrix(.$static$fnames,stringsAsFactors=F)) )
+      .$model$configure(func='write_pars',  df=t(as.matrix(.$static$pars,stringsAsFactors=F))   )
+      .$model$configure(func='write_env',   df=t(as.matrix(.$static$env,stringsAsFactors=F))    )      
       
       # create dataframes of runtime variables  
       # expand the fnames and driving variables  
-      .$dataf$fnames  <- if(!is.na(.$vars$fnames[1])) expand.grid(.$vars$fnames,stringsAsFactors=F) else NULL
-      .$dataf$env     <- if(!is.na(.$vars$env[1]))    expand.grid(.$vars$env,stringsAsFactors=F   ) else NULL
+      # .$dataf$fnames  <- if(!is.na(.$vars$fnames[1])) expand.grid(.$vars$fnames,stringsAsFactors=F) else NULL
+      # .$dataf$env     <- if(!is.na(.$vars$env[1]))    expand.grid(.$vars$env,stringsAsFactors=F   ) else NULL
+      .$dataf$fnames  <- if(!is.na(.$vars$fnames[1])) as.matrix(expand.grid(.$vars$fnames,stringsAsFactors=F)) else NULL
+      .$dataf$env     <- if(!is.na(.$vars$env[1]))    as.matrix(expand.grid(.$vars$env,stringsAsFactors=F   )) else NULL
+      
       # bind the parameter vectors OR expand pre-determined parameter vectors 
-      # - 
       if(.$wpars$UQ&.$wpars$sobol&!.$wpars$eval_strings) { 
-        .$dataf$pars    <- if(!is.na(.$vars$pars[1] ))   as.data.frame(do.call(cbind,.$vars$pars )) else stop()
+        # .$dataf$pars    <- if(!is.na(.$vars$pars[1] ))   as.data.frame(do.call(cbind,.$vars$pars )) else stop()
+        .$dataf$pars <- if(!is.na(.$vars$pars[1] )) do.call(cbind,.$vars$pars ) else stop()
       } else {
-        .$dataf$pars  <- if(!is.na(.$vars$pars[1]))   expand.grid(.$vars$pars,stringsAsFactors=F)   else NULL
+        # .$dataf$pars  <- if(!is.na(.$vars$pars[1]))   expand.grid(.$vars$pars,stringsAsFactors=F)   else NULL
+        .$dataf$pars <- if(!is.na(.$vars$pars[1])) as.matrix(expand.grid(.$vars$pars,stringsAsFactors=F))   else NULL
       } 
       
       # add an extra column to the dataframes if they have only one column
       # - this prevents them being coerced to a vector in further functions
-      if(!is.null(.$dataf$fnames)) if(dim(.$dataf$fnames)[2]==1) .$dataf$fnames <- data.frame(.$dataf$fnames,NA) 
-      if(!is.null(.$dataf$pars))   if(dim(.$dataf$pars)[2]==1)   .$dataf$pars   <- data.frame(.$dataf$pars,NA) 
-      if(!is.null(.$dataf$env))    if(dim(.$dataf$env)[2]==1)    .$dataf$env    <- data.frame(.$dataf$env,NA) 
-      if(!is.null(.$dataf$met))    if(dim(.$dataf$met)[2]==1)    .$dataf$met    <- data.frame(.$dataf$met,NA)       
+      # if(!is.null(.$dataf$fnames)) if(dim(.$dataf$fnames)[2]==1) .$dataf$fnames <- data.frame(.$dataf$fnames,NA) 
+      # if(!is.null(.$dataf$pars))   if(dim(.$dataf$pars)[2]==1)   .$dataf$pars   <- data.frame(.$dataf$pars,NA) 
+      # if(!is.null(.$dataf$env))    if(dim(.$dataf$env)[2]==1)    .$dataf$env    <- data.frame(.$dataf$env,NA) 
+      # if(!is.null(.$dataf$met))    if(dim(.$dataf$met)[2]==1)    .$dataf$met    <- data.frame(.$dataf$met,NA)       
       
       # calculate dataframe lengths, if no dataframe return 1
       # - used to set the number of iterations in the run functions  
@@ -152,7 +159,8 @@ wrapper_object <-
       # assumes that each row of the dataframe are independent and non-sequential
       
       # configure function names in the model
-      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[i,]),F)
+      # if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[i,]),F)
+      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[i,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
       # call next run function
@@ -171,7 +179,8 @@ wrapper_object <-
       # assumes that each row of the dataframe are independent and non-sequential
       
       # configure parameters in the model
-      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=data.frame(.$dataf$pars[j,]),F)
+      # if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=data.frame(.$dataf$pars[j,]),F)
+      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=.$dataf$pars[j,],F)
       if(.$wpars$cverbose) .$printc('pars',.$dataf$pars[j,])
       
       # call next run function
@@ -233,7 +242,8 @@ wrapper_object <-
       # assumes that each row of the dataframe are independent and non-sequential
       
       # configure function names in the model
-      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[i,]),F)
+      # if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[i,]),F)
+      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[i,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
       # call next run function
@@ -275,7 +285,8 @@ wrapper_object <-
       smat    <- cbind(sub,1:dim(.$dataf$pars)[2])      
       
       # create a dataframe from vector and add names
-      psdf        <- data.frame(t(.$dataf$pars[smat]))
+      # psdf        <- data.frame(t(.$dataf$pars[smat]))
+      psdf        <- t(.$dataf$pars[smat])
       names(psdf) <- names(.$dataf$pars)
       
       # configure parameters in the model
@@ -344,7 +355,7 @@ wrapper_object <-
       .$dataf$parsB <- if(!is.na(.$vars$pars[2])) do.call(cbind,.$vars$pars[-.$procA_subs]) else stop()
 
       # determine the number of the rows in parameter dataframes
-      .$dataf$lp  <- .$wpars$n 
+      .$dataf$lp  <- .$wpars$n # convert these to be the row number of the actual matrices
       .$dataf$lpB <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
       
       # # add an extra column to the dataframes if they have only one column
@@ -500,6 +511,7 @@ wrapper_object <-
       UQ       = F,           # run a UQ analysis
       n        = numeric(1),  # emsemble number in parameteric UQ
       sobol    = F,           # run a Sobol parameter sensitivity analysis
+      eval_strings = F,
       unit_testing = F
     )
     
@@ -689,7 +701,7 @@ wrapper_object <-
       # can load a met dataset here
       # below a trivial met dataset is created to be used as an example
 #       metdata <- expand.grid(list(leaf.par = 500,leaf.ca_conc = seq(10,1200,10)))      
-      metdata <- expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400))      
+      metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))      
       if(metd) .$dataf$met <- metdata
       
       ### Define the parameters and model functions that are to be varied 
@@ -699,6 +711,7 @@ wrapper_object <-
       
       # add the SA/UQ variables to the maat wrapper object
       # - the wrapper object takes care of combining these lists into the full ensemble      
+      .$static$fnames <- list(vcmax='f_vcmax_lin')
       .$vars$fnames <- list(
         leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991'),
         leaf.rs     = c('f_r_zero','f_rs_medlyn2011')
@@ -709,7 +722,6 @@ wrapper_object <-
         leaf.temp = c(5,20)
       )
         
-      .$model$fnames$vcmax <- 'f_vcmax_lin'
       .$vars$pars <- list(
         leaf.avn_25 = 9:11,
         leaf.bvn_25 = 4:6
