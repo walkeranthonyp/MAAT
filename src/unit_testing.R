@@ -59,9 +59,18 @@ out
 out[[2]]
 
 
+# Leaf, Saltelli SA
+rm(list=ls())
+source('wrapper_object.R')
+library(lattice)
+out <- wrapper_object$.test_saltelli(mc=F,oconf=F,n=5)
 
-
-
+out
+out[[1]]
+out[[2]]
+length(out[[2]])
+dim(out[[1]])
+wrapper_object$output()
 
 
 

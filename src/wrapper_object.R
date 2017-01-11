@@ -71,7 +71,7 @@ wrapper_object <-
       # bind the parameter vectors OR expand pre-determined parameter vectors 
       if(.$wpars$UQ&.$wpars$sobol&!.$wpars$eval_strings) { 
         # .$dataf$pars    <- if(!is.na(.$vars$pars[1] ))   as.data.frame(do.call(cbind,.$vars$pars )) else stop()
-        .$dataf$pars <- if(!is.na(.$vars$pars[1] )) do.call(cbind,.$vars$pars ) else stop()
+        .$dataf$pars <- if(!is.na(.$vars$pars[1] )) do.call(cbind,.$vars$pars ) else stop('wrapper: pars list in vars list is empty')
       } else {
         # .$dataf$pars  <- if(!is.na(.$vars$pars[1]))   expand.grid(.$vars$pars,stringsAsFactors=F)   else NULL
         .$dataf$pars <- if(!is.na(.$vars$pars[1])) as.matrix(expand.grid(.$vars$pars,stringsAsFactors=F))   else NULL
@@ -95,10 +95,10 @@ wrapper_object <-
         .$dataf$lf <- length(.$vars$fnames)
         # check input parameter names and process assignment are correct
         test_in <- length(.$vars$pars) - length(.$vars$pars_proc)
-        if(test_in!=0) stop('Parameter input vectors - pars & pars_proc - are not the same length')
+        if(test_in!=0) stop('wrapper: Parameter input vectors - pars & pars_proc - are not the same length')
         if(.$wpars$eval_string) {
           test_in <- length(.$vars$pars_eval) - length(.$vars$pars_proc)
-          if(test_in!=0) stop('Parameter input vectors - pars_eval & pars_proc - are not the same length')
+          if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
         }
       }
         
@@ -133,7 +133,7 @@ wrapper_object <-
           .$dataf$out_saltelli <-
             if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs)
             else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
-          print('Saltelli array Abi completed',quote=F)
+          print('Saltelli array ABi completed',quote=F)
           print('',quote=F)      
         } else NA             
       
@@ -570,7 +570,7 @@ wrapper_object <-
             # convert to dataframe
             vardf        <- as.data.frame(vardf)
 
-          } else if(.$wpars$sobol) { 
+          } else if(.$wpars$sobol) { # this is not currently active as the standard output function is not called by the Saltelli method
             # if Saltelli SA
             # vpars   <- .$dataf$pars
             # vpars   <- as.data.frame(apply(vpars,2,function(v) rep(v,each=.$dataf$le) ))
@@ -631,7 +631,7 @@ wrapper_object <-
       # - dim 1 (rows)   model combination
       # - dim 2 (cols)   environment combination
       # - dim 3 (slices) sample
-      # - dim 4          output variable
+      # - dim 4          output variable (character variables are coerced to NAs)
       
       # ABi output is a nested list
       # - list 1 model combination
@@ -796,6 +796,7 @@ wrapper_object <-
 
       # add the SA/UQ variables to the maat wrapper object
       # - the wrapper object takes care of combining these lists into the full ensemble      
+      .$static$fnames <- list(vcmax='f_vcmax_lin')
       .$vars$fnames <- list(
         leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
         leaf.etrans = c('f_j_farquharwong1984','f_j_collatz1991','f_j_harley1992')
@@ -805,7 +806,6 @@ wrapper_object <-
       #   leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991')
       # )
       
-      .$model$fnames$vcmax <- 'f_vcmax_lin'
       .$vars$pars <- list(
         leaf.avn_25   = NA,
         leaf.bvn_25   = NA,
@@ -852,6 +852,100 @@ wrapper_object <-
       #       p1 <- xyplot(A~ci|leaf.etrans*leaf.rs,df,type='l',auto.key=T)
       p1 <- bwplot(leaf.ca_conc~A|leaf.Alim*leaf.etrans,df,auto.key=T,abline=0)
       list(df,p1)
+    }    
+    
+    # test function for Saltelli method Sobol parametric sensitivity analysis
+    .test_saltelli <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
+      
+      # source directory
+      source('leaf_object.R')
+      library(lattice)
+      
+      # clone the model object
+      .$model <- as.proto(leaf_object$as.list(),parent=.)
+      .$model$pars$verbose  <- F      
+      .$model$pars$cverbose <- oconf      
+      
+      # define parameters for the wrapper
+      .$wpars$multic       <- mc  # multicore the ensemble
+      .$wpars$procs        <- pr  # number of cores to use if above is true
+      .$wpars$UQ           <- T   # run a UQ/SA style ensemble 
+      .$wpars$sobol        <- T   # Saltelli style SA ensemble 
+      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
+      .$wpars$n            <- n   # number of parameter samples in each loop 
+      .$coef_var           <- 0.1
+      
+      ### Define static variables 
+      ###############################
+      .$model$env$par <- 1000
+      
+      ### Define the parameters and model functions that are to be varied 
+      ###############################
+      # "pars" lists must contain parameter vectors that are of equal length,
+      
+      # add the SA/UQ variables to the maat wrapper object
+      # - the wrapper object takes care of combining these lists into the full ensemble      
+      .$static$fnames <- list(vcmax='f_vcmax_lin')
+      .$vars$fnames <- list(
+        leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
+        leaf.etrans = c('f_j_farquharwong1984','f_j_collatz1991','f_j_harley1992')
+      )
+
+      n <- 2 * n
+      .$vars$pars <- list(
+        leaf.avn_25   =  10 * rnorm(n,1,.$coef_var),
+        leaf.bvn_25   =   5 * rnorm(n,1,.$coef_var),
+        leaf.theta    = 0.9 * rnorm(n,1,.$coef_var),
+        leaf.e_ajv_25 = 0.9 * rnorm(n,1,.$coef_var)
+      )
+      
+      # .$vars$pars <- list(
+      #   leaf.avn_25   = NA,
+      #   leaf.bvn_25   = NA,
+      #   leaf.theta    = NA,
+      #   leaf.e_ajv_25 = NA
+      # )
+      # 
+      # .$vars$pars_eval <- list(
+      #   leaf.avn_25   = ' 10 * rnorm(n,1,.$coef_var)',
+      #   leaf.bvn_25   = '  5 * rnorm(n,1,.$coef_var)',
+      #   leaf.theta    = '0.9 * rnorm(n,1,.$coef_var)',
+      #   leaf.e_ajv_25 = '0.9 * rnorm(n,1,.$coef_var)'
+      # )
+      # 
+      # .$vars$pars_proc <- list(
+      #   leaf.avn_25   = 'leaf.Alim',
+      #   leaf.bvn_25   = 'leaf.Alim',
+      #   leaf.theta    = 'leaf.etrans',
+      #   leaf.e_ajv_25 = 'leaf.etrans'
+      # ) 
+      
+      # coef_var <- 0.1
+      # n        <- 4 * 9 # lf * lfB * n^2
+      # .$vars$parsB <- list(
+      #   theta       = 0.9 * rnorm(n,1,coef_var),
+      #   e_ajv_25    = 0.9 * rnorm(n,1,coef_var)
+      # )
+      
+      .$vars$env <- list(
+        leaf.ca_conc  = c(400,600)
+      )
+      
+      # Run model
+      st <- system.time(
+        .$run()
+      )
+      print('',quote=F)
+      print('Run time:',quote=F)
+      print(st)
+      print('',quote=F)
+      
+      # process & record output
+      out_list <- .$output_saltelli()
+      # p1 <- xyplot(A~ci|leaf.etrans*leaf.rs,df,type='l',auto.key=T)
+      # p1 <- bwplot(leaf.ca_conc~A|leaf.Alim*leaf.etrans,out_list[[1]],auto.key=T,abline=0)
+      # c(out_list,p1)
+      out_list
     }    
     
     ###########################################################################
