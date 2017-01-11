@@ -525,69 +525,89 @@ wrapper_object <-
     output  <- function(.){
       # function that combines the "vars", "met", and "out" dataframes correctly for output 
       return(
-        # if vars
+        # if at least one of fnames, pars, and env are varied
         if(is.null(.$dataf$env)+is.null(.$dataf$pars)+is.null(.$dataf$fnames) < 3) {
 #           vpars <- if(is.null(.$dataf$pars))  NULL  else if(.$wpars$UQ) .$vars$pars[1] else .$vars$pars
-          vpars    <- if(is.null(.$dataf$pars))    NULL else .$vars$pars[[1]]
-          venv     <- if(is.null(.$dataf$env))     NULL else .$vars$env
-          vfnames  <- if(is.null(.$dataf$fnames))  NULL else .$vars$fnames
-          vfnamesB <- if(is.null(.$dataf$fnamesB)) NULL else .$vars$fnamesB
-#           vparsB  <- if(.$wpars$UQ) .$vars$parsB[[1]]  else NULL
+          # vpars    <- if(is.null(.$dataf$pars))    NULL else .$vars$pars[[1]]
+          # vpars    <- if(is.null(.$dataf$pars))    NULL else .$vars$pars
+          # venv     <- if(is.null(.$dataf$env))     NULL else .$vars$env
+          # vfnames  <- if(is.null(.$dataf$fnames))  NULL else .$vars$fnames
+          # vfnamesB <- if(is.null(.$dataf$fnamesB)) NULL else .$vars$fnamesB
+          # vparsB  <- if(.$wpars$UQ) .$vars$parsB[[1]]  else NULL
           
-          # if Ye (i.e. process) UQ - need to write a function to do this
-          # the number of rows in the resultant dataframe should be lf*lfB*n^2*le
+          # run types if
           if(.$wpars$UQ&!.$wpars$sobol) {
+            # if Ye (i.e. process) UQ - need to write a function to do this
+            # the number of rows in the resultant dataframe should be lf*lfB*n^2*le
+
             # convert dfs to matrices - this should probably be done at the beginning due to efficiency of matrices vs dataframes
             # vfnames  <- as.matrix(.$dataf$fnames)
             # vfnamesB <- as.matrix(.$dataf$fnamesB)
             # vpars    <- as.matrix(.$dataf$pars) 
             # vparsB   <- as.matrix(.$dataf$parsB)
             # venv     <- as.matrix(.$dataf$env)
-            vfnames  <- .$dataf$fnames
-            vfnamesB <- .$dataf$fnamesB
-            vpars    <- .$dataf$pars 
-            vparsB   <- .$dataf$parsB
-            venv     <- .$dataf$env
+            # vfnames  <- .$dataf$fnames
+            # vfnamesB <- .$dataf$fnamesB
+            # vpars    <- .$dataf$pars 
+            # vparsB   <- .$dataf$parsB
+            # venv     <- .$dataf$env
             
             # combine input into a single dataframe in order of output dataframe,
             #  - i.e. repeats lines in input dataframes/matrices to align with output
-            # vardf    <- suppressWarnings(cbind(
             vardf    <- cbind(
               # fnames of process A - length lf * lfB * le * n^2
-              apply(vfnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
+              apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
               # pars of process A
-              apply(vpars,   2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lfA) ),
+              apply(.$dataf$pars,   2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lfA) ),
               # fnames of process B
-              apply(vfnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lfA*.$wpars$n) ),
+              apply(.$dataf$fnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lfA*.$wpars$n) ),
               # parsB
-              apply(vparsB,  2,function(v) rep(v,each=.$dataf$le) ),
+              apply(.$dataf$parsB,  2,function(v) rep(v,each=.$dataf$le) ),
               # environment
-              apply(venv,    2,function(v) rep(v,.$dataf$lfA*.$dataf$lfB*.$wpars$n^2) )
-            )#)
+              apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lfA*.$dataf$lfB*.$wpars$n^2) )
+            )
             
             # convert to dataframe
             vardf        <- as.data.frame(vardf)
 
           } else if(.$wpars$sobol) { 
-            vpars   <- .$dataf$pars
-            vpars   <- as.data.frame(apply(vpars,2,function(v) rep(v,each=.$dataf$le) ))
-            vardf   <- suppressWarnings(cbind( 
-              rep(unlist(vfnames),each=.$dataf$le*2*.$wpars$n),
-              vpars,
-              unlist(venv) 
-            ))
-            vardf        <- as.data.frame(vardf)
-            names(vardf) <- c(names(vfnames),names(.$dataf$pars),names(venv))
+            # if Saltelli SA
+            # vpars   <- .$dataf$pars
+            # vpars   <- as.data.frame(apply(vpars,2,function(v) rep(v,each=.$dataf$le) ))
+            # vardf   <- suppressWarnings(cbind( 
+            #   rep(unlist(vfnames),each=.$dataf$le*2*.$wpars$n),
+            #   vpars,
+            #   unlist(venv) 
+            # ))
             
-          } else 
+            vardf   <- cbind( 
+              # fnames
+              apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$le*2*.$wpars$n) ),
+              # pars - I think this has the correct length specifications, need to check witha saltelli unit testing function
+              apply(.$dataf$pars,   2,function(v) rep(rep(v,each=.$dataf$le),.$dataf$lf) ),
+              # environment
+              apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lf*2*.$wpars$n) )
+            )
+            
+            vardf        <- as.data.frame(vardf)
+            # names(vardf) <- c(names(vfnames),names(.$dataf$pars),names(venv))
+            
+          } else { 
+            # if factorial combination run
+            vpars    <- if(is.null(.$dataf$pars))    NULL else .$vars$pars
+            venv     <- if(is.null(.$dataf$env))     NULL else .$vars$env
+            vfnames  <- if(is.null(.$dataf$fnames))  NULL else .$vars$fnames
+
             vardf <- expand.grid(c(venv,vpars,vfnames),stringsAsFactors=F)        
+          }
           
           # if no met data
           if(is.null(.$dataf$met)) {
-            suppressWarnings(cbind(vardf,.$dataf$out))
-
+            # suppressWarnings(cbind(vardf,.$dataf$out))
+            cbind(vardf,.$dataf$out)
+            
           # if met data
-          } else  {
+          } else {
             odf <- cbind(do.call(rbind , lapply(1:length(vardf[,1]) , .$combine ,df=vardf )), .$dataf$out )            
             print(head(odf))
             if(dim(vardf)[2]==1) names(odf)[which(names(odf)=='df.i...')] <- names(vardf)
