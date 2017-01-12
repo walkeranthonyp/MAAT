@@ -54,17 +54,12 @@ wrapper_object <-
       if(!.$wpars$unit_testing) .$model$init()
       
       # initialise model with static variables
-      # .$model$configure(func='write_fnames',df=data.frame(.$static$fnames,stringsAsFactors=F) )
-      # .$model$configure(func='write_pars',  df=data.frame(.$static$pars,stringsAsFactors=F)   )
-      # .$model$configure(func='write_env',   df=data.frame(.$static$env,stringsAsFactors=F)    )      
       .$model$configure(func='write_fnames',df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] )
       .$model$configure(func='write_pars',  df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   )
       .$model$configure(func='write_env',   df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    )      
       
       # create dataframes of runtime variables  
       # expand the fnames and driving variables  
-      # .$dataf$fnames  <- if(!is.na(.$vars$fnames[1])) expand.grid(.$vars$fnames,stringsAsFactors=F) else NULL
-      # .$dataf$env     <- if(!is.na(.$vars$env[1]))    expand.grid(.$vars$env,stringsAsFactors=F   ) else NULL
       .$dataf$fnames  <- if(!is.na(.$vars$fnames[1])) as.matrix(expand.grid(.$vars$fnames,stringsAsFactors=F)) else NULL
       .$dataf$env     <- if(!is.na(.$vars$env[1]))    as.matrix(expand.grid(.$vars$env,stringsAsFactors=F   )) else NULL
       if(.$wpars$UQ) {
@@ -85,7 +80,7 @@ wrapper_object <-
           # due to different parameter sample numbers in process A and B loops,
           # parameters samples must be generated from code snippets as strings
           .$wpars$eval_strings <- T
-          if(is.na(.$vars$pars_eval)) {
+          if(is.na(.$vars$pars_eval[[1]])) {
             stop('wrapper: Ye method SA must draw parameter samples during runtime \n
                   from code snippets expressed as strings in vars$pars_eval') 
           }
@@ -104,16 +99,8 @@ wrapper_object <-
         
       } else {
         # not a formal SA/UQ run - just a factorial combination of variables specified in the vars lists  
-        # .$dataf$pars  <- if(!is.na(.$vars$pars[1]))   expand.grid(.$vars$pars,stringsAsFactors=F)   else NULL
         .$dataf$pars <- if(!is.na(.$vars$pars[1])) as.matrix(expand.grid(.$vars$pars,stringsAsFactors=F))   else NULL
       } 
-      
-      # add an extra column to the dataframes if they have only one column
-      # - this prevents them being coerced to a vector in further functions
-      # if(!is.null(.$dataf$fnames)) if(dim(.$dataf$fnames)[2]==1) .$dataf$fnames <- data.frame(.$dataf$fnames,NA) 
-      # if(!is.null(.$dataf$pars))   if(dim(.$dataf$pars)[2]==1)   .$dataf$pars   <- data.frame(.$dataf$pars,NA) 
-      # if(!is.null(.$dataf$env))    if(dim(.$dataf$env)[2]==1)    .$dataf$env    <- data.frame(.$dataf$env,NA) 
-      # if(!is.null(.$dataf$met))    if(dim(.$dataf$met)[2]==1)    .$dataf$met    <- data.frame(.$dataf$met,NA)       
       
       # calculate dataframe lengths, if no dataframe return 1
       # - used to set the number of iterations in the run functions  
@@ -198,12 +185,10 @@ wrapper_object <-
       # call runp
       
       # configure function names in the model
-      # if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[i,]),F)
       if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[i,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
       # call next run function
-#       data.frame(do.call(rbind,lapply(1:.$dataf$lp,.$runp)))
       data.frame(
         do.call(
           rbind, {
@@ -219,7 +204,6 @@ wrapper_object <-
       # call rune
       
       # configure parameters in the model
-      # if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=data.frame(.$dataf$pars[j,]),F)
       if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=.$dataf$pars[j,],F)
       if(.$wpars$cverbose) .$printc('pars',.$dataf$pars[j,])
       
@@ -254,7 +238,6 @@ wrapper_object <-
       # call rune_saltelli
       
       # configure function names in the model
-      # if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[i,]),F)
       if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[i,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
@@ -303,7 +286,6 @@ wrapper_object <-
       smat    <- cbind(sub,1:dim(.$dataf$pars)[2])      
       
       # create a dataframe from vector and add names
-      # psdf        <- data.frame(t(.$dataf$pars[smat]))
       psdf        <- t(.$dataf$pars[smat])
       names(psdf) <- names(.$dataf$pars)
       
@@ -362,21 +344,12 @@ wrapper_object <-
       }
       
       # bind the parameter vectors 
-      # .$dataf$pars  <- if(!is.na(.$vars$pars[1])) as.data.frame(do.call(cbind,.$vars$pars[.$procA_subs] )) else stop()
-      # .$dataf$parsB <- if(!is.na(.$vars$pars[2])) as.data.frame(do.call(cbind,.$vars$pars[-.$procA_subs])) else stop()
       .$dataf$pars  <- if(!is.na(.$vars$pars[1])) do.call(cbind,.$vars$pars[.$procA_subs] ) else stop()
       .$dataf$parsB <- if(!is.na(.$vars$pars[2])) do.call(cbind,.$vars$pars[-.$procA_subs]) else stop()
 
       # determine the number of the rows in parameter dataframes
       .$dataf$lp  <- .$wpars$n # convert these to be the row number of the actual matrices
       .$dataf$lpB <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
-      
-      # # add an extra column to the dataframes if they have only one column
-      # # - this prevents them being coerced to a vector in further functions
-      # if(!is.null(.$dataf$fnames))  if(dim(.$dataf$fnames)[2]==1)  .$dataf$fnames  <- data.frame(.$dataf$fnames,NA)
-      # if(!is.null(.$dataf$fnamesB)) if(dim(.$dataf$fnamesB)[2]==1) .$dataf$fnamesB <- data.frame(.$dataf$fnamesB,NA)
-      # if(!is.null(.$dataf$pars))    if(dim(.$dataf$pars)[2]==1)    .$dataf$pars    <- data.frame(.$dataf$pars,NA)
-      # if(!is.null(.$dataf$parsB))   if(dim(.$dataf$parsB)[2]==1)   .$dataf$parsB   <- data.frame(.$dataf$parsB,NA)
       
       # call the below run function
       .$dataf$out <-
@@ -385,9 +358,6 @@ wrapper_object <-
                   if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs)
                   else                 lapply(1:.$dataf$lfA, .$run_repA)
           ))
-      
-      # output an .RDS for each process AB combination
-      # print(.$output())
       
       # process & record output
       if(.$wpars$unit_testing) { 
@@ -406,14 +376,10 @@ wrapper_object <-
       # call run_parA
       
       # configure function names in the model
-      # print(.$dataf$fnames)
-      # print(.$dataf$fnames[g,])
-      # if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnames[g,]),F)
       if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[g,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[g,])
       
       # call process A parameter run function
-      # data.frame(do.call(rbind,lapply(1:.$dataf$lp,.$run_parA,offset=g)))      
       data.frame(
         do.call(rbind,
                 if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=g,mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1) )
@@ -427,7 +393,6 @@ wrapper_object <-
       # call run_repB
       
       # configure parameters in the model
-      # if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=data.frame(.$dataf$pars[h,]),F)
       if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=.$dataf$pars[h,],F)
       if(.$wpars$cverbose) .$printc('pars',.$dataf$pars[h,])
       
@@ -443,7 +408,6 @@ wrapper_object <-
       # call run_parB
       
       # configure function names in the model
-      # if(!is.null(.$dataf$fnamesB)) .$model$configure(func='write_fnames',df=data.frame(.$dataf$fnamesB[i,]),F)
       if(!is.null(.$dataf$fnamesB)) .$model$configure(func='write_fnames',df=.$dataf$fnamesB[i,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnamesB[i,])
       
@@ -459,7 +423,6 @@ wrapper_object <-
       # call rune
       
       # configure parameters in the model
-      # if(!is.null(.$dataf$parsB)) .$model$configure(func='write_pars',df=data.frame(.$dataf$parsB[j,]),F)
       if(!is.null(.$dataf$parsB)) .$model$configure(func='write_pars',df=.$dataf$parsB[j,],F)
       if(.$wpars$cverbose) .$printc('pars',.$dataf$parsB[j,])
       
@@ -553,35 +516,15 @@ wrapper_object <-
       return(
         # if at least one of fnames, pars, and env are varied
         if(is.null(.$dataf$env)+is.null(.$dataf$pars)+is.null(.$dataf$fnames) < 3) {
-#           vpars <- if(is.null(.$dataf$pars))  NULL  else if(.$wpars$UQ) .$vars$pars[1] else .$vars$pars
-          # vpars    <- if(is.null(.$dataf$pars))    NULL else .$vars$pars[[1]]
-          # vpars    <- if(is.null(.$dataf$pars))    NULL else .$vars$pars
-          # venv     <- if(is.null(.$dataf$env))     NULL else .$vars$env
-          # vfnames  <- if(is.null(.$dataf$fnames))  NULL else .$vars$fnames
-          # vfnamesB <- if(is.null(.$dataf$fnamesB)) NULL else .$vars$fnamesB
-          # vparsB  <- if(.$wpars$UQ) .$vars$parsB[[1]]  else NULL
-          
+
           # run types if
           if(.$wpars$UQ) {
             if(.$wpars$UQtype=='ye') {
-              
-              # if Ye (i.e. process) UQ - need to write a function to do this
-              # the number of rows in the resultant dataframe should be lf*lfB*n^2*le
-              
-              # convert dfs to matrices - this should probably be done at the beginning due to efficiency of matrices vs dataframes
-              # vfnames  <- as.matrix(.$dataf$fnames)
-              # vfnamesB <- as.matrix(.$dataf$fnamesB)
-              # vpars    <- as.matrix(.$dataf$pars) 
-              # vparsB   <- as.matrix(.$dataf$parsB)
-              # venv     <- as.matrix(.$dataf$env)
-              # vfnames  <- .$dataf$fnames
-              # vfnamesB <- .$dataf$fnamesB
-              # vpars    <- .$dataf$pars 
-              # vparsB   <- .$dataf$parsB
-              # venv     <- .$dataf$env
+              # if Ye (i.e. process) SA 
               
               # combine input into a single dataframe in order of output dataframe,
               #  - i.e. repeats lines in input dataframes/matrices to align with output
+              #  - the number of rows in the resultant dataframe is lf*lfB*n^2*le
               vardf    <- cbind(
                 # fnames of process A - length lf * lfB * le * n^2
                 apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
@@ -603,14 +546,6 @@ wrapper_object <-
               # this is not currently used by the run scripts as the Saltelli method expects a different organisation of output
               # can be called by user to inspect Saltelli run output from matrix AB in a user readable format
 
-              # vpars   <- .$dataf$pars
-              # vpars   <- as.data.frame(apply(vpars,2,function(v) rep(v,each=.$dataf$le) ))
-              # vardf   <- suppressWarnings(cbind( 
-              #   rep(unlist(vfnames),each=.$dataf$le*2*.$wpars$n),
-              #   vpars,
-              #   unlist(venv) 
-              # ))
-              
               vardf   <- cbind( 
                 # fnames
                 apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$le*2*.$wpars$n) ),
@@ -621,7 +556,6 @@ wrapper_object <-
               )
               
               vardf        <- as.data.frame(vardf)
-              # names(vardf) <- c(names(vfnames),names(.$dataf$pars),names(venv))
             }   
           } else { 
             # if factorial combination run
@@ -634,7 +568,6 @@ wrapper_object <-
           
           # if no met data
           if(is.null(.$dataf$met)) {
-            # suppressWarnings(cbind(vardf,.$dataf$out))
             cbind(vardf,.$dataf$out)
             
           # if met data
@@ -753,10 +686,13 @@ wrapper_object <-
       ###############################
       # can load a met dataset here
       # below a trivial met dataset is created to be used as an example
-#       metdata <- expand.grid(list(leaf.par = 500,leaf.ca_conc = seq(10,1200,10)))      
       metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))      
       if(metd) .$dataf$met <- metdata
-      
+
+      ### Define the static parameters and model functions  
+      ###############################
+      .$static$fnames <- list(leaf.vcmax='f_vcmax_lin')
+            
       ### Define the parameters and model functions that are to be varied 
       ###############################
       # if this is a UQ analysis, the "pars" list must contain parameter vectors that are of equal length,
@@ -764,7 +700,6 @@ wrapper_object <-
       
       # add the SA/UQ variables to the maat wrapper object
       # - the wrapper object takes care of combining these lists into the full ensemble      
-      .$static$fnames <- list(vcmax='f_vcmax_lin')
       .$vars$fnames <- list(
         leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991'),
         leaf.rs     = c('f_r_zero','f_rs_medlyn2011')
@@ -791,7 +726,6 @@ wrapper_object <-
       
       # process & record output
       df <- .$output()
-#       p1 <- xyplot(A~ci|leaf.etrans*leaf.rs,df,type='l',auto.key=T)
       p1 <- xyplot(A~leaf.ca_conc|leaf.etrans*leaf.rs,df,groups=leaf.temp,type='l',auto.key=T,
                    panel=function(...) { panel.abline(h=seq(0,20,2.5)) ; panel.xyplot(...) })
       list(df,p1)
@@ -816,7 +750,6 @@ wrapper_object <-
       .$wpars$UQtype       <- 'ye' # Ye style SA ensemble 
       .$wpars$unit_testing <- T    # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
       .$wpars$n            <- n    # number of parameter samples in each loop 
-      .$wpars$eval_strings <- T    # parameters are passed as strings to be evaluated to allow for different sample numbers 
       .$coef_var           <- 0.1
       
       ### Define static variables 
@@ -835,10 +768,6 @@ wrapper_object <-
         leaf.etrans = c('f_j_farquharwong1984','f_j_collatz1991','f_j_harley1992')
       )
 
-      # .$vars$fnamesB <- list(
-      #   leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991')
-      # )
-      
       .$vars$pars <- list(
         leaf.avn_25   = NA,
         leaf.bvn_25   = NA,
@@ -875,7 +804,6 @@ wrapper_object <-
       
       # process & record output
       df <- .$output()
-      #       p1 <- xyplot(A~ci|leaf.etrans*leaf.rs,df,type='l',auto.key=T)
       p1 <- bwplot(leaf.ca_conc~A|leaf.Alim*leaf.etrans,df,auto.key=T,abline=0)
       list(df,p1)
     }    
@@ -934,21 +862,6 @@ wrapper_object <-
           leaf.e_ajv_25 = 0.9 * rnorm(n,1,.$coef_var)
         )
       }
-      
-      # .$vars$pars <- list(
-      #   leaf.avn_25   = NA,
-      #   leaf.bvn_25   = NA,
-      #   leaf.theta    = NA,
-      #   leaf.e_ajv_25 = NA
-      # )
-      # 
-      # 
-      # .$vars$pars_proc <- list(
-      #   leaf.avn_25   = 'leaf.Alim',
-      #   leaf.bvn_25   = 'leaf.Alim',
-      #   leaf.theta    = 'leaf.etrans',
-      #   leaf.e_ajv_25 = 'leaf.etrans'
-      # )
       
       .$vars$env <- list(
         leaf.ca_conc  = c(400,600)

@@ -53,7 +53,7 @@ xyplot(A~leaf.par |leaf.etrans*leaf.rs,out[[1]],type='l',panel=function(...) { p
 rm(list=ls())
 source('wrapper_object.R')
 library(lattice)
-out <- wrapper_object$.test_ye(mc=F,oconf=F,n=5)
+out <- wrapper_object$.test_ye(mc=T,pr=6,oconf=F,n=20)
 
 out
 out[[2]]
@@ -63,7 +63,7 @@ out[[2]]
 rm(list=ls())
 source('wrapper_object.R')
 library(lattice)
-out <- wrapper_object$.test_saltelli(mc=F,oconf=F,n=5)
+out <- wrapper_object$.test_saltelli(mc=T,pr=10,oconf=F,n=30)
 
 out
 out[[1]]
