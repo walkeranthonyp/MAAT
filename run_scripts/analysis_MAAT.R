@@ -30,6 +30,7 @@ source('general_functions.R')
 
 runid  <- 'fixedr_fixedVcmaxJe_sobol'
 
+# this needs to be brought into the .RDS object and read from there
 # number of representations/models in processes A & B
 nA     <- 1                 
 nB     <- 3                 
@@ -54,7 +55,7 @@ pars  <- 6
 delta <- 1 
 
 # load output dataframe from Sobol analysis
-list1 <- readRDS(paste(runid,'_out_sobol.RDS',sep=''))
+list1 <- readRDS(paste(runid,'_out_salt.RDS',sep=''))
 # names(list1)
 # dim(list1$AB)
 # dim(list1$ABi[[1]][[1]])
@@ -91,7 +92,7 @@ sms_ares <- calc_parameter_sensitivity(sobol_n,pars,list1_ares,delta)
 # sms_ares[[2]]
 
 # save sobol analysis
-saveRDS(list(absolute=sms,response=sms_ares),paste(runid,'sobol_list.RDS',sep='_'))
+saveRDS(list(absolute=sms,response=sms_ares),paste(runid,'salt_list.RDS',sep='_'))
 
 # remove large lists
 rm(ls(pattern='^list1'))

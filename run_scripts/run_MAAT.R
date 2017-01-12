@@ -55,20 +55,20 @@ multic  <- F
 # number of cores to use if above is true
 procs   <- 4   
 
-# run a UQ style ensemble, or if -uq- is false a fully factorial ensemble 
+# run an SA/UQ style ensemble, or if -uq- is false a fully factorial ensemble 
 uq      <- T      
 
-# ensemble number for a UQ style ensemble, not used if if -uq- is false 
+# ensemble number for an SA/UQ style ensemble, not used if -uq- is false 
 psa_n   <- 10      
 
-# run a Saltelli Sobol ensemble, run in addition to process sensitivity ensemble if -uq- is true, not used if if -uq- is false 
-sobol   <- T      
+# types of SA/UQ run
+# process SA
+procSA  <- T
+# Saltelli Sobol SA
+salt    <- T
 
-# run only the sobol mc
-sobol_only  <- F
-
-# multiplier on process ensemble n for Sobol ensemble n
-sobol_nmult <- 100      
+# multiplier on process ensemble n for Saltelli ensemble n
+salt_nmult <- 100      
 
 # run options
 # model object to use, currently leaf or canopy
@@ -113,6 +113,11 @@ if(length(commandArgs(T))>=1) {
 
 print('',quote=F)
 print(paste('Run ID:',runid) ,quote=F)
+if(uq&of_format!='rds') {
+  of_format <- 'rds'
+  print('',quote=F)
+  print(paste('of_format changed to rds due to high output volume with SA/UQ ensembles') ,quote=F)
+}
 
 # set default values if not specified on command line
 # - these are set after parsing command line arguments as they depend on other arguments that could be set on the command line
@@ -128,7 +133,7 @@ if(!file.exists(odir))  dir.create(odir)
 # create input/output filenames
 initf   <- if(is.null(runid)) paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
 ofname  <- if(is.null(runid)) of_main else paste(runid,of_main,sep='_')
-sofname <- if(is.null(runid)) of_main else paste(runid,of_main,'sobol',sep='_')
+sofname <- if(is.null(runid)) of_main else paste(runid,of_main,'salt',sep='_')
 
 
 
@@ -162,11 +167,13 @@ maat$wpars$multic       <- multic
 maat$wpars$procs        <- procs   
 maat$wpars$UQ           <- uq       
 maat$wpars$n            <- psa_n       
+maat$wpars$nmult        <- salt_nmult       
 maat$model$pars$verbose <- F
 
 # define number first and second loop parameter samples
-n  <- psa_n
-nB <- 3*psa_n^2
+# - deprecated, now done automatically during runtime
+# n  <- psa_n
+# nB <- 3*psa_n^2
 
 # load init list 
 setwd(pdir)
@@ -205,8 +212,9 @@ if(kill) stop
 ##################################
 ###  Run MAAT
 
-if(!sobol_only) {
+if(procSA) {
   maat$model$pars$verbose  <- F
+  maat$wpars$UQtype <- 'ye'
   
   st <- system.time(
     maat$run()
@@ -232,35 +240,35 @@ if(!sobol_only) {
 ##################################
 ### run Saltelli algorithm for Sobol analysis if requested
 
-if(sobol) {
+if(salt) {
   
   # reconfigure ensemble parameters
-  maat$wpars$sobol <- sobol
-  maat$wpars$n     <- psa_n * sobol_nmult
-  n <- nB          <- 2 * psa_n * sobol_nmult
+  maat$wpars$UQtype <- 'saltelli'
+  # maat$wpars$n     <- psa_n * sobol_nmult
+  # n <- nB          <- 2 * psa_n * sobol_nmult
   
   # reconfigure parameter samples 
-  setwd(pdir)
-  source(initf)
+  # setwd(pdir)
+  # source(initf)
   
   # add reconfigured init list to wrapper
-  maat$init_ls <- init_ls
+  # maat$init_ls <- init_ls
   
   # run reconfigured MAAT
   print('',quote=F)
   print('',quote=F)
-  print('Run Sobol',quote=F)
+  print('Run Saltelli Sobol',quote=F)
   st <- system.time(
     maat$run()
   )
   print('',quote=F)
-  print('MAAT Sobol runtime:',quote=F)
+  print('MAAT Saltelli Sobol runtime:',quote=F)
   print(st,quote=F)
   
   # write output
-  sobol_out <- maat$output_saltelli()
+  salt_out <- maat$output_saltelli()
   setwd(odir)
-  write_to_file(sobol_out,sofname,type=of_format)
+  write_to_file(salt_out,sofname,type=of_format)
   
 }
 
