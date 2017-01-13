@@ -7,24 +7,24 @@
 ################################
 
 
-f_none <- function(.){
+f_none <- function(.) {
   NA
 }
 
 
 
-### SOLVERS
+### SOLVERS & SOLVER FUNCTIONS
 ################################
 
-f_R_Brent_solver <- function(.,...){
+f_R_Brent_solver <- function(.,...) {
   # ... could be used to pass through different functions 'func' to the solver function, not currently necessary
 
-  if(.$cpars$verbose_loop) print(.$env)  
+  if(.$pars$verbose_loop) print(.$env)  
   .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no',...)
   .$solver_out$root
 }
 
-f_A_r_leaf <- function(A,.,...){
+f_A_r_leaf <- function(A,.,...) {
   # combines A, rs, ri, ci & cc eqs to a single f(A), 
   # combines all rate limiting processes
   # passes cc to the assimilation functions
@@ -33,7 +33,9 @@ f_A_r_leaf <- function(A,.,...){
 
   # calculate cc from ca, rb, rs, and ri
   # total resistance of a set of resistors in series is simply their sum 
-  .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( .$state_pars$rb + get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)) + .$state_pars$ri ) )
+  # assumes boundary layer and stomatal resistance terms are in h2o units
+  # assumes mesophyll resistance is in co2 units
+  .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)) + .$state_pars$ri ) )
   
   # calculate w/cc
   # - w/cc and not w is calculated for numerical stability at low cc
@@ -53,13 +55,76 @@ f_A_r_leaf <- function(A,.,...){
   wmin*.$state$cc - wmin*.$state_pars$gstar - .$state$respiration - A
 }
 
+f_A_r_leaf_noRs <- function(A,.,...) {
+  # same as above function but with no stomatal resistance 
+  
+  # combines A, ri, ci & cc eqs to a single f(A), 
+  # combines all rate limiting processes
+  # passes cc to the assimilation functions
+  #  -- for use with uniroot solver
+  #  -- A is pased to this equation by the uniroot solver and is solved to find the root of this equation
+  
+  # calculate cc from ca, rb, rs, and ri
+  # total resistance of a set of resistors in series is simply their sum 
+  # assumes boundary layer and stomatal resistance terms are in h2o units
+  # assumes mesophyll resistance is in co2 units
+  cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + .$state_pars$ri ) )
+  
+  # calculate w/cc
+  # - w/cc and not w is calculated for numerical stability at low cc
+  .$state$wc <- get(.$fnames$wc)(.,cc=cc)
+  .$state$wj <- get(.$fnames$wj)(.,cc=cc)
+  .$state$wp <- get(.$fnames$wp)(.,cc=cc)
+  
+  # calculate limiting cycle
+  wmin <- get(.$fnames$Alim)(.) 
+  
+  # calculate actual w
+  .$state$wc <- .$state$wc * cc
+  .$state$wj <- .$state$wj * cc
+  .$state$wp <- .$state$wp * cc
+  
+  # calculate net A
+  wmin*cc - wmin*.$state_pars$gstar - .$state$respiration - A
+}
+
+f_A_r_leaf_noR <- function(.,...) {
+  # same as above function but with no resistance to CO2 diffusion
+  # - from the atmosphere to the site of carboxylation
+  # These functions can be used to calculate the stomatal limitation to photosynthesis  
+  
+  # combines all rate limiting processes  
+  # cc is initialised at ca by the leaf run function 
+  # so if this is run prior to solver for A then cc is already set to ca
+  
+  # calculate w/cc
+  # - w/cc and not w is calculated for numerical stability at low cc
+  .$state$wc <- get(.$fnames$wc)(.)
+  .$state$wj <- get(.$fnames$wj)(.)
+  .$state$wp <- get(.$fnames$wp)(.)
+  
+  # calculate limiting cycle
+  wmin <- get(.$fnames$Alim)(.) 
+  
+  # calculate net A
+  wmin*.$state$cc - wmin*.$state_pars$gstar - .$state$respiration
+}
+
+transition_cc <- function(.) {
+  # calculates the cc at which wc = wj, i.e. the transition cc
+  
+  vcm_et_ratio <- .$state_pars$vcmaxlt/.$state$J 
+  
+  (8*.$state_pars$gstar*vcm_et_ratio - (.$state_pars$Kc*(1+(.$state$oi/.$state_pars$Ko))) ) /
+    (1 - 4*vcm_et_ratio)
+}
 
 
 ### PHOTOSYNTHESIS FUNCTIONS
 ################################
 
 # CO2 diffusion
-f_ficks_ci <- function(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca){
+f_ficks_ci <- function(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca) {
   # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
   # by default calculates cb from ca and rb
   # c units in Pa
@@ -70,7 +135,7 @@ f_ficks_ci <- function(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca){
 #   c-A*r*.$env$atm_press*1e-6
 }
 
-f_ficks_ci_bound0 <- function(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca){
+f_ficks_ci_bound0 <- function(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca) {
   # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
   # by default calculates cb from ca and rb
   # c units in Pa
@@ -170,6 +235,7 @@ f_wp_collatz1991 <- function(.,cc=.$state$cc){
   # the /cc is to make this function compatible with the solver and the form of these equations
   
 #   .$state_pars$vcmaxlt/2
+  # could also read .$state_pars$TPU/cc and set TPU when setting Vcmax etc
   .$state_pars$vcmaxlt/2/cc
 }
 
@@ -240,25 +306,23 @@ f_rd_fN <- function(.) {
 ### PHOTOSYNTHESIS PARAMETER FUNCTIONS
 ################################
 
+# vcmax
 f_constant_vcmax <- function(.) {
   .$pars$atref.vcmax
 }
 
-f_constant_jmax <- function(.) {
-  .$pars$atref.jmax
-}
-
-f_constant_tpu <- function(.) {
-  .$pars$atref.tpu
-}
-
 f_vcmax_lin <- function(.) {
-  if(.$cpars$verbose) print('Vcmax_CLM_function')
+  if(.$pars$verbose) print('Vcmax_CLM_function')
   .$pars$avn_25 + .$state$leafN_area * .$pars$bvn_25    
 }
 
 f_vcmax_clm <- function(.) {
   .$state$leafN_area * .$pars$flnr * .$pars$fnr * .$pars$Rsa  
+}
+
+# jmax
+f_constant_jmax <- function(.) {
+  .$pars$atref.jmax
 }
 
 f_jmax_walker2014 <- function(.) {
@@ -267,6 +331,11 @@ f_jmax_walker2014 <- function(.) {
 
 f_jmax_lin <- function(.) {
   .$pars$ajv_25 + .$state_pars$vcmax25 * .$pars$bjv_25    
+}
+
+# TPU
+f_constant_tpu <- function(.) {
+  .$pars$atref.tpu
 }
 
 f_tpu_c1991 <- function(.) {
@@ -288,36 +357,47 @@ f_r_zero <- function(.,...){
 }
 
 # stomata
+# stomatal resistances are all assumed by the solver to be in h2o units 
+
 f_rs_medlyn2011 <- function(.,A=.$state$A,c=.$state$cb){
   # Medlyn et al 2011 eq for stomatal resistance
-  # expects c in Pa - I'm not certain this is 100% valid
-  # output in mol m2s mol-1
+  # expects c in Pa
+  # output in m2s mol-1 h2o
   
-  if( A / (c/(.$env$atm_press*1e-6)) < 0 ) 1/.$pars$g0
+  if( A < 0 ) 1/.$pars$g0
   else 1 / (.$pars$g0 + (1 + .$pars$g1_medlyn/.$env$vpd^0.5) * A / (c/(.$env$atm_press * 1e-6)) )
-#   1 / (.$pars$g0 + (1 + .$pars$g1_medlyn/.$env$vpd^0.5) * A / (c/(.$env$atm_press * 1e-6)) )
 }
 
 f_rs_leuning1995 <- function(.,A=.$state$A,c=.$state$cb){
   # Leuninng et al 1995 eq for stomatal resistance
-  # expects c in Pa - I'm not certain this is 100% valid
-  # output in mol m2s mol-1
+  # expects c in Pa
+  # output in m2s mol-1  h2o
   
-  1 / (.$pars$g0 + .$pars$g1_leuning/(1+.$env$vpd/.$pars$d0) * A / ( (c-.$state_pars$gstar)/(.$env$atm_press * 1e-6) - .$state$respiration) ) # need to doublke check this, not sure it is correct
+  if( A < 0 ) 1/.$pars$g0
+  else 1 / (.$pars$g0 + .$pars$g1_leuning/(1+.$env$vpd/.$pars$d0) * A / ( (c-.$state_pars$gstar)/(.$env$atm_press * 1e-6) - .$state$respiration) ) # need to doublke check this, not sure it is correct
 }
 
 f_rs_ball1987 <- function(.,A=.$state$A,c=.$state$cb){
   # Ball et al 1987 eq for stomatal resistance
-  # expects c in Pa - I'm not certain this is 100% valid
-  # output in mol m2s mol-1
+  # expects c in Pa
+  # output in m2s mol-1 h2o
   
-  1 / (.$pars$g0 + .$pars$g1_ball*.$env$rh*.$env$atm_press * A / (c/(.$env$atm_press * 1e-6)) ) # need to add rh to env
+  if( A < 0 ) 1/.$pars$g0
+  else 1 / (.$pars$g0 + .$pars$g1_ball*.$env$rh*.$env$atm_press * A / (c/(.$env$atm_press * 1e-6)) ) # need to add rh to env
 }
 
+
 # internal/mesophyll
+# internal/mesophyll resistances are all assumed by the solver to be in co2 units 
+
 f_ri_constant <- function(.,...){
+  # output in m2s mol-1 co2
+  
   .$pars$ri
 }
+
+# leaf boundary layer
+# leaf boundary layer resistances are all assumed by the solver to be in h2o units  
 
 
 
@@ -348,7 +428,7 @@ f_temp_scalar_Arrhenius <- function(.,parlist,Tr=25,...){
   Trk <- Tr + 273.15
   Tsk <- .$state$leaf_temp + 273.15
   
-  if(.$cpars$verbose) {
+  if(.$pars$verbose) {
     print('Arrhenius_tcorr_function')
     print(paste(Trk,Tsk))
     print(parlist)
@@ -377,7 +457,7 @@ f_temp_scalar_modArrhenius <- function(.,parlist,Tr=25,...){
   Trk <- Tr + 273.15
   Tsk <- .$state$leaf_temp + 273.15
   
-  if(.$cpars$verbose) {
+  if(.$pars$verbose) {
     print('Medlyn_tcorr_function')
     print(paste(Trk,Tsk))
     print(parlist)
@@ -438,13 +518,34 @@ f_temp_scalar_Q10 <- function(.,parlist,Tr=25,...){
 #   Tsk <- .$state$leaf_temp + 273.15
   Ts <- .$state$leaf_temp
   
-  if(.$cpars$verbose) {
+  if(.$pars$verbose) {
     print('Q10_tcorr_function')
     print(paste(Tr,Ts))
     print(parlist)
   }
     
   parlist$Q10 ^ ((Ts-Tr)/10)
+  
+}
+
+
+f_temp_scalar_Q10_collatz1991 <- function(.,parlist,Tr=25,...){
+  #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
+  
+  # input parameters  
+  # Q10    -- factor by which rate increases for every 10 oC of temp increase  
+  # Tr     -- reference temperature (oC) 
+  
+  #convert to Kelvin
+  Tsk <- .$state$leaf_temp + 273.15
+  
+  if(.$pars$verbose) {
+    print('Q10_tcorr_function')
+    print(paste(Tr,Ts))
+    print(parlist)
+  }
+  
+  f_temp_scalar_Q10(.,parlist,Tr=25,...) + exp((Tsk*parlist$deltaS-parlist$Hd) / (Tsk*.$pars$R))
   
 }
 
