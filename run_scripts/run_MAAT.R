@@ -40,13 +40,15 @@ rm(list=ls())
 # source directory (full path) 
 # - must be added (here or as a commandline option to this script) before model will run
 # - can be modified to target source copied to a static directory rather that a reposiotory with version control 
-srcdir  <- NULL 
+srcdir  <- "#SOURCEDIR#" 
 # project directory (full path)
 pdir    <- "#PROJECTDIR#"
 # meteorological data directory (full path)
 mdir    <- NULL 
 # evalutaion data directory (full path)
 edir    <- NULL 
+# output data directory (full path)
+odir    <- NULL 
 
 # wrapper object options
 # multicore the ensemble
@@ -77,6 +79,9 @@ mod_obj <- 'leaf'
 # meteorological data file name
 metdata <- NULL 
 
+# initialisation data file is an XML, if false init file is the R script named below
+xml     <- F
+
 # initialisation data file name
 init    <- 'init_MAAT' 
 
@@ -86,8 +91,8 @@ runid   <- NULL
 # basic output file name
 of_main <- 'out'
 
-# output file format
-of_format <- 'rds'
+# output file format.  supported: rds, csv (default)
+of_format <- 'csv'
 
 
 
@@ -124,11 +129,13 @@ if(uq&of_format!='rds') {
 if(is.null(of_main)) of_main <- proj
 
 # create output directory
-date   <- Sys.Date()
-odir1  <- paste(pdir,'results',sep='/')
-odir   <- paste(odir1,date,sep='/')
-if(!file.exists(odir1)) dir.create(odir1)
-if(!file.exists(odir))  dir.create(odir)
+if(is.null(odir)) {
+  date   <- Sys.Date()
+  odir1  <- paste(pdir,'results',sep='/')
+  odir   <- paste(odir1,date,sep='/')
+  if(!file.exists(odir1)) dir.create(odir1)
+  if(!file.exists(odir))  dir.create(odir)
+}
 
 # create input/output filenames
 initf   <- if(is.null(runid)) paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
@@ -157,7 +164,7 @@ model <- get(paste(mod_obj,'object',sep='_'))$.build()
 
 
 ##################################
-# Configure and initialise the MAAT wrapper
+# Configure the MAAT wrapper
 
 # build and clone the maat wrapper object
 maat <- wrapper_object$.build(model=model)
@@ -170,32 +177,124 @@ maat$wpars$n            <- psa_n
 maat$wpars$nmult        <- salt_nmult       
 maat$model$pars$verbose <- F
 
-# define number first and second loop parameter samples
-# - deprecated, now done automatically during runtime
-# n  <- psa_n
-# nB <- 3*psa_n^2
 
-# load init list 
-setwd(pdir)
-source(initf)
+
+##################################
+# Initialise the MAAT wrapper
+
+# load init xml's or list from init R script 
+if(xml) {
+  # this is currently hard coded to only work with the leaf model object - need to make generic
+  
+  # read default
+  init_default <- readXML('leaf_default.xml')
+  
+  # read user defined values of static variables
+  setwd(pdir)
+  if(file.exists('leaf_user_static.xml')) {
+    init_user    <- readXML('leaf_user_static.xml')
+    init_static  <- fuselists(init_default,init_user)
+    init_static  <- evalXMLlist(init_static)
+  } else init_static <- init_default
+  
+  # write static parameters used in simulation
+  listtoXML('setup_static.xml','static', sublist=init_static)
+  
+  # read user defined values of dynamic variables
+  if(file.exists('leaf_user_dynamic.xml')) {
+    init_dynamic <- readXML('leaf_user_dynamic.xml')
+    init_dynamic <- evalXMLlist(init_dynamic)
+  } else init_dynamic <- list(leaf = list(fnames=NA,pars=NA,env=NA))
+  
+  # otherwise read init list R script (this has not yet been modified to conform with the new init xml/list structure)
+} else source(initf)
 
 # add init list to wrapper
-maat$init_ls <- init_ls
+# maat$init_ls <- init_ls
+maat$init_static  <- init_static
+maat$init_dynamic <- init_dynamic
+
 
 
 ##################################
 # Load meteorological and environment dataset
 # - each ensemble member is run over this entire dataframe
 # - not used unless specified
-# - the data frame must have a minimum of two columns 
+
+# # - the data frame must have a minimum of two columns 
+# kill <- F
+# if(!is.null(metdata)) {
+#   setwd(mdir)
+#   if(file.exists(metdata)) {
+#     maat$dataf$met <- read.csv(metdata,strip.white=T)    
+#   } else {
+#     print('',quote=F)
+#     print('File:',quote=F)
+#     print(metdata,quote=F)
+#     print('does not exist in:',quote=F)
+#     print(mdir,quote=F)
+#     kill <- T
+#     stop
+#   }
+#   setwd(pdir)
+# }
+
 kill <- F
 if(!is.null(metdata)) {
-  setwd(mdir)
-  if(file.exists(metdata)) {
-    maat$dataf$met <- read.csv(metdata,strip.white=T)    
+  # read user defined met data translator
+  setwd(pdir)
+  if(file.exists('leaf_user_met.xml')) {
+    met_trans <- readXML('leaf_user_met.xml')
+    met_trans <- evalXMLlist(met_trans)
+    if(any(names(met_trans)==mod_obj)) met_trans <- met_trans[[which(names(met_trans)==mod_obj)]]$env
+    else {
+      print('',quote=F)
+      print('Met translator file:',quote=F)
+      print('leaf_user_met.xml',quote=F)
+      print('does not contain list for:',quote=F)
+      print(mod_obj,quote=F)      
+      kill <- T
+    }
+      
   } else {
     print('',quote=F)
-    print('File:',quote=F)
+    print('Met translator file:',quote=F)
+    print('leaf_user_met.xml',quote=F)
+    print('does not exist in:',quote=F)
+    print(pdir,quote=F)
+    kill <- T
+    stop    
+  }
+
+  # read metdata file
+  setwd(mdir)
+  if(file.exists(metdata)&!kill) {
+    metdf <- read.csv(metdata,strip.white=T)  
+    
+    # order met data in metfile according to that specified in the leaf_user_met.XML 
+    # - need to add a trap to catch met data files that do not contain all the data specified in leaf_user_met.XML 
+    cols  <- match(unlist(sapply(met_trans,function(l) l)),names(metdf))
+    metdf <- metdf[,cols] 
+        
+    # if time variable specified put it first and don't rename it
+    if('time'%in%names(met_trans)) {
+      tcol  <- which(names(met_trans)=='time')
+      metdf <- metdf[, c(tcol,c(1:length(metdf))[-tcol]) ]
+      
+      # rename to maat variables as defined in leaf_user_met.XML and prefix with the model object for compatibility with the configure function
+      names(metdf)[1] <- 'time'               
+      names(metdf)[2:length(metdf)] <- paste(mod_obj,names(met_trans)[-tcol],sep='.')
+    } else {
+      names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
+    }
+        
+    # add to MAAT object
+    maat$dataf$met <- metdf 
+    rm(metdf)
+      
+  } else {
+    print('',quote=F)
+    print('Met data file:',quote=F)
     print(metdata,quote=F)
     print('does not exist in:',quote=F)
     print(mdir,quote=F)
@@ -204,7 +303,6 @@ if(!is.null(metdata)) {
   }
   setwd(pdir)
 }
-
 if(kill) stop
 
 
@@ -242,18 +340,9 @@ if(procSA) {
 
 if(salt) {
   
-  # reconfigure ensemble parameters
+  # reconfigure SA/UQ type
   maat$wpars$UQtype <- 'saltelli'
-  # maat$wpars$n     <- psa_n * sobol_nmult
-  # n <- nB          <- 2 * psa_n * sobol_nmult
-  
-  # reconfigure parameter samples 
-  # setwd(pdir)
-  # source(initf)
-  
-  # add reconfigured init list to wrapper
-  # maat$init_ls <- init_ls
-  
+
   # run reconfigured MAAT
   print('',quote=F)
   print('',quote=F)
