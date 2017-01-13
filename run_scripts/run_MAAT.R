@@ -116,7 +116,7 @@ print(paste('Run ID:',runid) ,quote=F)
 if(uq&of_format!='rds') {
   of_format <- 'rds'
   print('',quote=F)
-  print(paste('of_format changed to rds due to high output volume with SA/UQ ensembles') ,quote=F)
+  print(paste('of_format changed to rds due to high output volume with SA/UQ ensembles'), quote=F)
 }
 
 # set default values if not specified on command line
