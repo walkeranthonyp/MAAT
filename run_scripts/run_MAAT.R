@@ -183,36 +183,38 @@ maat$model$pars$verbose <- F
 # Initialise the MAAT wrapper
 
 # load init xml's or list from init R script 
+# - currently hard coded to only work with the leaf model object - need to make generic
+# read default
+init_default <- readXML('leaf_default.xml')
+
+# read user defined values of static variables
+setwd(pdir)
 if(xml) {
-  # this is currently hard coded to only work with the leaf model object - need to make generic
   
-  # read default
-  init_default <- readXML('leaf_default.xml')
-  
-  # read user defined values of static variables
-  setwd(pdir)
+  # read user defined XMLs of static variables
   if(file.exists('leaf_user_static.xml')) {
-    init_user    <- readXML('leaf_user_static.xml')
-    init_static  <- fuselists(init_default,init_user)
-    init_static  <- evalXMLlist(init_static)
-  } else init_static <- init_default
+    init_static  <- readXML('leaf_user_static.xml')
+  } else init_static <- list(leaf = list(fnames=NA,pars=NA,env=NA))
   
-  # write static parameters used in simulation
-  listtoXML('setup_static.xml','static', sublist=init_static)
-  
-  # read user defined values of dynamic variables
+  # read user defined XMLs of dynamic variables
   if(file.exists('leaf_user_dynamic.xml')) {
     init_dynamic <- readXML('leaf_user_dynamic.xml')
-    init_dynamic <- evalXMLlist(init_dynamic)
   } else init_dynamic <- list(leaf = list(fnames=NA,pars=NA,env=NA))
   
-  # otherwise read init list R script (this has not yet been modified to conform with the new init xml/list structure)
+  # otherwise read init list R script
 } else source(initf)
 
-# add init list to wrapper
-# maat$init_ls <- init_ls
-maat$init_static  <- init_static
+# combine default values with user defined static values
+if(exists(init_static)) {
+  inits <- fuselists(init_default,init_static)
+} else inits <- init_default
+
+# add init lists to wrapper
+maat$init_static  <- inits
 maat$init_dynamic <- init_dynamic
+
+# write static parameters used in simulation
+listtoXML('setup_static.xml','static', sublist=init_static)
 
 
 
@@ -221,31 +223,13 @@ maat$init_dynamic <- init_dynamic
 # - each ensemble member is run over this entire dataframe
 # - not used unless specified
 
-# # - the data frame must have a minimum of two columns 
-# kill <- F
-# if(!is.null(metdata)) {
-#   setwd(mdir)
-#   if(file.exists(metdata)) {
-#     maat$dataf$met <- read.csv(metdata,strip.white=T)    
-#   } else {
-#     print('',quote=F)
-#     print('File:',quote=F)
-#     print(metdata,quote=F)
-#     print('does not exist in:',quote=F)
-#     print(mdir,quote=F)
-#     kill <- T
-#     stop
-#   }
-#   setwd(pdir)
-# }
-
 kill <- F
 if(!is.null(metdata)) {
   # read user defined met data translator
   setwd(pdir)
   if(file.exists('leaf_user_met.xml')) {
     met_trans <- readXML('leaf_user_met.xml')
-    met_trans <- evalXMLlist(met_trans)
+    # met_trans <- evalXMLlist(met_trans)
     if(any(names(met_trans)==mod_obj)) met_trans <- met_trans[[which(names(met_trans)==mod_obj)]]$env
     else {
       print('',quote=F)

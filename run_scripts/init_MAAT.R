@@ -26,7 +26,6 @@
 
 # fnames.var
 # pars.var     
-# parsB.var - for process UQ     
 # env.var
 
 # This script must set the values of the above 6 lists, even if their value is NA
@@ -79,10 +78,6 @@ leaf.pars.var <- list(
   e_ajv_25 = rnorm(n,1,0.02)
 )
 
-leaf.parsB.var <- list(
-  e_bjv_25 = rnorm(3*n^2,0.89,0.05)
-)
-
 leaf.env.var <- list(
   ca_conc = c(280,400,600)
 )
@@ -92,14 +87,20 @@ leaf.env.var <- list(
 ### Combine the functions, parameters, and environment static and variable lists into a single list 
 ###############################
 
-init_ls <- list(
-  lfs  = leaf.fnames.static,
-  lps  = leaf.pars.static,
-  les  = leaf.env.static,
-  lfv  = leaf.fnames.var,
-  lpv  = leaf.pars.var,
-  lpBv = leaf.parsB.var,
-  lev  = leaf.env.var
-)
+init_static <- list(
+  leaf = list(
+    fnames = leaf.fnames.static,
+    pars   = leaf.pars.static,
+    env    = leaf.env.static
+  ))
+init_dynamic <- list(
+  leaf = list(
+    fnames = leaf.fnames.var,
+    pars   = leaf.pars.var,
+    env    = leaf.env.var
+  ))
 
-
+# for an process SA two more elements need to be added to the init_dynamic$leaf list
+# - pars_proc and pars_eval, both with the same named elements
+# - pars_proc is a list of strings that associate each parameter with the process it is associated with, these should be one of the elemnet names in the list init_dynamic$X$fnames
+# - pars_eval is a string that once evaluated gives a vector of parameter samples  

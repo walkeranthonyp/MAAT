@@ -20,43 +20,31 @@ write_to_file <- function(df,ofile,app=F,type='csv') {
 readXML <- function(input.file=NULL) {
   settings.xml <- NULL
   
-  ### Parse input settings file
+  # Parse input xml
   if (!is.null(input.file) && file.exists(input.file)) {
     settings.xml <- xmlParse(input.file)  
     # convert the xml to a list
     settings.list <- xmlToList(settings.xml)
     
   } else {
-    print("***** WARNING: no settings file defined *****")
+    print("***** WARNING: readXML called but with no input file defined *****")
   }
   
   # make sure something was loaded
   if (is.null(settings.xml)) {
     #log.error("Did not find any settings file to load.")
-    stop("Did not find any settings file to load :: STOP")
+    stop(paste('readXML called, input file empty'))
   }
   
-  ### Remove comment or NULL fields
+  # Remove comment or NULL fields
   settings.list <- settings.list[settings.list !="NULL" ]
   
-  # Return settings file as a list
-  return(settings.list)
+  # Evaluate and return XML as a list
+  return(evalXMLlist(settings.list))
   
 }
 
-# overwrite values in mainlist with values in sublist
-fuselists <- function(mainlist,sublist) {
-  for(i in 1:length(sublist)) {
-    mlsub <- which(names(mainlist)==names(sublist)[i])
-    if(length(mlsub)!=1) {
-      stop("names mismatch when fusing initialisation lists :: STOP")      
-    }
-    mainlist[[mlsub]] <- 
-      if(typeof(sublist[[i]]) == "list")  fuselists(mainlist[[mlsub]],sublist[[i]]) else sublist[[i]]
-  }
-  mainlist
-}
-
+# run over all elements of a list, returning a list of the same structure
 # evaluate character strings to r objects
 evalXMLlist <- function(sublist) {
   for(i in 1:length(sublist)) {
@@ -83,6 +71,20 @@ listtoXML <- function(fname,name,...) {
   rec(root,...)
   saveXML(root,fname)
 }
+
+# overwrite values in mainlist with values in sublist
+fuselists <- function(mainlist,sublist) {
+  for(i in 1:length(sublist)) {
+    mlsub <- which(names(mainlist)==names(sublist)[i])
+    if(length(mlsub)!=1) {
+      stop(paste("names mismatch when fusing initialisation lists:",mainlist,sublist))      
+    }
+    mainlist[[mlsub]] <- 
+      if(typeof(sublist[[i]]) == "list")  fuselists(mainlist[[mlsub]],sublist[[i]]) else sublist[[i]]
+  }
+  mainlist
+}
+
 
 #####################################################
 res_calc <- function(df1,df2,rcols,type='abs') {
