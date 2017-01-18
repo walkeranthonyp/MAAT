@@ -60,39 +60,41 @@ procs   <- 4
 # run an SA/UQ style ensemble, or if -uq- is false a fully factorial ensemble 
 uq      <- T      
 
-# ensemble number for an SA/UQ style ensemble, not used if -uq- is false 
-psa_n   <- 10      
-
 # types of SA/UQ run
 # process SA
 procSA  <- T
 # Saltelli Sobol SA
 salt    <- T
 
+# parameters for SA/UQ run
+# ensemble number for an SA/UQ style ensemble, not used if -uq- is false 
+psa_n      <- 10
+# coefficient of variation if used in parameter sampling in process sensitivity analysis
+coef_var   <- 0.1 
 # multiplier on process ensemble n for Saltelli ensemble n
 salt_nmult <- 100      
 
 # run options
 # model object to use, currently leaf or canopy
-mod_obj <- 'leaf'
+mod_obj    <- 'leaf'
 
 # meteorological data file name
-metdata <- NULL 
+metdata    <- NULL 
 
 # initialisation data file is an XML, if false init file is the R script named below
-xml     <- F
+xml        <- F
 
 # initialisation data file name
-init    <- 'init_MAAT' 
+init       <- 'init_MAAT' 
 
 # run i.d. - used as suffix/prefix for in/out files
-runid   <- NULL 
+runid      <- NULL 
 
 # basic output file name
-of_main <- 'out'
+of_main    <- 'out'
 
 # output file format.  supported: rds, csv (default)
-of_format <- 'csv'
+of_format  <- 'csv'
 
 
 
@@ -174,6 +176,7 @@ maat$wpars$multic       <- multic
 maat$wpars$procs        <- procs   
 maat$wpars$UQ           <- uq       
 maat$wpars$n            <- psa_n       
+maat$wpars$coef_var     <- coef_var       
 maat$wpars$nmult        <- salt_nmult       
 maat$model$pars$verbose <- F
 
@@ -205,7 +208,7 @@ if(xml) {
 } else source(initf)
 
 # combine default values with user defined static values
-if(exists(init_static)) {
+if(exists('init_static')) {
   inits <- fuselists(init_default,init_static)
 } else inits <- init_default
 
@@ -214,6 +217,8 @@ maat$init_static  <- inits
 maat$init_dynamic <- init_dynamic
 
 # write static parameters used in simulation
+print('',quote=F)
+print('Write record of static run variables',quote=F)
 listtoXML('setup_static.xml','static', sublist=init_static)
 
 
@@ -287,7 +292,7 @@ if(!is.null(metdata)) {
   }
   setwd(pdir)
 }
-if(kill) stop
+if(kill) stop()
 
 
 
@@ -306,13 +311,15 @@ if(procSA) {
   print(st,quote=F)
   
   # process & record output
-  setwd(odir)
-  df_out <- maat$output()
-  write_to_file(df_out,ofname,type=of_format)  
+  # setwd(odir)
+  # df_out <- maat$output()
+  # write_to_file(df_out,ofname,type=of_format)  
   
   # delete memory hungry dataframes etc
-  rm(df_out)
+  # rm(df_out)
   maat$clean()
+  print('',quote=F)
+  print('MAAT system memory used for process SA:',quote=F)
   gc()
   
 }

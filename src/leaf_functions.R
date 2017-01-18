@@ -19,7 +19,7 @@ f_none <- function(.) {
 f_R_Brent_solver <- function(.,...) {
   # ... could be used to pass through different functions 'func' to the solver function, not currently necessary
 
-  if(.$pars$verbose_loop) print(.$env)  
+  if(.$cpars$verbose_loop) print(.$env)  
   .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no',...)
   .$solver_out$root
 }
@@ -312,7 +312,7 @@ f_constant_vcmax <- function(.) {
 }
 
 f_vcmax_lin <- function(.) {
-  if(.$pars$verbose) print('Vcmax_CLM_function')
+  if(.$cpars$verbose) print('Vcmax_CLM_function')
   .$pars$avn_25 + .$state$leafN_area * .$pars$bvn_25    
 }
 
@@ -428,7 +428,7 @@ f_temp_scalar_Arrhenius <- function(.,parlist,Tr=25,...){
   Trk <- Tr + 273.15
   Tsk <- .$state$leaf_temp + 273.15
   
-  if(.$pars$verbose) {
+  if(.$cpars$verbose) {
     print('Arrhenius_tcorr_function')
     print(paste(Trk,Tsk))
     print(parlist)
@@ -457,7 +457,7 @@ f_temp_scalar_modArrhenius <- function(.,parlist,Tr=25,...){
   Trk <- Tr + 273.15
   Tsk <- .$state$leaf_temp + 273.15
   
-  if(.$pars$verbose) {
+  if(.$cpars$verbose) {
     print('Medlyn_tcorr_function')
     print(paste(Trk,Tsk))
     print(parlist)
@@ -518,7 +518,7 @@ f_temp_scalar_Q10 <- function(.,parlist,Tr=25,...){
 #   Tsk <- .$state$leaf_temp + 273.15
   Ts <- .$state$leaf_temp
   
-  if(.$pars$verbose) {
+  if(.$cpars$verbose) {
     print('Q10_tcorr_function')
     print(paste(Tr,Ts))
     print(parlist)
@@ -539,7 +539,7 @@ f_temp_scalar_Q10_collatz1991 <- function(.,parlist,Tr=25,...){
   #convert to Kelvin
   Tsk <- .$state$leaf_temp + 273.15
   
-  if(.$pars$verbose) {
+  if(.$cpars$verbose) {
     print('Q10_tcorr_function')
     print(paste(Tr,Ts))
     print(parlist)

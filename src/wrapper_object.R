@@ -85,10 +85,12 @@ wrapper_object <-
                   from code snippets expressed as strings in vars$pars_eval') 
           }
           # check input vars$pars* are same length
-          test_in <- length(.$vars$pars) - length(.$vars$pars_proc)
-          if(test_in!=0) stop('wrapper: Parameter input vectors - pars & pars_proc - are not the same length')
+          # test_in <- length(.$vars$pars) - length(.$vars$pars_proc)
+          # if(test_in!=0) stop('wrapper: Parameter input vectors - pars & pars_proc - are not the same length')
           test_in <- length(.$vars$pars_eval) - length(.$vars$pars_proc)
           if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
+          # assign same list structure as vars$pars_eval to vars$pars 
+          .$vars$pars <- lapply(.$vars$pars_eval,function(e) NA) 
           # check input vars$pars* elements have same names
           # - to be done
           
@@ -336,7 +338,7 @@ wrapper_object <-
       # evaluate parameter strings to sample vectors
       # - this allows a distribution function to be specifed
       # - also allows the dynamic calcuation of n for process A and B parameter samples
-      if(.$wpars$eval_string) {
+      if(.$wpars$eval_strings) {
         n <- .$wpars$n
         .$vars$pars[.$procA_subs ] <- lapply(.$vars$pars_eval[.$procA_subs ],function(cs) eval(parse(text=cs)))
         n <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
@@ -367,7 +369,7 @@ wrapper_object <-
       } else setwd(odir)
 
       write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')  
-      setwd(hd)
+      if(.$wpars$unit_testing) setwd(hd)
     }
     
     run_repA <- function(.,g) {
@@ -451,8 +453,9 @@ wrapper_object <-
     
     # dynamic variables
     # all expected to be of class 'list'
-    # each list in the 'vars' list comprise vectors of the values for each variable, labelled by the variable name
-    # each of these lists is expanded factorially by expand.grid and placed into the below list of dataframes
+    # each list in the 'vars' list comprise vectors of the values for each variable, 
+    # each element of the list is labelled by the variable name prefixed by the name of the model object that the variable belongs to
+    # each of these lists is expanded, often factorially by expand.grid, and placed into the below list of dataframes
     vars <- list( 
       fnames    = NA,
       fnamesB   = NA,
@@ -620,12 +623,14 @@ wrapper_object <-
     
     print_data <- function(.) {
       print('',quote=F)
+      print('',quote=F)
+      print('',quote=F)
       print("MAAT :: summary of data",quote=F)
       print('',quote=F)
 
       ens_n <- 
         if(.$wpars$UQ) {
-          if(.$wpars$UQtype=='ye') .$dataf$lf*.$dataf$lfB*.$wpars$n^2*.$dataf$le
+          if(.$wpars$UQtype=='ye') .$dataf$lf*prod(unlist(lapply(.$vars$fnames,length)))*.$wpars$n^2*.$dataf$le
           else                     .$dataf$lf*.$wpars$n*(2+dim(.$dataf$pars)[2])*.$dataf$le
         } else .$dataf$lf*.$dataf$lp *.$dataf$le
       
@@ -641,7 +646,11 @@ wrapper_object <-
       print(summary(.$dataf$fnames),quote=F)
       print('',quote=F)
       print("pars ::",quote=F)
-      print(summary(.$dataf$pars),quote=F)
+      if(!.$wpars$UQtype=='ye') print(summary(.$dataf$pars),quote=F)
+      else {
+        print(.$vars$pars_proc,quote=F)
+        print(paste('sample n:',.$wpars$n),quote=F)
+      }                      
       print('',quote=F)
       print("env ::",quote=F)
       print(summary(.$dataf$env),quote=F)
@@ -652,6 +661,8 @@ wrapper_object <-
     }
     
     print_run <- function(.) {
+      print('',quote=F)
+      print('',quote=F)
       print('',quote=F)
       print("MAAT :: run model",quote=F)
       print('',quote=F)
@@ -752,7 +763,7 @@ wrapper_object <-
       .$wpars$UQtype       <- 'ye' # Ye style SA ensemble 
       .$wpars$unit_testing <- T    # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
       .$wpars$n            <- n    # number of parameter samples in each loop 
-      .$coef_var           <- 0.1
+      .$wpars$coef_var     <- 0.1
       
       ### Define static variables 
       ###############################
@@ -778,10 +789,10 @@ wrapper_object <-
       )
 
       .$vars$pars_eval <- list(
-        leaf.avn_25   = ' 10 * rnorm(n,1,.$coef_var)',
-        leaf.bvn_25   = '  5 * rnorm(n,1,.$coef_var)',
-        leaf.theta    = '0.9 * rnorm(n,1,.$coef_var)',
-        leaf.e_ajv_25 = '0.9 * rnorm(n,1,.$coef_var)'
+        leaf.avn_25   = ' 10 * rnorm(n,1,.$wpars$coef_var)',
+        leaf.bvn_25   = '  5 * rnorm(n,1,.$wpars$coef_var)',
+        leaf.theta    = '0.9 * rnorm(n,1,.$wpars$coef_var)',
+        leaf.e_ajv_25 = '0.9 * rnorm(n,1,.$wpars$coef_var)'
       )
       
       .$vars$pars_proc <- list(
@@ -830,7 +841,7 @@ wrapper_object <-
       .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
       .$wpars$n            <- n            # number of parameter samples in each loop 
       .$wpars$eval_strings <- eval_strings # parameters are passed as strings to be evaluated to allow for different sample numbers 
-      .$coef_var           <- 0.1
+      .$wpars$coef_var     <- 0.1
       
       ### Define static variables 
       ###############################
@@ -850,18 +861,18 @@ wrapper_object <-
 
       if(eval_strings) {
         .$vars$pars_eval <- list(
-          leaf.avn_25   = ' 10 * rnorm(n,1,.$coef_var)',
-          leaf.bvn_25   = '  5 * rnorm(n,1,.$coef_var)',
-          leaf.theta    = '0.9 * rnorm(n,1,.$coef_var)',
-          leaf.e_ajv_25 = '0.9 * rnorm(n,1,.$coef_var)'
+          leaf.avn_25   = ' 10 * rnorm(n,1,.$wpars$coef_var)',
+          leaf.bvn_25   = '  5 * rnorm(n,1,.$wpars$coef_var)',
+          leaf.theta    = '0.9 * rnorm(n,1,.$wpars$coef_var)',
+          leaf.e_ajv_25 = '0.9 * rnorm(n,1,.$wpars$coef_var)'
         )
       } else {
         n <- 2 * n
         .$vars$pars <- list(
-          leaf.avn_25   =  10 * rnorm(n,1,.$coef_var),
-          leaf.bvn_25   =   5 * rnorm(n,1,.$coef_var),
-          leaf.theta    = 0.9 * rnorm(n,1,.$coef_var),
-          leaf.e_ajv_25 = 0.9 * rnorm(n,1,.$coef_var)
+          leaf.avn_25   =  10 * rnorm(n,1,.$wpars$coef_var),
+          leaf.bvn_25   =   5 * rnorm(n,1,.$wpars$coef_var),
+          leaf.theta    = 0.9 * rnorm(n,1,.$wpars$coef_var),
+          leaf.e_ajv_25 = 0.9 * rnorm(n,1,.$wpars$coef_var)
         )
       }
       

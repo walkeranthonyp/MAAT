@@ -13,20 +13,27 @@
 ###################################################################
 
 # This script initialises the leaf photosynthesis version of MAAT
-# - by setting the values of these lists:
+# - by setting the values of the init_static and init_dynamic lists
+# - each of these lists elements are sublists named with the names of the model objects to which the variables in the sublists belong  
+# - each of these model object sublist elements are sublists named with the type of variable they comprise - fnames, pars, or env  
+# - each of these variables sublist elements are sublists named with the variable to which they refer in the model object  
 
-# Static Variables:
+# for example, to setup a leaf model object simulation:
+# set static variables during runtime (init_static) by setting:
+# - leaf.fnames.static
+# - leaf.pars.static     
+# - leaf.env.static
 
-# fnames.static
-# pars.static     
-# env.static
 
+# set dynamic variables during runtime (init_dynamic) by setting:
+# - leaf.fnames.var
+# - leaf.pars.var     
+# - leaf.env.var
+# for a process SA two more sublists need to be added as elements to the init_dynamic$leaf list:
+# - pars_proc and pars_eval, both with the same named elements
+#   - pars_proc is a list of strings that associate each parameter with the process it is associated with, these should be one of the elemnet names in the list init_dynamic$X$fnames
+#   - pars_eval is a string that once evaluated gives a vector of parameter samples  
 
-# Dynamic Variables:
-
-# fnames.var
-# pars.var     
-# env.var
 
 # This script must set the values of the above 6 lists, even if their value is NA
 
@@ -78,6 +85,10 @@ leaf.pars.var <- list(
   e_ajv_25 = rnorm(n,1,0.02)
 )
 
+leaf.pars_proc.var <- list(NA)
+
+leaf.pars_eval.var <- list(NA)
+
 leaf.env.var <- list(
   ca_conc = c(280,400,600)
 )
@@ -93,14 +104,13 @@ init_static <- list(
     pars   = leaf.pars.static,
     env    = leaf.env.static
   ))
+
 init_dynamic <- list(
   leaf = list(
-    fnames = leaf.fnames.var,
-    pars   = leaf.pars.var,
-    env    = leaf.env.var
+    fnames    = leaf.fnames.var,
+    pars      = leaf.pars.var,
+    pars_proc = leaf.pars_proc.var,
+    pars_eval = leaf.pars_eval.var,
+    env       = leaf.env.var
   ))
 
-# for an process SA two more elements need to be added to the init_dynamic$leaf list
-# - pars_proc and pars_eval, both with the same named elements
-# - pars_proc is a list of strings that associate each parameter with the process it is associated with, these should be one of the elemnet names in the list init_dynamic$X$fnames
-# - pars_eval is a string that once evaluated gives a vector of parameter samples  

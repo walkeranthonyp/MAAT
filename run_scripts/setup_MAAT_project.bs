@@ -12,6 +12,7 @@ mkdir $PDIR/logs >/dev/null 2>&1
 
 cp    $run_scripts/qsubmit_MAAT.pbs      $PDIR && chmod 755 ${PDIR}/qsubmit_MAAT.pbs
 cp    $run_scripts/call_run_MAAT.bs      $PDIR && chmod 755 ${PDIR}/call_run_MAAT.bs
+cp    $run_scripts/init_MAAT.R           $PDIR && chmod 755 ${PDIR}/init_MAAT.R
 cp    $run_scripts/run_MAAT.R            $PDIR && chmod 755 ${PDIR}/run_MAAT.R
 cp    $run_scripts/analysis_MAAT.R       $PDIR && chmod 755 ${PDIR}/analysis_MAAT.R
 cp    $run_scripts/leaf_user_static.xml  $PDIR && chmod 755 ${PDIR}/leaf_user_static.xml

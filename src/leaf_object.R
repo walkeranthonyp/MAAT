@@ -84,7 +84,7 @@ leaf_object <-
       # if PAR > 0
       if(.$env$par > 0) {
         # diagnostic calculations
-        if(.$pars$diag) {
+        if(.$cpars$diag) {
           # assume infinite conductances to initialise solver
           .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
           .$state$A_noR      <- f_A_r_leaf_noR(.)
@@ -131,23 +131,23 @@ leaf_object <-
     #output processing function
     # -- returns a list of outputs
     output <- function(.){
-      if(.$pars$output=='run') {
+      if(.$cpars$output=='run') {
         lout <- 
           list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
                gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
                respiration=.$state$respiration,lim=.$state$lim)
         
-      } else if(.$pars$output=='all_lim') {
+      } else if(.$cpars$output=='all_lim') {
         lout <- 
           list(A=.$state$A,wc=.$state$wc,wj=.$state$wj,wp=.$state$wp,
                cc=.$state$cc,ci=.$state$ci,ca=.$state$ca,
                gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
                respiration=.$state$respiration,lim=.$state$lim)     
         
-      } else if(.$pars$output=='full') {
+      } else if(.$cpars$output=='full') {
         lout <- c(.$state,.$state_pars)
         
-      } else if(.$pars$output=='sphagnum') {
+      } else if(.$cpars$output=='sphagnum') {
         lout <-
           list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
                gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
@@ -155,8 +155,8 @@ leaf_object <-
         
       }
       
-      if(.$pars$diag) c( lout, list(A_noR=.$state$A_noR,transition=.$state$transition) ) 
-      else            lout
+      if(.$cpars$diag) c( lout, list(A_noR=.$state$A_noR,transition=.$state$transition) ) 
+      else                lout
       
     }    
     
@@ -325,6 +325,7 @@ leaf_object <-
       verbose       = F,          # write diagnostic output during runtime 
       verbose_loop  = F,          # write diagnostic output on the solver during runtime 
       cverbose      = F,          # write configuration output during runtime 
+      diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
       output        = 'run'       # type of output from run function
     )
     
@@ -339,10 +340,9 @@ leaf_object <-
       # and for the wrapper object to be named maat
       # the 'init' function resides in the model as initialisation depends on the hierarchical structure of the model (e.g. leaf within canopy )
       
+      # this function prefixes the names of a list with 'leaf.' 
       comb_init_list <- function(.,lls) {
-#         nas <- sum(is.na(lls))
-#         if(nas>1) stop else if(nas==0) names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
-#         if(nas==0) lls else NA
+
         if(sum(is.na(lls))==length(lls)) NA
         else {
           names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
@@ -357,6 +357,11 @@ leaf_object <-
       maat$vars$fnames   <- comb_init_list(lls=.$init_dynamic$leaf$fnames)
       maat$vars$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
       maat$vars$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
+      
+      if(.$wpars$UQ&.$wpars$UQtype=='ye') {
+        maat$vars$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
+        maat$vars$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
+      }
     }
     
     configure <- function(.,func,df,o=T){
@@ -433,9 +438,9 @@ leaf_object <-
     .test_aci <- function(.,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1200,50), 
                           verbose=F,verbose_loop=F,diag=F) {
       
-      .$pars$verbose       <- verbose
-      .$pars$verbose_loop  <- verbose_loop
-      .$pars$diag          <- diag
+      .$cpars$verbose       <- verbose
+      .$cpars$verbose_loop  <- verbose_loop
+      .$cpars$diag          <- diag
 
       if(verbose) str.proto(.)
       
@@ -465,16 +470,16 @@ leaf_object <-
     .test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50),
                                 verbose=F,verbose_loop=F,output=F,diag=F) {
       
-      .$pars$verbose       <- verbose
-      .$pars$verbose_loop  <- verbose_loop
-      .$pars$diag          <- diag
+      .$cpars$verbose       <- verbose
+      .$cpars$verbose_loop  <- verbose_loop
+      .$cpars$diag          <- diag
 
       if(verbose) str.proto(.)
       
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- 'f_ri_constant'
       .$fnames$solver_func <- 'f_A_r_leaf'
-      .$pars$output        <- 'all_lim'
+      .$cpars$output       <- 'all_lim'
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))

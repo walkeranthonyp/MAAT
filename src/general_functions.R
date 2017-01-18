@@ -73,17 +73,36 @@ listtoXML <- function(fname,name,...) {
 }
 
 # overwrite values in mainlist with values in sublist
+# - currently expects list to be of identical structure
+# fuselists <- function(mainlist,sublist) {
+#   for(i in 1:length(sublist)) {
+#     mlsub <- which(names(mainlist)==names(sublist)[i])
+#     if(length(mlsub)!=1) {
+#       stop(paste("names mismatch when fusing initialisation lists:",mainlist,sublist))      
+#     }
+#     mainlist[[mlsub]] <- 
+#       if(typeof(sublist[[i]]) == "list")  fuselists(mainlist[[mlsub]],sublist[[i]]) else sublist[[i]]
+#   }
+#   mainlist
+# }
+
 fuselists <- function(mainlist,sublist) {
-  for(i in 1:length(sublist)) {
+  l <- length(sublist)
+  n <- 0
+  for(i in 1:l) {
     mlsub <- which(names(mainlist)==names(sublist)[i])
-    if(length(mlsub)!=1) {
-      stop(paste("names mismatch when fusing initialisation lists:",mainlist,sublist))      
+    if(length(mlsub)==1) {
+      n <- n + 1
+      mainlist[[mlsub]] <- 
+        if(typeof(sublist[[i]]) == "list")  fuselists(mainlist[[mlsub]],sublist[[i]]) else sublist[[i]]
     }
-    mainlist[[mlsub]] <- 
-      if(typeof(sublist[[i]]) == "list")  fuselists(mainlist[[mlsub]],sublist[[i]]) else sublist[[i]]
+    # print(c(n,l))
+    # print(names(sublist)[i])
   }
+  if(n!=l) stop(paste("\n names mismatch when fusing initialisation lists:",names(mainlist),names(sublist)[i]))      
   mainlist
 }
+
 
 
 #####################################################
