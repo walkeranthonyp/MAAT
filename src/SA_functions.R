@@ -136,7 +136,7 @@ func_sobol_sensitivity <- function(sn,k,ABout,ABiout) {
   
   # a model and scenario name would be useful in this output list - would need to be added to the output from the wrapper 
   Tvar <- c(mean=mean(ABout),total_var=v_t,total_sd=v_t^0.5)
-  list(Tvar=Tvar,pvar=vv,pe=ev,sensitivityi=si,sensitivityT=st)
+  list(Tvar=Tvar,pvar=vv,pe=ev,sensitivity1=si,sensitivityT=st)
             
 #   list(Tvar=Tvar,par_var=rbind(vv,ev),sensitivity=rbind(si,st))
             
@@ -194,9 +194,9 @@ calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
         total_sd    = total_var^0.5
       ),
       pvar          = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob)),
-      pe            = apply( sapply(inlist,function(l) l$pe) ,1,function(v) sum(v*prob)),
+      pe            = apply( sapply(inlist,function(l) l$pe)   ,1,function(v) sum(v*prob)),
       sensitivity1  = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob))/total_var,
-      sensitivityT  = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob))/total_var
+      sensitivityT  = apply( sapply(inlist,function(l) l$pe)   ,1,function(v) sum(v*prob))/total_var
     )
   }
   

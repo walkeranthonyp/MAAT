@@ -66,9 +66,12 @@ wrapper_object <-
         # if an SA/UQ run
         if(.$wpars$UQtype=='saltelli') {
           # if Saltelli style Sobol
+          
+          # increase parameter sample number
+          .$wpars$n <- .$wpars$n * .$wpars$nmult
           if(.$wpars$eval_strings) {
             # sample parameters from character string code snippets
-            n <- 2 * .$wpars$n * .$wpars$nmult
+            n <- 2 * .$wpars$n
             .$vars$pars <- lapply(.$vars$pars_eval,function(cs) eval(parse(text=cs)))
           }
           if(is.na(.$vars$pars[1] )) stop('wrapper: pars list in vars list is empty')
@@ -269,7 +272,7 @@ wrapper_object <-
     }
     
     runpmat_saltelli <- function(.,p) {
-      # This wrapper function is called from an lapply or mclappy function to run over each column of the dataf$pars matrix
+      # This wrapper function is called from an lapply or mclappy function to be run once for each parameter (i.e. each column of the dataf$pars matrix)
       # call runp_saltelli
 
       # returns a numeric matrix
@@ -278,7 +281,7 @@ wrapper_object <-
     
     runp_saltelli <- function(.,j,pk) {
       # This wrapper function is called from an lapply or mclappy function 
-      # wrapper creates a parameter matrix ABi and passes every row of the matrix to the model
+      # wrapper subscripts parameter matrix AB to give the row on matrix ABi
       # assumes that each row of the matrix are independent and non-sequential
       # call .$model$run
       
@@ -289,8 +292,8 @@ wrapper_object <-
       
       # create a dataframe from vector and add names
       psdf        <- t(.$dataf$pars[smat])
-      names(psdf) <- names(.$dataf$pars)
-      
+      names(psdf) <- colnames(.$dataf$pars)
+
       # configure parameters in the model
       if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=psdf,F)
       if(.$wpars$cverbose) .$printc('pars',psdf)
@@ -306,7 +309,7 @@ wrapper_object <-
     # nested run functions for Process Sensitivity Analysis after Ye etal 201x 
     ###########################################################################
 
-        # The Ye method is a nested system of loops implemented by apply type functions
+    # The Ye method is a nested system of loops implemented by apply type functions
     # Loop 1: switch process A process B loop         
     # Loop 2: process loop for process A               - use standard location for variable function values
     # Loop 3: parameter loop for process A             - use standard location for variable parameter values
@@ -553,11 +556,11 @@ wrapper_object <-
 
               vardf   <- cbind( 
                 # fnames
-                apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$le*2*.$wpars$n) ),
+                apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$le*.$dataf$lp) ),
                 # pars - I think this has the correct length specifications, need to check witha saltelli unit testing function
                 apply(.$dataf$pars,   2,function(v) rep(rep(v,each=.$dataf$le),.$dataf$lf) ),
                 # environment
-                apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lf*2*.$wpars$n) )
+                apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lf*.$dataf$lp) )
               )
               
               vardf        <- as.data.frame(vardf)

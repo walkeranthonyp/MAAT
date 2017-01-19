@@ -335,13 +335,12 @@ if(salt) {
   maat$wpars$UQtype <- 'saltelli'
 
   # run reconfigured MAAT
-  print('',quote=F)
-  print('',quote=F)
+  for(i in 1:5) print('',quote=F)
   print('Run Saltelli Sobol',quote=F)
   st <- system.time(
     maat$run()
   )
-  print('',quote=F)
+  for(i in 1:3) print('',quote=F)
   print('MAAT Saltelli Sobol runtime:',quote=F)
   print(st,quote=F)
   

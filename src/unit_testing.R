@@ -71,14 +71,21 @@ out[[2]]
 rm(list=ls())
 source('wrapper_object.R')
 library(lattice)
-out <- wrapper_object$.test_saltelli(mc=T,pr=10,oconf=F,n=30)
+out <- wrapper_object$.test_saltelli(mc=T,pr=6,oconf=F,n=10)
 
 out
 out[[1]]
 out[[2]]
-length(out[[2]])
 dim(out[[1]])
-wrapper_object$output()
+length(out[[2]])
+dim(out[[2]][[1]][[1]])
+wrapper_object$dataf$env
+wrapper_object$dataf$fnames
+wrapper_object$dataf$pars
+
+wrapper_object$model$env
+wrapper_object$model$fnames
+wrapper_object$model$pars
 
 
 
