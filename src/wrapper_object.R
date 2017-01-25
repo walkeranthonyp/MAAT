@@ -11,6 +11,8 @@ library(parallel)
 library(plyr)
 
 source('general_functions.R')
+source('calc_functions.R')
+
 
 
 ### HIGH LEVEL WRAPPER FUNCTION
@@ -148,8 +150,13 @@ wrapper_object <-
         
       # if Saltellis SA generate output from parameter matrices ABi
       if(.$wpars$UQtype=='saltelli') {
-        # prob should run output here and clear out df 
+        # output AB matrix and clear out df
+        setwd(odir) 
+        write_to_file(.$output_saltelli_AB(),paste(ofname,'salt','AB',sep='_'),type='rds')  
+        .$dataf$out <- NULL   
         print('Saltelli matrix AB completed', quote=F)
+        print('',quote=F)
+        print('',quote=F)
         print('run Saltelli array ABi',quote=F)
         print('',quote=F)
         
@@ -157,6 +164,8 @@ wrapper_object <-
           if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs)
           else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
         
+        write_to_file(.$dataf$out_saltelli,paste(ofname,'salt','ABi',sep='_'),type='rds')  
+        .$dataf$out_saltelli <- NULL   
         print('Saltelli array ABi completed',quote=F)
         print('',quote=F)
       }             
@@ -372,6 +381,9 @@ wrapper_object <-
       } else setwd(odir)
 
       write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')  
+      .$dataf$out <- NULL   
+      gc()
+
       if(.$wpars$unit_testing) setwd(hd)
     }
     
@@ -379,9 +391,12 @@ wrapper_object <-
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
       # assumes that each row of the fnames matrix are independent and non-sequential
       # call run_parA
-      
+     
+      print('',quote=F)
+      print(paste('started process:',.$dataf$fnames[g,],', of:',colnames(.$dataf$fnames)),quote=F)
+ 
       # configure function names in the model
-      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[g,],F)
+      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames,F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[g,])
       
       # call process A parameter run function
@@ -533,6 +548,13 @@ wrapper_object <-
               # combine input into a single dataframe in order of output dataframe,
               #  - i.e. repeats lines in input dataframes/matrices to align with output
               #  - the number of rows in the resultant dataframe is lf*lfB*n^2*le
+ 
+              print(paste('Rows df$fnames:', dim(.$dataf$fnames)[1], .$dataf$lfA),quote=F)
+              print(paste('Rows df$fnamesB:',dim(.$dataf$fnamesB)[1],.$dataf$lfB),quote=F)
+              print(paste('Rows df$pars:',   dim(.$dataf$pars)[1],   .$wpars$n),quote=F)
+              print(paste('Rows df$parsB:',  dim(.$dataf$parsB)[1],  .$wpars$n^2*.$dataf$lfA*.$dataf$lfB),quote=F)
+              print(paste('Rows df$env:',    dim(.$dataf$env)[1],    .$dataf$le),quote=F)
+
               vardf    <- cbind(
                 # fnames of process A - length lf * lfB * le * n^2
                 apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
@@ -547,14 +569,14 @@ wrapper_object <-
               )
               
               # convert to dataframe
-              vardf        <- as.data.frame(vardf)
+              vardf <- as.data.frame(vardf)
               
             } else if(.$wpars$UQtype=='saltelli') { 
               # if Saltelli SA
               # this is not currently used by the run scripts as the Saltelli method expects a different organisation of output
               # can be called by user to inspect Saltelli run output from matrix AB in a user readable format
 
-              vardf   <- cbind( 
+              vardf <- cbind( 
                 # fnames
                 apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$le*.$dataf$lp) ),
                 # pars - I think this has the correct length specifications, need to check witha saltelli unit testing function
@@ -563,7 +585,7 @@ wrapper_object <-
                 apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lf*.$dataf$lp) )
               )
               
-              vardf        <- as.data.frame(vardf)
+              vardf <- as.data.frame(vardf)
             }   
           } else { 
             # if factorial combination run
@@ -576,15 +598,18 @@ wrapper_object <-
           
           # if no met data
           if(is.null(.$dataf$met)) {
-            cbind(vardf,.$dataf$out)
-            
+            print(paste('vardf:',length(vardf[,1]),', out:',length(.$dataf$out[,1])),quote=F)
+            return(cbind(vardf,.$dataf$out))
+            rm(vardf)            
+
           # if met data
           } else {
             odf <- cbind(do.call(rbind , lapply(1:length(vardf[,1]) , .$combine ,df=vardf )), .$dataf$out )            
             print(head(odf))
             if(dim(vardf)[2]==1) names(odf)[which(names(odf)=='df.i...')] <- names(vardf)
             rm(vardf)
-            odf
+            return(odf)
+            rm(odf)            
           } 
 
         # if no vars  
@@ -595,6 +620,22 @@ wrapper_object <-
       )
     }
     
+    output_saltelli_AB <- function(.) {
+      # creates output for a saltelli Sobol sensitivity analysis 
+      # A and B matrices are stacked in a single matrix, which for each model and environment combination are then stored in an array 
+
+      # AB output is an array
+      # - dim 1 (rows)   model combination
+      # - dim 2 (cols)   environment combination
+      # - dim 3 (slices) sample
+      # - dim 4          output variable (character variables are coerced to NAs)
+
+      # create AB output matrix array
+      # - suppressWarnings on the as.numeric call as there can be character strings in .$dataf$out which cause warnings when converted to NAs
+      ab_mat_out  <- array(suppressWarnings(as.numeric(unlist(.$dataf$out))),c(.$dataf$le,2*.$wpars$n,.$dataf$lf,length(.$dataf$out)))
+      aperm(ab_mat_out,c(3,1,2,4))
+    }
+  
     output_saltelli <- function(.) {
       # creates output for a saltelli Sobol sensitivity analysis 
       # A and B matrices are stacked in a single matrix, which for each model and environment combination are then stored in an array 
@@ -613,12 +654,7 @@ wrapper_object <-
       #    - dim 2 (cols)   output variable
       #    - dim 3 (slices) parameter that has used value from matrix B while all other par values are from matrix A
       
-      # create AB output matrix array
-      # - suppressWarnings on the as.numeric call as there can be character strings in .$dataf$out which cause warnings when converted to NAs
-      ab_mat_out  <- array(suppressWarnings(as.numeric(unlist(.$dataf$out))),c(.$dataf$le,2*.$wpars$n,.$dataf$lf,length(.$dataf$out)))
-      tab_mat_out <- aperm(ab_mat_out,c(3,1,2,4))
-      
-      list(AB=tab_mat_out,ABi=.$dataf$out_saltelli)
+      list(AB=.$output_saltelli_AB,ABi=.$dataf$out_saltelli)
     }
     
     # Print functions

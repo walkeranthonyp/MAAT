@@ -345,9 +345,9 @@ if(salt) {
   print(st,quote=F)
   
   # write output
-  salt_out <- maat$output_saltelli()
-  setwd(odir)
-  write_to_file(salt_out,sofname,type=of_format)
+  #salt_out <- maat$output_saltelli()
+  #setwd(odir)
+  #write_to_file(salt_out,sofname,type=of_format)
   
 }
 
