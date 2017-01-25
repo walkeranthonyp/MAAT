@@ -17,6 +17,7 @@ write_to_file <- function(df,ofile,app=F,type='csv') {
   else print(paste('No methods for output file format:',type))
 } 
 
+#####################################################
 readXML <- function(input.file=NULL) {
   settings.xml <- NULL
   
@@ -44,6 +45,7 @@ readXML <- function(input.file=NULL) {
   
 }
 
+#####################################################
 # run over all elements of a list, returning a list of the same structure
 # evaluate character strings to r objects
 evalXMLlist <- function(sublist) {
@@ -54,6 +56,7 @@ evalXMLlist <- function(sublist) {
   sublist
 }
 
+#####################################################
 # save a list to an xml file
 listtoXML <- function(fname,name,...) {
   # expects the argument - sublist - in ...
@@ -86,6 +89,7 @@ listtoXML <- function(fname,name,...) {
 #   mainlist
 # }
 
+#####################################################
 fuselists <- function(mainlist,sublist) {
   l <- length(sublist)
   n <- 0
@@ -105,15 +109,6 @@ fuselists <- function(mainlist,sublist) {
 
 
 
-#####################################################
-res_calc <- function(df1,df2,rcols,type='abs') {
-  dfo <- df1
-  if(type=='abs')      dfo[,rcols] <- df1[,rcols] - df2[,rcols]
-  else if(type=='rel') dfo[,rcols] <- df1[,rcols] / df2[,rcols]
-  else { print(paste('no method for type:',type)); stop }
-  dfo
-}
-
 
 #####################################################
 # write Latex doc
@@ -130,17 +125,20 @@ write_Latex <- function(obj,fname,func=write_list_Latex,call=F,...) {
   if(call) system(paste('pdflatex',fname)) 
 }
 
+#####################################################
 write_table_Latex <- function(sub,fname,cnames=NULL,rnames=NULL,capname=NULL) {
   if(!is.null(cnames)) colnames(combtable)  <- cnames
   print.xtable.apw(sub,cap=capname,file=fname,append=T,include.rownames=!is.null(rnames))      
 }
 
+#####################################################
 write_tablelist_Latex <- function(slist,fname,cnames=NULL,rnames=NULL,capname=NULL) {
   for(i in 1:length(slist)) {
     write_table_Latex(slist[[i]],fname,capname=capname[i])
   }
 }
 
+#####################################################
 # write list recursively
 write_list_Latex <- function(sublist,fname) {
   for(i in 1:length(sublist)) {
@@ -154,6 +152,7 @@ write_list_Latex <- function(sublist,fname) {
   write("\\FloatBarrier",fname,append=T)
 }
 
+#####################################################
 # write list recursively, combine lowest level list
 write_list_Latex_comb <- function(sublist,fname,cnames=NULL,rnames=NULL,...) {
   if(typeof(sublist[[1]]) != "list") {
@@ -179,6 +178,7 @@ write_list_Latex_comb <- function(sublist,fname,cnames=NULL,rnames=NULL,...) {
 }
 
 
+#####################################################
 print.xtable.apw <- function(x,cap=NULL,...){
   
   print(xtable(x,caption=cap,...),
