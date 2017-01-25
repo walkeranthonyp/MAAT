@@ -11,6 +11,17 @@ f_none <- function(.) {
   NA
 }
 
+quad_sol <- function(a,b,c,out='lower') {
+  # robust numerical solution to the quadratic
+  # taken from Numerical Recipes
+
+  q     <- -0.5 * ( b + sign(b)*(b^2 - 4*a*c)^0.5 )
+  roots <- c( q/a , c/q )
+  
+  if(out=='lower')      min(roots,na.rm=T) 
+  else if(out=='upper') max(roots,na.rm=T)
+  else roots 
+}
 
 
 ### SOLVERS & SOLVER FUNCTIONS
@@ -215,10 +226,11 @@ f_j_farquharwong1984 <- function(.){
     
   I2 <- .$env$par * .$pars$a * .$state_pars$alpha    
   a  <- .$pars$theta
-  b  <- I2 + .$state_pars$jmaxlt
+  b  <- -1 * (I2 + .$state_pars$jmaxlt)
   c  <- I2 * .$state_pars$jmaxlt
   
-  (b - (b^2 - 4*a*c)^0.5) / (2*a) # this probably needs to be more robust
+  #(b - (b^2 - 4*a*c)^0.5) / (2*a) # this probably needs to be more robust
+  quad_sol(a,b,c)
 }
 
 f_j_collatz1991 <- function(.){
@@ -259,17 +271,19 @@ f_lim_collatz1991 <- function(.){
   # smoothed solution of all three possible limiting states
 
   a  <- .$pars$theta_collatz
-  b  <- .$state$wc + .$state$wj
+  b  <- -1 * (.$state$wc + .$state$wj)
   c  <- .$state$wc * .$state$wj
   
-  sol1 <- (b - (b^2 - 4*a*c)^0.5) / (2*a) # this probably needs to be more robust
+  #sol1 <- (b - (b^2 - 4*a*c)^0.5) / (2*a) # this probably needs to be more robust
+  sol1 <- quad_sol(a,b,c)
 
   if(!is.na(.$state$wp)) {
     a  <- .$pars$beta_collatz
-    b  <- .$state$wp + sol1
+    b  <- -1 * (.$state$wp + sol1)
     c  <- .$state$wp * sol1
     
-    (b - (b^2 - 4*a*c)^0.5) / (2*a) # this probably needs to be more robust    
+    #(b - (b^2 - 4*a*c)^0.5) / (2*a) # this probably needs to be more robust    
+    quad_sol(a,b,c)
   } else sol1
 }
 
