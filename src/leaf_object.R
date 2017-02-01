@@ -168,7 +168,7 @@ leaf_object <-
       o2_conc   = 0.21,                # ( mol mol-1)
       par       = numeric(0),          # (umol photons m-2 s-1)
       water_l   = numeric(0),          # (mm) water level relative to hollow surfwce
-      sphag_l   = 0,                   # (mm) Sphagnum surfwce relative to hollow surfwce
+      sphag_l   = 0,                   # (mm) Sphagnum surface relative to hollow surface
       temp      = 25,                  # (oC)
       vpd       = 2,                   # (kPa)
       atm_press = 101325               # ( Pa)
