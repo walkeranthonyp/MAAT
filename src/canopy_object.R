@@ -268,6 +268,8 @@ canopy_object <-
       verbose    = F,
       output     = 'run',
       lai        = 10,
+      lai_max    = 4,
+      lai_curve  = 0.5,
       leaf_cores = 1,
       G          = 0.5,        # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
       can_clump  = 1,          # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
