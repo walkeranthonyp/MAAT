@@ -15,11 +15,9 @@ f_constant <- function(.) .$pars$lai
 
 f_lai_sphagnum <- function(.) {
   # calculate sphagnum 'lai' as a logistic function of water table height
-  b <- 1
-  # e <- 0.3
+  b <- 0.1
     
   .$pars$lai_max*b / (b + exp(.$pars$lai_curve*(.$leaf$env$water_l-.$leaf$env$sphag_l)/10) )
-  # .$pars$lai_max*b / (b + exp(e*(.$leaf$env$water_l-.$leaf$env$sphag_l)/10) )
 }
 
 # Ca
