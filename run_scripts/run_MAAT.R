@@ -57,14 +57,18 @@ multic  <- F
 # number of cores to use if above is true
 procs   <- 4   
 
+# run an emsemble that combines variables in factorial
+# - if set to TRUE this will over-ride a UQ analysis  
+factorial  <- F
+
 # run an SA/UQ style ensemble, or if -uq- is false a fully factorial ensemble 
-uq      <- T      
+uq         <- T      
 
 # types of SA/UQ run
 # process SA
-procSA  <- T
+procSA     <- T
 # Saltelli Sobol SA
-salt    <- T
+salt       <- T
 
 # parameters for SA/UQ run
 # ensemble number for an SA/UQ style ensemble, not used if -uq- is false 
@@ -174,6 +178,13 @@ model <- get(paste(mod_obj,'object',sep='_'))$.build()
 # build and clone the maat wrapper object
 maat <- wrapper_object$.build(model=model)
 
+# factorial analysi over-rides UQ analysis
+if(factorial&uq) {
+ uq <- F
+ print('',quote=F)
+ print(paste('Both factorial and UQ run specified: Factorial ensemble will be run') ,quote=F)
+}
+
 # define run parameters
 maat$wpars$multic       <- multic  
 maat$wpars$procs        <- procs   
@@ -223,7 +234,9 @@ maat$init_dynamic <- init_dynamic
 # write static parameters used in simulation
 print('',quote=F)
 print('Write record of static run variables',quote=F)
-listtoXML('setup_static.xml','static', sublist=init_static)
+setwd(odir)
+listtoXML('setup_static.xml',  'static',  sublist=inits)
+listtoXML('setup_dynamic.xml', 'dynamic', sublist=init_dynamic)
 
 
 
@@ -303,6 +316,35 @@ if(kill) stop()
 ##################################
 ###  Run MAAT
 
+# run factorial MAAT, this is a standard setup combining variables in factorial
+if(factorial) {
+  maat$model$pars$verbose  <- F
+  
+  for(i in 1:5) print('',quote=F)
+  print('Run Factorial',quote=F)
+  st <- system.time(
+    maat$run()
+  )
+  
+  for(i in 1:3) print('',quote=F)
+  print('MAAT runtime:',quote=F)
+  print(st,quote=F)
+  
+  # process & record output
+  setwd(odir)
+  df_out <- maat$output()
+  write_to_file(df_out,ofname,type=of_format)  
+  
+  rm(df_out)
+  maat$clean()
+  print('',quote=F)
+  print('MAAT system memory used for process SA:',quote=F)
+  gc()
+}
+
+
+
+### run Ye algorithm for process sensitivity  analysis if requested
 if(procSA) {
   maat$model$pars$verbose  <- F
   maat$wpars$UQtype <- 'ye'
@@ -312,32 +354,22 @@ if(procSA) {
   st <- system.time(
     maat$run()
   )
-  print('',quote=F)
+  
+  for(i in 1:3) print('',quote=F)
   print('MAAT runtime:',quote=F)
   print(st,quote=F)
   
-  # process & record output
-  # setwd(odir)
-  # df_out <- maat$output()
-  # write_to_file(df_out,ofname,type=of_format)  
-  
-  # delete memory hungry dataframes etc
-  # rm(df_out)
   maat$clean()
   print('',quote=F)
   print('MAAT system memory used for process SA:',quote=F)
   gc()
-  
 }
 
 
 
-##################################
-### run Saltelli algorithm for Sobol analysis if requested
-
+### run Saltelli algorithm for Sobol sensitivity  analysis if requested
 if(salt) {
-  
-  # reconfigure SA/UQ type
+  maat$model$pars$verbose  <- F
   maat$wpars$UQtype <- 'saltelli'
 
   # run MAAT
@@ -346,15 +378,15 @@ if(salt) {
   st <- system.time(
     maat$run()
   )
+
   for(i in 1:3) print('',quote=F)
   print('MAAT Saltelli Sobol runtime:',quote=F)
   print(st,quote=F)
-  
-  # write output
-  #salt_out <- maat$output_saltelli()
-  #setwd(odir)
-  #write_to_file(salt_out,sofname,type=of_format)
-  
+
+  maat$clean()
+  print('',quote=F)
+  print('MAAT system memory used for process SA:',quote=F)
+  gc()
 }
 
 
