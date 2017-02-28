@@ -127,7 +127,7 @@ f_A_r_leaf <- function(A,.,...) {
   
   # calculate net A
   wmin*.$state$cc - wmin*.$state_pars$gstar - .$state$respiration - A
-}
+} 
 
 f_A_r_leaf_noRs <- function(A,.,...) {
   # same as above function but with no stomatal resistance 
@@ -221,17 +221,6 @@ f_ficks_ci_bound0 <- function(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca) {
 #   max( c-A*r*.$env$atm_press*1e-6 , 1e-6)
   c2 <- c-A*r*.$env$atm_press*1e-6
   if(c2>0) c2 else 0
-}
-
-f_ficks_rs <- function(.,A=.$state$A,c=.$state$cb) {
-  # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
-  # by default calculates cb from ca and rb
-  # c units in Pa
-  # A units umol m-2 s-1
-  # r units  m2 s mol-1
-  
-  (c - .$state$ci) / (A*.$env$atm_press*1e-6)
-  #   c-A*r*.$env$atm_press*1e-6
 }
 
 

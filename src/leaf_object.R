@@ -67,7 +67,7 @@ leaf_object <-
       .$state$leaf_temp    <- .$env$temp               
       .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=list(Ha=.$pars$Ha.Kc))
       .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Ha=.$pars$Ha.Ko)) 
-      .$state_pars$Km      <- .$state_pars$Kc*(1+(.$state$oi/.$state_pars$Ko)) 
+      .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Ha=.$pars$Ha.gstar)) # this will probably not give the correct response to a change in atmospheric pressure
       .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
       .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax))
@@ -104,9 +104,8 @@ leaf_object <-
         .$state$lim     <- c('wc','wj','wp')[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
         # after the fact calculations
         .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca)
-        .$state_pars$rs <- get(.$fnames$rs)(.) # this currently will not work with rs functions that have a g0 term when the analytical solution is selected 
+        if(!grepl('analytical',.$fnames$solver)) .$state_pars$rs <- get(.$fnames$rs)(.) 
         .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rs,c=.$state$cb)
-        # .$state_pars$rs <- f_ficks_rs(.)
         .$state$cc      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$ri,c=.$state$ci)        
       }
       # if PAR < 0
@@ -577,6 +576,12 @@ leaf_object <-
                        }
                        panel.xyplot(subscripts=subscripts,...)
                      })
+        
+        p3 <- xyplot(gs~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
+                     main=rs,
+                     ylab=expression(g[s]*' ['*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
+                     )
+        
       } else {
         p1 <- NULL
         p2 <- xyplot(A~leaf.ca_conc,odf,groups=as.factor(odf$leaf.par),abline=0,
@@ -595,7 +600,7 @@ leaf_object <-
       # print(p1)
       print(p2)
 
-      list(odf,p2,p1)
+      list(odf,p2,p1,p3)
     }
 
     #######################################################################        

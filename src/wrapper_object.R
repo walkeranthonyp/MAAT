@@ -112,7 +112,7 @@ wrapper_object <-
         }
         
       } else {
-        # not a formal SA/UQ run - just a factorial combination of variables specified in the vars lists  
+        # not a formal SA/UQ run - factorial combination of variables specified in the vars lists  
         .$dataf$pars    <- if(!is.na(.$vars$pars[1])) as.matrix(expand.grid(.$vars$pars,stringsAsFactors=F))   else NULL
       } 
       
