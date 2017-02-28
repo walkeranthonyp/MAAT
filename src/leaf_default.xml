@@ -95,6 +95,8 @@
       <q10.jmax>2</q10.jmax>
       <q10.tpu>2</q10.tpu>
       <q10.tau>0.57</q10.tau>
+      <tupp_cox.vcmax>36</tupp_cox.vcmax>
+      <tlow_cox.vcmax>0</tlow_cox.vcmax>
       <gstar_bf_a>0.012</gstar_bf_a>
       <gstar_bf_b>1.68</gstar_bf_b>
       <gstar_bf_c>42.7</gstar_bf_c>

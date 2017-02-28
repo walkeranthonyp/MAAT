@@ -70,7 +70,8 @@ leaf_object <-
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
       .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
-      .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax))
+      .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax,
+                                                                                           .$pars$tupp=tupp_cox.vcmax,.$pars$tlow=tlow_cox.vcmax))
       .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax))
       .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor)(.,parlist=list(Ha=.$pars$Ha.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,q10=.$pars$q10.tpu))
       
@@ -342,6 +343,8 @@ leaf_object <-
       q10.jmax      = 2,          # Q10 of Jmax                                             (-)
       q10.tpu       = 2,          # Q10 of TPU                                              (-)
       q10.tau       = 0.57,       # Q10 of tau                                              (-)
+      tupp_cox.vcmax= 36,         # upper leaf T for Vcmax temp scaling from Cox 1991       (-)
+      tlow_cox.vcmax= 0,          # lower leaf T for Vcmax temp scaling from Cox 1991       (-)
       gstar_jo_a    = numeric(0), # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_jo_b    = numeric(0), # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_jo_c    = numeric(0), # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 

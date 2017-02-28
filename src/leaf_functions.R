@@ -673,16 +673,31 @@ f_temp_scalar_Q10_collatz1991 <- function(.,parlist,Tr=25,...){
   #convert to Kelvin
   Tsk <- .$state$leaf_temp + 273.15
   
-  if(.$cpars$verbose) {
-    print('Q10_tcorr_function')
-    print(paste(Tr,Ts))
-    print(parlist)
-  }
+  # if(.$cpars$verbose) {
+  #   print('Q10_collatz1991_function')
+  #   print(paste(Tr,Ts))
+  #   print(parlist)
+  # }
   
   f_temp_scalar_Q10(.,parlist,Tr=25,...) + exp((Tsk*parlist$deltaS-parlist$Hd) / (Tsk*.$pars$R))
   
 }
 
+f_temp_scalar_Q10_cox1991 <- function(.,parlist,Tr=25,...){
+  #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
+  
+  # input parameters  
+  # Q10    -- factor by which rate increases for every 10 oC of temp increase  
+  # Tr     -- reference temperature (oC) 
+  
+  # if(.$cpars$verbose) {
+  #   print('Q10_cox2001_function')
+  #   print(paste(Tr,Ts))
+  #   print(parlist)
+  # }
+  
+  f_temp_scalar_Q10(.,parlist,Tr=25,...) * 1 / ( (1 + exp(0.3*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(0.3*(parlist$tlow-.$state$leaf_temp))) ) 
+}
 
 
 ### Gamma star - CO2 compensation point in the absence of dark respiration
