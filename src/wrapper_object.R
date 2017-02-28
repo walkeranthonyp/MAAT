@@ -137,7 +137,6 @@ wrapper_object <-
 
       
       # Call initial run function in the hierarchy of nested run functions
-      
       if(.$wpars$UQ&.$wpars$UQtype=='ye') {
         # process UQ run, or either general variable run or matrix A and B of Saltelli method
         # - Ye process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure  
@@ -649,7 +648,9 @@ wrapper_object <-
       # create AB output matrix array
       # - suppressWarnings on the as.numeric call as there can be character strings in .$dataf$out which cause warnings when converted to NAs
       ab_mat_out  <- array(suppressWarnings(as.numeric(unlist(.$dataf$out))),c(.$dataf$le,2*.$wpars$n,.$dataf$lf,length(.$dataf$out)))
-      aperm(ab_mat_out,c(3,1,2,4))
+
+      # output a list composed of the AB matrix output array, the fnames that define each model combination, the parameter names
+      list(AB=perm(ab_mat_out,c(3,1,2,4)), fnames=.$dataf$fnames, par_names=colnames(.$dataf$pars) )
     }
   
     output_saltelli <- function(.) {
