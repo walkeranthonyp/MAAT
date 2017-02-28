@@ -89,19 +89,22 @@ metdata    <- NULL
 eval_strings <- F 
 
 # initialisation data file is an XML, if false init file is the R script named below
-xml        <- F
+xml          <- F
 
-# initialisation data file name
-init       <- 'init_MAAT' 
+# initialise in the configuration of the below specified model 
+mod_init     <- NULL
+
+# initialisation data file name if not an XML
+init         <- 'init_MAAT' 
 
 # run i.d. - used as suffix/prefix for in/out files
-runid      <- NULL 
+runid        <- NULL 
 
 # basic output file name
-of_main    <- 'out'
+of_main      <- 'out'
 
 # output file format.  supported: rds, csv (default)
-of_format  <- 'csv'
+of_format    <- 'csv'
 
 
 
@@ -147,9 +150,10 @@ if(is.null(odir)) {
 }
 
 # create input/output filenames
-initf   <- if(is.null(runid)) paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
-ofname  <- if(is.null(runid)) of_main else paste(runid,of_main,sep='_')
-sofname <- if(is.null(runid)) of_main else paste(runid,of_main,'salt',sep='_')
+initf   <- if(is.null(runid))    paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
+ofname  <- if(is.null(runid))    of_main else paste(runid,of_main,sep='_')
+ofname  <- if(is.null(mod_init)) ofname  else paste(ofname,mod_init,sep='_')
+sofname <- if(is.null(runid))    of_main else paste(runid,of_main,'salt',sep='_')
 
 
 
@@ -201,31 +205,36 @@ maat$model$pars$verbose <- F
 # Initialise the MAAT wrapper
 
 # load init xml's or list from init R script 
-# - currently hard coded to only work with the leaf model object - need to make generic
 # read default
-init_default <- readXML('leaf_default.xml')
+init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
 
 # read user defined values of static variables
 setwd(pdir)
+
+if(is.null(mod_init)) xml <- T
 if(xml) {
   
   # read user defined XMLs of static variables
-  if(file.exists('leaf_user_static.xml')) {
-    init_static  <- readXML('leaf_user_static.xml')
-  } else init_static <- list(leaf = list(fnames=NA,pars=NA,env=NA))
+  staticxml   <- 
+    if(is.null(mod_init)) paste(mod_init,'.xml',sep='')
+    else                  paste(mod_obj,'user','static.xml',sep='_')
+  init_static <- 
+    if(file.exists(staticxml)) readXML(staticxml)
+    else                       list(leaf = list(fnames=NA,pars=NA,env=NA))
   
   # read user defined XMLs of dynamic variables
-  if(file.exists('leaf_user_dynamic.xml')) {
-    init_dynamic <- readXML('leaf_user_dynamic.xml')
-  } else init_dynamic <- list(leaf = list(fnames=NA,pars=NA,env=NA))
+  dynamicxml   <- paste(mod_obj,'user','dynamic.xml',sep='_')
+  init_dynamic <-
+    if(file.exists(dynamicxml)) readXML(dynamicxml)
+    else                        list(leaf = list(fnames=NA,pars=NA,env=NA))
   
   # otherwise read init list R script
 } else source(initf)
 
 # combine default values with user defined static values
-if(exists('init_static')) {
-  inits <- fuselists(init_default,init_static)
-} else inits <- init_default
+inits <- 
+  if(exists('init_static')) fuselists(init_default,init_static)
+  else                      init_default
 
 # add init lists to wrapper
 maat$init_static  <- inits
