@@ -55,47 +55,54 @@ wrapper_object <-
       # configure initialisation lists - not called if unit testing (need to develop unit testing specifically for the model object init functions)
       if(!.$wpars$unit_testing) .$model$init()
       
+      # for Ye et al SA method
+      # due to different parameter sample numbers in process A and B loops,
+      # parameters samples must be generated from code snippets as strings
+      if(.$wpars$UQtype=='ye') .$wpars$eval_strings <- T
+      if(.$wpars$eval_string&is.na(.$vars$pars_eval[[1]])) {
+        stop('wrapper: eval_strings = T but vars$pars_eval not set. \n 
+              NOTE: Ye method SA must draw parameter samples during runtime \n
+              from code snippets expressed as strings in vars$pars_eval') 
+      }
+
       # initialise model with static variables
       .$model$configure(func='write_fnames',df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] )
       .$model$configure(func='write_pars',  df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   )
       .$model$configure(func='write_env',   df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    )      
       
-      # create dataframes of runtime variables  
+      # create matrices of runtime variables  
       # expand the fnames and driving variables  
       .$dataf$fnames  <- if(!is.na(.$vars$fnames[1])) as.matrix(expand.grid(.$vars$fnames,stringsAsFactors=F)) else NULL
       .$dataf$env     <- if(!is.na(.$vars$env[1]))    as.matrix(expand.grid(.$vars$env,stringsAsFactors=F   )) else NULL
+          
       if(.$wpars$UQ) {
         # if an SA/UQ run
+          
         if(.$wpars$UQtype=='saltelli') {
           # if Saltelli style Sobol
           
           # increase parameter sample number
           .$wpars$n <- .$wpars$n * .$wpars$nmult
+          
           if(.$wpars$eval_strings) {
             # sample parameters from character string code snippets
             n <- 2 * .$wpars$n
             .$vars$pars <- lapply(.$vars$pars_eval,function(cs) eval(parse(text=cs)))
           }
           if(is.na(.$vars$pars[1] )) stop('wrapper: pars list in vars list is empty')
-          .$dataf$pars <- do.call(cbind,.$vars$pars )
+         
+          # create pars matrix and remove pars list 
+          .$dataf$pars  <- do.call(cbind,.$vars$pars )
+          .$vars$pars   <- lapply(.$vars$parsl,function(e) numeric(1) )        
 
         } else if(.$wpars$UQtype=='ye') {
-          # ye method variable matrices are created in the first loop of the alogorithm
+          # Ye et al process SA method 
           
-          # due to different parameter sample numbers in process A and B loops,
-          # parameters samples must be generated from code snippets as strings
-          .$wpars$eval_strings <- T
-          if(is.na(.$vars$pars_eval[[1]])) {
-            stop('wrapper: Ye method SA must draw parameter samples during runtime \n
-                  from code snippets expressed as strings in vars$pars_eval') 
-          }
           # check input vars$pars* are same length
-          # test_in <- length(.$vars$pars) - length(.$vars$pars_proc)
-          # if(test_in!=0) stop('wrapper: Parameter input vectors - pars & pars_proc - are not the same length')
           test_in <- length(.$vars$pars_eval) - length(.$vars$pars_proc)
           if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
           # assign same list structure as vars$pars_eval to vars$pars 
-          .$vars$pars <- lapply(.$vars$pars_eval,function(e) NA) 
+          .$vars$pars   <- lapply(.$vars$pars_eval,function(e) numeric(1) ) 
           # check input vars$pars* elements have same names
           # - to be done
           
@@ -106,7 +113,7 @@ wrapper_object <-
         
       } else {
         # not a formal SA/UQ run - just a factorial combination of variables specified in the vars lists  
-        .$dataf$pars <- if(!is.na(.$vars$pars[1])) as.matrix(expand.grid(.$vars$pars,stringsAsFactors=F))   else NULL
+        .$dataf$pars    <- if(!is.na(.$vars$pars[1])) as.matrix(expand.grid(.$vars$pars,stringsAsFactors=F))   else NULL
       } 
       
       # calculate dataframe lengths, if no dataframe return 1
@@ -131,9 +138,9 @@ wrapper_object <-
       
       # Call initial run function in the hierarchy of nested run functions
       
-      # process UQ run, or either general variable run or matrix A and B of Saltelli method
       if(.$wpars$UQ&.$wpars$UQtype=='ye') {
-        # Ye process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure  
+        # process UQ run, or either general variable run or matrix A and B of Saltelli method
+        # - Ye process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure  
         lapply(1:.$dataf$lf,.$run_general_process_SA)
       } else {
         # Saltelli SA matrix AB run, or factorial run
@@ -148,12 +155,12 @@ wrapper_object <-
             ))
       }
         
-      # if Saltellis SA generate output from parameter matrices ABi
+      # if Saltelli SA generate output from parameter matrices ABi
       if(.$wpars$UQtype=='saltelli') {
         # output AB matrix and clear out df
         setwd(odir) 
         write_to_file(.$output_saltelli_AB(),paste(ofname,'salt','AB',sep='_'),type='rds')  
-        .$dataf$out <- NULL   
+        .$dataf$out <- matrix(1)   
         print('Saltelli matrix AB completed', quote=F)
         print('',quote=F)
         print('',quote=F)
@@ -165,7 +172,7 @@ wrapper_object <-
           else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
         
         write_to_file(.$dataf$out_saltelli,paste(ofname,'salt','ABi',sep='_'),type='rds')  
-        .$dataf$out_saltelli <- NULL   
+        .$dataf$out_saltelli <- matrix(1)   
         print('Saltelli array ABi completed',quote=F)
         print('',quote=F)
       }             
@@ -340,12 +347,12 @@ wrapper_object <-
       .$dataf$fnamesB <- if(!is.na(.$vars$fnames[-f])) as.matrix(expand.grid(.$vars$fnames[-f],stringsAsFactors=F)) else stop()
       
       # determine the number of the rows in process dataframes
-      .$dataf$lfA <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
-      .$dataf$lfB <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
+      .$dataf$lfA     <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
+      .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
       
       # partition the parameters to process A and and process B
-      .$procA_name <- names(.$vars$fnames)[f]
-      .$procA_subs <- which(unlist(.$vars$pars_proc)==.$procA_name)
+      .$procA_name    <- names(.$vars$fnames)[f]
+      .$procA_subs    <- which(unlist(.$vars$pars_proc)==.$procA_name)
 
       # evaluate parameter strings to sample vectors
       # - this allows a distribution function to be specifed
@@ -357,22 +364,24 @@ wrapper_object <-
         .$vars$pars[-.$procA_subs] <- lapply(.$vars$pars_eval[-.$procA_subs],function(cs) eval(parse(text=cs)))
       }
       
-      # bind the parameter vectors 
-      .$dataf$pars  <- if(!is.na(.$vars$pars[1])) do.call(cbind,.$vars$pars[.$procA_subs] ) else stop()
-      .$dataf$parsB <- if(!is.na(.$vars$pars[2])) do.call(cbind,.$vars$pars[-.$procA_subs]) else stop()
+      # bind the parameter vectors into run matrices 
+      .$dataf$pars    <- if(!is.na(.$vars$pars[1])) do.call(cbind,.$vars$pars[.$procA_subs] ) else stop()
+      .$dataf$parsB   <- if(!is.na(.$vars$pars[2])) do.call(cbind,.$vars$pars[-.$procA_subs]) else stop()
+      .$vars$pars     <- lapply(.$vars$pars_eval,function(e) numeric(1) ) 
 
       # determine the number of the rows in parameter dataframes
-      .$dataf$lp  <- .$wpars$n # convert these to be the row number of the actual matrices
-      .$dataf$lpB <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
+      .$dataf$lp      <- .$wpars$n # convert these to be the row number of the actual matrices
+      .$dataf$lpB     <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
       
       # call the below run function
-      .$dataf$out <-
-        data.frame(
-          do.call(rbind,
-                  if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs)
-                  else                 lapply(1:.$dataf$lfA, .$run_repA)
-          ))
-      
+      .$dataf$out     <- {
+        if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs)
+        else                 lapply(1:.$dataf$lfA, .$run_repA)
+      }
+
+      # convert dataframe output to list output
+      .$dataf$out     <- transpose_list(.$dataf$out)
+
       # process & record output
       if(.$wpars$unit_testing) { 
         hd     <- getwd()
@@ -396,14 +405,17 @@ wrapper_object <-
       print(paste('started process:',.$dataf$fnames[g,],', of:',colnames(.$dataf$fnames)),quote=F)
  
       # configure function names in the model
-      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames,F)
+      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[g,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[g,])
-      
+
+      # calculate offset to correctly subset parsB matrix
+      osg <- .$wpars$n * .$dataf$lfB * (g-1) 
+ 
       # call process A parameter run function
       data.frame(
         do.call(rbind,
-                if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=g,mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1) )
-                else                 lapply(1:.$dataf$lp,.$run_parA,offset=g)
+                if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=osg,mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1) )
+                else                 lapply(1:.$dataf$lp,.$run_parA,offset=osg)
       ))
     }
         
@@ -416,10 +428,11 @@ wrapper_object <-
       if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=.$dataf$pars[h,],F)
       if(.$wpars$cverbose) .$printc('pars',.$dataf$pars[h,])
       
+      # calculate offset to correctly subset parsB matrix
+      osh <- offset + .$dataf$lfB * (h-1)        
+      
       # call process B process representation run function
-      # os is the row in the factorial ftypes and pars matrix
-      os <- .$wpars$n*(offset - 1) + h     
-      data.frame(do.call(rbind,lapply(1:.$dataf$lfB,.$run_repB,offset=os)))      
+      data.frame(do.call(rbind,lapply(1:.$dataf$lfB,.$run_repB,offset=osh)))      
     }
 
     run_repB <- function(.,i,offset) {
@@ -431,10 +444,13 @@ wrapper_object <-
       if(!is.null(.$dataf$fnamesB)) .$model$configure(func='write_fnames',df=.$dataf$fnamesB[i,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnamesB[i,])
       
+      # calculate offset to correctly subset parsB matrix
+      os  <- offset + i
+      # oss is a vector of the row subscripts for the parsB matrix
+      oss <- (.$wpars$n*(os-1) + 1):(.$wpars$n*(os))    
+      
       # call process B parameter run function
-      # os is the row in the parsB matrix
-      os <- .$dataf$lfB*(offset - 1) + i    
-      data.frame(do.call(rbind,lapply(os:(os+.$wpars$n-1),.$run_parB)))      
+      data.frame(do.call(rbind,lapply(oss,.$run_parB)))      
     }
     
     run_parB <- function(.,j) {
@@ -456,7 +472,6 @@ wrapper_object <-
     # variables that are to be varied in the SA/UQ
     
     # initialisation lists
-#     init_ls <- NA
     init_static  <- NA
     init_dynamic <- NA
     
@@ -497,7 +512,7 @@ wrapper_object <-
       pars    = NULL,
       parsB   = NULL,
       env     = NULL,
-      met     = NULL,          # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example 
+      met     = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example 
       # row length of matrices
       lf      = NULL,
       lfA     = NULL,
@@ -508,9 +523,9 @@ wrapper_object <-
       lm      = NULL,
       # output dataframes
       # - maintained as dataframes as model output can be character strings
-      obs     = NULL,          # a dataframe of observations against which to valiadate/ calculate likelihood of model
-      obsse   = NULL,          # a dataframe of observation errors for the obs data, must exactly match the above dataframe
-      out     = NULL,          # output dataframe
+      obs     = NULL,         # a dataframe of observations against which to valiadate/ calculate likelihood of model
+      obsse   = NULL,         # a dataframe of observation errors for the obs data, must exactly match the above dataframe
+      out     = NULL,         # output dataframe
       out_saltelli = NULL     # saltelli output list 
     )
     
@@ -524,6 +539,7 @@ wrapper_object <-
       n        = numeric(1),  # parameter sample number
       nmult    = 1,           # parameter sample number multiplier for saltelli method
       eval_strings = F,       # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
+      sobol_init   = T,       # initialise sobol sequence or not when calling rsobol. This should not be modified by the user. 
       unit_testing = F
     )
     
@@ -555,26 +571,24 @@ wrapper_object <-
               print(paste('Rows df$parsB:',  dim(.$dataf$parsB)[1],  .$wpars$n^2*.$dataf$lfA*.$dataf$lfB),quote=F)
               print(paste('Rows df$env:',    dim(.$dataf$env)[1],    .$dataf$le),quote=F)
 
-              vardf    <- cbind(
+              vardf    <- list(
                 # fnames of process A - length lf * lfB * le * n^2
-                apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
+                fnames  = apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
                 # pars of process A
-                apply(.$dataf$pars,   2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lfA) ),
+                pars    = apply(.$dataf$pars,   2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lfA) ),
                 # fnames of process B
-                apply(.$dataf$fnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lfA*.$wpars$n) ),
+                fnamesB = apply(.$dataf$fnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lfA*.$wpars$n) ),
                 # parsB
-                apply(.$dataf$parsB,  2,function(v) rep(v,each=.$dataf$le) ),
+                parsB   = apply(.$dataf$parsB,  2,function(v) rep(v,each=.$dataf$le) ),
                 # environment
-                apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lfA*.$dataf$lfB*.$wpars$n^2) )
+                env     = apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lfA*.$dataf$lfB*.$wpars$n^2) )
               )
-              
-              # convert to dataframe
-              vardf <- as.data.frame(vardf)
               
             } else if(.$wpars$UQtype=='saltelli') { 
               # if Saltelli SA
               # this is not currently used by the run scripts as the Saltelli method expects a different organisation of output
               # can be called by user to inspect Saltelli run output from matrix AB in a user readable format
+              # for example, to inspect relationship between parameetrs and output
 
               vardf <- cbind( 
                 # fnames
@@ -598,8 +612,10 @@ wrapper_object <-
           
           # if no met data
           if(is.null(.$dataf$met)) {
-            print(paste('vardf:',length(vardf[,1]),', out:',length(.$dataf$out[,1])),quote=F)
-            return(cbind(vardf,.$dataf$out))
+            if(.$wpars$UQtype=='ye') print(paste('vardf:',length(vardf[[1]][,1]),', out:',length(.$dataf$out[[1]])),quote=F)
+            else                     print(paste('vardf:',length(vardf[[1]][,1]),', out:',length(.$dataf$out[,1])),quote=F)
+            # return a list
+            return(c(vardf,  .$dataf$out  ))
             rm(vardf)            
 
           # if met data

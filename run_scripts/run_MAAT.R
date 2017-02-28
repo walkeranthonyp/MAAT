@@ -81,6 +81,9 @@ mod_obj    <- 'leaf'
 # meteorological data file name
 metdata    <- NULL 
 
+# pass code snippets as strings to generate parameter samples, see init_MAAT.R and wrapper for use
+eval_strings <- F 
+
 # initialisation data file is an XML, if false init file is the R script named below
 xml        <- F
 
@@ -178,6 +181,7 @@ maat$wpars$UQ           <- uq
 maat$wpars$n            <- psa_n       
 maat$wpars$coef_var     <- coef_var       
 maat$wpars$nmult        <- salt_nmult       
+maat$wpars$eval_strings <- eval_strings       
 maat$model$pars$verbose <- F
 
 
@@ -303,6 +307,8 @@ if(procSA) {
   maat$model$pars$verbose  <- F
   maat$wpars$UQtype <- 'ye'
   
+  for(i in 1:5) print('',quote=F)
+  print('Run Process SA',quote=F)
   st <- system.time(
     maat$run()
   )
@@ -334,7 +340,7 @@ if(salt) {
   # reconfigure SA/UQ type
   maat$wpars$UQtype <- 'saltelli'
 
-  # run reconfigured MAAT
+  # run MAAT
   for(i in 1:5) print('',quote=F)
   print('Run Saltelli Sobol',quote=F)
   st <- system.time(
