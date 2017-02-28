@@ -12,9 +12,18 @@ library(randtoolbox)
 #####################################################
 res_calc <- function(df1,df2,rcols,type='abs') {
   dfo <- df1
-  if(type=='abs')      dfo[,rcols] <- df1[,rcols] - df2[,rcols]
-  else if(type=='rel') dfo[,rcols] <- df1[,rcols] / df2[,rcols]
-  else { print(paste('no method for type:',type)); stop }
+  
+  if(class(df1)=='list') {
+    # if a list, expects rcols to be a single integer that indexes a vector/matrix element of the input 
+    if(type=='abs')      dfo[[rcols]] <- df1[[rcols]] - df2[[rcols]]
+    else if(type=='rel') dfo[[rcols]] <- df1[[rcols]] / df2[[rcols]]
+    
+  } else {
+    # if a dataframe or matrix, expects rcols to be a vector of integer(s) that indexes columns of the input
+    if(type=='abs')      dfo[,rcols] <- df1[,rcols] - df2[,rcols]
+    else if(type=='rel') dfo[,rcols] <- df1[,rcols] / df2[,rcols]
+    
+  }# else stop(paste('no method for class:',class(df1))) 
   dfo
 }
 

@@ -7,14 +7,15 @@
 ################################
 
 #####################################################
-calc_process_sensitivity <- function(df,colname,n,nA=1,nB=3,...) {
+calc_process_sensitivity <- function(df,res,col,colname,n,nA=1,nB=3,...) {
   
   # assume equal probability for each model
   mpA   <- rep(1/nA,nA)
   mpB   <- rep(1/nB,nB)
   
   # extract model output of interest (i.e. Delta)
-  f     <- as.vector(df[,which(names(df)==colname)])
+  # f     <- as.vector(df[,which(names(df)==colname)])
+  f     <- as.vector(df[[res]][,col])
   
   # total mean & variance in Delta
   # - variance should be normalised by the total sample size, not sample size - 1
@@ -66,7 +67,7 @@ func_process_sensitivity <- function(ps,f,nA,nB,MA,MB,n) {
     # Loop over the parameter realizations of the models of the process in question
     for( j in 1:n ) {      
       
-      # Loop over the models of the other process
+      # Loop over the models of the other processes
       for( k in 1:nLoop2 ) {
         # construct subscripts matrix for output array
         smat            <- cbind(i,j,k,1:n)
