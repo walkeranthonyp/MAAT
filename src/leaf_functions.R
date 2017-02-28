@@ -372,6 +372,11 @@ f_r_zero <- function(.,...){
 
 # stomata
 # stomatal resistances are all assumed by the solver to be in h2o units 
+f_rs_constant <- function(.,...) {
+  # output in m2s mol-1 h2o 
+  
+  .$pars$rs
+}
 
 f_rs_medlyn2011 <- function(.,A=.$state$A,c=.$state$cb){
   # Medlyn et al 2011 eq for stomatal resistance

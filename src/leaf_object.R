@@ -275,6 +275,7 @@ leaf_object <-
       g1_leuning    = 5,          # Leuning 1995 gs slope                                  ()
       d0            = 2,          # Leuning 1995 D0                                        ()
       g1_ball       = 5,          # Ball 1987 gs slope                                     ()
+      rs            = 1/0.15,     # stomatal resistance                                    (m2s mol-1 h2o)
       gi            = 0.15,       # mesophyll conductance                                  (molm-2s-1 - expressed in these units for consistency with other conductance terms, often expressed in the literature per unit Pa)
       ri            = 1/0.15,     # mesophyll resistance                                   (m2s mol-1 - expressed in these units for consistency with other resistance terms, often expressed in the literature multiplied by Pa)
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
@@ -358,9 +359,9 @@ leaf_object <-
       maat$vars$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
       maat$vars$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
       
-      if(.$wpars$UQ&.$wpars$UQtype=='ye') {
-        maat$vars$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
-        maat$vars$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
+      if(.$wpars$UQ) {
+        if(.$wpars$UQtype=='ye') maat$vars$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
+        if(.$wpars$eval_strings) maat$vars$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
       }
     }
     
