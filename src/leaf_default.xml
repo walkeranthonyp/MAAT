@@ -1,7 +1,9 @@
 <default>
   <leaf>
     <fnames>
+      <gstar>'f_gstar_f1980'</gstar>
       <gstar_tcor>'f_temp_scalar_quadratic_bf1985'</gstar_tcor>
+      <tau_tcor>'f_temp_scalar_Q10'</tau_tcor>
       <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
       <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
       <vcmax>'f_constant_vcmax'</vcmax>
@@ -64,6 +66,7 @@
       <reftemp.Kc>25</reftemp.Kc>
       <reftemp.Ko>25</reftemp.Ko>
       <reftemp.gstar>25</reftemp.gstar>
+      <reftemp.tau>25</reftemp.tau>
       <atref.rd>0</atref.rd>
       <atref.vcmax>70</atref.vcmax>
       <atref.jmax>0</atref.jmax>
@@ -71,6 +74,7 @@
       <atref.Kc>40.49</atref.Kc>
       <atref.Ko>27.84</atref.Ko>
       <atref.gstar>4.325</atref.gstar>
+      <atref.tau>2600</atref.tau>
       <Ha.vcmax>69830</Ha.vcmax>
       <Ha.jmax>100280</Ha.jmax>
       <Ha.tpu>69830</Ha.tpu>
@@ -90,6 +94,7 @@
       <q10.vcmax>2</q10.vcmax>
       <q10.jmax>2</q10.jmax>
       <q10.tpu>2</q10.tpu>
+      <q10.tau>0.57</q10.tau>
       <gstar_bf_a>0.012</gstar_bf_a>
       <gstar_bf_b>1.68</gstar_bf_b>
       <gstar_bf_c>42.7</gstar_bf_c>

@@ -68,7 +68,7 @@ leaf_object <-
       .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=list(Ha=.$pars$Ha.Kc))
       .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Ha=.$pars$Ha.Ko)) 
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
-      .$state_pars$gstar   <- .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Ha=.$pars$Ha.gstar)) # this will probably not give the correct response to a change in atmospheric pressure
+      .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
       .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
       .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax))
       .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax))
@@ -174,7 +174,9 @@ leaf_object <-
     
     # function names
     fnames <- list(
+      gstar       = 'f_gstar_constref',
       gstar_tcor  = 'f_temp_scalar_quadratic_bf1985',
+      tau_tcor    = 'f_temp_scalar_Q10',
       Kc_tcor     = 'f_temp_scalar_Arrhenius',
       Ko_tcor     = 'f_temp_scalar_Arrhenius',
       vcmax       = 'f_vcmax_lin',
@@ -254,6 +256,7 @@ leaf_object <-
       Ko       = numeric(0),   # kPa
       Km       = numeric(0),   #  Pa
       gstar    = numeric(0),   #  Pa
+      tau      = numeric(0),   #  -
       gamma    = numeric(0),   #  Pa
       rb       = numeric(0),   # m2s mol-1 
       rs       = numeric(0),   # m2s mol-1 
@@ -309,6 +312,7 @@ leaf_object <-
       reftemp.Kc    = 25,         # reference temperature at which Kc scalar = 1            (oC)
       reftemp.Ko    = 25,         # reference temperature at which Ko scalar = 1            (oC)
       reftemp.gstar = 25,         # reference temperature at which gamma star scalar = 1    (oC)
+      reftemp.tau   = 25,         # reference temperature at which tau scalar = 1           (oC)
       atref.rd      = 2,          # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
       atref.vcmax   = 50,         # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
       atref.jmax    = 100,        # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
@@ -316,6 +320,7 @@ leaf_object <-
       atref.Kc      = 40.49,      # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
       atref.Ko      = 27.84,      # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
       atref.gstar   = 4.325,      # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
+      atref.tau     = 2600,       # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (-)
       atref.vomax   = numeric(0),
       Ha.vcmax      = 69830,      # activation energy of Vcmax                              (J mol-1)
       Ha.jmax       = 100280,     # activation energy of Jmax                               (J mol-1)
@@ -336,6 +341,7 @@ leaf_object <-
       q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
       q10.jmax      = 2,          # Q10 of Jmax                                             (-)
       q10.tpu       = 2,          # Q10 of TPU                                              (-)
+      q10.tau       = 0.57,       # Q10 of tau                                              (-)
       gstar_jo_a    = numeric(0), # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_jo_b    = numeric(0), # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_jo_c    = numeric(0), # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 

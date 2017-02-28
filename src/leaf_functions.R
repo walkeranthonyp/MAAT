@@ -641,35 +641,6 @@ f_deltaS <- function(.,parlist,...){
   parlist$Hd/Toptk + (.$pars$R*log(parlist$Ha/(parlist$Hd - parlist$Ha)))
 }
 
-
-### Gamma star - CO2 compensation point in the absence of dark respiration
-f_temp_scalar_quadratic_bf1985 <- function(.,Tr=25,...){
-  # calculates Gamma star (umol mol-1) as a function of temperature difference (K or oC)
-  # Brooks&Farquhar 1985
-  # rearranged to give a scalar of value at 25oC 
-  # calculated by B&F1985 from Jordan & Ogren 1984
-  #   1 + (1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) / 44.7
-  
-  # B&F1985  
-#   (42.7 + 1.68*(.$state$leaf_temp-Tr) + 0.012*(.$state$leaf_temp-Tr)^2)
-#   1 + (1.68*(.$state$leaf_temp-Tr) + 0.012*(.$state$leaf_temp-Tr)^2) / 42.7
-  1 + (.$pars$gstar_bf_b*(.$state$leaf_temp-Tr) + .$pars$gstar_bf_a*(.$state$leaf_temp-Tr)^2) / .$pars$gstar_bf_c
-}
-
-
-# f_temp_scalar_quadratic_jo1984 <- function(.,Tr=25,...){
-#   # calculates Gamma star (umol mol-1) as a function of temperature difference (K or oC)
-#   # Brooks&Farquhar 1985
-#   # rearranged to give a scalar of value at 25oC 
-#   
-#   # calculated by B&F1985 from Jordan & Ogren 1984
-# #   (44.7 + 1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) 
-# #   1 + (1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) / 44.7
-#   1 + (.$pars$gstar_jo_b*(.$state$leaf_temp-Tr) + .$pars$gstar_jo_a*(.$state$leaf_temp-Tr)^2) / .$pars$gstar_jo_c
-#   
-# }
-
-
 f_temp_scalar_Q10 <- function(.,parlist,Tr=25,...){
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   
@@ -678,8 +649,8 @@ f_temp_scalar_Q10 <- function(.,parlist,Tr=25,...){
   # Tr     -- reference temperature (oC) 
   
   #convert to Kelvin
-#   Trk <- Tr + 273.15
-#   Tsk <- .$state$leaf_temp + 273.15
+  #   Trk <- Tr + 273.15
+  #   Tsk <- .$state$leaf_temp + 273.15
   Ts <- .$state$leaf_temp
   
   if(.$cpars$verbose) {
@@ -687,11 +658,10 @@ f_temp_scalar_Q10 <- function(.,parlist,Tr=25,...){
     print(paste(Tr,Ts))
     print(parlist)
   }
-    
+  
   parlist$q10 ^ ((Ts-Tr)/10)
   
 }
-
 
 f_temp_scalar_Q10_collatz1991 <- function(.,parlist,Tr=25,...){
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
@@ -714,18 +684,60 @@ f_temp_scalar_Q10_collatz1991 <- function(.,parlist,Tr=25,...){
 }
 
 
+
+### Gamma star - CO2 compensation point in the absence of dark respiration
+f_constant_gstar <- function(.,...){
+  .$pars$atref.gstar
+}
+
 f_gstar_f1980 <- function(.,Tr=25,...){
-  # calculates Gamma star as a function of Kc & Ko
+  # calculates Gamma star as a function of Kc & Ko, and thus their combined temperature dependence
   # Farquhar 1980 Eq 38
   # 0.21 = ko/kc
   
   0.21 * .$state_pars$Kc*.$state$oi/(2*.$state_pars$Ko)
+}
+
+f_gstar_constref <- function(.) {
+  # takes a defined ref temperature value of gstar and scales to leaf temp
+  # this will probably not give the correct response to a change in atmospheric pressure
   
+  .$state_pars$gstar <- .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Ha=.$pars$Ha.gstar)) 
 }
 
-
-f_constant_gstar <- function(.,...){
-  .$pars$atref.gstar
+f_gstar_c1991 <- function(.) {
+  # takes a defined ref temperature value of tau and scales to leaf temp
+  # calcualtes gstar at leaftemp from tau
+  
+  .$state_pars$tau   <- .$pars$atref.tau * get(.$fnames$tau_tcor)(.,parlist=list(q10=.$pars$q10.tau))
+  .$state_pars$gstar <- .$state$oi/(2*.$state_pars$tau)   
 }
+
+f_temp_scalar_quadratic_bf1985 <- function(.,Tr=25,...){
+  # calculates Gamma star (umol mol-1) as a function of temperature difference (K or oC)
+  # Brooks&Farquhar 1985
+  # rearranged to give a scalar of value at 25oC 
+  # calculated by B&F1985 from Jordan & Ogren 1984
+  #   1 + (1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) / 44.7
+  
+  # B&F1985  
+#   (42.7 + 1.68*(.$state$leaf_temp-Tr) + 0.012*(.$state$leaf_temp-Tr)^2)
+#   1 + (1.68*(.$state$leaf_temp-Tr) + 0.012*(.$state$leaf_temp-Tr)^2) / 42.7
+  1 + (.$pars$gstar_bf_b*(.$state$leaf_temp-Tr) + .$pars$gstar_bf_a*(.$state$leaf_temp-Tr)^2) / .$pars$gstar_bf_c
+}
+
+# f_temp_scalar_quadratic_jo1984 <- function(.,Tr=25,...){
+#   # calculates Gamma star (umol mol-1) as a function of temperature difference (K or oC)
+#   # Brooks&Farquhar 1985
+#   # rearranged to give a scalar of value at 25oC 
+#   
+#   # calculated by B&F1985 from Jordan & Ogren 1984
+# #   (44.7 + 1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) 
+# #   1 + (1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) / 44.7
+#   1 + (.$pars$gstar_jo_b*(.$state$leaf_temp-Tr) + .$pars$gstar_jo_a*(.$state$leaf_temp-Tr)^2) / .$pars$gstar_jo_c
+#   
+# }
+
+
 
 
