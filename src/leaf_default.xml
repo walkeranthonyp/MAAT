@@ -73,16 +73,26 @@
       <atref.gstar>4.325</atref.gstar>
       <Ha.vcmax>69830</Ha.vcmax>
       <Ha.jmax>100280</Ha.jmax>
+      <Ha.tpu>69830</Ha.tpu>
       <Ha.Kc>79430</Ha.Kc>
       <Ha.Ko>36380</Ha.Ko>
       <Ha.gstar>37830</Ha.gstar>
       <Ha.vomax>60110</Ha.vomax>
       <Hd.vcmax>2e+05</Hd.vcmax>
       <Hd.jmax>2e+05</Hd.jmax>
+      <Hd.tpu>2e+05</Hd.tpu>
       <Topt.vcmax>27.56</Topt.vcmax>
       <Topt.jmax>19.89</Topt.jmax>
+      <Topt.tpu>27.56</Topt.tpu>
       <deltaS.vcmax>NA</deltaS.vcmax>
       <deltaS.jmax>NA</deltaS.jmax>
+      <deltaS.tpu>NA</deltaS.tpu>
+      <q10.vcmax>2</q10.vcmax>
+      <q10.jmax>2</q10.jmax>
+      <q10.tpu>2</q10.tpu>
+      <gstar_bf_a>0.012</gstar_bf_a>
+      <gstar_bf_b>1.68</gstar_bf_b>
+      <gstar_bf_c>42.7</gstar_bf_c>
       <R>8.31446</R>
     </pars>
     <env>

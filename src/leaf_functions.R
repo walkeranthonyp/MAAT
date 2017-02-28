@@ -647,22 +647,27 @@ f_temp_scalar_quadratic_bf1985 <- function(.,Tr=25,...){
   # calculates Gamma star (umol mol-1) as a function of temperature difference (K or oC)
   # Brooks&Farquhar 1985
   # rearranged to give a scalar of value at 25oC 
-  
-#   (42.7 + 1.68*(.$state$leaf_temp-Tr) + 0.012*(.$state$leaf_temp-Tr)^2)
-  1 + (1.68*(.$state$leaf_temp-Tr) + 0.012*(.$state$leaf_temp-Tr)^2) / 42.7
-}
-
-
-f_temp_scalar_quadratic_jo1984 <- function(.,Tr=25,...){
-  # calculates Gamma star (umol mol-1) as a function of temperature difference (K or oC)
-  # Brooks&Farquhar 1985
-  # rearranged to give a scalar of value at 25oC 
-  
   # calculated by B&F1985 from Jordan & Ogren 1984
-#   (44.7 + 1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) 
-  1 + (1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) / 44.7
- 
+  #   1 + (1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) / 44.7
+  
+  # B&F1985  
+#   (42.7 + 1.68*(.$state$leaf_temp-Tr) + 0.012*(.$state$leaf_temp-Tr)^2)
+#   1 + (1.68*(.$state$leaf_temp-Tr) + 0.012*(.$state$leaf_temp-Tr)^2) / 42.7
+  1 + (.$pars$gstar_bf_b*(.$state$leaf_temp-Tr) + .$pars$gstar_bf_a*(.$state$leaf_temp-Tr)^2) / .$pars$gstar_bf_c
 }
+
+
+# f_temp_scalar_quadratic_jo1984 <- function(.,Tr=25,...){
+#   # calculates Gamma star (umol mol-1) as a function of temperature difference (K or oC)
+#   # Brooks&Farquhar 1985
+#   # rearranged to give a scalar of value at 25oC 
+#   
+#   # calculated by B&F1985 from Jordan & Ogren 1984
+# #   (44.7 + 1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) 
+# #   1 + (1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) / 44.7
+#   1 + (.$pars$gstar_jo_b*(.$state$leaf_temp-Tr) + .$pars$gstar_jo_a*(.$state$leaf_temp-Tr)^2) / .$pars$gstar_jo_c
+#   
+# }
 
 
 f_temp_scalar_Q10 <- function(.,parlist,Tr=25,...){
@@ -683,7 +688,7 @@ f_temp_scalar_Q10 <- function(.,parlist,Tr=25,...){
     print(parlist)
   }
     
-  parlist$Q10 ^ ((Ts-Tr)/10)
+  parlist$q10 ^ ((Ts-Tr)/10)
   
 }
 

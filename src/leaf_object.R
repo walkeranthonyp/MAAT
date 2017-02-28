@@ -70,9 +70,10 @@ leaf_object <-
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Ha=.$pars$Ha.gstar)) # this will probably not give the correct response to a change in atmospheric pressure
       .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
-      .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax))
-      .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax))
-
+      .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax))
+      .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax))
+      .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor)(.,parlist=list(Ha=.$pars$Ha.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,q10=.$pars$q10.tpu))
+      
       # conductance/resistance terms
       # - if either of these functions become a function of co2 or assimilation they can be easily moved into the solver
       .$state_pars$rb      <- get(.$fnames$rb)(.)
@@ -181,6 +182,7 @@ leaf_object <-
       tpu         = 'f_constant_tpu',
       vcmax_tcor  = 'f_temp_scalar_modArrhenius',
       jmax_tcor   = 'f_temp_scalar_modArrhenius',
+      tpu_tcor    = 'f_temp_scalar_modArrhenius',
       etrans      = 'f_j_harley1992',
       wc          = 'f_wc_farquhar1980',
       wj          = 'f_wj_generic',
@@ -317,16 +319,26 @@ leaf_object <-
       atref.vomax   = numeric(0),
       Ha.vcmax      = 69830,      # activation energy of Vcmax                              (J mol-1)
       Ha.jmax       = 100280,     # activation energy of Jmax                               (J mol-1)
-      Ha.Kc         = 79430,
-      Ha.Ko         = 36380,
-      Ha.gstar      = 37830,
-      Ha.vomax      = 60110,
+      Ha.tpu        = 69830,      # activation energy of TPU                                (J mol-1)
+      Ha.Kc         = 79430,      # activation energy of Kc                                 (J mol-1)
+      Ha.Ko         = 36380,      # activation energy of Ko                                 (J mol-1)
+      Ha.gstar      = 37830,      # activation energy of gamma star                         (J mol-1)
+      Ha.vomax      = 60110,      # activation energy of Vomax                              (J mol-1)
       Hd.vcmax      = 200000,     # deactivation energy of Vcmax                            (J mol-1)
       Hd.jmax       = 200000,     # deactivation energy of Jmax                             (J mol-1)
+      Hd.tpu        = 200000,     # deactivation energy of TPU                              (J mol-1)
       Topt.vcmax    = 27.56,      # temperature optimum of Vcmax                            (oC)
       Topt.jmax     = 19.89,      # temperature optimum of Jmax                             (oC)
+      Topt.tpu      = 27.56,      # temperature optimum of TPU                              (oC)
       deltaS.vcmax  = numeric(0), # 
       deltaS.jmax   = numeric(0), #
+      deltaS.tpu    = numeric(0), #
+      q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
+      q10.jmax      = 2,          # Q10 of Jmax                                             (-)
+      q10.tpu       = 2,          # Q10 of TPU                                              (-)
+      gstar_jo_a    = numeric(0), # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
+      gstar_jo_b    = numeric(0), # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
+      gstar_jo_c    = numeric(0), # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       
       #physical constants
       R   = 8.31446               # molar gas constant                                      (m2 kg s-2 K-1 mol-1  ==  Pa m3 mol-1K-1)
