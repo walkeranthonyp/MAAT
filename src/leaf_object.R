@@ -54,20 +54,25 @@ leaf_object <-
       # O2 partial pressure  (kPa)
       .$state$oi <- .$env$o2_conc * .$env$atm_press * 1e-3
       
+      
       # calculate state parameters
       # photosynthetic parameters
       .$state_pars$vcmax   <- get(.$fnames$vcmax)(.)
       .$state_pars$jmax    <- get(.$fnames$jmax)(.)
       .$state_pars$tpu     <- get(.$fnames$tpu)(.) # needs work, how is TPU normally set?
       .$state_pars$alpha   <- 0.5 * (1-.$pars$f)
+      
       # kinetic pars & temperature dependence
       # - if the solver involves the energy balance all of this crap needs to go in the solver! 
       .$state$leaf_temp    <- .$env$temp               
       .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=list(Ha=.$pars$Ha.Kc))
       .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Ha=.$pars$Ha.Ko)) 
+      .$state_pars$Km      <- .$state_pars$Kc*(1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Ha=.$pars$Ha.gstar)) # this will probably not give the correct response to a change in atmospheric pressure
+      .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
       .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax))
       .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax))
+
       # conductance/resistance terms
       # - if either of these functions become a function of co2 or assimilation they can be easily moved into the solver
       .$state_pars$rb      <- get(.$fnames$rb)(.)
@@ -98,9 +103,11 @@ leaf_object <-
         # assign the limitation state - assumes the minimum is the dominant limiting rate
         .$state$lim     <- c('wc','wj','wp')[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
         # after the fact calculations
-        .$state_pars$rs <- get(.$fnames$rs)(.)
         .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca)
-        .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rs,c=.$state$cb)        
+        .$state_pars$rs <- get(.$fnames$rs)(.) # this currently will not work with rs functions that have a g0 term when the analytical solution is selected 
+        .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rs,c=.$state$cb)
+        # .$state_pars$rs <- f_ficks_rs(.)
+        .$state$cc      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$ri,c=.$state$ci)        
       }
       # if PAR < 0
       else {
@@ -182,6 +189,7 @@ leaf_object <-
       gas_diff    = 'f_ficks_ci_bound0',
       respiration = 'f_rd_collatz1991',
       fwdw_ratio  = 'f_none',                   # 'f_fwdw_wl_lin' 'f_fwdw_wl_exp'
+      cica_ratio  = 'f_cica_constant',             
       ri          = 'f_r_zero',
       rs          = 'f_r_zero',
       rb          = 'f_r_zero',
@@ -199,7 +207,7 @@ leaf_object <-
       sphag_l   = 0,                   # (mm) Sphagnum surface relative to hollow surfwce
       temp      = 25,                  # (oC)
       vpd       = 2,                   # (kPa)
-      rh        = 80,                  # (%)
+      rh        = 0.8,                 # (unitless - proportion)
       atm_press = 101325               # ( Pa)
       )
 
@@ -236,18 +244,21 @@ leaf_object <-
     
     #leaf state parameters (i.e. calculated parameters)
     state_pars <- list(
-      vcmax   = numeric(0),   # umol m-2 s-1
-      vcmaxlt = numeric(0),   # umol m-2 s-1
-      jmax    = numeric(0),   # umol m-2 s-1
-      jmaxlt  = numeric(0),   # umol m-2 s-1
-      tpu     = numeric(0),   # umol m-2 s-1
-      Kc      = numeric(0),   #  Pa
-      Ko      = numeric(0),   # kPa
-      gstar   = numeric(0),   #  Pa
-      rb      = numeric(0),   # m2s mol-1 
-      rs      = numeric(0),   # m2s mol-1 
-      ri      = numeric(0),   # m2s mol-1     
-      alpha   = numeric(0)    # mol electrons mol-1 absorbed photosynthetically active photons
+      vcmax    = numeric(0),   # umol m-2 s-1
+      vcmaxlt  = numeric(0),   # umol m-2 s-1
+      jmax     = numeric(0),   # umol m-2 s-1
+      jmaxlt   = numeric(0),   # umol m-2 s-1
+      tpu      = numeric(0),   # umol m-2 s-1
+      Kc       = numeric(0),   #  Pa
+      Ko       = numeric(0),   # kPa
+      Km       = numeric(0),   #  Pa
+      gstar    = numeric(0),   #  Pa
+      gamma    = numeric(0),   #  Pa
+      rb       = numeric(0),   # m2s mol-1 
+      rs       = numeric(0),   # m2s mol-1 
+      ri       = numeric(0),   # m2s mol-1     
+      alpha    = numeric(0),   # mol electrons mol-1 absorbed photosynthetically active photons
+      cica_chi = numeric(0)    # Ci:Ca ratio 
     )
     
     #leaf parameters
@@ -271,12 +282,13 @@ leaf_object <-
       wp_alpha      = 0.05,       # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
       # resistance parameters
       g0            = 0.01,       # Medlyn 2011 min gs                                     (molm-2s-1)
-      g1_medlyn     = 5,          # Medlyn 2011 gs slope                                   ()
-      g1_leuning    = 5,          # Leuning 1995 gs slope                                  ()
-      d0            = 2,          # Leuning 1995 D0                                        ()
-      g1_ball       = 5,          # Ball 1987 gs slope                                     ()
+      g1_medlyn     = 6,          # Medlyn 2011 gs slope                                   (kPa^0.5)
+      g1_leuning    = 10,         # Leuning 1995 gs slope                                  (unitless - likely higher than medlyn and ball g1)
+      d0            = 1,          # Leuning 1995 D0                                        (kPa)
+      g1_ball       = 6,          # Ball 1987 gs slope                                     (unitless - multiplier on RH as a proportion)
       rs            = 1/0.15,     # stomatal resistance                                    (m2s mol-1 h2o)
       gi            = 0.15,       # mesophyll conductance                                  (molm-2s-1 - expressed in these units for consistency with other conductance terms, often expressed in the literature per unit Pa)
+      cica_chi      = 0.7,        # constant Ci:Ca ratio                                   (unitless)
       ri            = 1/0.15,     # mesophyll resistance                                   (m2s mol-1 - expressed in these units for consistency with other resistance terms, often expressed in the literature multiplied by Pa)
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
       hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
@@ -512,7 +524,80 @@ leaf_object <-
       print(p2,split=c(2,1,2,1),more=F)
       if(output) .$dataf$out_full
     }
-    
+
+    .test_aci_analytical <- function(.,rs='f_r_zero',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50), 
+                                     ana_only=F,verbose=F,verbose_loop=F,diag=F) {
+      
+      .$cpars$verbose       <- verbose
+      .$cpars$verbose_loop  <- verbose_loop
+      .$cpars$diag          <- diag
+      
+      if(verbose) str.proto(.)
+      
+      .$fnames$rs           <- rs
+      .$fnames$ri           <- 'f_r_zero'
+      .$fnames$gas_diff     <- 'f_ficks_ci'
+      .$pars$output         <- 'all_lim'
+      
+      .$dataf     <- list()
+      .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
+      
+      if(!ana_only) {
+        .$fnames$solver <- 'f_R_Brent_solver'
+        .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+        num_soln <- cbind(.$dataf$met,.$dataf$out,sol='num')
+        # print(num_soln)
+      }
+
+      .$fnames$solver <- 'f_A_r_leaf_analytical'
+      .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+      ana_soln <- cbind(.$dataf$met,.$dataf$out,sol='ana')
+      # print(ana_soln)
+      
+      odf <- if(ana_only) ana_soln else rbind(num_soln,ana_soln)
+      
+      if(!ana_only) {
+        p1 <- xyplot(A~cc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
+                     ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[c]*' [Pa]'),
+                     panel=function(subscripts=subscripts,...) {
+                       if(diag) {
+                         panel.abline(v=odf$transition[subscripts][1])
+                         panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                       }
+                       panel.xyplot(subscripts=subscripts,...)
+                     })
+        
+        p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
+                     main=rs,
+                     ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
+                     panel=function(subscripts=subscripts,...) {
+                       if(diag) {
+                         panel.abline(v=odf$transition[subscripts][1])
+                         panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                       }
+                       panel.xyplot(subscripts=subscripts,...)
+                     })
+      } else {
+        p1 <- NULL
+        p2 <- xyplot(A~leaf.ca_conc,odf,groups=as.factor(odf$leaf.par),abline=0,
+                     main=rs,
+                     ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
+                     panel=function(subscripts=subscripts,...) {
+                       if(diag) {
+                         panel.abline(v=odf$transition[subscripts][1])
+                         panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                       }
+                       panel.xyplot(subscripts=subscripts,...)
+                     })
+        
+      }
+
+      # print(p1)
+      print(p2)
+
+      list(odf,p2,p1)
+    }
+
     #######################################################################        
     # end object      
 })

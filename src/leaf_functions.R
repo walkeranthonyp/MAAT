@@ -24,14 +24,68 @@ quad_sol <- function(a,b,c,out='lower') {
 }
 
 
+
 ### SOLVERS & SOLVER FUNCTIONS
 ################################
+
+f_R_analytical <- function(.,v,k,r) {
+  
+  # num       <-  v * (.$state$cb - r - .$state_pars$gstar)
+  # denom     <- .$state$cb - r + k
+  # carboxylation gross of rd
+  # num/denom
+  # carboxylation net of rd
+  # num/denom - .$state$respiration
+  
+  v / (.$state$cb - r + k)
+}
+
+f_A_r_leaf_analytical <- function(.) {
+  # combines A, rs, ri, ci & cc eqs to a single f(A), 
+  # combines all rate limiting processes
+  # passes cc to the assimilation function
+  #  -- for use with uniroot solver
+  #  -- A is pased to this equation by the uniroot solver and is solved to find the root of this equation
+  
+  # calculate cc from ca, rb, rs, and ri
+  # total resistance of a set of resistors in series is simply their sum 
+  # assumes boundary layer and stomatal resistance terms are in h2o units
+  # assumes mesophyll resistance is in co2 units
+
+  # rs_simple <- get(paste(.$fnames$rs,'fg1',sep='_') )(.) * get(paste(.$fnames$rs,'fcb',sep='_') )(.) * .$env$atm_press * 1.6e-6
+  rs_simple <- get(paste(.$fnames$rs,'fg1',sep='_') )(.) * .$env$atm_press * 1.6e-6
+  r_simple  <- rs_simple
+  # r_simple <- rs_simple + .$state_pars$rb + .$state_pars$ri
+  
+  # calculate electron transport rate
+  get(.$fnames$wj)(.)
+
+  # calculate w
+  # - w is calculated, not consistent with numerical solver function 
+  .$state$wc <- f_R_analytical(.,v=.$state_pars$vcmaxlt, k=.$state_pars$Km,      r=r_simple)
+  .$state$wj <- f_R_analytical(.,v=.$state$J/4,          k=2*.$state_pars$gstar, r=r_simple)
+  .$state$wp <- NULL
+  
+  # calculate limiting cycle
+  wmin <- get(.$fnames$Alim)(.) 
+  
+  # calculate ci
+  .$state$ci <- (.$state$cb - r_simple)
+  
+  # calculate actual w
+  .$state$wc <- .$state$wc * .$state$ci 
+  .$state$wj <- .$state$wj * .$state$ci 
+  .$state$wp <- .$state$wp * .$state$ci
+  
+  # calculate net A
+  wmin*.$state$ci - wmin*.$state_pars$gstar - .$state$respiration
+}
 
 f_R_Brent_solver <- function(.,...) {
   # ... could be used to pass through different functions 'func' to the solver function, not currently necessary
 
   if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no',...)
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-100,100),.=.,extendInt='no',...)
   .$solver_out$root
 }
 
@@ -160,6 +214,17 @@ f_ficks_ci_bound0 <- function(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca) {
   if(c2>0) c2 else 0
 }
 
+f_ficks_rs <- function(.,A=.$state$A,c=.$state$cb) {
+  # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
+  # by default calculates cb from ca and rb
+  # c units in Pa
+  # A units umol m-2 s-1
+  # r units  m2 s mol-1
+  
+  (c - .$state$ci) / (A*.$env$atm_press*1e-6)
+  #   c-A*r*.$env$atm_press*1e-6
+}
+
 
 # Carboxylation limitation
 f_wc_farquhar1980 <- function(.,cc=.$state$cc){   
@@ -182,7 +247,7 @@ f_wc_farquhar1980 <- function(.,cc=.$state$cc){
 #   .$state_pars$vcmaxlt*cc /
 #     (cc+.$state_pars$Kc*(1+(.$state$oi/.$state_pars$Ko)))
   .$state_pars$vcmaxlt /
-    (cc+.$state_pars$Kc*(1+(.$state$oi/.$state_pars$Ko)))
+    (cc + .$state_pars$Km)
 }
 
 
@@ -370,6 +435,15 @@ f_r_zero <- function(.,...){
   0
 }
 
+f_r_zero_fcb <- function(.,...){
+  0
+}
+
+f_r_zero_fg1 <- function(.,...){
+  0
+}
+
+
 # stomata
 # stomatal resistances are all assumed by the solver to be in h2o units 
 f_rs_constant <- function(.,...) {
@@ -383,27 +457,103 @@ f_rs_medlyn2011 <- function(.,A=.$state$A,c=.$state$cb){
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  if( A < 0 ) 1/.$pars$g0
-  else 1 / (.$pars$g0 + (1 + .$pars$g1_medlyn/.$env$vpd^0.5) * A / (c/(.$env$atm_press * 1e-6)) )
+  # if( A < 0 ) 1/.$pars$g0
+  # else 1 / (.$pars$g0 + (1 + .$pars$g1_medlyn/.$env$vpd^0.5) * A / (c/(.$env$atm_press * 1e-6)) )
+  1 / (.$pars$g0 + (1 + .$pars$g1_medlyn/.$env$vpd^0.5) * A / (c/(.$env$atm_press * 1e-6)) )
 }
 
+f_rs_medlyn2011_fg1 <- function(.,c=.$state$cb) {
+  c / (.$env$atm_press * 1e-6) / ( 1 + .$pars$g1_medlyn / .$env$vpd^0.5 )
+}
+
+
 f_rs_leuning1995 <- function(.,A=.$state$A,c=.$state$cb){
-  # Leuninng et al 1995 eq for stomatal resistance
+  # Leuning et al 1995 eq for stomatal resistance
   # expects c in Pa
   # output in m2s mol-1  h2o
-  
-  if( A < 0 ) 1/.$pars$g0
-  else 1 / (.$pars$g0 + .$pars$g1_leuning/(1+.$env$vpd/.$pars$d0) * A / ( (c-.$state_pars$gstar)/(.$env$atm_press * 1e-6) - .$state$respiration) ) # need to doublke check this, not sure it is correct
+
+  # # Km
+  # km <- .$state_pars$Kc*(1+(.$state$oi/.$state_pars$Ko))
+  # 
+  # # calculate CO2 compensation point including dark respiration
+  # gamma <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * km) / (.$state$respiration - .$state_pars$vcmaxlt)
+
+  # if( A < 0 ) 1/.$pars$g0
+  # else 1 / (.$pars$g0 + .$pars$g1_leuning/(1+.$env$vpd/.$pars$d0) * A / ( (c-.$state_pars$gstar)/(.$env$atm_press * 1e-6) - .$state$respiration) ) # need to doublke check this, not sure it is correct
+  1 / ( .$pars$g0 + .$pars$g1_leuning * A / ( (1+.$env$vpd/.$pars$d0) * (c-.$state_pars$gamma)/(.$env$atm_press * 1e-6)) ) # need to double check this, not sure it is correct
 }
+
+f_rs_leuning1995_fg1 <- function(.,c=.$state$cb) {
+  # # Km
+  # km <- .$state_pars$Kc*(1+(.$state$oi/.$state_pars$Ko))
+  # 
+  # # calculate CO2 compensation point including dark respiration
+  # gamma <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * km) / (.$state$respiration - .$state_pars$vcmaxlt)
+  
+  ( (c - .$state_pars$gamma)/(.$env$atm_press * 1e-6) * (1+.$env$vpd/.$pars$d0) ) / .$pars$g1_leuning 
+}
+
 
 f_rs_ball1987 <- function(.,A=.$state$A,c=.$state$cb){
   # Ball et al 1987 eq for stomatal resistance
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  if( A < 0 ) 1/.$pars$g0
-  else 1 / (.$pars$g0 + .$pars$g1_ball*.$env$rh*.$env$atm_press * A / (c/(.$env$atm_press * 1e-6)) ) # need to add rh to env
+  # if( A < 0 ) 1/.$pars$g0
+  # else 1 / (.$pars$g0 + .$pars$g1_ball*.$env$rh * A / (c/(.$env$atm_press * 1e-6)) )
+  1 / ( .$pars$g0 + .$pars$g1_ball*.$env$rh*A / (c/(.$env$atm_press * 1e-6)) )
 }
+
+f_rs_ball1987_fg1 <- function(.,c=.$state$cb) {
+  c / (.$env$atm_press * 1e-6) / (.$pars$g1_ball*.$env$rh)
+}
+
+
+f_rs_constantCiCa <- function(.,A=.$state$A,c=.$state$cb) {
+  # implied LPJ etc assumption for stomatal resistance that keeps Ci:Ca constant
+  # expects c in Pa
+  # output in m2s mol-1 h2o
+
+  # set Ci:Ca ratio
+  .$state_pars$cica_chi <- get(.$fnames$cica_ratio)(.)
+  
+  # if( A < 0 ) 1/1e-9
+  # else ( c * (1 - .$state_pars$cica_chi) ) / ( .$env$atm_press*1.6e-6*A ) 
+  ( c * (1 - .$state_pars$cica_chi) ) / ( .$env$atm_press*1.6e-6*A )
+}
+
+f_rs_constantCiCa_fg1 <- function(.,c=.$state$cb) {
+  .$state_pars$cica_chi <- get(.$fnames$cica_ratio)(.)
+  ( c * (1 - .$state_pars$cica_chi) ) / ( .$env$atm_press*1.6e-6 )
+}
+
+f_cica_constant <- function(.) {
+  .$pars$cica_chi
+}
+
+
+f_rs_cox1998 <- function(.,A=.$state$A,c=.$state$cb) {
+  # implied JULES etc assumption for stomatal resistance that keeps a variant of Ci:Ca constant
+  # expects c in Pa
+  # output in m2s mol-1 h2o
+  
+  f0    <- 1 - 1.6/.$pars$g1_leuning
+  dstar <- (.$pars$g1_leuning/1.6 - 1) * .$pars$d0
+  CmCP  <- (c - .$state_pars$gamma)
+  
+  # if( A < 0 ) 1/1e-9
+  # else ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar)) / ( .$env$atm_press*1.6e-6*A )
+  ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar)) / ( .$env$atm_press*1.6e-6*A )
+}
+
+f_rs_cox1998_fg1 <- function(.,c=.$state$cb) {
+  f0    <- 1 - 1.6/.$pars$g1_leuning
+  dstar <- (.$pars$g1_leuning/1.6 - 1) * .$pars$d0
+  CmCP  <- (c - .$state_pars$gamma)
+  
+  ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar)) / (.$env$atm_press * 1.6e-6)
+}
+
 
 
 # internal/mesophyll

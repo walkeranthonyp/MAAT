@@ -39,6 +39,14 @@ leaf_object$.test_aci()
 leaf_object$.test_aci(diag=T)
 leaf_object$.test_aci(diag=T,leaf.par=c(0,450) )
 
+out <- leaf_object$.test_aci_analytical()
+out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011')
+out <- leaf_object$.test_aci_analytical(rs='f_rs_ball1987')
+out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995')
+out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011',leaf.ca_conc=seq(10,1200,50))
+out <- leaf_object$.test_aci_analytical(rs='f_rs_constantCiCa',ana_only=F)
+out <- leaf_object$.test_aci_analytical(rs='f_rs_cox1998',ana_only=F)
+
 
 # Wrapper
 # Leaf
