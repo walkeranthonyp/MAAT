@@ -60,6 +60,7 @@ leaf_object <-
       .$state_pars$vcmax   <- get(.$fnames$vcmax)(.)
       .$state_pars$jmax    <- get(.$fnames$jmax)(.)
       .$state_pars$tpu     <- get(.$fnames$tpu)(.)
+      .$state_pars$rd      <- get(.$fnames$respiration)(.)
       .$state_pars$alpha   <- 0.5 * (1-.$pars$f)
       
       # kinetic pars & temperature dependence
@@ -86,7 +87,7 @@ leaf_object <-
       
       # calculate physiological state
       # respiration
-      .$state$respiration <- get(.$fnames$respiration)(.)
+      .$state$respiration <- .$state_pars$rd * get(.$fnames$rd_tcor_dependence)(.)
       .$state_pars$gamma  <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
 
       # if PAR > 0
@@ -164,8 +165,8 @@ leaf_object <-
         
       }
       
-      if(.$cpars$diag) c( lout, list(A_noR=.$state$A_noR,transition=.$state$transition) ) 
-      else                lout
+      if(.$cpars$diag&.$cpars$output!='full') c( lout, list(A_noR=.$state$A_noR,transition=.$state$transition) ) 
+      else                                    lout
       
     }    
     
@@ -193,7 +194,9 @@ leaf_object <-
       wj          = 'f_wj_generic',
       wp          = 'f_wp_vonc2000',            
       gas_diff    = 'f_ficks_ci_bound0',
-      respiration = 'f_rd_collatz1991',
+      respiration = 'f_rd_lin_vcmax',
+      rd_tcor_dependence = 'f_rd_tcor_dependent',
+      rd_tcor     = 'f_temp_scalar_Arrhenius',
       fwdw_ratio  = 'f_none',                   
       cica_ratio  = 'f_cica_constant',             
       ri          = 'f_r_zero',
@@ -255,6 +258,7 @@ leaf_object <-
       jmax     = numeric(0),   # umol m-2 s-1
       jmaxlt   = numeric(0),   # umol m-2 s-1
       tpu      = numeric(0),   # umol m-2 s-1
+      rd       = numeric(0),   # umol m-2 s-1; respiration at reftemp
       Kc       = numeric(0),   #  Pa
       Ko       = numeric(0),   # kPa
       Km       = numeric(0),   #  Pa
@@ -307,9 +311,10 @@ leaf_object <-
       fwdw_wl_exp_a = -0.037,     # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
       fwdw_wl_exp_b = 3.254,      # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
       # respiration parameters
-      rd            = 1.5,        # rd as a constant,                                      (umolm-2s-1)
-      rd_prop_vcmax = 0.015,      # rd as a proportion of Vcmax, Williams & Flannagan 1998 ~ 0.1         (unitless)
-      rd_prop_N     = 0.15,       # rd as a proportion of leaf N                           (umols-1g-1)
+      a_rdv_25      = 0,          # intercept of linear rd25 to vcmax25 relationship        (umolm-2s-1)
+      b_rdv_25      = 0.015,      # slope of linear rd25 to vcmax25 relationship            (unitless)
+      a_rdn_25      = 0.5,        # intercept of linear rd25 to leaf N area relationship    (umolm-2s-1)
+      b_rdn_25      = 0.15,       # slope of linear rd25 to leaf N area relationship        (unitless)
       # temperature response parameters
       reftemp.rd    = 25,         # reference temperature at which rd scalar = 1            (oC) 
       reftemp.vcmax = 25,         # reference temperature at which Vcmax scalar = 1         (oC) 
@@ -327,6 +332,7 @@ leaf_object <-
       atref.gstar   = 4.325,      # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
       atref.tau     = 2600,       # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (-)
       atref.vomax   = numeric(0),
+      Ha.rd         = 69830,      # activation energy of respiration                        (J mol-1)
       Ha.vcmax      = 69830,      # activation energy of Vcmax                              (J mol-1)
       Ha.jmax       = 100280,     # activation energy of Jmax                               (J mol-1)
       Ha.tpu        = 69830,      # activation energy of TPU                                (J mol-1)
@@ -334,15 +340,18 @@ leaf_object <-
       Ha.Ko         = 36380,      # activation energy of Ko                                 (J mol-1)
       Ha.gstar      = 37830,      # activation energy of gamma star                         (J mol-1)
       Ha.vomax      = 60110,      # activation energy of Vomax                              (J mol-1)
+      Hd.rd         = 200000,     # deactivation energy of rd                               (J mol-1)
       Hd.vcmax      = 200000,     # deactivation energy of Vcmax                            (J mol-1)
       Hd.jmax       = 200000,     # deactivation energy of Jmax                             (J mol-1)
       Hd.tpu        = 200000,     # deactivation energy of TPU                              (J mol-1)
+      Topt.rd       = 27.56,      # temperature optimum of rd                               (oC)
       Topt.vcmax    = 27.56,      # temperature optimum of Vcmax                            (oC)
       Topt.jmax     = 19.89,      # temperature optimum of Jmax                             (oC)
       Topt.tpu      = 27.56,      # temperature optimum of TPU                              (oC)
       deltaS.vcmax  = numeric(0), # 
       deltaS.jmax   = numeric(0), #
       deltaS.tpu    = numeric(0), #
+      q10.rd        = 2,          # Q10 of Rd                                               (-)
       q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
       q10.jmax      = 2,          # Q10 of Jmax                                             (-)
       q10.tpu       = 2,          # Q10 of TPU                                              (-)
@@ -478,13 +487,14 @@ leaf_object <-
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
       .$cpars$diag          <- diag
-
+      # .$cpars$output        <- 'all_lim'
+      .$cpars$output        <- 'full'
+      
       if(verbose) str.proto(.)
       
       .$fnames$ri          <- 'f_r_zero'
 #       .$fnames$rs          <- 'f_ri_constant'
       .$fnames$solver_func <- 'f_A_r_leaf'
-      .$pars$output        <- 'all_lim'
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
@@ -510,13 +520,13 @@ leaf_object <-
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
       .$cpars$diag          <- diag
-
+      .$cpars$output       <- 'all_lim'
+      
       if(verbose) str.proto(.)
       
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- 'f_rs_constant'
       .$fnames$solver_func <- 'f_A_r_leaf'
-      .$cpars$output       <- 'all_lim'
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))
@@ -555,13 +565,13 @@ leaf_object <-
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
       .$cpars$diag          <- diag
+      .$cpars$output         <- 'all_lim'
       
       if(verbose) str.proto(.)
       
       .$fnames$rs           <- rs
       .$fnames$ri           <- 'f_r_zero'
       .$fnames$gas_diff     <- 'f_ficks_ci'
-      .$pars$output         <- 'all_lim'
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      

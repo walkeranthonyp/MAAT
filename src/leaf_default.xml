@@ -16,7 +16,9 @@
       <wj>'f_wj_generic'</wj>
       <wp>'f_wp_vonc2000'</wp>
       <gas_diff>'f_ficks_ci_bound0'</gas_diff>
-      <respiration>'f_rd_collatz1991'</respiration>
+      <respiration>'f_rd_lin_vcmax'</respiration>
+      <rd_tcor_dependence>'f_rd_tcor_dependent'</rd_tcor_dependence> 
+      <rd_tcor>'f_temp_scalar_Arrhenius'</rd_tcor>
       <fwdw_ratio>'f_none'</fwdw_ratio>
       <ri>'f_r_zero'</ri>
       <rs>'f_r_zero'</rs>
@@ -59,9 +61,10 @@
       <fwdw_wl_sat>16</fwdw_wl_sat>
       <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>
       <fwdw_wl_exp_b>3.254</fwdw_wl_exp_b>
-      <rd>1.5</rd>
-      <rd_prop_vcmax>0.015</rd_prop_vcmax>
-      <rd_prop_N>0.15</rd_prop_N>
+      <a_rdv_25>0.0</a_rdv_25>
+      <b_rdv_25>0.015</b_rdv_25>
+      <a_rdn_25>0.5</a_rdn_25>
+      <b_rdn_25>0.15</b_rdn_25>
       <reftemp.rd>25</reftemp.rd>
       <reftemp.vcmax>25</reftemp.vcmax>
       <reftemp.jmax>25</reftemp.jmax>
@@ -69,7 +72,7 @@
       <reftemp.Ko>25</reftemp.Ko>
       <reftemp.gstar>25</reftemp.gstar>
       <reftemp.tau>25</reftemp.tau>
-      <atref.rd>0</atref.rd>
+      <atref.rd>1.5</atref.rd>
       <atref.vcmax>70</atref.vcmax>
       <atref.jmax>0</atref.jmax>
       <atref.tpu>10</atref.tpu>
@@ -77,6 +80,7 @@
       <atref.Ko>27.84</atref.Ko>
       <atref.gstar>4.325</atref.gstar>
       <atref.tau>2600</atref.tau>
+      <Ha.rd>69830</Ha.rd>
       <Ha.vcmax>69830</Ha.vcmax>
       <Ha.jmax>100280</Ha.jmax>
       <Ha.tpu>69830</Ha.tpu>
@@ -84,15 +88,18 @@
       <Ha.Ko>36380</Ha.Ko>
       <Ha.gstar>37830</Ha.gstar>
       <Ha.vomax>60110</Ha.vomax>
+      <Hd.rd>2e+05</Hd.rd>
       <Hd.vcmax>2e+05</Hd.vcmax>
       <Hd.jmax>2e+05</Hd.jmax>
       <Hd.tpu>2e+05</Hd.tpu>
+      <Topt.rd>27.56</Topt.rd>
       <Topt.vcmax>27.56</Topt.vcmax>
       <Topt.jmax>19.89</Topt.jmax>
       <Topt.tpu>27.56</Topt.tpu>
       <deltaS.vcmax>NA</deltaS.vcmax>
       <deltaS.jmax>NA</deltaS.jmax>
       <deltaS.tpu>NA</deltaS.tpu>
+      <q10.rd>2</q10.rd>
       <q10.vcmax>2</q10.vcmax>
       <q10.jmax>2</q10.jmax>
       <q10.tpu>2</q10.tpu>

@@ -381,22 +381,27 @@ f_rd_constant <- function(.) {
   .$pars$atref.rd
 }
 
-f_rd_farquhar1980 <- function(.) {
-  # Farquhar etal 1980 dark respiration rate umol m-2 s-1
-  # @ 25oC 23 Pa Ci & 1000 umol m-2 s-1 PAR
+f_rd_lin_vcmax <- function(.) {
+  .$pars$a_rdv_25 + .$state_pars$vcmax * .$pars$b_rdv_25    
+}
+
+f_rd_lin_N <- function(.) {
+  .$pars$a_rdn_25 + .$state$leafN_area * .$pars$b_rdn_25    
+}
+
+f_rd_tcor_independent <- function(.) {
+  # TPU temperature scaling is independent
+  get(.$fnames$rd_tcor)(.,parlist=list(Ha=.$pars$Ha.rd,Hd=.$pars$Hd.rd,Topt=.$pars$Topt.rd,q10=.$pars$q10.rd))
+}
+
+f_rd_tcor_dependent <- function(.) {
+  # TPU temperature scaling is identical to that of Vcmax
   
-  # could make this fixed but have rd_prop_vcmax multiplied by 100 say 
-  # to be able to vary the constant with a parameter 
-  1.1
+  get(.$fnames$rd_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax,
+                                       tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax))
 }
 
-f_rd_collatz1991 <- function(.) {
-  .$pars$rd_prop_vcmax * .$state_pars$vcmaxlt
-}
 
-f_rd_fN <- function(.) {
-  .$pars$rd_prop_N * .$state$leafN_area
-}
 
 # light supression
 
