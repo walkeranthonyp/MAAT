@@ -8,7 +8,7 @@
       <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
       <vcmax>'f_constant_vcmax'</vcmax>
       <jmax>'f_jmax_walker2014'</jmax>
-      <tpu>'f_constant_tpu'</tpu>
+      <tpu>'f_tpu_lin'</tpu>
       <vcmax_tcor>'f_temp_scalar_no_response'</vcmax_tcor>
       <jmax_tcor>'f_temp_scalar_no_response'</jmax_tcor>
       <etrans>'f_j_harley1992'</etrans>

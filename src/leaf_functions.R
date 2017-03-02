@@ -441,6 +441,18 @@ f_tpu_lin <- function(.) {
   .$pars$atv_25 + .$state_pars$vcmax25 * .$pars$btv_25    
 }
 
+f_tpu_tcor_independent <- function(.) {
+  # TPU temperature scaling is independent
+  get(.$fnames$tpu_tcor)(.,parlist=list(Ha=.$pars$Ha.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,q10=.$pars$q10.tpu))
+}
+
+f_tpu_tcor_dependent <- function(.) {
+  # TPU temperature scaling is identical to that of Vcmax
+
+  get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax,
+                                          tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax))
+}
+
 
 
 ### STOMATAL & RELATED CONDUCTANCE / RESISTANCE FUNCTIONS
@@ -739,15 +751,15 @@ f_gstar_constref <- function(.) {
   # takes a defined ref temperature value of gstar and scales to leaf temp
   # this will probably not give the correct response to a change in atmospheric pressure
   
-  .$state_pars$gstar <- .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Ha=.$pars$Ha.gstar)) 
+  .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Ha=.$pars$Ha.gstar)) 
 }
 
 f_gstar_c1991 <- function(.) {
   # takes a defined ref temperature value of tau and scales to leaf temp
   # calcualtes gstar at leaftemp from tau
   
-  .$state_pars$tau   <- .$pars$atref.tau * get(.$fnames$tau_tcor)(.,parlist=list(q10=.$pars$q10.tau))
-  .$state_pars$gstar <- .$state$oi/(2*.$state_pars$tau)   
+  .$state_pars$tau <- .$pars$atref.tau * get(.$fnames$tau_tcor)(.,parlist=list(q10=.$pars$q10.tau))
+  .$state$oi/(2*.$state_pars$tau)   
 }
 
 f_temp_scalar_quadratic_bf1985 <- function(.,Tr=25,...){
