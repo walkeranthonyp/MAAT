@@ -189,7 +189,7 @@ transition_cc <- function(.) {
   
   vcm_et_ratio <- .$state_pars$vcmaxlt/.$state$J 
   
-  (8*.$state_pars$gstar*vcm_et_ratio - (.$state_pars$Kc*(1+(.$state$oi/.$state_pars$Ko))) ) /
+  ( 8*.$state_pars$gstar*vcm_et_ratio - .$state_pars$Km ) /
     (1 - 4*vcm_et_ratio)
 }
 
