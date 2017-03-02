@@ -71,8 +71,10 @@ leaf_object <-
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
       .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax,
-                                                                                           tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax))
-      .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax))
+                                                                                           tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax,
+                                                                                           a_deltaS_t=.$pars$a_deltaS_t.vcmax,b_deltaS_t=.$pars$b_deltaS_t.vcmax,deltaS=.$pars$deltaS.vcmax))
+      .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax,
+                                                                                          a_deltaS_t=.$pars$a_deltaS_t.jmax,b_deltaS_t=.$pars$b_deltaS_t.jmax,deltaS=.$pars$deltaS.jmax))
       .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor_dependence)(.) 
         
       # conductance/resistance terms
@@ -189,6 +191,7 @@ leaf_object <-
       jmax_tcor   = 'f_temp_scalar_modArrhenius',
       tpu_tcor_dependence = 'f_tpu_tcor_dependent',
       tpu_tcor    = 'f_temp_scalar_modArrhenius',
+      deltaS      = 'f_deltaS',
       etrans      = 'f_j_harley1992',
       wc          = 'f_wc_farquhar1980',
       wj          = 'f_wj_generic',
@@ -302,7 +305,6 @@ leaf_object <-
       d0            = 1,          # Leuning 1995 D0                                        (kPa)
       g1_ball       = 6,          # Ball 1987 gs slope                                     (unitless - multiplier on RH as a proportion)
       rs            = 1/0.15,     # stomatal resistance                                    (m2s mol-1 h2o)
-      gi            = 0.15,       # mesophyll conductance                                  (molm-2s-1 - expressed in these units for consistency with other conductance terms, often expressed in the literature per unit Pa)
       cica_chi      = 0.7,        # constant Ci:Ca ratio                                   (unitless)
       ri            = 1/0.15,     # mesophyll resistance                                   (m2s mol-1 - expressed in these units for consistency with other resistance terms, often expressed in the literature multiplied by Pa)
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
@@ -321,6 +323,7 @@ leaf_object <-
       reftemp.rd    = 25,         # reference temperature at which rd scalar = 1            (oC) 
       reftemp.vcmax = 25,         # reference temperature at which Vcmax scalar = 1         (oC) 
       reftemp.jmax  = 25,         # reference temperature at which Jmax scalar = 1          (oC)
+      reftemp.tpu   = 25,         # reference temperature at which TPU scalar = 1           (oC)
       reftemp.Kc    = 25,         # reference temperature at which Kc scalar = 1            (oC)
       reftemp.Ko    = 25,         # reference temperature at which Ko scalar = 1            (oC)
       reftemp.gstar = 25,         # reference temperature at which gamma star scalar = 1    (oC)
@@ -353,6 +356,10 @@ leaf_object <-
       deltaS.vcmax  = numeric(0), # 
       deltaS.jmax   = numeric(0), #
       deltaS.tpu    = numeric(0), #
+      a_deltaS_t.vcmax = 668,     #
+      b_deltaS_t.jmax  = -1.07,   #
+      a_deltaS_t.vcmax = 660,     #
+      b_deltaS_t.jmax  = -0.75,   # 
       q10.rd        = 2,          # Q10 of Rd                                               (-)
       q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
       q10.jmax      = 2,          # Q10 of Jmax                                             (-)

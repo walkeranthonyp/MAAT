@@ -11,6 +11,9 @@
       <tpu>'f_tpu_lin'</tpu>
       <vcmax_tcor>'f_temp_scalar_no_response'</vcmax_tcor>
       <jmax_tcor>'f_temp_scalar_no_response'</jmax_tcor>
+      <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
+      <tpu_tcor>'f_temp_scalar_no_response'</tpu_tcor>
+      <deltaS>f_deltaS</deltaS>
       <etrans>'f_j_harley1992'</etrans>
       <wc>'f_wc_farquhar1980'</wc>
       <wj>'f_wj_generic'</wj>
@@ -20,6 +23,7 @@
       <rd_tcor_dependence>'f_rd_tcor_dependent'</rd_tcor_dependence> 
       <rd_tcor>'f_temp_scalar_Arrhenius'</rd_tcor>
       <fwdw_ratio>'f_none'</fwdw_ratio>
+      <cica_ratio>'f_cica_constant'</cica_ratio>             
       <ri>'f_r_zero'</ri>
       <rs>'f_r_zero'</rs>
       <rb>'f_r_zero'</rb>
@@ -54,7 +58,7 @@
       <d0>2</d0>
       <g1_ball>5</g1_ball>
       <rs>6.667</rs>
-      <gi>0.035</gi>
+      <cica_chi>0.7</cica_chi>
       <ri>28.5714285714286</ri>
       <co2_diff>1.7e-09</co2_diff>
       <hco_co2_ratio>0</hco_co2_ratio>
@@ -70,6 +74,7 @@
       <reftemp.rd>25</reftemp.rd>
       <reftemp.vcmax>25</reftemp.vcmax>
       <reftemp.jmax>25</reftemp.jmax>
+      <reftemp.tpu>25</reftemp.tpu>
       <reftemp.Kc>25</reftemp.Kc>
       <reftemp.Ko>25</reftemp.Ko>
       <reftemp.gstar>25</reftemp.gstar>
@@ -101,6 +106,10 @@
       <deltaS.vcmax>NA</deltaS.vcmax>
       <deltaS.jmax>NA</deltaS.jmax>
       <deltaS.tpu>NA</deltaS.tpu>
+      <a_deltaS_t.vcmax>668</a_deltaS_t>
+      <b_deltaS_t.jmax>-1.07</b_deltaS_t>
+      <a_deltaS_t.vcmax>660</a_deltaS_t>
+      <b_deltaS_t.jmax>-0.75</b_deltaS_t>
       <q10.rd>2</q10.rd>
       <q10.vcmax>2</q10.vcmax>
       <q10.jmax>2</q10.jmax>

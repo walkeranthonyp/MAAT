@@ -397,8 +397,7 @@ f_rd_tcor_independent <- function(.) {
 f_rd_tcor_dependent <- function(.) {
   # TPU temperature scaling is identical to that of Vcmax
   
-  get(.$fnames$rd_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax,
-                                       tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax))
+  .$state_pars$vcmaxlt / .$state_pars$vcmax
 }
 
 
@@ -456,14 +455,13 @@ f_tpu_lin <- function(.) {
 
 f_tpu_tcor_independent <- function(.) {
   # TPU temperature scaling is independent
-  get(.$fnames$tpu_tcor)(.,parlist=list(Ha=.$pars$Ha.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,q10=.$pars$q10.tpu))
+  get(.$fnames$tpu_tcor)(.,parlist=list(Ha=.$pars$Ha.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,q10=.$pars$q10.tpu,deltaS=.$pars$deltaS.tpu))
 }
 
 f_tpu_tcor_dependent <- function(.) {
   # TPU temperature scaling is identical to that of Vcmax
 
-  get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax,
-                                          tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax))
+  .$state_pars$vcmaxlt / .$state_pars$vcmax
 }
 
 
@@ -669,7 +667,7 @@ f_temp_scalar_modArrhenius <- function(.,parlist,Tr=25,...){
     print(parlist)
   }
   
-  deltaS <- f_deltaS(.,parlist)
+  deltaS <- get(.$fnames$deltaS)(.,parlist)
   
   exp(parlist$Ha*(Tsk-Trk) / (.$pars$R*Tsk*Trk)) * ( 
     (1 + exp((Trk*deltaS-parlist$Hd) / (Trk*.$pars$R)) ) 
@@ -680,12 +678,25 @@ f_temp_scalar_modArrhenius <- function(.,parlist,Tr=25,...){
 
 # Maximum rate parameters - Vcmax & Jmax 
 f_deltaS <- function(.,parlist,...){
-  #calculate delta S
+  #calculate delta S from T opt (temp where t scaling peaks) in oC
   #Medlyn 2002
   
   Toptk  <- parlist$Topt + 273.15
   
   parlist$Hd/Toptk + (.$pars$R*log(parlist$Ha/(parlist$Hd - parlist$Ha)))
+}
+
+f_deltaS_constant <- function(.,parlist,...){
+  #constant delta S
+
+  parlist$deltaS
+}
+
+f_deltaS_lin_t <- function(.,parlist,...){
+  #calculate delta S
+  #Medlyn 2002
+  
+  parlist$a_deltaS_t + .$state$leaf_temp * parlist$b_deltaS_t 
 }
 
 f_temp_scalar_Q10 <- function(.,parlist,Tr=25,...){
