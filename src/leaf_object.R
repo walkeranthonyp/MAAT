@@ -285,6 +285,8 @@ leaf_object <-
       bvn_25        = 30,         # slope of linear vcmax25 to leaf N relationship         (umolm-2s-1g-1 N)
       ajv_25        = 29,         # intercept of linear jmax25 to vcmax25 relationship     (umolm-2s-1)
       bjv_25        = 1.63,       # slope of linear jmax25 to vcmax25 relationship         (unitless)
+      a_jvt_25      = 2.59,       # intercept of linear jmax25:vcmax25 relationship to temperature   (e C-1)
+      b_jvt_25      = 0.035,      # slope of linear jmax25:vcmax25 relationship to temperature       (e C-1 oC-1)
       e_ajv_25      = 1.01,       # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
       e_bjv_25      = 0.89,       # slope of log-log jmax25 to vcmax25 relationship        (unitless)
       atv_25        = 0,          # intercept of linear tpu25 to vcmax25 relationship      (umolm-2s-1)
@@ -306,7 +308,7 @@ leaf_object <-
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
       hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
       hco_co2_diff_ratio = 0.56,  # ratio of HCO and CO2 diffusivity in water  
-      fwdw_wl_slope = -0.022,     # delta sphagnum fwdw ratio per mm of decrease in water level    (mm-1) , currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
+      fwdw_wl_slope = -0.022,     # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
       fwdw_wl_sat   = 16,         # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
       fwdw_wl_exp_a = -0.037,     # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
       fwdw_wl_exp_b = 3.254,      # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 

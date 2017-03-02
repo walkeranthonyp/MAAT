@@ -437,6 +437,14 @@ f_jmax_lin <- function(.) {
   .$pars$ajv_25 + .$state_pars$vcmax25 * .$pars$bjv_25    
 }
 
+f_jmax_lin_t <- function(.) {
+  .$pars$ajv_25 <- 0.0
+  .$pars$bjv_25 <- .$pars$a_jvt_25 + .$state$leaf_temp * .$pars$b_jvt_25
+    
+  .$pars$ajv_25 + .$state_pars$vcmax25 * .$pars$bjv_25    
+}
+
+
 # TPU
 f_constant_tpu <- function(.) {
   .$pars$atref.tpu
