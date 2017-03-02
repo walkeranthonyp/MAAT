@@ -59,7 +59,7 @@ leaf_object <-
       # photosynthetic parameters
       .$state_pars$vcmax   <- get(.$fnames$vcmax)(.)
       .$state_pars$jmax    <- get(.$fnames$jmax)(.)
-      .$state_pars$tpu     <- get(.$fnames$tpu)(.) # needs work, how is TPU normally set?
+      .$state_pars$tpu     <- get(.$fnames$tpu)(.)
       .$state_pars$alpha   <- 0.5 * (1-.$pars$f)
       
       # kinetic pars & temperature dependence
@@ -281,10 +281,12 @@ leaf_object <-
       bjv_25        = 1.63,       # slope of linear jmax25 to vcmax25 relationship         (unitless)
       e_ajv_25      = 1.01,       # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
       e_bjv_25      = 0.89,       # slope of log-log jmax25 to vcmax25 relationship        (unitless)
+      atv_25        = 0,          # intercept of linear tpu25 to vcmax25 relationship      (umolm-2s-1)
+      btv_25        = 1/6,        # slope of linear tpu25 to vcmax25 relationship          (unitless)
       flnr          = 0.09,       # fraction of leafN in RuBisCO -- PFT specific           (unitless)
       fnr           = 7.16,       # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
       Rsa           = 60,         # specific activity of RuBisCO                           ()
-      wp_alpha      = 0.05,       # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
+      wp_alpha      = 0,          # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
       # resistance parameters
       g0            = 0.01,       # Medlyn 2011 min gs                                     (molm-2s-1)
       g1_medlyn     = 6,          # Medlyn 2011 gs slope                                   (kPa^0.5)

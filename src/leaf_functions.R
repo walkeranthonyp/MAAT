@@ -305,21 +305,43 @@ f_j_collatz1991 <- function(.){
 
 
 # TPU limitation
-f_wp_collatz1991 <- function(.,cc=.$state$cc){
-  # triose phosphate limitation from collatz 1991
-  # the /cc is to make this function compatible with the solver and the form of these equations
-  
-#   .$state_pars$vcmaxlt/2
-  # could also read .$state_pars$TPU/cc and set TPU when setting Vcmax etc
-  .$state_pars$vcmaxlt/2/cc
-}
+# f_wp_collatz1991 <- function(.,cc=.$state$cc){
+#   # triose phosphate limitation from collatz 1991
+#   # the /cc is to make this function compatible with the solver and the form of these equations
+#   
+# #   .$state_pars$vcmaxlt/2
+#   # could also read .$state_pars$TPU/cc and set TPU when setting Vcmax etc
+#   .$state_pars$vcmaxlt/2/cc
+# }
 
 f_wp_vonc2000 <- function(.,cc=.$state$cc){
   # triose phosphate limitation from vonCaemmerer 2000 as corrected in Gu 2010
+  # this is derived from Harley & Sharkey 1991
+  # the difference is that Harley & Sharkey iteratively solved to find tpu, while here tpu is set independently
+  
+  # As described in Gu 2010, the collatz 1991 function for TPU limitation is a special case of this one where:
+  # alpha = 0, tpu = vcmax/6
+  # and tpu temperature scaling is identical to vcmax
   
   if( .$state$cc <= (1+3*.$pars$wp_alpha)*.$state_pars$gstar) NA
 #   3*.$state_pars$tpu*cc / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
   else 3*.$state_pars$tpu / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
+}
+
+f_wp_foley1996 <- function(.,cc=.$state$cc){
+  # triose phosphate limitation from Foley 1996, citing Harlkey & Sharkey 1991
+  # its not clear to me how they derive this from Harley and Sharkey
+  # Eq 5 from Foley 1996: Js = 3 * tpu * (1 - gstar/cc) + Jp * gstar / cc
+  # where Jp is the limiting rate of wc or wj
+  
+  if( .$state$cc <= .$state_pars$gstar ) NA
+  else {
+    # calculate limiting cycle of wc and wj
+    .$state$wp <- NA
+    wmin <- get(.$fnames$Alim)(.) 
+
+    (3*.$state_pars$tpu + wmin) / cc
+  }
 }
 
 
@@ -415,8 +437,8 @@ f_constant_tpu <- function(.) {
   .$pars$atref.tpu
 }
 
-f_tpu_c1991 <- function(.) {
-  .$state_pars$vcmax / 2 # or should this be temperature adjusted vcmax?
+f_tpu_lin <- function(.) {
+  .$pars$atv_25 + .$state_pars$vcmax25 * .$pars$btv_25    
 }
 
 
