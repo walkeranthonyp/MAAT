@@ -97,7 +97,7 @@ leaf_object <-
       # if PAR > 0
       if(.$env$par > 0) {
         # diagnostic calculations
-        if(.$cpars$diag) {
+        if(.$pars$diag) {
           # assume infinite conductances to initialise solver
           .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
           .$state$A_noR      <- f_A_r_leaf_noR(.)
@@ -169,7 +169,7 @@ leaf_object <-
         
       }
       
-      if(.$cpars$diag&.$cpars$output!='full') c( lout, list(A_noR=.$state$A_noR,transition=.$state$transition) ) 
+      if(.$pars$diag&.$cpars$output!='full') c( lout, list(A_noR=.$state$A_noR,transition=.$state$transition) ) 
       else                                    lout
       
     }    
@@ -279,6 +279,7 @@ leaf_object <-
     
     #leaf parameters
     pars   <- list(
+      diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
       # photosynthetic parameters
       # deprecated    alpha    = 0.24,         # harley 1992 alpha - Williams & Flannagan 1998 use 0.21 but calculate 0.25 
       a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
@@ -386,7 +387,6 @@ leaf_object <-
       verbose       = F,          # write diagnostic output during runtime 
       verbose_loop  = F,          # write diagnostic output on the solver during runtime 
       cverbose      = F,          # write configuration output during runtime 
-      diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
       output        = 'run'       # type of output from run function
     )
     
@@ -501,7 +501,7 @@ leaf_object <-
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
-      .$cpars$diag          <- diag
+      .$pars$diag          <- diag
       # .$cpars$output        <- 'all_lim'
       .$cpars$output        <- 'full'
       
@@ -534,7 +534,7 @@ leaf_object <-
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
-      .$cpars$diag          <- diag
+      .$pars$diag          <- diag
       .$cpars$output       <- 'all_lim'
       
       if(verbose) str.proto(.)
@@ -579,7 +579,7 @@ leaf_object <-
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
-      .$cpars$diag          <- diag
+      .$pars$diag          <- diag
       .$cpars$output         <- 'all_lim'
       
       if(verbose) str.proto(.)

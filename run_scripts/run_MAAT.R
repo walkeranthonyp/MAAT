@@ -193,14 +193,14 @@ if(factorial&uq) {
 }
 
 # define run parameters
-maat$wpars$multic       <- multic  
-maat$wpars$procs        <- procs   
-maat$wpars$UQ           <- uq       
-maat$wpars$n            <- psa_n       
-maat$wpars$coef_var     <- coef_var       
-maat$wpars$nmult        <- salt_nmult       
-maat$wpars$eval_strings <- eval_strings       
-maat$model$pars$verbose <- F
+maat$wpars$multic        <- multic  
+maat$wpars$procs         <- procs   
+maat$wpars$UQ            <- uq       
+maat$wpars$n             <- psa_n       
+maat$wpars$coef_var      <- coef_var       
+maat$wpars$nmult         <- salt_nmult       
+maat$wpars$eval_strings  <- eval_strings       
+maat$model$cpars$verbose <- F
 
 
 
