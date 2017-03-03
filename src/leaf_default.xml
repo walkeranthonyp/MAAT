@@ -13,7 +13,7 @@
       <jmax_tcor>'f_temp_scalar_no_response'</jmax_tcor>
       <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
       <tpu_tcor>'f_temp_scalar_no_response'</tpu_tcor>
-      <deltaS>f_deltaS</deltaS>
+      <deltaS>'f_deltaS'</deltaS>
       <etrans>'f_j_harley1992'</etrans>
       <wc>'f_wc_farquhar1980'</wc>
       <wj>'f_wj_generic'</wj>
@@ -106,10 +106,10 @@
       <deltaS.vcmax>NA</deltaS.vcmax>
       <deltaS.jmax>NA</deltaS.jmax>
       <deltaS.tpu>NA</deltaS.tpu>
-      <a_deltaS_t.vcmax>668</a_deltaS_t>
-      <b_deltaS_t.jmax>-1.07</b_deltaS_t>
-      <a_deltaS_t.vcmax>660</a_deltaS_t>
-      <b_deltaS_t.jmax>-0.75</b_deltaS_t>
+      <a_deltaS_t.vcmax>668</a_deltaS_t.vcmax>
+      <b_deltaS_t.vcmax>-1.07</b_deltaS_t.vcmax>
+      <a_deltaS_t.jmax>660</a_deltaS_t.jmax>
+      <b_deltaS_t.jmax>-0.75</b_deltaS_t.jmax>
       <q10.rd>2</q10.rd>
       <q10.vcmax>2</q10.vcmax>
       <q10.jmax>2</q10.jmax>
@@ -117,6 +117,10 @@
       <q10.tau>0.57</q10.tau>
       <tupp_cox.vcmax>36</tupp_cox.vcmax>
       <tlow_cox.vcmax>0</tlow_cox.vcmax>
+      <exp_cox.vcmax>0.3</exp_cox.vcmax>
+      <tupp_cox.rd>45</tupp_cox.rd>
+      <tlow_cox.rd>5</tlow_cox.rd>
+      <exp_cox.rd>0.4</exp_cox.rd>
       <gstar_bf_a>0.012</gstar_bf_a>
       <gstar_bf_b>1.68</gstar_bf_b>
       <gstar_bf_c>42.7</gstar_bf_c>

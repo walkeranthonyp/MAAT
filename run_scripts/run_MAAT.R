@@ -165,6 +165,8 @@ sofname <- if(is.null(runid))    of_main else paste(runid,of_main,'salt',sep='_'
 setwd(srcdir)
 source('wrapper_object.R')
 source(paste(mod_obj,'object.R',sep='_'))
+# read default model setup
+init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
 
 
 
@@ -182,7 +184,8 @@ model <- get(paste(mod_obj,'object',sep='_'))$.build()
 # build and clone the maat wrapper object
 maat <- wrapper_object$.build(model=model)
 
-# factorial analysi over-rides UQ analysis
+# factorial analysis over-rides UQ analysis
+if(!uq) factorial <- T
 if(factorial&uq) {
  uq <- F
  print('',quote=F)
@@ -205,13 +208,10 @@ maat$model$pars$verbose <- F
 # Initialise the MAAT wrapper
 
 # load init xml's or list from init R script 
-# read default
-init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
-
-# read user defined values of static variables
 setwd(pdir)
 
-if(is.null(mod_init)) xml <- T
+# read user defined values of static variables
+if(!is.null(mod_init)) xml <- T
 if(xml) {
   
   # read user defined XMLs of static variables
@@ -232,9 +232,7 @@ if(xml) {
 } else source(initf)
 
 # combine default values with user defined static values
-inits <- 
-  if(exists('init_static')) fuselists(init_default,init_static)
-  else                      init_default
+inits <- if(exists('init_static')) fuselists(init_default,init_static) else init_default
 
 # add init lists to wrapper
 maat$init_static  <- inits
@@ -268,7 +266,7 @@ if(!is.null(metdata)) {
       print('leaf_user_met.xml',quote=F)
       print('does not contain list for:',quote=F)
       print(mod_obj,quote=F)      
-      kill <- T
+      stop()
     }
       
   } else {
@@ -277,8 +275,7 @@ if(!is.null(metdata)) {
     print('leaf_user_met.xml',quote=F)
     print('does not exist in:',quote=F)
     print(pdir,quote=F)
-    kill <- T
-    stop    
+    stop()
   }
 
   # read metdata file
@@ -313,12 +310,10 @@ if(!is.null(metdata)) {
     print(metdata,quote=F)
     print('does not exist in:',quote=F)
     print(mdir,quote=F)
-    kill <- T
-    stop
+    stop()  
   }
   setwd(pdir)
 }
-if(kill) stop()
 
 
 
@@ -354,7 +349,7 @@ if(factorial) {
 
 
 ### run Ye algorithm for process sensitivity  analysis if requested
-if(procSA) {
+if(procSA&uq) {
   maat$model$pars$verbose  <- F
   maat$wpars$UQtype <- 'ye'
   
@@ -377,7 +372,7 @@ if(procSA) {
 
 
 ### run Saltelli algorithm for Sobol sensitivity  analysis if requested
-if(salt) {
+if(salt&uq) {
   maat$model$pars$verbose  <- F
   maat$wpars$UQtype <- 'saltelli'
 

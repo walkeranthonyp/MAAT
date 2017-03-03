@@ -179,7 +179,7 @@ wrapper_object <-
       # print summary of results
       # - output function needs to be called from run script
       print("output ::",quote=F)
-      print(paste('length :',length(.$dataf$out[,1])))
+      print(paste('length ::',length(.$dataf$out[,1])),quote=F)
       print(head(.$dataf$out),quote=F)
       print('',quote=F)      
       
@@ -612,7 +612,7 @@ wrapper_object <-
           # if no met data
           if(is.null(.$dataf$met)) {
             if(.$wpars$UQtype=='ye') print(paste('vardf:',length(vardf[[1]][,1]),', out:',length(.$dataf$out[[1]])),quote=F)
-            else                     print(paste('vardf:',length(vardf[[1]][,1]),', out:',length(.$dataf$out[,1])),quote=F)
+            else                     print(paste('vardf:',length(vardf[,1]),', out:',length(.$dataf$out[,1])),quote=F)
             # return a list
             return(c(vardf,  .$dataf$out  ))
             rm(vardf)            

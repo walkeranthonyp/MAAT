@@ -71,7 +71,7 @@ leaf_object <-
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
       .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax,
-                                                                                           tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax,
+                                                                                           tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax,exp=.$pars$exp_cox.vcmax,
                                                                                            a_deltaS_t=.$pars$a_deltaS_t.vcmax,b_deltaS_t=.$pars$b_deltaS_t.vcmax,deltaS=.$pars$deltaS.vcmax))
       .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax,
                                                                                           a_deltaS_t=.$pars$a_deltaS_t.jmax,b_deltaS_t=.$pars$b_deltaS_t.jmax,deltaS=.$pars$deltaS.jmax))
@@ -89,8 +89,8 @@ leaf_object <-
       
       # calculate physiological state
       # respiration
-      .$state$respiration <- .$state_pars$rd * get(.$fnames$rd_tcor_dependence)(.)
-      .$state_pars$gamma  <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
+      .$state$respiration  <- .$state_pars$rd * get(.$fnames$rd_tcor_dependence)(.)
+      .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
 
       # if PAR > 0
       if(.$env$par > 0) {
@@ -365,8 +365,12 @@ leaf_object <-
       q10.jmax      = 2,          # Q10 of Jmax                                             (-)
       q10.tpu       = 2,          # Q10 of TPU                                              (-)
       q10.tau       = 0.57,       # Q10 of tau                                              (-)
-      tupp_cox.vcmax= 36,         # upper leaf T for Vcmax temp scaling from Cox 1991       (-)
-      tlow_cox.vcmax= 0,          # lower leaf T for Vcmax temp scaling from Cox 1991       (-)
+      tupp_cox.vcmax= 36,         # upper leaf T for Vcmax temp scaling from Cox 1991       (oC)
+      tlow_cox.vcmax= 0,          # lower leaf T for Vcmax temp scaling from Cox 1991       (oC)
+      exp_cox.vcmax = 0.3,        # exponent for Vcmax temp scaling from Cox 1991           (-)
+      tupp_cox.rd   = 45,         # upper leaf T for rd temp scaling from Cox 1991 (LM3)    (oC)
+      tlow_cox.rd   = 5,          # lower leaf T for rd temp scaling from Cox 1991 (LM3)    (oC)
+      exp_cox.rd    = 0.4,        # exponent for rd temp scaling from Cox 1991 (LM3)        (-)
       gstar_bf_a    = 0.012,      # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_bf_b    = 1.68,       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_bf_c    = 42.7,       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 

@@ -48,13 +48,13 @@
 leaf.fnames.static <- list(
   solver_func = 'f_A_r_leaf',
   gstar       = 'f_temp_scalar_no_response',
-  Kc          = 'f_temp_scalar_no_response',
-  Ko          = 'f_temp_scalar_no_response',
+  Kc_tcor     = 'f_temp_scalar_no_response',
+  Ko_tcor     = 'f_temp_scalar_no_response',
   vcmax       = 'f_constant_vcmax',
   jmax        = 'f_jmax_walker2014',
   vcmax_tcor  = 'f_temp_scalar_no_response',
   jmax_tcor   = 'f_temp_scalar_no_response',
-  respiration = 'f_rd_collatz1991', 
+  respiration = 'f_rd_lin_vcmax', 
   ri          = 'f_r_zero',
   rs          = 'f_r_zero',
   rb          = 'f_r_zero'
@@ -78,19 +78,19 @@ leaf.env.static  <- list(
 
 # define lists
 leaf.fnames.var <- list(
-  etrans = c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991')
+  etrans = c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991'),
+  rb     = c(),
+  solver = c()
 )
 
-leaf.pars.var <- list(
-  e_ajv_25 = rnorm(n,1,0.02)
-)
+leaf.pars.var <- list(NA)
 
 leaf.pars_proc.var <- list(NA)
 
 leaf.pars_eval.var <- list(NA)
 
 leaf.env.var <- list(
-  ca_conc = c(280,400,600)
+  ca_conc = seq(50,1500,50)
 )
 
 

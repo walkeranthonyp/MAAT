@@ -83,7 +83,8 @@ listtoXML <- function(fname,name,...) {
     for(i in 1:length(sublist)) {
       child <- newXMLNode(names(sublist)[i], parent=node)
       
-      if (typeof(sublist[[i]]) == "list") rec(child, sublist[[i]]) else xmlValue(child) <- sublist[[i]]
+      if (typeof(sublist[[i]]) == "list") rec(child, sublist[[i]]) 
+      else                                xmlValue(child) <- sublist[[i]]
     }
   }  
   
@@ -107,20 +108,38 @@ listtoXML <- function(fname,name,...) {
 
 
 #####################################################
+# This function recursively fuses two lists
+# by overwriting any named entries in mainlist with the same names as those in the sublist
+# the overwriting occurs within the equivalent dimension/hierarchy of each list
+# i.e. a named element in the mainlist will not be overwritten by the same named element in the sublist if the elements are in different dimensions of the lists   
 fuselists <- function(mainlist,sublist) {
+  # length of first dimension of sublist
   l <- length(sublist)
   n <- 0
+  
+  # loop over sublist
   for(i in 1:l) {
     mlsub <- which(names(mainlist)==names(sublist)[i])
     if(length(mlsub)==1) {
       n <- n + 1
       mainlist[[mlsub]] <- 
-        if(typeof(sublist[[i]]) == "list")  fuselists(mainlist[[mlsub]],sublist[[i]]) else sublist[[i]]
+        if(typeof(sublist[[i]]) == "list")  fuselists(mainlist[[mlsub]],sublist[[i]]) 
+        else                                sublist[[i]]
+    } else {
+      error_i <- if(exists('error_i')) c(error_i,i) else i
     }
     # print(c(n,l))
     # print(names(sublist)[i])
   }
-  if(n!=l) stop(paste("\n names mismatch when fusing initialisation lists:",names(mainlist),names(sublist)[i]))      
+  
+  # if mlsub != 1 then stop
+  # i.e. if a name is found in sublist that does not occur in mainlist
+  #      or if a names is found multiple times in the mainlist
+  if(n!=l) {
+    print(c(l,n))
+    # stop(paste("\n names mismatch when fusing initialisation lists:",names(mainlist)[mlsub],names(sublist)[i]))
+    stop(paste("\n names mismatch when fusing initialisation lists, sublist element:",names(sublist)[error_i],'; not found in mainlist'))
+  }
   mainlist
 }
 

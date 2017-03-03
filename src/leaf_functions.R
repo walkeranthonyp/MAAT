@@ -677,6 +677,12 @@ f_temp_scalar_modArrhenius <- function(.,parlist,Tr=25,...){
 
 
 # Maximum rate parameters - Vcmax & Jmax 
+f_deltaS_constant <- function(.,parlist,...){
+  #constant delta S
+
+  parlist$deltaS
+}
+
 f_deltaS <- function(.,parlist,...){
   #calculate delta S from T opt (temp where t scaling peaks) in oC
   #Medlyn 2002
@@ -684,12 +690,6 @@ f_deltaS <- function(.,parlist,...){
   Toptk  <- parlist$Topt + 273.15
   
   parlist$Hd/Toptk + (.$pars$R*log(parlist$Ha/(parlist$Hd - parlist$Ha)))
-}
-
-f_deltaS_constant <- function(.,parlist,...){
-  #constant delta S
-
-  parlist$deltaS
 }
 
 f_deltaS_lin_t <- function(.,parlist,...){
@@ -754,7 +754,7 @@ f_temp_scalar_Q10_cox1991 <- function(.,parlist,Tr=25,...){
   #   print(parlist)
   # }
   
-  f_temp_scalar_Q10(.,parlist,Tr=25,...) * 1 / ( (1 + exp(0.3*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(0.3*(parlist$tlow-.$state$leaf_temp))) ) 
+  f_temp_scalar_Q10(.,parlist,Tr=25,...) * 1 / ( (1 + exp(parlist$exp*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(parlist$exp*(parlist$tlow-.$state$leaf_temp))) ) 
 }
 
 
