@@ -88,6 +88,8 @@ leaf_object <-
       }  
       
       # calculate physiological state
+      # electron transport rate
+      .$state$J <- get(.$fnames$etrans)(.)
       # respiration
       .$state$respiration  <- .$state_pars$rd * get(.$fnames$rd_tcor_dependence)(.)
       .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)

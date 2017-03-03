@@ -254,9 +254,6 @@ f_wj_generic <- function(.,cc=.$state$cc){
   # generic eq to calculate light limited photosynthetic rate from user selected electron transport and etoc function
   # umol m-2 s-1
   
-  # calculate electron transport rate
-  .$state$J <- get(.$fnames$etrans)(.)
-  
   # calculate gross electron transport limited carboxylation 
   # i.e. rd and G* not included
   #   (.$state$J/4) * (cc/(cc+2*.$state_pars$gstar)) # currently no other formualtion exists (other than slighly different parameters in the denominator)
