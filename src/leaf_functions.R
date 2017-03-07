@@ -719,24 +719,25 @@ f_temp_scalar_Q10_collatz1991 <- function(.,parlist,...){
   #convert to Kelvin
   Tsk <- .$state$leaf_temp + 273.15
   
+  # get deltaS
+  deltaS <- get(.$fnames$deltaS)(.,parlist)
+
   # if(.$cpars$verbose) {
   #   print('Q10_collatz1991_function')
-  #   print(paste(Tr,Ts))
   #   print(parlist)
   # }
   
-  f_temp_scalar_Q10(.,parlist) + exp((Tsk*parlist$deltaS-parlist$Hd) / (Tsk*.$pars$R))
-  
+  f_temp_scalar_Q10(.,parlist) * (( 1 + exp((Tsk*deltaS-parlist$Hd) / (Tsk*.$pars$R)) )^-1)
 }
 
-f_temp_scalar_Q10_cox1991 <- function(.,parlist,...){
+f_temp_scalar_Q10_cox1998 <- function(.,parlist,...){
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   
   # input parameters  
   # Q10    -- factor by which rate increases for every 10 oC of temp increase  
   # Tr     -- reference temperature (oC) 
   
-  f_temp_scalar_Q10(.,parlist) * 1 / ( (1 + exp(parlist$exp*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(parlist$exp*(parlist$tlow-.$state$leaf_temp))) ) 
+  f_temp_scalar_Q10(.,parlist) * (( (1 + exp(parlist$exp*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(parlist$exp*(parlist$tlow-.$state$leaf_temp))) )^-1) 
 }
 
 
@@ -769,7 +770,8 @@ f_gstar_c1991 <- function(.) {
 }
 
 f_temp_scalar_quadratic_bf1985 <- function(.,parlist,...){
-  # calculates Gamma star (umol mol-1) as a function of temperature difference (K or oC)
+  # calculates Gamma star (umol mol-1) temperature scalar (K or oC)
+  # could be expanded to incorporate parameters in parlist, buit currently gstar specific
   # Brooks&Farquhar 1985
   # rearranged to give a scalar of value at 25oC 
 

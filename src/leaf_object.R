@@ -491,6 +491,33 @@ leaf_object <-
       
       .$run()
     }
+
+    
+    .test_tscalar <- function(.,leaf.temp=0:50,leaf.par=c(1000),leaf.ca_conc=400,rs='f_rs_medlyn2011',tcor='f_temp_scalar_Arrhenius', 
+                          verbose=F,verbose_loop=F) {
+      
+      .$cpars$verbose       <- verbose
+      .$cpars$verbose_loop  <- verbose_loop
+      .$cpars$output        <- 'full'
+      
+      if(verbose) str.proto(.)
+      
+      .$fnames$vcmax_tcor  <- tcor
+      .$fnames$ri          <- 'f_r_zero'
+      .$fnames$rs          <- rs
+      .$fnames$solver_func <- 'f_A_r_leaf'
+      .$fnames$solver      <- 'f_R_Brent_solver'
+      
+      .$dataf     <- list()
+      .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par','leaf.temp')))      
+      .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+      
+      print(cbind(.$dataf$met,.$dataf$out))
+      p1 <- xyplot(I(unlist(vcmaxlt)/unlist(vcmax))~leaf.temp|as.factor(tcor),.$dataf$out,abline=list(h=c(0,1),v=.$pars$reftemp.vcmax),
+                   ylab=expression('scalar'),xlab=expression(T*' ['^o*C*']'))
+      print(p1)
+    }
+    
     
     .test_aci <- function(.,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1500,50),rs='f_rs_medlyn2011', 
                           verbose=F,verbose_loop=F,diag=F) {

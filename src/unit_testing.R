@@ -35,6 +35,12 @@ leaf_object$.test_aci(diag=T,leaf.par=c(450,900,1200,1500) )
 leaf_object$.test_aci_light()
 leaf_object$.test_aci_light(diag=T)
 
+leaf_object$.test_tscalar()
+leaf_object$.test_tscalar(tcor='f_temp_scalar_modArrhenius')
+leaf_object$.test_tscalar(tcor='f_temp_scalar_Q10')
+leaf_object$.test_tscalar(tcor='f_temp_scalar_Q10_collatz1991')
+leaf_object$.test_tscalar(tcor='f_temp_scalar_Q10_cox1998')
+
 # out <- leaf_object$.test_aci_analytical()
 out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_ball1987')
