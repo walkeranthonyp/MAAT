@@ -41,23 +41,24 @@ f_R_analytical <- function(.,v,k,r) {
 }
 
 f_A_r_leaf_analytical <- function(.) {
-  # combines A, rs, ri, ci & cc eqs to a single f(A), 
+  # combines A, rs, ci, cc eqs to a single f(), 
   # combines all rate limiting processes
-  # passes cc to the assimilation function
-  
-  # calculate cc from ca, rb, rs, and ri
-  # total resistance of a set of resistors in series is simply their sum 
-  # assumes boundary layer and stomatal resistance terms are in h2o units
-  # assumes mesophyll resistance is in co2 units
+  # solves A analytically by assuming g0 = 0 in the stomatal resistance function 
+  # and using a general analytical function that allows parameters and process representation to vary 
 
-  # currently this function does not account for leaf boundary layer and internal resitance
-  # this is because these terms sum to get overall resistance of CO2 to the chloroplast
+  # for this analytical solution rb and ri are assumed zero
+  # this is because resistance terms sum to get overall resistance of CO2 to the chloroplast
   # and therefore the simplification in f_R_analytical does not apply
-  # to include rb and ri a general analytical solution needs work, may not be possible
-  # thus for this analytical solution rb and ri are assumed zero
-  rs_simple <- get(paste(.$fnames$rs,'fg1',sep='_') )(.) 
-  r_simple  <- rs_simple * .$env$atm_press * 1.6e-6
+  .$state_pars$rb <- 0
+  .$state_pars$ri <- 0
+  .$state$cb      <- .$state$ca
+  rs_simple       <- get(paste(.$fnames$rs,'fg1',sep='_') )(.) 
+  r_simple        <- rs_simple * .$env$atm_press * 1.6e-6
 
+  # calculate ci & cc
+  .$state$ci      <- .$state$cb - r_simple
+  .$state$cc      <- .$state$ci 
+    
   # calculate electron transport rate
   get(.$fnames$wj)(.)
 
@@ -71,14 +72,6 @@ f_A_r_leaf_analytical <- function(.) {
   
   # calculate limiting cycle
   wmin <- get(.$fnames$Alim)(.) 
-  
-  # calculate ci etc
-  # for this analytical solution rb and ri are assumed zero
-  .$state_pars$rb <- 0
-  .$state_pars$ri <- 0
-  .$state$cb      <- .$state$ca
-  .$state$ci      <- .$state$cb - r_simple
-  .$state$cc      <- .$state$ci
   
   # calculate actual w
   .$state$wc <- .$state$wc * .$state$ci 
@@ -100,14 +93,13 @@ f_R_Brent_solver <- function(.,...) {
   # ... could be used to pass through different functions 'func' to the solver function, not currently necessary
 
   if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-100,100),.=.,extendInt='no',...)
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no',...)
   .$solver_out$root
 }
 
 f_A_r_leaf <- function(A,.,...) {
   # combines A, rs, ri, ci & cc eqs to a single f(A), 
   # combines all rate limiting processes
-  # passes cc to the assimilation functions
   #  -- for use with uniroot solver
   #  -- A is pased to this equation by the uniroot solver and is solved to find the root of this equation
 
@@ -140,7 +132,6 @@ f_A_r_leaf_noRs <- function(A,.,...) {
   
   # combines A, ri, ci & cc eqs to a single f(A), 
   # combines all rate limiting processes
-  # passes cc to the assimilation functions
   #  -- for use with uniroot solver
   #  -- A is pased to this equation by the uniroot solver and is solved to find the root of this equation
   
@@ -170,7 +161,7 @@ f_A_r_leaf_noRs <- function(A,.,...) {
 
 f_A_r_leaf_noR <- function(.,...) {
   # same as above function but with no resistance to CO2 diffusion
-  # - from the atmosphere to the site of carboxylation
+  # from the atmosphere to the site of carboxylation
   # These functions can be used to calculate the stomatal limitation to photosynthesis
 
   # combines all rate limiting processes
@@ -192,15 +183,6 @@ f_A_r_leaf_noR <- function(.,...) {
   .$state$wj <- .$state$wj * cc
   .$state$wp <- .$state$wp * cc
   
-  # # calculate w/cc
-  # # - w/cc and not w is calculated for numerical stability at low cc
-  # .$state$wc <- get(.$fnames$wc)(.)
-  # .$state$wj <- get(.$fnames$wj)(.)
-  # .$state$wp <- get(.$fnames$wp)(.)
-  # 
-  # # calculate limiting cycle
-  # wmin <- get(.$fnames$Alim)(.)
-
   # calculate net A
   wmin*cc - wmin*.$state_pars$gstar - .$state$respiration
 }
@@ -213,6 +195,7 @@ transition_cc <- function(.) {
   ( 8*.$state_pars$gstar*vcm_et_ratio - .$state_pars$Km ) /
     (1 - 4*vcm_et_ratio)
 }
+
 
 
 ### PHOTOSYNTHESIS FUNCTIONS
@@ -502,12 +485,16 @@ f_r_zero_fg1 <- function(.,...){
 
 
 # stomata
-# stomatal resistances are all assumed by the solver to be in h2o units 
-f_rs_constant <- function(.,...) {
-  # output in m2s mol-1 h2o 
-  
-  .$pars$rs
-}
+# stomatal resistances are all assumed to be in h2o units 
+# f_rs_constant <- function(.,...) {
+#   # output in m2s mol-1 h2o 
+#   
+#   # this currently doesn't work with the solver. 
+#   # When rs is not a function of A the solver interval doesn't span zero,
+#   # if this is a function to be used must reroute solver to an analytical method
+#   
+#   .$pars$rs
+# }
 
 f_rs_medlyn2011 <- function(.,A=.$state$A,c=.$state$cb){
   # Medlyn et al 2011 eq for stomatal resistance

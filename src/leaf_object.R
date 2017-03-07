@@ -103,7 +103,6 @@ leaf_object <-
         }
         # run photosynthesis
         # assume infinite conductances to initialise solver
-        .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
         # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
         .$state$A       <- get(.$fnames$solver)(.)      
         # assign the limitation state - assumes the minimum is the dominant limiting rate
@@ -117,7 +116,7 @@ leaf_object <-
       # if PAR < 0
       else {
         # assume infinite conductances when concentration gradient is small
-        # - this ignores the build up of CO2 within the leaf due to respiration and potentially high rs 
+        # - this ignores the build up of CO2 within the leaf due to respiration and high rs 
         .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
         .$state$A_noR      <- NA
         .$state$transition <- NA
@@ -196,7 +195,7 @@ leaf_object <-
       wc          = 'f_wc_farquhar1980',
       wj          = 'f_wj_generic',
       wp          = 'f_wp_vonc2000',            
-      gas_diff    = 'f_ficks_ci_bound0',
+      gas_diff    = 'f_ficks_ci',
       respiration = 'f_rd_lin_vcmax',
       rd_tcor_dependence = 'f_rd_tcor_dependent',
       rd_tcor     = 'f_temp_scalar_Arrhenius',
@@ -474,7 +473,7 @@ leaf_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300){
+    .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300,rs='f_rs_medlyn2011'){
       
       if(verbose) {
         str.proto(.)
@@ -485,7 +484,7 @@ leaf_object <-
       .$cpars$output        <-'full'
       
       .$fnames$ri          <- 'f_r_zero'
-      .$fnames$rs          <- 'f_rs_constant'
+      .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
       
       .$env$par     <- leaf.par
@@ -494,20 +493,21 @@ leaf_object <-
       .$run()
     }
     
-    .test_aci <- function(.,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1200,50), 
+    .test_aci <- function(.,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1200,50),rs='f_rs_medlyn2011', 
                           verbose=F,verbose_loop=F,diag=F) {
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
-      .$pars$diag          <- diag
+      .$pars$diag           <- diag
       # .$cpars$output        <- 'all_lim'
       .$cpars$output        <- 'full'
       
       if(verbose) str.proto(.)
       
       .$fnames$ri          <- 'f_r_zero'
-#       .$fnames$rs          <- 'f_ri_constant'
+      .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
+      .$fnames$solver      <- 'f_R_Brent_solver'
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
@@ -527,19 +527,20 @@ leaf_object <-
     }
     
 
-    .test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50),
+    .test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50),rs='f_rs_medlyn2011',
                                 verbose=F,verbose_loop=F,output=F,diag=F) {
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
-      .$pars$diag          <- diag
-      .$cpars$output       <- 'all_lim'
+      .$pars$diag           <- diag
+      .$cpars$output        <- 'all_lim'
       
       if(verbose) str.proto(.)
       
       .$fnames$ri          <- 'f_r_zero'
-      .$fnames$rs          <- 'f_rs_constant'
+      .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
+      .$fnames$solver      <- 'f_R_Brent_solver'
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))
@@ -572,13 +573,13 @@ leaf_object <-
       if(output) .$dataf$out_full
     }
 
-    .test_aci_analytical <- function(.,rs='f_r_zero',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50), 
+    .test_aci_analytical <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50), 
                                      ana_only=F,verbose=F,verbose_loop=F,diag=F) {
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
-      .$pars$diag          <- diag
-      .$cpars$output         <- 'all_lim'
+      .$pars$diag           <- diag
+      .$cpars$output        <- 'all_lim'
       
       if(verbose) str.proto(.)
       
@@ -615,7 +616,7 @@ leaf_object <-
                      })
         
         p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
-                     main=rs,
+                     main=rs,auto.key=T,
                      ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
                      panel=function(subscripts=subscripts,...) {
                        if(diag) {
@@ -629,7 +630,8 @@ leaf_object <-
                      main=rs,
                      ylab=expression(g[s]*' ['*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']')
                      )
-        
+
+        ol <- list(odf,p2,p1,p3)        
       } else {
         p1 <- NULL
         p2 <- xyplot(A~leaf.ca_conc,odf,groups=as.factor(odf$leaf.par),abline=0,
@@ -643,12 +645,12 @@ leaf_object <-
                        panel.xyplot(subscripts=subscripts,...)
                      })
         
+        ol <- list(odf,p2,p1)        
       }
 
       # print(p1)
       print(p2)
-
-      list(odf,p2,p1,p3)
+      ol
     }
 
     #######################################################################        
