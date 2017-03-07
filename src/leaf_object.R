@@ -297,7 +297,7 @@ leaf_object <-
       flnr          = 0.09,       # fraction of leafN in RuBisCO -- PFT specific           (unitless)
       fnr           = 7.16,       # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
       Rsa           = 60,         # specific activity of RuBisCO                           ()
-      wp_alpha      = 1,          # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
+      wp_alpha      = 0,          # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
       # resistance parameters
       g0            = 0.01,       # Medlyn 2011 min gs                                     (molm-2s-1)
       g1_medlyn     = 6,          # Medlyn 2011 gs slope                                   (kPa^0.5)
@@ -493,7 +493,7 @@ leaf_object <-
       .$run()
     }
     
-    .test_aci <- function(.,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1200,50),rs='f_rs_medlyn2011', 
+    .test_aci <- function(.,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1500,50),rs='f_rs_medlyn2011', 
                           verbose=F,verbose_loop=F,diag=F) {
       
       .$cpars$verbose       <- verbose

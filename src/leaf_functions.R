@@ -279,15 +279,6 @@ f_j_collatz1991 <- function(.){
 
 
 # TPU limitation
-# f_wp_collatz1991 <- function(.,cc=.$state$cc){
-#   # triose phosphate limitation from collatz 1991
-#   # the /cc is to make this function compatible with the solver and the form of these equations
-#   
-# #   .$state_pars$vcmaxlt/2
-#   # could also read .$state_pars$TPU/cc and set TPU when setting Vcmax etc
-#   .$state_pars$vcmaxlt/2/cc
-# }
-
 f_wp_vonc2000 <- function(.,cc=.$state$cc){
   # triose phosphate limitation from vonCaemmerer 2000 as corrected in Gu 2010
   # this is derived from Harley & Sharkey 1991
@@ -424,7 +415,7 @@ f_constant_tpu <- function(.) {
 }
 
 f_tpu_lin <- function(.) {
-  .$pars$atv_25 + .$state_pars$vcmax25 * .$pars$btv_25    
+  .$pars$atv_25 + .$state_pars$vcmax * .$pars$btv_25    
 }
 
 f_tpu_tcor_independent <- function(.) {
