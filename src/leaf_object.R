@@ -98,8 +98,6 @@ leaf_object <-
       if(.$env$par > 0) {
         # diagnostic calculations
         if(.$pars$diag) {
-          # assume infinite conductances to initialise solver
-          .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
           .$state$A_noR      <- f_A_r_leaf_noR(.)
           .$state$transition <- transition_cc(.)
         }
@@ -111,9 +109,9 @@ leaf_object <-
         # assign the limitation state - assumes the minimum is the dominant limiting rate
         .$state$lim     <- c('wc','wj','wp')[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
         # after the fact calculations
-        .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca)
-        if(!grepl('analytical',.$fnames$solver)) .$state_pars$rs <- 1.6 * get(.$fnames$rs)(.) 
-        .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rs,c=.$state$cb)
+        .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca)
+        if(!grepl('analytical',.$fnames$solver)) .$state_pars$rs <- get(.$fnames$rs)(.) 
+        .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=1.6*.$state_pars$rs,c=.$state$cb)
         .$state$cc      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$ri,c=.$state$ci)        
       }
       # if PAR < 0
@@ -270,9 +268,9 @@ leaf_object <-
       gstar    = numeric(0),   #  Pa
       tau      = numeric(0),   #  -
       gamma    = numeric(0),   #  Pa
-      rb       = numeric(0),   # m2s mol-1 
-      rs       = numeric(0),   # m2s mol-1 
-      ri       = numeric(0),   # m2s mol-1     
+      rb       = numeric(0),   # m2s mol-1 H2O
+      rs       = numeric(0),   # m2s mol-1 H2O
+      ri       = numeric(0),   # m2s mol-1 CO2     
       alpha    = numeric(0),   # mol electrons mol-1 absorbed photosynthetically active photons
       cica_chi = numeric(0)    # Ci:Ca ratio 
     )

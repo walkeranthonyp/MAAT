@@ -54,10 +54,10 @@ f_A_r_leaf_analytical <- function(.) {
   # this is because these terms sum to get overall resistance of CO2 to the chloroplast
   # and therefore the simplification in f_R_analytical does not apply
   # to include rb and ri a general analytical solution needs work, may not be possible
+  # thus for this analytical solution rb and ri are assumed zero
   rs_simple <- get(paste(.$fnames$rs,'fg1',sep='_') )(.) 
   r_simple  <- rs_simple * .$env$atm_press * 1.6e-6
-  # r_simple <- rs_simple + .$state_pars$rb + .$state_pars$ri
-  
+
   # calculate electron transport rate
   get(.$fnames$wj)(.)
 
@@ -72,8 +72,13 @@ f_A_r_leaf_analytical <- function(.) {
   # calculate limiting cycle
   wmin <- get(.$fnames$Alim)(.) 
   
-  # calculate ci
-  .$state$ci <- (.$state$cb - r_simple)
+  # calculate ci etc
+  # for this analytical solution rb and ri are assumed zero
+  .$state_pars$rb <- 0
+  .$state_pars$ri <- 0
+  .$state$cb      <- .$state$ca
+  .$state$ci      <- .$state$cb - r_simple
+  .$state$cc      <- .$state$ci
   
   # calculate actual w
   .$state$wc <- .$state$wc * .$state$ci 
@@ -84,8 +89,9 @@ f_A_r_leaf_analytical <- function(.) {
   Anet <- wmin*.$state$ci - wmin*.$state_pars$gstar - .$state$respiration
 
   # calculate rs
-  .$state_pars$rs <- rs_simple / Anet
-
+  # - the /1.6 is needed to convert back to H2O units
+  .$state_pars$rs <- rs_simple / Anet / 1.6
+  
   # return net A
   Anet
 }
@@ -138,9 +144,9 @@ f_A_r_leaf_noRs <- function(A,.,...) {
   #  -- for use with uniroot solver
   #  -- A is pased to this equation by the uniroot solver and is solved to find the root of this equation
   
-  # calculate cc from ca, rb, rs, and ri
+  # calculate cc from ca, rb, and ri
   # total resistance of a set of resistors in series is simply their sum 
-  # assumes boundary layer and stomatal resistance terms are in h2o units
+  # assumes boundary layer resistance is in h2o units
   # assumes mesophyll resistance is in co2 units
   cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + .$state_pars$ri ) )
   
@@ -165,23 +171,38 @@ f_A_r_leaf_noRs <- function(A,.,...) {
 f_A_r_leaf_noR <- function(.,...) {
   # same as above function but with no resistance to CO2 diffusion
   # - from the atmosphere to the site of carboxylation
-  # These functions can be used to calculate the stomatal limitation to photosynthesis  
-  
-  # combines all rate limiting processes  
-  # cc is initialised at ca by the leaf run function 
-  # so if this is run prior to solver for A then cc is already set to ca
+  # These functions can be used to calculate the stomatal limitation to photosynthesis
+
+  # combines all rate limiting processes
+
+  # assume cc = ca
+  cc <- .$state$ca
   
   # calculate w/cc
   # - w/cc and not w is calculated for numerical stability at low cc
-  .$state$wc <- get(.$fnames$wc)(.)
-  .$state$wj <- get(.$fnames$wj)(.)
-  .$state$wp <- get(.$fnames$wp)(.)
+  .$state$wc <- get(.$fnames$wc)(.,cc=cc)
+  .$state$wj <- get(.$fnames$wj)(.,cc=cc)
+  .$state$wp <- get(.$fnames$wp)(.,cc=cc)
   
   # calculate limiting cycle
   wmin <- get(.$fnames$Alim)(.) 
   
+  # calculate actual w
+  .$state$wc <- .$state$wc * cc
+  .$state$wj <- .$state$wj * cc
+  .$state$wp <- .$state$wp * cc
+  
+  # # calculate w/cc
+  # # - w/cc and not w is calculated for numerical stability at low cc
+  # .$state$wc <- get(.$fnames$wc)(.)
+  # .$state$wj <- get(.$fnames$wj)(.)
+  # .$state$wp <- get(.$fnames$wp)(.)
+  # 
+  # # calculate limiting cycle
+  # wmin <- get(.$fnames$Alim)(.)
+
   # calculate net A
-  wmin*.$state$cc - wmin*.$state_pars$gstar - .$state$respiration
+  wmin*cc - wmin*.$state_pars$gstar - .$state$respiration
 }
 
 transition_cc <- function(.) {
@@ -196,33 +217,6 @@ transition_cc <- function(.) {
 
 ### PHOTOSYNTHESIS FUNCTIONS
 ################################
-
-# CO2 diffusion
-f_ficks_ci <- function(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca) {
-  # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
-  # by default calculates cb from ca and rb
-  # c units in Pa
-  # A units umol m-2 s-1
-  # r units  m2 s mol-1
-  
-  c-A*r*.$env$atm_press*1e-6
-#   c-A*r*.$env$atm_press*1e-6
-}
-
-f_ficks_ci_bound0 <- function(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca) {
-  # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
-  # by default calculates cb from ca and rb
-  # c units in Pa
-  # A units umol m-2 s-1
-  # r units  m2 s mol-1
-  
-  # there is a catch 22 here, make this max of the function result or zero and it screws up the solver boundaries
-  # remove the max term and this screws up at very low ca
-#   max( c-A*r*.$env$atm_press*1e-6 , 1e-6)
-  c2 <- c-A*r*.$env$atm_press*1e-6
-  if(c2>0) c2 else 0
-}
-
 
 # Carboxylation limitation
 f_wc_farquhar1980 <- function(.,cc=.$state$cc){   
@@ -320,7 +314,7 @@ f_wp_vonc2000 <- function(.,cc=.$state$cc){
   # alpha = 0, tpu = vcmax/6
   # and tpu temperature scaling is identical to vcmax
   
-  if( .$state$cc <= (1+3*.$pars$wp_alpha)*.$state_pars$gstar) NA
+  if( cc <= (1+3*.$pars$wp_alpha)*.$state_pars$gstar) NA
 #   3*.$state_pars$tpu*cc / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
   else 3*.$state_pars$tpu / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
 }
@@ -331,7 +325,7 @@ f_wp_foley1996 <- function(.,cc=.$state$cc){
   # Eq 5 from Foley 1996: Js = 3 * tpu * (1 - gstar/cc) + Jp * gstar / cc
   # where Jp is the limiting rate of wc or wj
   
-  if( .$state$cc <= .$state_pars$gstar ) NA
+  if( cc <= .$state_pars$gstar ) NA
   else {
     # calculate limiting cycle of wc and wj
     .$state$wp <- NA
@@ -466,16 +460,39 @@ f_tpu_tcor_dependent <- function(.) {
 ### STOMATAL & RELATED CONDUCTANCE / RESISTANCE FUNCTIONS
 ################################
 
+# CO2 diffusion
+f_ficks_ci <- function(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca) {
+  # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
+  # by default calculates cb from ca and rb
+  # c units in Pa
+  # A units umol m-2 s-1
+  # r units  m2 s mol-1
+  
+  c-A*r*.$env$atm_press*1e-6
+  #   c-A*r*.$env$atm_press*1e-6
+}
+
+f_ficks_ci_bound0 <- function(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca) {
+  # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
+  # by default calculates cb from ca and rb
+  # c units in Pa
+  # A units umol m-2 s-1
+  # r units  m2 s mol-1
+  
+  # there is a catch 22 here, make this max of the function result or zero and it screws up the solver boundaries
+  # remove the max term and this screws up at very low ca
+  #   max( c-A*r*.$env$atm_press*1e-6 , 1e-6)
+  c2 <- c-A*r*.$env$atm_press*1e-6
+  if(c2>0) c2 else 0
+}
+
+
 # general
 f_conv_ms_molm2s1 <- function(.){
   .$env$atm_press / ((.$state$leaf_temp + 273.15)*.$pars$R)
 }
 
 f_r_zero <- function(.,...){
-  0
-}
-
-f_r_zero_fcb <- function(.,...){
   0
 }
 
