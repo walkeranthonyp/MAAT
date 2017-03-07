@@ -54,7 +54,7 @@ head(out[[1]])
 length(out[[1]][,1])
 
 xyplot(A~leaf.par |leaf.etrans*leaf.rs,out[[1]],groups=leaf.temp,type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
-xyplot(A~leaf.par |leaf.etrans*leaf.rs,out[[1]],groups=leaf.vpd,type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
+xyplot(A~leaf.par |leaf.etrans*leaf.rs,out[[1]],groups=leaf.vpd, type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
 xyplot(cc~leaf.par|leaf.etrans*leaf.rs,out[[1]],groups=leaf.temp,type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
 xyplot(gs~leaf.par|leaf.etrans*leaf.rs,out[[1]],groups=leaf.temp,type='l',panel=function(...) { panel.abline(h=seq(0,1,0.02));panel.xyplot(...)})
 xyplot(A~leaf.par |leaf.etrans*leaf.rs,out[[1]],type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})

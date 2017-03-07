@@ -356,7 +356,7 @@ f_rd_lin_N <- function(.) {
 
 f_rd_tcor_independent <- function(.) {
   # TPU temperature scaling is independent
-  get(.$fnames$rd_tcor)(.,parlist=list(Ha=.$pars$Ha.rd,Hd=.$pars$Hd.rd,Topt=.$pars$Topt.rd,q10=.$pars$q10.rd))
+  get(.$fnames$rd_tcor)(.,parlist=list(Tr=.$pars$reftemp.rd,Ha=.$pars$Ha.rd,Hd=.$pars$Hd.rd,Topt=.$pars$Topt.rd,q10=.$pars$q10.rd))
 }
 
 f_rd_tcor_dependent <- function(.) {
@@ -420,7 +420,8 @@ f_tpu_lin <- function(.) {
 
 f_tpu_tcor_independent <- function(.) {
   # TPU temperature scaling is independent
-  get(.$fnames$tpu_tcor)(.,parlist=list(Ha=.$pars$Ha.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,q10=.$pars$q10.tpu,deltaS=.$pars$deltaS.tpu))
+  get(.$fnames$tpu_tcor)(.,parlist=list(Tr=.$pars$reftemp.tpu,Ha=.$pars$Ha.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,
+                                        q10=.$pars$q10.tpu,deltaS=.$pars$deltaS.tpu))
 }
 
 f_tpu_tcor_dependent <- function(.) {
@@ -608,7 +609,7 @@ f_temp_scalar_no_response <- function(...){
 
 
 # Arrhenius temperature response function 
-f_temp_scalar_Arrhenius <- function(.,parlist,Tr=25,...){
+f_temp_scalar_Arrhenius <- function(.,parlist,...){
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   # Arrhenius equation
   
@@ -621,7 +622,7 @@ f_temp_scalar_Arrhenius <- function(.,parlist,Tr=25,...){
   # Tsk    -- temperature to adjust parameter to (K) 
   
   #convert to Kelvin
-  Trk <- Tr + 273.15
+  Trk <- parlist$Tr + 273.15
   Tsk <- .$state$leaf_temp + 273.15
   
   if(.$cpars$verbose) {
@@ -635,7 +636,7 @@ f_temp_scalar_Arrhenius <- function(.,parlist,Tr=25,...){
 
 
 # modified Arrhenius temperature response function 
-f_temp_scalar_modArrhenius <- function(.,parlist,Tr=25,...){
+f_temp_scalar_modArrhenius <- function(.,parlist,...){
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   #Medlyn et al 2002
   
@@ -650,7 +651,7 @@ f_temp_scalar_modArrhenius <- function(.,parlist,Tr=25,...){
   # Tsk    -- temperature to adjust parameter to (K) 
   
   #convert to Kelvin
-  Trk <- Tr + 273.15
+  Trk <- parlist$Tr + 273.15
   Tsk <- .$state$leaf_temp + 273.15
   
   if(.$cpars$verbose) {
@@ -691,29 +692,24 @@ f_deltaS_lin_t <- function(.,parlist,...){
   parlist$a_deltaS_t + .$state$leaf_temp * parlist$b_deltaS_t 
 }
 
-f_temp_scalar_Q10 <- function(.,parlist,Tr=25,...){
+f_temp_scalar_Q10 <- function(.,parlist,...){
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   
   # input parameters  
   # Q10    -- factor by which rate increases for every 10 oC of temp increase  
   # Tr     -- reference temperature (oC) 
   
-  #convert to Kelvin
-  #   Trk <- Tr + 273.15
-  #   Tsk <- .$state$leaf_temp + 273.15
-  Ts <- .$state$leaf_temp
-  
   if(.$cpars$verbose) {
     print('Q10_tcorr_function')
-    print(paste(Tr,Ts))
+    print(.$state$leaf_temp)
     print(parlist)
   }
   
-  parlist$q10 ^ ((Ts-Tr)/10)
+  parlist$q10 ^ ((.$state$leaf_temp-parlist$Tr)/10)
   
 }
 
-f_temp_scalar_Q10_collatz1991 <- function(.,parlist,Tr=25,...){
+f_temp_scalar_Q10_collatz1991 <- function(.,parlist,...){
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   
   # input parameters  
@@ -729,24 +725,18 @@ f_temp_scalar_Q10_collatz1991 <- function(.,parlist,Tr=25,...){
   #   print(parlist)
   # }
   
-  f_temp_scalar_Q10(.,parlist,Tr=25,...) + exp((Tsk*parlist$deltaS-parlist$Hd) / (Tsk*.$pars$R))
+  f_temp_scalar_Q10(.,parlist) + exp((Tsk*parlist$deltaS-parlist$Hd) / (Tsk*.$pars$R))
   
 }
 
-f_temp_scalar_Q10_cox1991 <- function(.,parlist,Tr=25,...){
+f_temp_scalar_Q10_cox1991 <- function(.,parlist,...){
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   
   # input parameters  
   # Q10    -- factor by which rate increases for every 10 oC of temp increase  
   # Tr     -- reference temperature (oC) 
   
-  # if(.$cpars$verbose) {
-  #   print('Q10_cox2001_function')
-  #   print(paste(Tr,Ts))
-  #   print(parlist)
-  # }
-  
-  f_temp_scalar_Q10(.,parlist,Tr=25,...) * 1 / ( (1 + exp(parlist$exp*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(parlist$exp*(parlist$tlow-.$state$leaf_temp))) ) 
+  f_temp_scalar_Q10(.,parlist) * 1 / ( (1 + exp(parlist$exp*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(parlist$exp*(parlist$tlow-.$state$leaf_temp))) ) 
 }
 
 
@@ -755,7 +745,7 @@ f_constant_gstar <- function(.,...){
   .$pars$atref.gstar
 }
 
-f_gstar_f1980 <- function(.,Tr=25,...){
+f_gstar_f1980 <- function(.,...){
   # calculates Gamma star as a function of Kc & Ko, and thus their combined temperature dependence
   # Farquhar 1980 Eq 38
   # 0.21 = ko/kc
@@ -767,41 +757,25 @@ f_gstar_constref <- function(.) {
   # takes a defined ref temperature value of gstar and scales to leaf temp
   # this will probably not give the correct response to a change in atmospheric pressure
   
-  .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Ha=.$pars$Ha.gstar)) 
+  .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Tr=.$pars$reftemp.gstar,Ha=.$pars$Ha.gstar)) 
 }
 
 f_gstar_c1991 <- function(.) {
   # takes a defined ref temperature value of tau and scales to leaf temp
   # calcualtes gstar at leaftemp from tau
   
-  .$state_pars$tau <- .$pars$atref.tau * get(.$fnames$tau_tcor)(.,parlist=list(q10=.$pars$q10.tau))
+  .$state_pars$tau <- .$pars$atref.tau * get(.$fnames$tau_tcor)(.,parlist=list(Tr=.$pars$reftemp.tau,q10=.$pars$q10.tau))
   .$state$oi/(2*.$state_pars$tau)   
 }
 
-f_temp_scalar_quadratic_bf1985 <- function(.,Tr=25,...){
+f_temp_scalar_quadratic_bf1985 <- function(.,parlist,...){
   # calculates Gamma star (umol mol-1) as a function of temperature difference (K or oC)
   # Brooks&Farquhar 1985
   # rearranged to give a scalar of value at 25oC 
-  # calculated by B&F1985 from Jordan & Ogren 1984
-  #   1 + (1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) / 44.7
-  
-  # B&F1985  
-#   (42.7 + 1.68*(.$state$leaf_temp-Tr) + 0.012*(.$state$leaf_temp-Tr)^2)
-#   1 + (1.68*(.$state$leaf_temp-Tr) + 0.012*(.$state$leaf_temp-Tr)^2) / 42.7
-  1 + (.$pars$gstar_bf_b*(.$state$leaf_temp-Tr) + .$pars$gstar_bf_a*(.$state$leaf_temp-Tr)^2) / .$pars$gstar_bf_c
+
+  1 + (.$pars$gstar_bf_b*(.$state$leaf_temp-parlist$Tr) + .$pars$gstar_bf_a*(.$state$leaf_temp-parlist$Tr)^2) / .$pars$gstar_bf_c
 }
 
-# f_temp_scalar_quadratic_jo1984 <- function(.,Tr=25,...){
-#   # calculates Gamma star (umol mol-1) as a function of temperature difference (K or oC)
-#   # Brooks&Farquhar 1985
-#   # rearranged to give a scalar of value at 25oC 
-#   
-#   # calculated by B&F1985 from Jordan & Ogren 1984
-# #   (44.7 + 1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) 
-# #   1 + (1.88*(.$state$leaf_temp-Tr) + 0.036*(.$state$leaf_temp-Tr)^2) / 44.7
-#   1 + (.$pars$gstar_jo_b*(.$state$leaf_temp-Tr) + .$pars$gstar_jo_a*(.$state$leaf_temp-Tr)^2) / .$pars$gstar_jo_c
-#   
-# }
 
 
 

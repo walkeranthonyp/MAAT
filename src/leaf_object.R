@@ -37,9 +37,8 @@ leaf_object <-
     ###########################################################################
     # main run function
     
-    run   <- function(.,verbose=F) {
+    run   <- function(.) {
       
-      if(verbose) .$cpars$verbose
 #       if(.$cpars$cverbose) {
 #         print('',quote=F)
 #         print('Leaf configuration:',quote=F)
@@ -66,14 +65,14 @@ leaf_object <-
       # kinetic pars & temperature dependence
       # - if the solver involves the energy balance all of this crap needs to go in the solver! 
       .$state$leaf_temp    <- .$env$temp               
-      .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=list(Ha=.$pars$Ha.Kc))
-      .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Ha=.$pars$Ha.Ko)) 
+      .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=list(Tr=.$pars$reftemp.Kc,Ha=.$pars$Ha.Kc))
+      .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko)) 
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
-      .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax,
+      .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Tr=.$pars$reftemp.vcmax,Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax,
                                                                                            tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax,exp=.$pars$exp_cox.vcmax,
                                                                                            a_deltaS_t=.$pars$a_deltaS_t.vcmax,b_deltaS_t=.$pars$b_deltaS_t.vcmax,deltaS=.$pars$deltaS.vcmax))
-      .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax,
+      .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Tr=.$pars$reftemp.jmax,Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax,
                                                                                           a_deltaS_t=.$pars$a_deltaS_t.jmax,b_deltaS_t=.$pars$b_deltaS_t.jmax,deltaS=.$pars$deltaS.jmax))
       .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor_dependence)(.) 
         
