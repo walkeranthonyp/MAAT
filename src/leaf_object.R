@@ -112,7 +112,7 @@ leaf_object <-
         .$state$lim     <- c('wc','wj','wp')[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
         # after the fact calculations
         .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rb,c=.$state$ca)
-        if(!grepl('analytical',.$fnames$solver)) .$state_pars$rs <- get(.$fnames$rs)(.) 
+        if(!grepl('analytical',.$fnames$solver)) .$state_pars$rs <- 1.6 * get(.$fnames$rs)(.) 
         .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$rs,c=.$state$cb)
         .$state$cc      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$ri,c=.$state$ci)        
       }

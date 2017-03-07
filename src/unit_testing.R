@@ -31,6 +31,7 @@ leaf_object$.test_leaf(verbose=F,leaf.par=1000,leaf.ca_conc=1100)
 leaf_object$.test_aci(leaf.ca_conc=seq(0.1,2000,50))
 leaf_object$.test_aci(diag=T)
 leaf_object$.test_aci(diag=T,leaf.par=c(450,900) )
+leaf_object$.test_aci(diag=T,leaf.par=c(450,900,1200,1500) )
 leaf_object$.test_aci_light()
 leaf_object$.test_aci_light(diag=T)
 
