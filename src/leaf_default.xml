@@ -9,10 +9,13 @@
       <vcmax>'f_constant_vcmax'</vcmax>
       <jmax>'f_jmax_walker2014'</jmax>
       <tpu>'f_tpu_lin'</tpu>
-      <vcmax_tcor>'f_temp_scalar_no_response'</vcmax_tcor>
-      <jmax_tcor>'f_temp_scalar_no_response'</jmax_tcor>
+      <vcmax_tcor_asc>'f_temp_scalar_Arrhenius'</vcmax_tcor_asc>
+      <jmax_tcor_asc>'f_temp_scalar_Arrhenius'</jmax_tcor_asc>
+      <vcmax_tcor_des>'f_temp_scalar_modArrhenius_des'</vcmax_tcor_des>
+      <jmax_tcor_des>'f_temp_scalar_modArrhenius_des'</jmax_tcor_des>
       <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
-      <tpu_tcor>'f_temp_scalar_no_response'</tpu_tcor>
+      <tpu_tcor_asc>'f_temp_scalar_Arrhenius'</tpu_tcor_asc>
+      <tpu_tcor_des>'f_temp_scalar_modArrhenius_des'</tpu_tcor_des>
       <deltaS>'f_deltaS'</deltaS>
       <etrans>'f_j_harley1992'</etrans>
       <wc>'f_wc_farquhar1980'</wc>
@@ -21,7 +24,8 @@
       <gas_diff>'f_ficks_ci_bound0'</gas_diff>
       <respiration>'f_rd_lin_vcmax'</respiration>
       <rd_tcor_dependence>'f_rd_tcor_dependent'</rd_tcor_dependence> 
-      <rd_tcor>'f_temp_scalar_Arrhenius'</rd_tcor>
+      <rd_tcor_asc>'f_temp_scalar_Q10'</rd_tcor_asc>
+      <rd_tcor_des>'f_temp_scalar_Arrhenius'</rd_tcor_des>
       <fwdw_ratio>'f_none'</fwdw_ratio>
       <cica_ratio>'f_cica_constant'</cica_ratio>             
       <ri>'f_r_zero'</ri>
@@ -108,8 +112,8 @@
       <deltaS.jmax>NA</deltaS.jmax>
       <deltaS.tpu>NA</deltaS.tpu>
       <a_deltaS_t.vcmax>668</a_deltaS_t.vcmax>
-      <b_deltaS_t.vcmax>-1.07</b_deltaS_t.vcmax>
       <a_deltaS_t.jmax>660</a_deltaS_t.jmax>
+      <b_deltaS_t.vcmax>-1.07</b_deltaS_t.vcmax>
       <b_deltaS_t.jmax>-0.75</b_deltaS_t.jmax>
       <q10.rd>2</q10.rd>
       <q10.vcmax>2</q10.vcmax>
@@ -117,10 +121,10 @@
       <q10.tpu>2</q10.tpu>
       <q10.tau>0.57</q10.tau>
       <tupp_cox.vcmax>36</tupp_cox.vcmax>
-      <tlow_cox.vcmax>0</tlow_cox.vcmax>
-      <exp_cox.vcmax>0.3</exp_cox.vcmax>
       <tupp_cox.rd>45</tupp_cox.rd>
+      <tlow_cox.vcmax>0</tlow_cox.vcmax>
       <tlow_cox.rd>5</tlow_cox.rd>
+      <exp_cox.vcmax>0.3</exp_cox.vcmax>
       <exp_cox.rd>0.4</exp_cox.rd>
       <gstar_bf_a>0.012</gstar_bf_a>
       <gstar_bf_b>1.68</gstar_bf_b>

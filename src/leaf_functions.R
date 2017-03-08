@@ -356,7 +356,9 @@ f_rd_lin_N <- function(.) {
 
 f_rd_tcor_independent <- function(.) {
   # TPU temperature scaling is independent
-  get(.$fnames$rd_tcor)(.,parlist=list(Tr=.$pars$reftemp.rd,Ha=.$pars$Ha.rd,Hd=.$pars$Hd.rd,Topt=.$pars$Topt.rd,q10=.$pars$q10.rd))
+  get(.$fnames$rd_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.rd,Ha=.$pars$Ha.rd,q10=.$pars$q10.rd)) *
+  get(.$fnames$rd_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.rd,Hd=.$pars$Hd.rd,Topt=.$pars$Topt.rd,
+                                           tupp=.$pars$tupp_cox.rd,tlow=.$pars$tlow_cox.rd,exp=.$pars$exp_cox.rd))
 }
 
 f_rd_tcor_dependent <- function(.) {
@@ -420,8 +422,8 @@ f_tpu_lin <- function(.) {
 
 f_tpu_tcor_independent <- function(.) {
   # TPU temperature scaling is independent
-  get(.$fnames$tpu_tcor)(.,parlist=list(Tr=.$pars$reftemp.tpu,Ha=.$pars$Ha.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,
-                                        q10=.$pars$q10.tpu,deltaS=.$pars$deltaS.tpu))
+  get(.$fnames$tpu_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.tpu,Ha=.$pars$Ha.tpu,q10=.$pars$q10.tpu)) *
+  get(.$fnames$tpu_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,deltaS=.$pars$deltaS.tpu))
 }
 
 f_tpu_tcor_dependent <- function(.) {
@@ -559,7 +561,7 @@ f_cica_constant <- function(.) {
   .$pars$cica_chi
 }
 
-f_rs_cox1998 <- function(.,A=.$state$A,c=.$state$cb) {
+f_rs_cox1999 <- function(.,A=.$state$A,c=.$state$cb) {
   # implied JULES etc assumption for stomatal resistance that keeps a variant of Ci:Ca constant
   # expects c in Pa
   # output in m2s mol-1 h2o
@@ -601,14 +603,13 @@ f_ri_constant <- function(.,...){
 ### TEMPERATURE DEPENDENCE FUNCTIONS
 ################################
 # - all these functions should be scalars such that the current temperature and reference temperature can be specified and the correction scalar is returned
-#   (this has not yet been completed)
 
-f_temp_scalar_no_response <- function(...){
+f_temp_scalar_none <- function(...){
   1
 }
 
 
-# Arrhenius temperature response function 
+# Ascending components of the temperature response function - can be run alone for an increasing repsonse only
 f_temp_scalar_Arrhenius <- function(.,parlist,...){
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   # Arrhenius equation
@@ -627,49 +628,89 @@ f_temp_scalar_Arrhenius <- function(.,parlist,...){
   
   if(.$cpars$verbose) {
     print('Arrhenius_tcorr_function')
-    print(paste(Trk,Tsk))
     print(parlist)
   }
   
   exp( parlist$Ha*(Tsk-Trk) / (.$pars$R*Tsk*Trk) )
 }
 
-
-# modified Arrhenius temperature response function 
-f_temp_scalar_modArrhenius <- function(.,parlist,...){
+f_temp_scalar_Q10 <- function(.,parlist,...){
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
-  #Medlyn et al 2002
   
   # input parameters  
-  # Ha     -- rate of increase to optimum  (J mol-1)
-  # Hd     -- rate of decrease from optimum (J mol-1) often 200000 
-  # deltaS --      
-  # R      -- molar gas constant J mol-1 K-1
+  # Q10    -- factor by which rate increases for every 10 oC of temp increase  
+  # Tr     -- reference temperature (oC) 
+  
+  if(.$cpars$verbose) {
+    print('Q10_tcorr_function')
+    print(.$state$leaf_temp)
+    print(parlist)
+  }
+  
+  parlist$q10 ^ ((.$state$leaf_temp-parlist$Tr)/10)
+  
+}
 
+
+# Descending components of the temperature response function 
+f_temp_scalar_modArrhenius_des <- function(.,parlist,...){
+  # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
+  # descending component of modified Arrhenius temperature response function, Medlyn et al 2002
+  
+  # input parameters  
+  # Hd     -- rate of decrease from optimum (J mol-1) often 200000 
+  # deltaS -- entropy parameter      
+  # R      -- molar gas constant J mol-1 K-1
+  
   # Tr     -- reference temperature (oC) 
   # Trk    -- reference temperature (K) 
   # Tsk    -- temperature to adjust parameter to (K) 
   
-  #convert to Kelvin
+  print(parlist)
+  
+  # convert to Kelvin
   Trk <- parlist$Tr + 273.15
   Tsk <- .$state$leaf_temp + 273.15
   
-  if(.$cpars$verbose) {
-    print('Medlyn_tcorr_function')
-    print(paste(Trk,Tsk))
-    print(parlist)
-  }
-  
   deltaS <- get(.$fnames$deltaS)(.,parlist)
   
-  exp(parlist$Ha*(Tsk-Trk) / (.$pars$R*Tsk*Trk)) * ( 
-    (1 + exp((Trk*deltaS-parlist$Hd) / (Trk*.$pars$R)) ) 
-    / (1 + exp((Tsk*deltaS-parlist$Hd) / (Tsk*.$pars$R)) ) )  
+  (1 + exp((Trk*deltaS-parlist$Hd) / (Trk*.$pars$R)) ) / 
+    (1 + exp((Tsk*deltaS-parlist$Hd) / (Tsk*.$pars$R)) )  
+  
+}
 
+f_temp_scalar_collatz1991_des <- function(.,parlist,...){
+  # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
+  # descending component of temperature scaling from Collatz etal 1991
+  
+  # input parameters  
+  # Q10    -- factor by which rate increases for every 10 oC of temp increase  
+  # Tr     -- reference temperature (oC) 
+  
+  # convert to Kelvin
+  Tsk <- .$state$leaf_temp + 273.15
+  
+  # get deltaS
+  deltaS <- get(.$fnames$deltaS)(.,parlist)
+  
+  1 / ( 1 + exp((Tsk*deltaS-parlist$Hd) / (Tsk*.$pars$R)) )
+}
+
+f_temp_scalar_cox2001_des <- function(.,parlist,...){
+  # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
+  # descending component of temperature scaling from Cox etal 2001
+  
+  # input parameters  
+  # Q10    -- factor by which rate increases for every 10 oC of temp increase  
+  # Tr     -- reference temperature (oC) 
+  
+  1 / ( (1 + exp(parlist$exp*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(parlist$exp*(parlist$tlow-.$state$leaf_temp))) )
 }
 
 
-# Maximum rate parameters - Vcmax & Jmax 
+
+# functions that can allow for temperature acclimation of parameters, deltaS
+# how to calculate deltaS
 f_deltaS_constant <- function(.,parlist,...){
   #constant delta S
 
@@ -692,53 +733,6 @@ f_deltaS_lin_t <- function(.,parlist,...){
   parlist$a_deltaS_t + .$state$leaf_temp * parlist$b_deltaS_t 
 }
 
-f_temp_scalar_Q10 <- function(.,parlist,...){
-  #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
-  
-  # input parameters  
-  # Q10    -- factor by which rate increases for every 10 oC of temp increase  
-  # Tr     -- reference temperature (oC) 
-  
-  if(.$cpars$verbose) {
-    print('Q10_tcorr_function')
-    print(.$state$leaf_temp)
-    print(parlist)
-  }
-  
-  parlist$q10 ^ ((.$state$leaf_temp-parlist$Tr)/10)
-  
-}
-
-f_temp_scalar_Q10_collatz1991 <- function(.,parlist,...){
-  #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
-  
-  # input parameters  
-  # Q10    -- factor by which rate increases for every 10 oC of temp increase  
-  # Tr     -- reference temperature (oC) 
-  
-  #convert to Kelvin
-  Tsk <- .$state$leaf_temp + 273.15
-  
-  # get deltaS
-  deltaS <- get(.$fnames$deltaS)(.,parlist)
-
-  # if(.$cpars$verbose) {
-  #   print('Q10_collatz1991_function')
-  #   print(parlist)
-  # }
-  
-  f_temp_scalar_Q10(.,parlist) * (( 1 + exp((Tsk*deltaS-parlist$Hd) / (Tsk*.$pars$R)) )^-1)
-}
-
-f_temp_scalar_Q10_cox1998 <- function(.,parlist,...){
-  #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
-  
-  # input parameters  
-  # Q10    -- factor by which rate increases for every 10 oC of temp increase  
-  # Tr     -- reference temperature (oC) 
-  
-  f_temp_scalar_Q10(.,parlist) * (( (1 + exp(parlist$exp*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(parlist$exp*(parlist$tlow-.$state$leaf_temp))) )^-1) 
-}
 
 
 ### Gamma star - CO2 compensation point in the absence of dark respiration

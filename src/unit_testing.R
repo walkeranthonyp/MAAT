@@ -36,17 +36,17 @@ leaf_object$.test_aci_light()
 leaf_object$.test_aci_light(diag=T)
 
 leaf_object$.test_tscalar()
-leaf_object$.test_tscalar(tcor='f_temp_scalar_modArrhenius')
-leaf_object$.test_tscalar(tcor='f_temp_scalar_Q10')
-leaf_object$.test_tscalar(tcor='f_temp_scalar_Q10_collatz1991')
-leaf_object$.test_tscalar(tcor='f_temp_scalar_Q10_cox1998')
+leaf_object$.test_tscalar(tcor_des='f_temp_scalar_modArrhenius_des')
+leaf_object$.test_tscalar(tcor_asc='f_temp_scalar_none')
+leaf_object$.test_tscalar(tcor_asc='f_temp_scalar_Q10')
+leaf_object$.test_tscalar(tcor_asc='f_temp_scalar_Q10',tcor_des='f_temp_scalar_collatz1991_des')
+leaf_object$.test_tscalar(tcor_asc='f_temp_scalar_Q10',tcor_des='f_temp_scalar_cox2001_des')
 
-# out <- leaf_object$.test_aci_analytical()
 out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_ball1987')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_constantCiCa')
-out <- leaf_object$.test_aci_analytical(rs='f_rs_cox1998')
+out <- leaf_object$.test_aci_analytical(rs='f_rs_cox1999')
 
 
 # Wrapper

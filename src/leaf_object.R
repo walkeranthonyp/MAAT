@@ -69,11 +69,15 @@ leaf_object <-
       .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko)) 
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
-      .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor)(.,parlist=list(Tr=.$pars$reftemp.vcmax,Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,q10=.$pars$q10.vcmax,
-                                                                                           tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax,exp=.$pars$exp_cox.vcmax,
-                                                                                           a_deltaS_t=.$pars$a_deltaS_t.vcmax,b_deltaS_t=.$pars$b_deltaS_t.vcmax,deltaS=.$pars$deltaS.vcmax))
-      .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor)(.,parlist=list(Tr=.$pars$reftemp.jmax,Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax,
-                                                                                          a_deltaS_t=.$pars$a_deltaS_t.jmax,b_deltaS_t=.$pars$b_deltaS_t.jmax,deltaS=.$pars$deltaS.jmax))
+      .$state_pars$vcmaxlt <- .$state_pars$vcmax * 
+        get(.$fnames$vcmax_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.vcmax,Ha=.$pars$Ha.vcmax,q10=.$pars$q10.vcmax)) *
+        get(.$fnames$vcmax_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.vcmax,Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,
+                                                    tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax,exp=.$pars$exp_cox.vcmax,
+                                                    a_deltaS_t=.$pars$a_deltaS_t.vcmax,b_deltaS_t=.$pars$b_deltaS_t.vcmax,deltaS=.$pars$deltaS.vcmax))
+      .$state_pars$jmaxlt  <- .$state_pars$jmax  * 
+        get(.$fnames$jmax_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.jmax,Ha=.$pars$Ha.jmax,q10=.$pars$q10.jmax)) *
+        get(.$fnames$jmax_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.jmax,Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax,
+                                                   a_deltaS_t=.$pars$a_deltaS_t.jmax,b_deltaS_t=.$pars$b_deltaS_t.jmax,deltaS=.$pars$deltaS.jmax))
       .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor_dependence)(.) 
         
       # conductance/resistance terms
@@ -177,35 +181,39 @@ leaf_object <-
     
     # function names
     fnames <- list(
-      gstar       = 'f_gstar_constref',
-      gstar_tcor  = 'f_temp_scalar_quadratic_bf1985',
-      tau_tcor    = 'f_temp_scalar_Q10',
-      Kc_tcor     = 'f_temp_scalar_Arrhenius',
-      Ko_tcor     = 'f_temp_scalar_Arrhenius',
-      vcmax       = 'f_vcmax_lin',
-      jmax        = 'f_jmax_walker2014',
-      tpu         = 'f_tpu_lin',
-      vcmax_tcor  = 'f_temp_scalar_modArrhenius',
-      jmax_tcor   = 'f_temp_scalar_modArrhenius',
+      gstar               = 'f_gstar_constref',
+      gstar_tcor          = 'f_temp_scalar_quadratic_bf1985',
+      tau_tcor            = 'f_temp_scalar_Q10',
+      Kc_tcor             = 'f_temp_scalar_Arrhenius',
+      Ko_tcor             = 'f_temp_scalar_Arrhenius',
+      vcmax               = 'f_vcmax_lin',
+      jmax                = 'f_jmax_walker2014',
+      tpu                 = 'f_tpu_lin',
+      vcmax_tcor_asc      = 'f_temp_scalar_Arrhenius',
+      jmax_tcor_asc       = 'f_temp_scalar_Arrhenius',
+      vcmax_tcor_des      = 'f_temp_scalar_modArrhenius_des',
+      jmax_tcor_des       = 'f_temp_scalar_modArrhenius_des',
       tpu_tcor_dependence = 'f_tpu_tcor_dependent',
-      tpu_tcor    = 'f_temp_scalar_modArrhenius',
-      deltaS      = 'f_deltaS',
-      etrans      = 'f_j_harley1992',
-      wc          = 'f_wc_farquhar1980',
-      wj          = 'f_wj_generic',
-      wp          = 'f_wp_vonc2000',            
-      gas_diff    = 'f_ficks_ci',
-      respiration = 'f_rd_lin_vcmax',
-      rd_tcor_dependence = 'f_rd_tcor_dependent',
-      rd_tcor     = 'f_temp_scalar_Arrhenius',
-      fwdw_ratio  = 'f_none',                   
-      cica_ratio  = 'f_cica_constant',             
-      ri          = 'f_r_zero',
-      rs          = 'f_r_zero',
-      rb          = 'f_r_zero',
-      solver      = 'f_R_Brent_solver',
-      solver_func = 'f_A_r_leaf',
-      Alim        = 'f_lim_farquhar1980'
+      tpu_tcor_asc        = 'f_temp_scalar_Arrhenius',
+      tpu_tcor_des        = 'f_temp_scalar_modArrhenius_des',
+      deltaS              = 'f_deltaS',
+      etrans              = 'f_j_harley1992',
+      wc                  = 'f_wc_farquhar1980',
+      wj                  = 'f_wj_generic',
+      wp                  = 'f_wp_vonc2000',            
+      gas_diff            = 'f_ficks_ci',
+      respiration         = 'f_rd_lin_vcmax',
+      rd_tcor_dependence  = 'f_rd_tcor_dependent',
+      rd_tcor_asc         = 'f_temp_scalar_Q10',
+      rd_tcor_des         = 'f_temp_scalar_cox2001_des',
+      fwdw_ratio          = 'f_none',                   
+      cica_ratio          = 'f_cica_constant',             
+      ri                  = 'f_r_zero',
+      rs                  = 'f_r_zero',
+      rb                  = 'f_r_zero',
+      solver              = 'f_R_Brent_solver',
+      solver_func         = 'f_A_r_leaf',
+      Alim                = 'f_lim_farquhar1980'
     )
     
     # leaf environment
@@ -355,21 +363,21 @@ leaf_object <-
       deltaS.vcmax  = numeric(0), # 
       deltaS.jmax   = numeric(0), #
       deltaS.tpu    = numeric(0), #
-      a_deltaS_t.vcmax = 668,     #
-      b_deltaS_t.jmax  = -1.07,   #
-      a_deltaS_t.vcmax = 660,     #
-      b_deltaS_t.jmax  = -0.75,   # 
+      a_deltaS_t.vcmax  = 668,     #
+      a_deltaS_t.jmax   = 660,     #
+      b_deltaS_t.vcmax  = -1.07,   #
+      b_deltaS_t.jmax   = -0.75,   # 
       q10.rd        = 2,          # Q10 of Rd                                               (-)
       q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
       q10.jmax      = 2,          # Q10 of Jmax                                             (-)
       q10.tpu       = 2,          # Q10 of TPU                                              (-)
       q10.tau       = 0.57,       # Q10 of tau                                              (-)
-      tupp_cox.vcmax= 36,         # upper leaf T for Vcmax temp scaling from Cox 1991       (oC)
-      tlow_cox.vcmax= 0,          # lower leaf T for Vcmax temp scaling from Cox 1991       (oC)
-      exp_cox.vcmax = 0.3,        # exponent for Vcmax temp scaling from Cox 1991           (-)
-      tupp_cox.rd   = 45,         # upper leaf T for rd temp scaling from Cox 1991 (LM3)    (oC)
-      tlow_cox.rd   = 5,          # lower leaf T for rd temp scaling from Cox 1991 (LM3)    (oC)
-      exp_cox.rd    = 0.4,        # exponent for rd temp scaling from Cox 1991 (LM3)        (-)
+      tupp_cox.vcmax= 36,         # upper leaf T for Vcmax temp scaling from Cox 2001       (oC)
+      tupp_cox.rd   = 45,         # upper leaf T for rd temp scaling from Cox 2001 (LM3)    (oC)
+      tlow_cox.vcmax= 0,          # lower leaf T for Vcmax temp scaling from Cox 2001       (oC)
+      tlow_cox.rd   = 5,          # lower leaf T for rd temp scaling from Cox 2001          (oC)
+      exp_cox.vcmax = 0.3,        # exponent for Vcmax temp scaling from Cox 2001           (-)
+      exp_cox.rd    = 0.4,        # exponent for rd temp scaling from Cox 2001              (-)
       gstar_bf_a    = 0.012,      # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_bf_b    = 1.68,       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_bf_c    = 42.7,       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
@@ -493,8 +501,9 @@ leaf_object <-
     }
 
     
-    .test_tscalar <- function(.,leaf.temp=0:50,leaf.par=c(1000),leaf.ca_conc=400,rs='f_rs_medlyn2011',tcor='f_temp_scalar_Arrhenius', 
-                          verbose=F,verbose_loop=F) {
+    .test_tscalar <- function(.,leaf.temp=0:50,leaf.par=c(1000),leaf.ca_conc=400,rs='f_rs_medlyn2011',
+                              tcor_asc='f_temp_scalar_Arrhenius',tcor_des='f_temp_scalar_none', 
+                              verbose=F,verbose_loop=F) {
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
@@ -502,7 +511,8 @@ leaf_object <-
       
       if(verbose) str.proto(.)
       
-      .$fnames$vcmax_tcor  <- tcor
+      .$fnames$vcmax_tcor_asc  <- tcor_asc
+      .$fnames$vcmax_tcor_des  <- tcor_des
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
@@ -513,7 +523,7 @@ leaf_object <-
       .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
       
       print(cbind(.$dataf$met,.$dataf$out))
-      p1 <- xyplot(I(unlist(vcmaxlt)/unlist(vcmax))~leaf.temp|as.factor(tcor),.$dataf$out,abline=list(h=c(0,1),v=.$pars$reftemp.vcmax),
+      p1 <- xyplot(I(unlist(vcmaxlt)/unlist(vcmax))~leaf.temp|as.factor(paste(tcor_asc,tcor_des)),.$dataf$out,abline=list(h=c(0,1),v=.$pars$reftemp.vcmax),
                    ylab=expression('scalar'),xlab=expression(T*' ['^o*C*']'))
       print(p1)
     }
