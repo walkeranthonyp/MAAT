@@ -37,7 +37,7 @@ leaf_object$.test_aci_light(diag=T)
 
 leaf_object$.test_tscalar()
 leaf_object$.test_tscalar(tcor_des='f_temp_scalar_modArrhenius_des')
-leaf_object$.test_tscalar(tcor_asc='f_temp_scalar_none')
+leaf_object$.test_tscalar(tcor_asc='f_scalar_none')
 leaf_object$.test_tscalar(tcor_asc='f_temp_scalar_Q10')
 leaf_object$.test_tscalar(tcor_asc='f_temp_scalar_Q10',tcor_des='f_temp_scalar_collatz1991_des')
 leaf_object$.test_tscalar(tcor_asc='f_temp_scalar_Q10',tcor_des='f_temp_scalar_cox2001_des')

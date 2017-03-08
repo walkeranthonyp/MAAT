@@ -75,6 +75,9 @@
       <b_rdv_25>0.015</b_rdv_25>
       <a_rdn_25>0.5</a_rdn_25>
       <b_rdn_25>0.15</b_rdn_25>
+      <rl_rd_ratio>1</rl_rd_ratio>
+      <rl_rd_lloyd_a>0.5</rl_rd_lloyd_a>
+      <rl_rd_lloyd_b>0.05</rl_rd_lloyd_b>
       <reftemp.rd>25</reftemp.rd>
       <reftemp.vcmax>25</reftemp.vcmax>
       <reftemp.jmax>25</reftemp.jmax>

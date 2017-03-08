@@ -105,7 +105,8 @@ leaf_object <-
           .$state$transition <- transition_cc(.)
         }
         # run photosynthesis
-        # assume infinite conductances to initialise solver
+        # account for decreased respiration in the light
+        .$state$respiration  <- get(.$fnames$rl_rd_scalar)(.) * .$state$respiration
         # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
         .$state$A       <- get(.$fnames$solver)(.)      
         # assign the limitation state - assumes the minimum is the dominant limiting rate
@@ -203,6 +204,7 @@ leaf_object <-
       wp                  = 'f_wp_vonc2000',            
       gas_diff            = 'f_ficks_ci',
       respiration         = 'f_rd_lin_vcmax',
+      rl_rd_scalar        = 'f_scalar_none',
       rd_tcor_dependence  = 'f_rd_tcor_dependent',
       rd_tcor_asc         = 'f_temp_scalar_Q10',
       rd_tcor_des         = 'f_temp_scalar_cox2001_des',
@@ -326,6 +328,9 @@ leaf_object <-
       b_rdv_25      = 0.015,      # slope of linear rd25 to vcmax25 relationship            (unitless)
       a_rdn_25      = 0.5,        # intercept of linear rd25 to leaf N area relationship    (umolm-2s-1)
       b_rdn_25      = 0.15,       # slope of linear rd25 to leaf N area relationship        (unitless)
+      rl_rd_ratio   = 1,          # ratio of non-photorespiratory respiration in the light to respiration in the dark  (unitless)
+      rl_rd_lloyd_a = 0.5,        # intercept of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from mercado 2007 (unitless) 
+      rl_rd_lloyd_b = 0.05,       # slope of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from mercado 2007 (?)
       # temperature response parameters
       reftemp.rd    = 25,         # reference temperature at which rd scalar = 1            (oC) 
       reftemp.vcmax = 25,         # reference temperature at which Vcmax scalar = 1         (oC) 
@@ -502,7 +507,7 @@ leaf_object <-
 
     
     .test_tscalar <- function(.,leaf.temp=0:50,leaf.par=c(1000),leaf.ca_conc=400,rs='f_rs_medlyn2011',
-                              tcor_asc='f_temp_scalar_Arrhenius',tcor_des='f_temp_scalar_none', 
+                              tcor_asc='f_temp_scalar_Arrhenius',tcor_des='f_scalar_none', 
                               verbose=F,verbose_loop=F) {
       
       .$cpars$verbose       <- verbose

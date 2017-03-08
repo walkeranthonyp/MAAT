@@ -367,9 +367,16 @@ f_rd_tcor_dependent <- function(.) {
   .$state_pars$vcmaxlt / .$state_pars$vcmax
 }
 
-
-
 # light supression
+f_rl_rd_fixed <- function(.) {
+  .$pars$rl_rd_ratio
+}
+
+f_rl_rd_lloyd1995 <- function(.) {
+  
+  if(.$env$par <= 10) 1
+  else                ( .$pars$rl_rd_lloyd_a - .$pars$rl_rd_lloyd_b * ln(.$env$par) )
+}
 
 
 
@@ -604,7 +611,7 @@ f_ri_constant <- function(.,...){
 ################################
 # - all these functions should be scalars such that the current temperature and reference temperature can be specified and the correction scalar is returned
 
-f_temp_scalar_none <- function(...){
+f_scalar_none <- function(...){
   1
 }
 
