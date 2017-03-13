@@ -70,12 +70,12 @@ leaf_object <-
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
       .$state_pars$vcmaxlt <- .$state_pars$vcmax * 
-        get(.$fnames$vcmax_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.vcmax,Ha=.$pars$Ha.vcmax,q10=.$pars$q10.vcmax)) *
+        get(.$fnames$vcmax_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.vcmax,Ha=.$pars$Ha.vcmax,q10=.$pars$q10.vcmax,q10_func=.$fnames$q10_func.vcmax)) *
         get(.$fnames$vcmax_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.vcmax,Ha=.$pars$Ha.vcmax,Hd=.$pars$Hd.vcmax,Topt=.$pars$Topt.vcmax,
                                                     tupp=.$pars$tupp_cox.vcmax,tlow=.$pars$tlow_cox.vcmax,exp=.$pars$exp_cox.vcmax,
                                                     a_deltaS_t=.$pars$a_deltaS_t.vcmax,b_deltaS_t=.$pars$b_deltaS_t.vcmax,deltaS=.$pars$deltaS.vcmax))
       .$state_pars$jmaxlt  <- .$state_pars$jmax  * 
-        get(.$fnames$jmax_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.jmax,Ha=.$pars$Ha.jmax,q10=.$pars$q10.jmax)) *
+        get(.$fnames$jmax_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.jmax,Ha=.$pars$Ha.jmax,q10=.$pars$q10.jmax,q10_func=.$fnames$q10_func.jmax)) *
         get(.$fnames$jmax_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.jmax,Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax,
                                                    a_deltaS_t=.$pars$a_deltaS_t.jmax,b_deltaS_t=.$pars$b_deltaS_t.jmax,deltaS=.$pars$deltaS.jmax))
       .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor_dependence)(.) 
@@ -208,6 +208,9 @@ leaf_object <-
       rd_tcor_dependence  = 'f_rd_tcor_dependent',
       rd_tcor_asc         = 'f_temp_scalar_Q10',
       rd_tcor_des         = 'f_temp_scalar_cox2001_des',
+      q10_func.rd         = 'f_q10_constant',
+      q10_func.vcmax      = 'f_q10_constant',
+      q10_func.jmax       = 'f_q10_constant',
       fwdw_ratio          = 'f_none',                   
       cica_ratio          = 'f_cica_constant',             
       ri                  = 'f_r_zero',
@@ -368,15 +371,17 @@ leaf_object <-
       deltaS.vcmax  = numeric(0), # 
       deltaS.jmax   = numeric(0), #
       deltaS.tpu    = numeric(0), #
-      a_deltaS_t.vcmax  = 668,     #
-      a_deltaS_t.jmax   = 660,     #
-      b_deltaS_t.vcmax  = -1.07,   #
-      b_deltaS_t.jmax   = -0.75,   # 
+      a_deltaS_t.vcmax  = 668,    # linear temperature response of vcmax deltaS (Kattge & Knorr)  
+      a_deltaS_t.jmax   = 660,    # linear temperature response of jmax deltaS (Kattge & Knorr)
+      b_deltaS_t.vcmax  = -1.07,  # linear temperature response of vcmax deltaS (Kattge & Knorr)
+      b_deltaS_t.jmax   = -0.75,  # linear temperature response of jmax deltaS (Kattge & Knorr)
       q10.rd        = 2,          # Q10 of Rd                                               (-)
       q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
       q10.jmax      = 2,          # Q10 of Jmax                                             (-)
       q10.tpu       = 2,          # Q10 of TPU                                              (-)
       q10.tau       = 0.57,       # Q10 of tau                                              (-)
+      a_q10_t.rd    = 3.22,       # linear temperature response of rd Q10 (Tjoelker etal 2001)
+      b_q10_t.rd    = -0.046,     # linear temperature response of rd Q10 (Tjoelker etal 2001)
       tupp_cox.vcmax= 36,         # upper leaf T for Vcmax temp scaling from Cox 2001       (oC)
       tupp_cox.rd   = 45,         # upper leaf T for rd temp scaling from Cox 2001 (LM3)    (oC)
       tlow_cox.vcmax= 0,          # lower leaf T for Vcmax temp scaling from Cox 2001       (oC)

@@ -356,7 +356,8 @@ f_rd_lin_N <- function(.) {
 
 f_rd_tcor_independent <- function(.) {
   # TPU temperature scaling is independent
-  get(.$fnames$rd_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.rd,Ha=.$pars$Ha.rd,q10=.$pars$q10.rd)) *
+  get(.$fnames$rd_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.rd,Ha=.$pars$Ha.rd,q10_func=.$fnames$q10_func.rd,
+                                           q10=.$pars$q10.rd,a_q10_t=.$pars$a_q10_t.rd,b_q10_t=.$pars$b_q10_t.rd)) *
   get(.$fnames$rd_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.rd,Hd=.$pars$Hd.rd,Topt=.$pars$Topt.rd,
                                            tupp=.$pars$tupp_cox.rd,tlow=.$pars$tlow_cox.rd,exp=.$pars$exp_cox.rd))
 }
@@ -654,6 +655,8 @@ f_temp_scalar_Q10 <- function(.,parlist,...){
     print(parlist)
   }
   
+  q10 <- get(parlist$q10_func)(.,parlist)
+  
   parlist$q10 ^ ((.$state$leaf_temp-parlist$Tr)/10)
   
 }
@@ -716,8 +719,9 @@ f_temp_scalar_cox2001_des <- function(.,parlist,...){
 
 
 
-# functions that can allow for temperature acclimation of parameters, deltaS
-# how to calculate deltaS
+# functions that can allow for temperature acclimation of parameters, deltaS, Q10
+
+# deltaS
 f_deltaS_constant <- function(.,parlist,...){
   #constant delta S
 
@@ -738,6 +742,20 @@ f_deltaS_lin_t <- function(.,parlist,...){
   #Medlyn 2002
   
   parlist$a_deltaS_t + .$state$leaf_temp * parlist$b_deltaS_t 
+}
+
+# Q10
+f_q10_constant <- function(.,parlist,...){
+  # constant delta S
+  
+  parlist$q10
+}
+
+f_q10_lin_t <- function(.,parlist,...){
+  # calculate q10 as a function of T
+  # Tjoelker 
+  
+  parlist$a_q10_t + .$state$leaf_temp * parlist$b_q10_t 
 }
 
 
