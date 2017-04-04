@@ -23,6 +23,7 @@
       <wp>'f_wp_vonc2000'</wp>
       <gas_diff>'f_ficks_ci_bound0'</gas_diff>
       <respiration>'f_rd_lin_vcmax'</respiration>
+      <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
       <rd_tcor_dependence>'f_rd_tcor_dependent'</rd_tcor_dependence> 
       <rd_tcor_asc>'f_temp_scalar_Q10'</rd_tcor_asc>
       <rd_tcor_des>'f_temp_scalar_Arrhenius'</rd_tcor_des>
@@ -125,6 +126,8 @@
       <q10.vcmax>2</q10.vcmax>
       <q10.jmax>2</q10.jmax>
       <q10.tpu>2</q10.tpu>
+      <q10.Kc>2</q10.Kc>
+      <q10.Ko>2</q10.Ko>
       <q10.tau>0.57</q10.tau>
       <a_q10_t.rd>3.22</a_q10_t.rd>
       <b_q10_t.rd>-0.046</b_q10_t.rd>

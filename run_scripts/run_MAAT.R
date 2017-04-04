@@ -161,11 +161,14 @@ sofname <- if(is.null(runid))    of_main else paste(runid,of_main,'salt',sep='_'
 ### start program
 
 ##################################
-# load MAAT objects from source
+# load MAAT wrapper from source
 setwd(srcdir)
 source('wrapper_object.R')
+# load MAAT object(s) from source
+setwd(mod_obj)
 source(paste(mod_obj,'object.R',sep='_'))
 # read default model setup
+setwd(mod_obj)
 init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
 
 

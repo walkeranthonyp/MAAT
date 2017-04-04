@@ -65,8 +65,8 @@ leaf_object <-
       # kinetic pars & temperature dependence
       # - if the solver involves the energy balance all of this crap needs to go in the solver! 
       .$state$leaf_temp    <- .$env$temp               
-      .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=list(Tr=.$pars$reftemp.Kc,Ha=.$pars$Ha.Kc))
-      .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko)) 
+      .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=list(Tr=.$pars$reftemp.Kc,Ha=.$pars$Ha.Kc,q10=.$pars$q10.Kc))
+      .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko,q10=.$pars$q10.Ko)) 
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
       .$state_pars$vcmaxlt <- .$state_pars$vcmax * 
@@ -383,6 +383,8 @@ leaf_object <-
       q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
       q10.jmax      = 2,          # Q10 of Jmax                                             (-)
       q10.tpu       = 2,          # Q10 of TPU                                              (-)
+      q10.Kc        = 2,          # Q10 of Kc                                               (-)
+      q10.Ko        = 2,          # Q10 of Ko                                               (-)
       q10.tau       = 0.57,       # Q10 of tau                                              (-)
       a_q10_t.rd    = 3.22,       # linear temperature response of rd Q10 (Tjoelker etal 2001)
       b_q10_t.rd    = -0.046,     # linear temperature response of rd Q10 (Tjoelker etal 2001)
@@ -495,7 +497,7 @@ leaf_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300,rs='f_rs_medlyn2011'){
+    .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci'){
       
       if(verbose) {
         str.proto(.)
@@ -508,6 +510,7 @@ leaf_object <-
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
+      .$fnames$gas_diff    <- gd
       
       .$env$par     <- leaf.par
       .$env$ca_conc <- leaf.ca_conc
@@ -704,6 +707,60 @@ leaf_object <-
       ol
     }
 
+    .test_aci_lim <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50), 
+                                     ana_only=F,verbose=F,verbose_loop=F,diag=F) {
+      
+      .$cpars$verbose       <- verbose
+      .$cpars$verbose_loop  <- verbose_loop
+      .$pars$diag           <- diag
+      .$cpars$output        <- 'all_lim'
+      
+      if(verbose) str.proto(.)
+      
+      .$fnames$rs           <- rs
+      .$fnames$ri           <- 'f_r_zero'
+      .$fnames$gas_diff     <- 'f_ficks_ci'
+      
+      .$dataf     <- list()
+      .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
+      
+      .$fnames$Alim <- 'f_lim_farquhar1980'
+      .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+      Fout          <- cbind(.$dataf$met,.$dataf$out,Alim='F1980')
+      
+      .$fnames$Alim <- 'f_lim_collatz1991'
+      .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+      Cout          <- cbind(.$dataf$met,.$dataf$out,Alim='C1991')
+      
+      odf <- rbind(Fout,Cout)
+      
+      p1 <- xyplot(A~cc|as.factor(odf$leaf.par),odf,groups=unlist(Alim),abline=0,
+                   ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[c]*' [Pa]'),
+                   auto.key=T,
+                   panel=function(subscripts=subscripts,...) {
+                     if(diag) {
+                       panel.abline(v=odf$transition[subscripts][1])
+                       panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                     }
+                     panel.xyplot(subscripts=subscripts,...)
+                   })
+      
+      p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(Alim),abline=0,
+                   auto.key=T,
+                   ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
+                   panel=function(subscripts=subscripts,...) {
+                     if(diag) {
+                       panel.abline(v=odf$transition[subscripts][1])
+                       panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                     }
+                     panel.xyplot(subscripts=subscripts,...)
+                   })
+      
+      print(p1)
+      print(p2)
+      odf
+    }
+    
     #######################################################################        
     # end object      
 })

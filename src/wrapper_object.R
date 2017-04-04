@@ -738,6 +738,7 @@ wrapper_object <-
     .test <- function(.,metd=T,mc=T,pr=4,oconf=F) {
       
       # source directory
+      setwd('leaf')
       source('leaf_object.R')
       library(lattice)
       
@@ -805,6 +806,7 @@ wrapper_object <-
     .test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
       
       # source directory
+      setwd('leaf')
       source('leaf_object.R')
       library(lattice)
       
@@ -882,6 +884,7 @@ wrapper_object <-
     .test_saltelli <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3,eval_strings=T) {
       
       # source directory
+      setwd('leaf')
       source('leaf_object.R')
       library(lattice)
       

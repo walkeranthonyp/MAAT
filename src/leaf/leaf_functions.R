@@ -266,7 +266,6 @@ f_j_farquharwong1984 <- function(.){
   b  <- -1 * (I2 + .$state_pars$jmaxlt)
   c  <- I2 * .$state_pars$jmaxlt
   
-  #(b - (b^2 - 4*a*c)^0.5) / (2*a) # this probably needs to be more robust
   quad_sol(a,b,c)
 }
 
@@ -324,7 +323,6 @@ f_lim_collatz1991 <- function(.){
   b  <- -1 * (.$state$wc + .$state$wj)
   c  <- .$state$wc * .$state$wj
   
-  #sol1 <- (b - (b^2 - 4*a*c)^0.5) / (2*a) # this probably needs to be more robust
   sol1 <- quad_sol(a,b,c)
 
   if(!is.na(.$state$wp)) {
@@ -332,7 +330,6 @@ f_lim_collatz1991 <- function(.){
     b  <- -1 * (.$state$wp + sol1)
     c  <- .$state$wp * sol1
     
-    #(b - (b^2 - 4*a*c)^0.5) / (2*a) # this probably needs to be more robust    
     quad_sol(a,b,c)
   } else sol1
 }
@@ -489,12 +486,12 @@ f_r_zero_fg1 <- function(.,...){
 # stomata
 # stomatal resistances are all assumed to be in h2o units 
 f_rs_constant <- function(.,...) {
-  # output in m2s mol-1 h2o 
-  
-  # this currently doesn't work with the solver. 
+  # output in m2s mol-1 h2o
+
+  # this currently doesn't work with the solver.
   # When rs is not a function of A the solver interval doesn't span zero,
   # if this is a function to be used must reroute solver to an analytical method
-  
+
   .$pars$rs
 }
 
