@@ -146,7 +146,11 @@ leaf_object <-
     #output processing function
     # -- returns a list of outputs
     output <- function(.){
-      if(.$cpars$output=='run') {
+      if(.$cpars$output=='slim') {
+        lout <- 
+          list(A=.$state$A,ci=.$state$ci,lim=.$state$lim)
+        
+      } else if(.$cpars$output=='run') {
         lout <- 
           list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
                gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
@@ -435,6 +439,7 @@ leaf_object <-
       
       if(.$wpars$UQ) {
         if(.$wpars$UQtype=='ye') maat$vars$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
+        if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$wpars$eval_strings <- T
         if(.$wpars$eval_strings) maat$vars$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
       }
     }

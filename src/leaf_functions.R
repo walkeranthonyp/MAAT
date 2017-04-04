@@ -488,15 +488,15 @@ f_r_zero_fg1 <- function(.,...){
 
 # stomata
 # stomatal resistances are all assumed to be in h2o units 
-# f_rs_constant <- function(.,...) {
-#   # output in m2s mol-1 h2o 
-#   
-#   # this currently doesn't work with the solver. 
-#   # When rs is not a function of A the solver interval doesn't span zero,
-#   # if this is a function to be used must reroute solver to an analytical method
-#   
-#   .$pars$rs
-# }
+f_rs_constant <- function(.,...) {
+  # output in m2s mol-1 h2o 
+  
+  # this currently doesn't work with the solver. 
+  # When rs is not a function of A the solver interval doesn't span zero,
+  # if this is a function to be used must reroute solver to an analytical method
+  
+  .$pars$rs
+}
 
 f_rs_medlyn2011 <- function(.,A=.$state$A,c=.$state$cb){
   # Medlyn et al 2011 eq for stomatal resistance

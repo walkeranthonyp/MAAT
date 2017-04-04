@@ -53,16 +53,17 @@ wrapper_object <-
       # need to add a checking function that allows the names of fnames, pars, and env to be checked and if they don't match up to print an error message 
       
       # configure initialisation lists - not called if unit testing (need to develop unit testing specifically for the model object init functions)
+      if(.$wpars$UQtype=='ye')  .$wpars$eval_strings <- T
       if(!.$wpars$unit_testing) .$model$init()
-      
+      print(.$wpars$eval_strings) 
       # for Ye et al SA method
       # due to different parameter sample numbers in process A and B loops,
       # parameters samples must be generated from code snippets as strings
-      if(.$wpars$UQtype=='ye') .$wpars$eval_strings <- T
       if(.$wpars$eval_string&is.na(.$vars$pars_eval[[1]])) {
-        stop('wrapper: eval_strings = T but vars$pars_eval not set. \n 
+        stop(paste('wrapper: eval_strings = T but vars$pars_eval not set. \n
+              vars$pars_eval:,\n',.$vars$pars_eval,'\n 
               NOTE: Ye method SA must draw parameter samples during runtime \n
-              from code snippets expressed as strings in vars$pars_eval') 
+              from code snippets expressed as strings in vars$pars_eval')) 
       }
 
       # initialise model with static variables
@@ -650,7 +651,7 @@ wrapper_object <-
       ab_mat_out  <- array(suppressWarnings(as.numeric(unlist(.$dataf$out))),c(.$dataf$le,2*.$wpars$n,.$dataf$lf,length(.$dataf$out)))
 
       # output a list composed of the AB matrix output array, the fnames that define each model combination, the parameter names
-      list(AB=perm(ab_mat_out,c(3,1,2,4)), fnames=.$dataf$fnames, par_names=colnames(.$dataf$pars) )
+      list(AB=aperm(ab_mat_out,c(3,1,2,4)), fnames=.$dataf$fnames, par_names=colnames(.$dataf$pars) )
     }
   
     output_saltelli <- function(.) {

@@ -47,13 +47,13 @@
 # define lists
 leaf.fnames.static <- list(
   solver_func = 'f_A_r_leaf',
-  gstar       = 'f_temp_scalar_no_response',
-  Kc_tcor     = 'f_temp_scalar_no_response',
-  Ko_tcor     = 'f_temp_scalar_no_response',
+  gstar       = 'f_scalar_none',
+  Kc_tcor     = 'f_scalar_none',
+  Ko_tcor     = 'f_scalar_none',
   vcmax       = 'f_constant_vcmax',
   jmax        = 'f_jmax_walker2014',
-  vcmax_tcor  = 'f_temp_scalar_no_response',
-  jmax_tcor   = 'f_temp_scalar_no_response',
+  vcmax_tcor  = 'f_scalar_none',
+  jmax_tcor   = 'f_scalar_none',
   respiration = 'f_rd_lin_vcmax', 
   ri          = 'f_r_zero',
   rs          = 'f_r_zero',
@@ -75,19 +75,18 @@ leaf.env.static  <- list(
 ###############################
 # if this is a UQ analysis, the "pars" list must contain parameter vectors that are of equal length - need to put a check for this in the wrapper 
 # if not a UQ analysis the parameter vectors in the "pars" list can be of different lengths
+# set to NA where variation is not required  
 
 # define lists
 leaf.fnames.var <- list(
-  etrans = c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991'),
-  rb     = c(),
-  solver = c()
+  etrans = c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991')
 )
 
-leaf.pars.var <- list(NA)
+leaf.pars.var <- NA
 
-leaf.pars_proc.var <- list(NA)
+leaf.pars_proc.var <- NA
 
-leaf.pars_eval.var <- list(NA)
+leaf.pars_eval.var <- NA
 
 leaf.env.var <- list(
   ca_conc = seq(50,1500,50)

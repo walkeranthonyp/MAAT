@@ -242,8 +242,8 @@ maat$init_dynamic <- init_dynamic
 print('',quote=F)
 print('Write record of static run variables',quote=F)
 setwd(odir)
-listtoXML('setup_static.xml',  'static',  sublist=inits)
-listtoXML('setup_dynamic.xml', 'dynamic', sublist=init_dynamic)
+listtoXML(paste(runid,'setup_static.xml',sep='_'),  'static',  sublist=inits)
+listtoXML(paste(runid,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
 
 
 
