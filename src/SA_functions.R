@@ -97,7 +97,7 @@ func_process_sensitivity <- function(ps,f,nA,nB,MA,MB,n) {
 
 
 #####################################################
-func_sobol_sensitivity <- function(sn,k,ABout,ABiout) {
+func_sobol_sensitivity <- function(sn,k,ABout,ABiout,pnames=NULL) {
   # Calculates Sobol first order and total sensitivity indices using Saltelli method
 
   # expects: 
@@ -107,22 +107,25 @@ func_sobol_sensitivity <- function(sn,k,ABout,ABiout) {
   # - ABiout - an sn * k matrix of output from the k ABi matrices
   
   # returns a list with objects:
-  # - mean        - overall mean of model output
-  # - total_var   - overall variance of model output
-  # - total_sd    - overall standard deviation of model output
-  # - par_var     - 2 x k matrix, 1st row partial variance for each parameter, 2nd row partial mean for each parameter
-  # - sensitivity - 2 x k matrix, 1st row first order, 2nd row total
+  # - mean         - overall mean of model output
+  # - total_var    - overall variance of model output
+  # - total_sd     - overall standard deviation of model output
+  # - pvar         - vector of length k, partial variance for each parameter
+  # - pe           - vector of length k, partial mean for each parameter
+  # - sensitivity1 - vector of length k, first order sensitivity (main effect)
+  # - sensitivityT - vector of length k, total sensitivity (including all interactions)
   
-  # initialise variance and mean vectors
+  # initialise partial variance and mean vectors
   vv <- numeric(k)
   ev <- numeric(k)
   
-  # Calculate the partial variance caused by single parameter
-  # following the equation (b) in Table 2 Saltelli et al. (2010).
-  # Calculate the partial mean for total effect sensitivity index
-  # following the equation (f) in Table 2 Saltelli et al. (2010),
   for(p in 1:k) {
+    # Calculate the partial variance caused by single parameter
+    # following the equation (b) in Table 2 Saltelli et al. (2010).
     vv[p] <- sum( ABout[(sn+1):(2*sn)]*(ABiout[1:sn,p] - ABout[1:sn]) ) / sn      
+
+    # Calculate the partial mean for total effect sensitivity index
+    # following the equation (f) in Table 2 Saltelli et al. (2010),
     ev[p] <- sum( (ABout[1:sn] - ABiout[1:sn,p])^2 ) / (2*sn)      
   }
   
@@ -135,12 +138,18 @@ func_sobol_sensitivity <- function(sn,k,ABout,ABiout) {
   #Calculate total-effect sensitivity index
   st  <- ev/v_t
   
+  # name parameter SA vectors
+  if(!is.null(pnames)) {
+    names(si) <- pnames
+    names(st) <- pnames
+  }
+   
   # a model and scenario name would be useful in this output list - would need to be added to the output from the wrapper 
   Tvar <- c(mean=mean(ABout),total_var=v_t,total_sd=v_t^0.5)
+
+  # output list
   list(Tvar=Tvar,pvar=vv,pe=ev,sensitivity1=si,sensitivityT=st)
-            
 #   list(Tvar=Tvar,par_var=rbind(vv,ev),sensitivity=rbind(si,st))
-            
 #   list(mean=mean(ABout),total_var=v_t,total_sd=v_t^0.5,par_var=rbind(vv,ev),sensitivity=rbind(si,st))
 }
 
@@ -150,12 +159,16 @@ func_sobol_sensitivity <- function(sn,k,ABout,ABiout) {
 calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
   # calcualtes Sobol sensitivity indices using output from a Saltelli algorithm
   # Expects the use of multiple models and scenarios
-  # Expects outdata to be a list of two objects - a 4D array AB - & a 2D list compoised of 3D arrays ABi  
+  # Expects outdata to be a list of two objects - a 4D array AB - & a 2D list composed of 3D arrays ABi  
+  # Expects outdata to be a list of two objects - a 3 element list AB - & a 2D list composed of 3D arrays ABi  
   # AB
+  # list element 1 - a 4D numeric array AB 
   # - dim 1 - the various models used
   # - dim 2 - the various scenarios/environments used
   # - dim 3 - the parameter samples used
   # - dim 4 - the various output columns from the model (variable of interest subscript - delta)
+  # list element 2 - a character matrix of model process combinations 
+  # list element 3 - a character vector of parameter names 
   # ABi
   # - list dim 1  - the various models used
   # - list dim 2  - the various scenarios/environments used
@@ -163,47 +176,36 @@ calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
   # - array dim 2 - the various output columns from the model (variable of interest subscript - delta)
   # - array dim 3 - the parameters in the analysis (length - k)
   
-  
   # list processing function 
   # - creates a weighted average across list elements from a Sobol list 
   # - same dimensions as the list dimensions of ABi
-#   average_list <- function(inlist,prob) {
-#     total_var <- sum( sapply(inlist,function(l) l$Tvar[2]) * prob)
-#     list(
-#       Tvar = t(as.matrix(c(
-#         mean      = sum( sapply(inlist,function(l) l$Tvar[1]) * prob),
-#         total_var = total_var,
-#         total_sd  = total_var^0.5
-#       ))),
-#       par_var   = rbind(
-#         apply( sapply(inlist,function(l) l$par_var[1,]) ,1,function(v) sum(v*prob)),
-#         apply( sapply(inlist,function(l) l$par_var[2,]) ,1,function(v) sum(v*prob))
-#       ), 
-#       sensitivity = rbind(
-#         apply( sapply(inlist,function(l) l$par_var[1,]) ,1,function(v) sum(v*prob))/total_var,
-#         apply( sapply(inlist,function(l) l$par_var[2,]) ,1,function(v) sum(v*prob))/total_var
-#       ) 
-#     )
-#   }
-  
   average_list <- function(inlist,prob) {
     total_var <- sum( sapply(inlist,function(l) l$Tvar[2]) * prob)
-    list(
-      Tvar = c(
-        mean        = sum( sapply(inlist,function(l) l$Tvar[1]) * prob),
-        total_var   = total_var,
-        total_sd    = total_var^0.5
-      ),
-      pvar          = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob)),
-      pe            = apply( sapply(inlist,function(l) l$pe)   ,1,function(v) sum(v*prob)),
-      sensitivity1  = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob))/total_var,
-      sensitivityT  = apply( sapply(inlist,function(l) l$pe)   ,1,function(v) sum(v*prob))/total_var
-    )
+    olist <- 
+      list(
+        Tvar = c(
+          mean        = sum( sapply(inlist,function(l) l$Tvar[1]) * prob),
+          total_var   = total_var,
+          total_sd    = total_var^0.5
+        ),
+        pvar          = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob)),
+        pe            = apply( sapply(inlist,function(l) l$pe)   ,1,function(v) sum(v*prob)),
+        sensitivity1  = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob))/total_var,
+        sensitivityT  = apply( sapply(inlist,function(l) l$pe)   ,1,function(v) sum(v*prob))/total_var
+      )
+    
+    # name parameter vectors
+    if(!is.null(names(inlist[[1]]$sensitivity1))) {
+      names(olist$sensitivity1) <- names(inlist[[1]]$sensitivity1)  
+      names(olist$sensitivityT) <- names(inlist[[1]]$sensitivity1)  
+    }
+    
+    olist
   }
   
   # calculate number of models and scenarios
-  nmod    <- dim(outdata$AB)[1]
-  nscen   <- dim(outdata$AB)[2]
+  nmod    <- dim(outdata$AB$AB)[1]
+  nscen   <- dim(outdata$AB$AB)[2]
   
   # assume models are of equal probability
   pmod    <- rep(1/nmod,nmod)
@@ -216,8 +218,7 @@ calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
   for(m in 1:nmod) {
     # scenario loop
     for(e in 1:nscen) {
-      out1 <- list(func_sobol_sensitivity(sn,k,outdata$AB[m,e,,delta],outdata$ABi[[m]][[e]][,delta,]))      
-#       out1 <- func_sobol_sensitivity(sn,k,outdata$AB[m,e,,delta],outdata$ABi[[m]][[e]][,delta,])      
+      out1 <- list(func_sobol_sensitivity(sn,k,outdata$AB$AB[m,e,,delta],outdata$ABi[[m]][[e]][,delta,],pnames=outdata$AB$par_names))      
       out2 <- if(e==1) out1 else c(out2,out1)
     }
     sensout <- if(m==1) list(out2) else c(sensout,list(out2))
