@@ -91,8 +91,9 @@ eval_strings <- F
 # initialisation data file is an XML, if false init file is the R script named below
 xml          <- F
 
-# initialise in the configuration of the below specified model 
-mod_init     <- NULL
+# initialise in the configuration of the below specified model
+# options are: clm40, 
+mod_mimic    <- NULL
 
 # initialisation data file name if not an XML
 init         <- 'init_MAAT' 
@@ -109,7 +110,8 @@ of_format    <- 'csv'
 
 
 #############################################################################################
-
+### If users want to edit default options, 
+### the above object assignments can be modified once this script has been copied to the project directory
 ### DO NOT EDIT BELOW THIS LINE 
 
 #############################################################################################
@@ -170,6 +172,11 @@ source(paste(mod_obj,'object.R',sep='_'))
 # read default model setup
 setwd(mod_obj)
 init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
+# read model mimic setup
+if(!is.null(mod_mimic)) {
+  init_mimic   <- readXML(paste(mod_obj,'_',mod_mimic,'.xml',sep=''))
+  init_default <- fuselists(init_default,init_mimic) 
+}
 
 
 
@@ -218,9 +225,7 @@ if(!is.null(mod_init)) xml <- T
 if(xml) {
   
   # read user defined XMLs of static variables
-  staticxml   <- 
-    if(is.null(mod_init)) paste(mod_init,'.xml',sep='')
-    else                  paste(mod_obj,'user','static.xml',sep='_')
+  staticxml   <- paste(mod_obj,'user','static.xml',sep='_')
   init_static <- 
     if(file.exists(staticxml)) readXML(staticxml)
     else                       list(leaf = list(fnames=NA,pars=NA,env=NA))
