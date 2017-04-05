@@ -153,14 +153,29 @@ wrapper_object <-
                 else                 lapply(1:.$dataf$lf,.$runf)
               }
             ))
+
+        # print summary of results
+        # - output function needs to be called from run script
+        print("output ::",quote=F)
+        print(paste('length ::',length(.$dataf$out[,1])),quote=F)
+        print(head(.$dataf$out),quote=F)
+        print('',quote=F)      
+        
       }
         
       # if Saltelli SA generate output from parameter matrices ABi
       if(.$wpars$UQtype=='saltelli') {
+        
+        # process & record output
+        if(.$wpars$unit_testing) { 
+          hd     <- getwd()
+          setwd('~/tmp')
+          ofname <- 'Salt_test' 
+        } else setwd(odir)
+        
         # output AB matrix and clear out df
-        setwd(odir) 
         write_to_file(.$output_saltelli_AB(),paste(ofname,'salt','AB',sep='_'),type='rds')  
-        .$dataf$out <- matrix(1)   
+        if(!.$wpars$unit_testing) .$dataf$out <- matrix(1)   
         print('Saltelli matrix AB completed', quote=F)
         print('',quote=F)
         print('',quote=F)
@@ -172,18 +187,12 @@ wrapper_object <-
           else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
         
         write_to_file(.$dataf$out_saltelli,paste(ofname,'salt','ABi',sep='_'),type='rds')  
-        .$dataf$out_saltelli <- matrix(1)   
+        if(!.$wpars$unit_testing) .$dataf$out_saltelli <- matrix(1)   
         print('Saltelli array ABi completed',quote=F)
         print('',quote=F)
+        
+        if(.$wpars$unit_testing) setwd(hd)
       }             
-      
-      # print summary of results
-      # - output function needs to be called from run script
-      print("output ::",quote=F)
-      print(paste('length ::',length(.$dataf$out[,1])),quote=F)
-      print(head(.$dataf$out),quote=F)
-      print('',quote=F)      
-      
     }
     
     
@@ -388,9 +397,11 @@ wrapper_object <-
         setwd('~/tmp')
         ofname <- 'Ye_test' 
       } else setwd(odir)
-
-      write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')  
-      .$dataf$out <- NULL   
+      
+      write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')
+      
+      # clear memory space
+      if(!.$wpars$unit_testing) .$dataf$out <- NA   
       gc()
 
       if(.$wpars$unit_testing) setwd(hd)
@@ -656,7 +667,6 @@ wrapper_object <-
   
     output_saltelli <- function(.) {
       # creates output for a saltelli Sobol sensitivity analysis 
-      # A and B matrices are stacked in a single matrix, which for each model and environment combination are then stored in an array 
 
       # AB output is an array
       # - dim 1 (rows)   model combination
@@ -672,7 +682,7 @@ wrapper_object <-
       #    - dim 2 (cols)   output variable
       #    - dim 3 (slices) parameter that has used value from matrix B while all other par values are from matrix A
       
-      list(AB=.$output_saltelli_AB,ABi=.$dataf$out_saltelli)
+      list(AB=.$output_saltelli_AB(),ABi=.$dataf$out_saltelli)
     }
     
     # Print functions
@@ -740,6 +750,8 @@ wrapper_object <-
       # source directory
       setwd('leaf')
       source('leaf_object.R')
+      setwd('..')
+      
       library(lattice)
       
       # clone the model object
@@ -808,6 +820,7 @@ wrapper_object <-
       # source directory
       setwd('leaf')
       source('leaf_object.R')
+      setwd('..')
       library(lattice)
       
       # clone the model object
@@ -876,7 +889,10 @@ wrapper_object <-
       
       # process & record output
       df <- .$output()
-      p1 <- bwplot(leaf.ca_conc~A|leaf.Alim*leaf.etrans,df,auto.key=T,abline=0)
+      p1 <- bwplot(df$env[,which(colnames(df$env)=='leaf.ca_conc')] ~ df$A | 
+                     df$fnamesB[,which(colnames(df$fnamesB)=='leaf.Alim')] *
+                     df$fnames[,which(colnames(df$fnames)=='leaf.etrans')] ,
+                   auto.key=T,abline=0)
       list(df,p1)
     }    
     
@@ -886,6 +902,7 @@ wrapper_object <-
       # source directory
       setwd('leaf')
       source('leaf_object.R')
+      setwd('..')
       library(lattice)
       
       # clone the model object

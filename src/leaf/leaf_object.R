@@ -646,14 +646,14 @@ leaf_object <-
       
       if(!ana_only) {
         .$fnames$solver <- 'f_R_Brent_solver'
-        .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-        num_soln <- cbind(.$dataf$met,.$dataf$out,sol='num')
+        .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+        num_soln        <- cbind(.$dataf$met,.$dataf$out,sol='num')
         # print(num_soln)
       }
 
       .$fnames$solver <- 'f_A_r_leaf_analytical'
-      .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-      ana_soln <- cbind(.$dataf$met,.$dataf$out,sol='ana')
+      .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+      ana_soln        <- cbind(.$dataf$met,.$dataf$out,sol='ana')
       # print(ana_soln)
       
       odf <- if(ana_only) ana_soln else rbind(num_soln,ana_soln)
