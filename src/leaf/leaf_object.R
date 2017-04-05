@@ -65,8 +65,8 @@ leaf_object <-
       # kinetic pars & temperature dependence
       # - if the solver involves the energy balance all of this crap needs to go in the solver! 
       .$state$leaf_temp    <- .$env$temp               
-      .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=list(Tr=.$pars$reftemp.Kc,Ha=.$pars$Ha.Kc,q10=.$pars$q10.Kc))
-      .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko,q10=.$pars$q10.Ko)) 
+      .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=list(Tr=.$pars$reftemp.Kc,Ha=.$pars$Ha.Kc,q10=.$pars$q10.Kc,q10_func='f_q10_constant'))
+      .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko,q10=.$pars$q10.Ko,q10_func='f_q10_constant')) 
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
       .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
       .$state_pars$vcmaxlt <- .$state_pars$vcmax * 

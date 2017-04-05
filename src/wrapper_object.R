@@ -623,13 +623,21 @@ wrapper_object <-
           
           # if no met data
           if(is.null(.$dataf$met)) {
-            if(.$wpars$UQtype=='ye') print(paste('vardf:',length(vardf[[1]][,1]),', out:',length(.$dataf$out[[1]])),quote=F)
-            else                     print(paste('vardf:',length(vardf[,1]),', out:',length(.$dataf$out[,1])),quote=F)
-            # return a list
-            return(c(vardf,  .$dataf$out  ))
-            rm(vardf)            
+            # if(.$wpars$UQtype=='ye') {
+            if(.$wpars$UQ) {
+              print(paste('vardf:',length(vardf[[1]][,1]),', out:',length(.$dataf$out[[1]])),quote=F)
+              # return a list
+              return(c(vardf,  .$dataf$out  ))
+              rm(vardf)            
+            } else {
+              print(paste('vardf:',length(vardf[,1]),', out:',length(.$dataf$out[,1])),quote=F)
+              # return a dataframe
+              return(cbind(vardf,  .$dataf$out  ))
+              rm(vardf)            
+            }
 
           # if met data
+          # - so far will only work for factorial simulations
           } else {
             odf <- cbind(do.call(rbind , lapply(1:length(vardf[,1]) , .$combine ,df=vardf )), .$dataf$out )            
             print(head(odf))
