@@ -63,13 +63,22 @@ readXML <- function(input.file=NULL) {
 #####################################################
 # run over all elements of a list, returning a list of the same structure
 # evaluate character strings to r objects
+
 evalXMLlist <- function(sublist) {
+    
+  # subset sublist to elements that are non-null
+  sub <- which(sapply(sublist,is.null))
+  if(length(sub)>0) sublist <- sublist[-sub]
+  
+  # recursively evaluate all elements of sublist
   for(i in 1:length(sublist)) {
     sublist[[i]] <- 
       if(typeof(sublist[[i]]) == "list")  evalXMLlist(sublist[[i]]) else eval(parse(text=sublist[[i]]))
   }
   sublist
 }
+
+
 
 
 #####################################################

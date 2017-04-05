@@ -88,12 +88,12 @@ metdata    <- NULL
 # pass code snippets as strings to generate parameter samples, see init_MAAT.R and wrapper for use
 eval_strings <- F 
 
-# initialisation data file is an XML, if false init file is the R script named below
-xml          <- F
-
 # initialise in the configuration of the below specified model
 # options are: clm40, 
 mod_mimic    <- NULL
+
+# static and dynamic initialisation files are XMLs, if false init file is the R script named below
+xml          <- F
 
 # initialisation data file name if not an XML
 init         <- 'init_MAAT' 
@@ -152,10 +152,10 @@ if(is.null(odir)) {
 }
 
 # create input/output filenames
-initf   <- if(is.null(runid))    paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
-ofname  <- if(is.null(runid))    of_main else paste(runid,of_main,sep='_')
-ofname  <- if(is.null(mod_init)) ofname  else paste(ofname,mod_init,sep='_')
-sofname <- if(is.null(runid))    of_main else paste(runid,of_main,'salt',sep='_')
+initf   <- if(is.null(runid))     paste(init,'R',sep='.')       else paste(init,'_',runid,'.R',sep='')
+ofname  <- if(is.null(runid))     of_main                       else paste(runid,of_main,sep='_')
+ofname  <- if(is.null(mod_mimic)) ofname                        else paste(ofname,mod_mimic,sep='_')
+sofname <- if(is.null(runid))     paste(of_main,'salt',sep='_') else paste(runid,of_main,'salt',sep='_')
 
 
 
@@ -167,10 +167,9 @@ sofname <- if(is.null(runid))    of_main else paste(runid,of_main,'salt',sep='_'
 setwd(srcdir)
 source('wrapper_object.R')
 # load MAAT object(s) from source
-setwd(mod_obj)
+setwd(paste('./',mod_obj,sep=''))
 source(paste(mod_obj,'object.R',sep='_'))
 # read default model setup
-setwd(mod_obj)
 init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
 # read model mimic setup
 if(!is.null(mod_mimic)) {
@@ -221,7 +220,6 @@ maat$model$cpars$verbose <- F
 setwd(pdir)
 
 # read user defined values of static variables
-if(!is.null(mod_init)) xml <- T
 if(xml) {
   
   # read user defined XMLs of static variables
