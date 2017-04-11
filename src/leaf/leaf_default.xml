@@ -7,7 +7,7 @@
       <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
       <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
       <vcmax>'f_constant_vcmax'</vcmax>
-      <jmax>'f_jmax_walker2014'</jmax>
+      <jmax>'f_jmax_power'</jmax>
       <tpu>'f_tpu_lin'</tpu>
       <vcmax_tcor_asc>'f_temp_scalar_Arrhenius'</vcmax_tcor_asc>
       <jmax_tcor_asc>'f_temp_scalar_Arrhenius'</jmax_tcor_asc>
@@ -82,6 +82,8 @@
       <rl_rd_ratio>1</rl_rd_ratio>
       <rl_rd_lloyd_a>0.5</rl_rd_lloyd_a>
       <rl_rd_lloyd_b>0.05</rl_rd_lloyd_b>
+      <a_rdv_25_t>0.015</a_rdv_25_t>
+      <b_rdv_25_t>-0.0005</b_rdv_25_t>
       <reftemp.rd>25</reftemp.rd>
       <reftemp.vcmax>25</reftemp.vcmax>
       <reftemp.jmax>25</reftemp.jmax>
@@ -115,11 +117,14 @@
       <Topt.vcmax>27.56</Topt.vcmax>
       <Topt.jmax>19.89</Topt.jmax>
       <Topt.tpu>27.56</Topt.tpu>
+      <deltaS.rd>NA</deltaS.rd>
       <deltaS.vcmax>NA</deltaS.vcmax>
       <deltaS.jmax>NA</deltaS.jmax>
       <deltaS.tpu>NA</deltaS.tpu>
+      <a_deltaS_t.rd>490</a_deltaS_t.rd>
       <a_deltaS_t.vcmax>668</a_deltaS_t.vcmax>
       <a_deltaS_t.jmax>660</a_deltaS_t.jmax>
+      <b_deltaS_t.rd>0</b_deltaS_t.rd>
       <b_deltaS_t.vcmax>-1.07</b_deltaS_t.vcmax>
       <b_deltaS_t.jmax>-0.75</b_deltaS_t.jmax>
       <q10.rd>2</q10.rd>

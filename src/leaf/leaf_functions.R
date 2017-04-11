@@ -347,6 +347,12 @@ f_rd_lin_vcmax <- function(.) {
   .$pars$a_rdv_25 + .$state_pars$vcmax * .$pars$b_rdv_25    
 }
 
+f_rd_lin_vcmax_t <- function(.) {
+  # rd25 is a proportion of vcmax 25 but that proportion changes with temperature
+  .$pars$b_rdv_25 <- .$pars$a_rdv_25_t + .$state$leaf_temp * .$pars$b_rdv_25_t
+  .$pars$a_rdv_25 + .$state_pars$vcmax * .$pars$b_rdv_25    
+}
+
 f_rd_lin_N <- function(.) {
   .$pars$a_rdn_25 + .$state$leafN_area * .$pars$b_rdn_25    
 }
@@ -356,7 +362,8 @@ f_rd_tcor_independent <- function(.) {
   get(.$fnames$rd_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.rd,Ha=.$pars$Ha.rd,q10_func=.$fnames$q10_func.rd,
                                            q10=.$pars$q10.rd,a_q10_t=.$pars$a_q10_t.rd,b_q10_t=.$pars$b_q10_t.rd)) *
   get(.$fnames$rd_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.rd,Hd=.$pars$Hd.rd,Topt=.$pars$Topt.rd,
-                                           tupp=.$pars$tupp_cox.rd,tlow=.$pars$tlow_cox.rd,exp=.$pars$exp_cox.rd))
+                                           tupp=.$pars$tupp_cox.rd,tlow=.$pars$tlow_cox.rd,exp=.$pars$exp_cox.rd,
+                                           a_deltaS_t=.$pars$a_deltaS_t.rd,b_deltaS_t=.$pars$b_deltaS_t.rd,deltaS=.$pars$deltaS.rd))
 }
 
 f_rd_tcor_dependent <- function(.) {
@@ -400,7 +407,7 @@ f_constant_jmax <- function(.) {
   .$pars$atref.jmax
 }
 
-f_jmax_walker2014 <- function(.) {
+f_jmax_power <- function(.) {
   exp(.$pars$e_ajv_25) * .$state_pars$vcmax^.$pars$e_bjv_25    
 }
 
@@ -613,6 +620,15 @@ f_scalar_none <- function(...){
   1
 }
 
+# temperature dependence functions that cannot be separtaed into ascending and decending components
+f_temp_scalar_bethy <- function(.,parlist,...) { 
+  
+  exp(-(.$state$leaf_temp-parlist$Tr)/10) * 
+    ( (parlist$a_q10_t + parlist$b_q10_t*.$state$leaf_temp) ^ ((parlist$a_q10_t + parlist$b_q10_t*.$state$leaf_temp)/(10*parlist$b_q10_t))    /  
+        ( (parlist$a_q10_t + parlist$b_q10_t*parlist$Tr) ^ ((parlist$a_q10_t + parlist$b_q10_t*parlist$Tr)/(10*parlist$b_q10_t)) ) )
+  
+}
+
 
 # Ascending components of the temperature response function - can be run alone for an increasing repsonse only
 f_temp_scalar_Arrhenius <- function(.,parlist,...){
@@ -719,13 +735,13 @@ f_temp_scalar_cox2001_des <- function(.,parlist,...){
 # functions that can allow for temperature acclimation of parameters, deltaS, Q10
 
 # deltaS
-f_deltaS_constant <- function(.,parlist,...){
+f_deltaS_constant <- function(.,parlist,...) {
   #constant delta S
 
   parlist$deltaS
 }
 
-f_deltaS <- function(.,parlist,...){
+f_deltaS <- function(.,parlist,...) {
   #calculate delta S from T opt (temp where t scaling peaks) in oC
   #Medlyn 2002
   
@@ -734,21 +750,21 @@ f_deltaS <- function(.,parlist,...){
   parlist$Hd/Toptk + (.$pars$R*log(parlist$Ha/(parlist$Hd - parlist$Ha)))
 }
 
-f_deltaS_lin_t <- function(.,parlist,...){
+f_deltaS_lin_t <- function(.,parlist,...) {
   #calculate delta S
-  #Medlyn 2002
-  
+
+  # CLM limits the range of growth temps 
   parlist$a_deltaS_t + .$state$leaf_temp * parlist$b_deltaS_t 
 }
 
 # Q10
-f_q10_constant <- function(.,parlist,...){
+f_q10_constant <- function(.,parlist,...) {
   # constant delta S
   
   parlist$q10
 }
 
-f_q10_lin_t <- function(.,parlist,...){
+f_q10_lin_t <- function(.,parlist,...) {
   # calculate q10 as a function of T
   # Tjoelker 
   
@@ -758,11 +774,11 @@ f_q10_lin_t <- function(.,parlist,...){
 
 
 ### Gamma star - CO2 compensation point in the absence of dark respiration
-f_constant_gstar <- function(.,...){
+f_constant_gstar <- function(.,...) {
   .$pars$atref.gstar
 }
 
-f_gstar_f1980 <- function(.,...){
+f_gstar_f1980 <- function(.,...) {
   # calculates Gamma star as a function of Kc & Ko, and thus their combined temperature dependence
   # Farquhar 1980 Eq 38
   # 0.21 = ko/kc
@@ -785,7 +801,7 @@ f_gstar_c1991 <- function(.) {
   .$state$oi/(2*.$state_pars$tau)   
 }
 
-f_temp_scalar_quadratic_bf1985 <- function(.,parlist,...){
+f_temp_scalar_quadratic_bf1985 <- function(.,parlist,...) {
   # calculates Gamma star (umol mol-1) temperature scalar (K or oC)
   # could be expanded to incorporate parameters in parlist, buit currently gstar specific
   # Brooks&Farquhar 1985

@@ -5,31 +5,31 @@
       f_gstar_constref will get a specified value at 25 and scale according to gstar_tcor, f_gstar_c1991 calculates from tau the CO2:O2 specificity ratio -->
       <gstar>c('f_constant_gstar','f_gstar_f1980','f_gstar_constref','f_gstar_c1991')</gstar>
       <!-- temperature scaling of gamma star, only used if <gstar> is set to 'f_gstar_constref' -->
-      <gstar_tcor>'f_temp_scalar_quadratic_bf1985'</gstar_tcor>
+      <gstar_tcor>c('f_temp_scalar_quadratic_bf1985','f_temp_scalar_Arrhenius')</gstar_tcor>
       <!-- temperature scaling of tau, only used if <gstar> is set to 'f_gstar_c1991' -->
       <tau_tcor>'f_temp_scalar_Q10'</tau_tcor>
       <!-- temperature scaling of Kc -->
       <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
       <!-- temperature scaling of Ko -->
       <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
-      <!-- scaling of Vcmax at reftemp.rd -->
+      <!-- scaling of Vcmax at reftemp.vcmax -->
       <vcmax>c('f_constant_vcmax','f_vcmax_lin','f_vcmax_clm')</vcmax>
-      <!-- scaling of Jmax at reftemp.rd, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
-      <jmax>c('f_constant_jmax','f_jmax_walker2014','f_jmax_lin','f_jmax_lin_t)</jmax>
-      <!-- scaling of TPU at reftemp.rd, f(Vcmax) -->
+      <!-- scaling of Jmax at reftemp.jmax, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
+      <jmax>c('f_constant_jmax','f_jmax_power','f_jmax_lin','f_jmax_lin_t)</jmax>
+      <!-- scaling of TPU at reftemp.tpu, f(Vcmax) -->
       <tpu>c('f_constant_tpu','f_tpu_lin')</tpu>
       <!-- increasing component of temperature scaling of Vcmax and Jmax -->
       <vcmax_tcor_asc>c('f_scalar_none','f_temp_scalar_Q10','f_temp_scalar_Arrhenius')</vcmax_tcor_asc>
       <jmax_tcor_asc>c('f_scalar_none','f_temp_scalar_Q10','f_temp_scalar_Arrhenius')</jmax_tcor_asc>
       <!-- decreasing component of temperature scaling of Vcmax and Jmax -->
-      <vcmax_tcor_des>c('f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</vcmax_tcor_des>
-      <jmax_tcor_des>c('f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</jmax_tcor_des>
+      <vcmax_tcor_des>c('f_scalar_none','f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</vcmax_tcor_des>
+      <jmax_tcor_des>c('f_scalar_none','f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</jmax_tcor_des>
       <!-- is temperature scaling of TPU the same as that of Vcmax or not -->
       <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
       <!-- increasing component of temperature scaling of TPU, if independent of Vcmax -->
       <tpu_tcor_asc>c('f_scalar_none','f_temp_scalar_Q10','f_temp_scalar_Arrhenius')</tpu_tcor_asc>
       <!-- decreasing component of temperature scaling of TPU, if independent of Vcmax -->
-      <tpu_tcor_des>c('f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</tpu_tcor_des>
+      <tpu_tcor_des>c('f_scalar_none','f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</tpu_tcor_des>
       <!-- function to determine delta S (entropy term) for rd, vcmax, & jmax; can be used for temperature acclimation -->
       <deltaS>'f_deltaS'</deltaS>
       <!-- electron transport -->
@@ -48,10 +48,12 @@
       <rl_rd_scalar>c('f_rl_rd_fixed','f_rl_rd_lloyd1995')</rl_rd_scalar>
       <!-- is temperature scaling of Rd the same as that of Vcmax or not -->
       <rd_tcor_dependence>c('f_rd_tcor_dependent','f_rd_tcor_independent')</rd_tcor_dependence> 
-      <!-- increasing component of temperature scaling of Rd, if independent of Vcmax -->
-      <rd_tcor_asc>c('f_scalar_none','f_temp_scalar_Q10','f_temp_scalar_Arrhenius')</rd_tcor_asc>
+      <!-- increasing component of temperature scaling of Rd, if independent of Vcmax 
+      'f_temp_scalar_bethy' is a complete curve with ascending and decending components, 
+      if using 'f_temp_scalar_bethy' user must set the descending component to 'f_scalar_none' -->
+      <rd_tcor_asc>c('f_scalar_none','f_temp_scalar_Q10','f_temp_scalar_Arrhenius','f_temp_scalar_bethy')</rd_tcor_asc>
       <!-- decreasing component of temperature scaling of Rd, if independent of Vcmax -->
-      <rd_tcor_des>c('f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</rd_tcor_des>
+      <rd_tcor_des>c('f_scalar_none','f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</rd_tcor_des>
       <!-- function to determine Q10 for rd, vcmax, & jmax; can be used for temperature acclimation -->
       <q10_func.rd>c('f_q10_constant','f_q10_lin_t')</q10_func.rd>          
       <q10_func.vcmax>'f_q10_constant'</q10_func.vcmax>          
@@ -78,7 +80,8 @@
       <diag>F</diag>
       <!-- fraction of light absorbed by leaf that is absorbed by photosystems, 0-1 -->
       <a>0.8</a>
-      <!-- fraction of incident light transmitted through leaf, 0-1 -->
+      <!-- fraction of absorbed light not absorbed by light harvesting complexes, 0-1
+      this effectively sets the intrisic quantum efficiency (alpha_i) where alpha_i = 0.5(1-f) -->
       <f>0.23</f>
       <!-- curvature of farquhar and wong 1984 electron transport, 0-1 --> 
       <theta>0.9</theta>
@@ -148,6 +151,9 @@
       <!-- parameters for Lloyd 1995 Rd in the light function of Rd in the dark -->
       <rl_rd_lloyd_a>0.5</rl_rd_lloyd_a>
       <rl_rd_lloyd_b>0.05</rl_rd_lloyd_b>
+      <!-- intercept & slope of b_rdv_25 relationship with temperature -->
+      <a_rdv_25_t>0.015</a_rdv_25_t>
+      <b_rdv_25_t>-0.0005</b_rdv_25_t>
       <!-- reference temperatures for temperature sensitive parameters -->
       <reftemp.rd>25</reftemp.rd>
       <reftemp.vcmax>25</reftemp.vcmax>
@@ -187,12 +193,15 @@
       <Topt.jmax>19.89</Topt.jmax>
       <Topt.tpu>27.56</Topt.tpu>
       <!-- delta S for temperature sensitive parameters -->
+      <deltaS.rd>NA</deltaS.rd>
       <deltaS.vcmax>NA</deltaS.vcmax>
       <deltaS.jmax>NA</deltaS.jmax>
       <deltaS.tpu>NA</deltaS.tpu>
       <!-- intercept and slope of delta S to leaf temperature for temperature sensitive parameters -->
+      <a_deltaS_t.rd>490</a_deltaS_t.rd>
       <a_deltaS_t.vcmax>668</a_deltaS_t.vcmax>
       <a_deltaS_t.jmax>660</a_deltaS_t.jmax>
+      <b_deltaS_t.rd>0</b_deltaS_t.rd>
       <b_deltaS_t.vcmax>-1.07</b_deltaS_t.vcmax>
       <b_deltaS_t.jmax>-0.75</b_deltaS_t.jmax>
       <!-- Q10 for temperature sensitive parameters -->
