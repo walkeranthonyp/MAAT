@@ -407,7 +407,7 @@ f_constant_jmax <- function(.) {
   .$pars$atref.jmax
 }
 
-f_jmax_walker2014 <- function(.) {
+f_jmax_power <- function(.) {
   exp(.$pars$e_ajv_25) * .$state_pars$vcmax^.$pars$e_bjv_25    
 }
 

@@ -7,7 +7,7 @@
       <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
       <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
       <vcmax>'f_constant_vcmax'</vcmax>
-      <jmax>'f_jmax_walker2014'</jmax>
+      <jmax>'f_jmax_power'</jmax>
       <tpu>'f_tpu_lin'</tpu>
       <vcmax_tcor_asc>'f_temp_scalar_Arrhenius'</vcmax_tcor_asc>
       <jmax_tcor_asc>'f_temp_scalar_Arrhenius'</jmax_tcor_asc>

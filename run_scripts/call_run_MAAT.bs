@@ -6,5 +6,5 @@ RUNID="#USERDEFINED#"
 YMD=`date +%Y-%m-%d`
 
 cd $PDIR
-Rscript run_MAAT.R "runid<-'${RUNID}'" "multic<-F" > "./logs/${YMD}_${RUNID}_runlog.txt"
+Rscript run_MAAT.R "runid<-'${RUNID}'" "multic<-F" "uq<-F" "factorial<-T" > "./logs/${YMD}_${RUNID}_runlog.txt"
 

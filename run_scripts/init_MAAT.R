@@ -47,13 +47,11 @@
 # define lists
 leaf.fnames.static <- list(
   solver_func = 'f_A_r_leaf',
-  gstar       = 'f_scalar_none',
+  gstar       = 'f_gstar_f1980',
   Kc_tcor     = 'f_scalar_none',
   Ko_tcor     = 'f_scalar_none',
   vcmax       = 'f_constant_vcmax',
-  jmax        = 'f_jmax_walker2014',
-  vcmax_tcor  = 'f_scalar_none',
-  jmax_tcor   = 'f_scalar_none',
+  jmax        = 'f_jmax_power',
   respiration = 'f_rd_lin_vcmax', 
   ri          = 'f_r_zero',
   rs          = 'f_r_zero',
