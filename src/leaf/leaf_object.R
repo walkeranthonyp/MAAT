@@ -192,7 +192,7 @@ leaf_object <-
       Kc_tcor             = 'f_temp_scalar_Arrhenius',
       Ko_tcor             = 'f_temp_scalar_Arrhenius',
       vcmax               = 'f_vcmax_lin',
-      jmax                = 'f_jmax_walker2014',
+      jmax                = 'f_jmax_power',
       tpu                 = 'f_tpu_lin',
       vcmax_tcor_asc      = 'f_temp_scalar_Arrhenius',
       jmax_tcor_asc       = 'f_temp_scalar_Arrhenius',
