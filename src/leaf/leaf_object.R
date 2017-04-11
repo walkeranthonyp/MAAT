@@ -338,6 +338,8 @@ leaf_object <-
       rl_rd_ratio   = 1,          # ratio of non-photorespiratory respiration in the light to respiration in the dark  (unitless)
       rl_rd_lloyd_a = 0.5,        # intercept of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from mercado 2007 (unitless) 
       rl_rd_lloyd_b = 0.05,       # slope of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from mercado 2007 (?)
+      a_rdv_25_t    = 0.015,      # intercept of b_rdv_25 relationship to temperature       (umolm-2s-1)
+      b_rdv_25_t    = -0.0005,    # slope of b_rdv_25 relationship to temperature           (unitless)
       # temperature response parameters
       reftemp.rd    = 25,         # reference temperature at which rd scalar = 1            (oC) 
       reftemp.vcmax = 25,         # reference temperature at which Vcmax scalar = 1         (oC) 
@@ -372,11 +374,14 @@ leaf_object <-
       Topt.vcmax    = 27.56,      # temperature optimum of Vcmax                            (oC)
       Topt.jmax     = 19.89,      # temperature optimum of Jmax                             (oC)
       Topt.tpu      = 27.56,      # temperature optimum of TPU                              (oC)
+      deltaS.rd     = numeric(0), # 
       deltaS.vcmax  = numeric(0), # 
       deltaS.jmax   = numeric(0), #
       deltaS.tpu    = numeric(0), #
+      a_deltaS_t.rd     = 490,    # linear temperature response of rd deltaS   
       a_deltaS_t.vcmax  = 668,    # linear temperature response of vcmax deltaS (Kattge & Knorr)  
       a_deltaS_t.jmax   = 660,    # linear temperature response of jmax deltaS (Kattge & Knorr)
+      b_deltaS_t.rd     = 0,      # linear temperature response of rd deltaS
       b_deltaS_t.vcmax  = -1.07,  # linear temperature response of vcmax deltaS (Kattge & Knorr)
       b_deltaS_t.jmax   = -0.75,  # linear temperature response of jmax deltaS (Kattge & Knorr)
       q10.rd        = 2,          # Q10 of Rd                                               (-)
