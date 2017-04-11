@@ -365,6 +365,7 @@ leaf_object <-
       Ha.Kc         = 79430,      # activation energy of Kc                                 (J mol-1)
       Ha.Ko         = 36380,      # activation energy of Ko                                 (J mol-1)
       Ha.gstar      = 37830,      # activation energy of gamma star                         (J mol-1)
+      Ha.tau        = -41572,     # activation energy of tau                                (J mol-1)
       Ha.vomax      = 60110,      # activation energy of Vomax                              (J mol-1)
       Hd.rd         = 200000,     # deactivation energy of rd                               (J mol-1)
       Hd.vcmax      = 200000,     # deactivation energy of Vcmax                            (J mol-1)
