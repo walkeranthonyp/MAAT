@@ -37,7 +37,7 @@
       <!-- is temperature scaling of Rd the same as that of Vcmax or not -->
       <rd_tcor_dependence>'f_rd_tcor_independent'</rd_tcor_dependence>
       <!-- increasing component of temperature scaling of Rd, if independent of Vcmax -->
-      <rd_tcor_asc>'f_temp_scalar_Q10'</rd_tcor_asc> <!-- the f25(Q10d,n) function accounts for different temperature sensitivities of leaf respiration during day (d) and night (n).-- >
+      <rd_tcor_asc>'f_temp_scalar_Q10'</rd_tcor_asc> <!-- the f25(Q10d,n) function accounts for different temperature sensitivities of leaf respiration during day (d) and night (n).-->
       <!-- function to determine Q10 for rd, vcmax, & jmax; can be used for temperature acclimation -->
       <q10_func.rd>'f_q10_constant'</q10_func.rd> <!-- different Q10 for day and night -->
       <q10_func.vcmax>'f_q10_constant'</q10_func.vcmax>          
@@ -59,7 +59,7 @@
       <!-- fraction of light absorbed by leaf that is absorbed by photosystems, 0-1 -->
       <a>0.85</a>
       <!-- fraction of incident light transmitted through leaf, 0-1 -->
-      <f>0.36</f> <!-- intrinsic quantum yield mol C/mol absorbed light, 0.08 C3
+      <f>0.36</f> <!-- intrinsic quantum yield mol C/mol absorbed light, 0.08 C3 -->
       <!-- curvature of collatz 1991 limiting rate selection function, wc or wj, 0-1 --> 
       <theta_collatz>0.95</theta_collatz>
       <!-- curvature of collatz 1991 limiting rate selection function, (wc or wj) or wp, 0-1 --> 
@@ -93,7 +93,6 @@
       <atref.tau>2600</atref.tau> <!-- Collatz 1991 -->
       <!-- Q10 for temperature sensitive parameters -->
       <q10.rd>1.3</q10.rd> <!-- daytime value -->
-      <q10.rd_night>2</q10.rd_night> <!-- nightime value -->
       <q10.vcmax>2</q10.vcmax>
       <q10.Kc>2.1</q10.Kc>
       <q10.Ko>1.2</q10.Ko>
