@@ -26,7 +26,7 @@
       <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
       <rd_tcor_dependence>'f_rd_tcor_dependent'</rd_tcor_dependence> 
       <rd_tcor_asc>'f_temp_scalar_Q10'</rd_tcor_asc>
-      <rd_tcor_des>'f_temp_scalar_Arrhenius'</rd_tcor_des>
+      <rd_tcor_des>'f_scalar_none'</rd_tcor_des>
       <q10_func.rd>'f_q10_constant'</q10_func.rd>          
       <q10_func.vcmax>'f_q10_constant'</q10_func.vcmax>          
       <q10_func.jmax>'f_q10_constant'</q10_func.jmax>          
@@ -59,7 +59,7 @@
       <flnr>0.09</flnr>
       <fnr>7.16</fnr>
       <Rsa>60</Rsa>
-      <wp_alpha>0.05</wp_alpha>
+      <wp_alpha>0</wp_alpha>
       <g0>0.01</g0>
       <g1_medlyn>5</g1_medlyn>
       <g1_leuning>5</g1_leuning>

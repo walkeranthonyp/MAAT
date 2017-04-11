@@ -107,6 +107,11 @@ f_A_r_leaf <- function(A,.,...) {
   # total resistance of a set of resistors in series is simply their sum 
   # assumes boundary layer and stomatal resistance terms are in h2o units
   # assumes mesophyll resistance is in co2 units
+  # print(.$fnames$gas_diff)
+  # print(.$fnames$rs)
+  # print(.$state_pars$rb)
+  # print(1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)))
+  # print(.$state_pars$ri)
   .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)) + .$state_pars$ri ) )
   
   # calculate w/cc
@@ -359,6 +364,7 @@ f_rd_lin_N <- function(.) {
 
 f_rd_tcor_independent <- function(.) {
   # TPU temperature scaling is independent
+
   get(.$fnames$rd_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.rd,Ha=.$pars$Ha.rd,q10_func=.$fnames$q10_func.rd,
                                            q10=.$pars$q10.rd,a_q10_t=.$pars$a_q10_t.rd,b_q10_t=.$pars$b_q10_t.rd)) *
   get(.$fnames$rd_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.rd,Hd=.$pars$Hd.rd,Topt=.$pars$Topt.rd,
@@ -399,6 +405,7 @@ f_vcmax_lin <- function(.) {
 }
 
 f_vcmax_clm <- function(.) {
+ 
   .$state$leafN_area * .$pars$flnr * .$pars$fnr * .$pars$Rsa  
 }
 
@@ -412,14 +419,14 @@ f_jmax_power <- function(.) {
 }
 
 f_jmax_lin <- function(.) {
-  .$pars$ajv_25 + .$state_pars$vcmax25 * .$pars$bjv_25    
+  .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25    
 }
 
 f_jmax_lin_t <- function(.) {
   .$pars$ajv_25 <- 0.0
   .$pars$bjv_25 <- .$pars$a_jvt_25 + .$state$leaf_temp * .$pars$b_jvt_25
-    
-  .$pars$ajv_25 + .$state_pars$vcmax25 * .$pars$bjv_25    
+
+  .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25    
 }
 
 
@@ -529,7 +536,8 @@ f_rs_leuning1995 <- function(.,A=.$state$A,c=.$state$cb){
 }
 
 f_rs_leuning1995_fg1 <- function(.,c=.$state$cb) {
-  # simplified version of rs   
+  # simplified version of rs
+  
   ( (c - .$state_pars$gamma)/(.$env$atm_press * 1e-6) * (1+.$env$vpd/.$pars$d0) ) / .$pars$g1_leuning 
 }
 
@@ -689,8 +697,6 @@ f_temp_scalar_modArrhenius_des <- function(.,parlist,...){
   # Trk    -- reference temperature (K) 
   # Tsk    -- temperature to adjust parameter to (K) 
   
-  print(parlist)
-  
   # convert to Kelvin
   Trk <- parlist$Tr + 273.15
   Tsk <- .$state$leaf_temp + 273.15
@@ -797,7 +803,7 @@ f_gstar_c1991 <- function(.) {
   # takes a defined ref temperature value of tau and scales to leaf temp
   # calcualtes gstar at leaftemp from tau
   
-  .$state_pars$tau <- .$pars$atref.tau * get(.$fnames$tau_tcor)(.,parlist=list(Tr=.$pars$reftemp.tau,q10=.$pars$q10.tau,Ha=.$pars$Ha.tau))
+  .$state_pars$tau <- .$pars$atref.tau * get(.$fnames$tau_tcor)(.,parlist=list(Tr=.$pars$reftemp.tau,q10=.$pars$q10.tau,Ha=.$pars$Ha.tau,q10_func='f_q10_constant'))
   .$state$oi/(2*.$state_pars$tau)   
 }
 

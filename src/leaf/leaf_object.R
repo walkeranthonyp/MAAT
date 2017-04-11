@@ -52,6 +52,8 @@ leaf_object <-
       .$state$ca <- .$env$ca_conc * .$env$atm_press * 1e-6
       # O2 partial pressure  (kPa)
       .$state$oi <- .$env$o2_conc * .$env$atm_press * 1e-3
+      # leaf temperature
+      .$state$leaf_temp    <- .$env$temp               
       
       
       # calculate state parameters
@@ -64,7 +66,6 @@ leaf_object <-
       
       # kinetic pars & temperature dependence
       # - if the solver involves the energy balance all of this crap needs to go in the solver! 
-      .$state$leaf_temp    <- .$env$temp               
       .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=list(Tr=.$pars$reftemp.Kc,Ha=.$pars$Ha.Kc,q10=.$pars$q10.Kc,q10_func='f_q10_constant'))
       .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko,q10=.$pars$q10.Ko,q10_func='f_q10_constant')) 
       .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
@@ -95,8 +96,7 @@ leaf_object <-
       .$state$J <- get(.$fnames$etrans)(.)
       # respiration
       .$state$respiration  <- .$state_pars$rd * get(.$fnames$rd_tcor_dependence)(.)
-      .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
-
+      
       # if PAR > 0
       if(.$env$par > 0) {
         # diagnostic calculations
@@ -107,6 +107,7 @@ leaf_object <-
         # run photosynthesis
         # account for decreased respiration in the light
         .$state$respiration  <- get(.$fnames$rl_rd_scalar)(.) * .$state$respiration
+        .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
         # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
         .$state$A       <- get(.$fnames$solver)(.)      
         # assign the limitation state - assumes the minimum is the dominant limiting rate
@@ -125,7 +126,8 @@ leaf_object <-
         .$state$A_noR      <- NA
         .$state$transition <- NA
         .$state$A          <- -.$state$respiration      
-        .$state$lim        <- 'night'       
+        .$state$lim        <- 'night'
+        .$state_pars$gamma <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
         .$state_pars$rs    <- get(.$fnames$rs)(.)
       }
       
@@ -178,8 +180,7 @@ leaf_object <-
       else                                    lout
       
     }    
-    
-    
+
     
     ###########################################################################
     # Variables etc
@@ -236,7 +237,7 @@ leaf_object <-
       vpd       = 2,                   # (kPa)
       rh        = 0.8,                 # (unitless - proportion)
       atm_press = 101325               # ( Pa)
-      )
+    )
 
     # leaf state
     state <- list(

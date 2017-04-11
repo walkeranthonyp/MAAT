@@ -35,7 +35,8 @@
 #   - pars_eval is a string that once evaluated gives a vector of parameter samples  
 
 
-# This script must set the values of the above 6 lists, even if their value is NA
+# This script must set the values of the above 6 lists, 
+# if you do not want to set any values using these lists they must be specified as empty lists, i.e. list()
 
 ###################################################################
 
@@ -110,4 +111,9 @@ init_dynamic <- list(
     pars_eval = leaf.pars_eval.var,
     env       = leaf.env.var
   ))
+
+
+
+
+
 
