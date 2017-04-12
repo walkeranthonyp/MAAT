@@ -1,0 +1,105 @@
+<default>
+  <leaf>
+    <fnames>
+      <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
+      f_gstar_constref will get a specified value at 25 and scale according to gstar_tcor, f_gstar_c1991 calculates from tau the CO2:O2 specificity ratio -->
+      <gstar>'f_gstar_c1991'</gstar>
+      <!-- temperature scaling of tau, only used if <gstar> is set to 'f_gstar_c1991' -->
+      <tau_tcor>'f_temp_scalar_Q10'</tau_tcor>
+      <!-- temperature scaling of Kc -->
+      <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
+      <!-- temperature scaling of Ko -->
+      <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
+      <!-- scaling of Vcmax at reftemp.rd -->
+      <vcmax>'f_constant_vcmax'</vcmax>
+      <tpu>'f_tpu_lin'</tpu>
+      <!-- increasing component of temperature scaling of Vcmax and Jmax -->
+      <vcmax_tcor_asc>'f_temp_scalar_Q10'</vcmax_tcor_asc>
+      <!-- decreasing component of temperature scaling of Vcmax and Jmax -->
+      <vcmax_tcor_des>'f_temp_scalar_cox2001_des')</vcmax_tcor_des>
+      <!-- is temperature scaling of TPU the same as that of Vcmax or not -->
+      <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
+      <!-- electron transport -->
+      <etrans>'f_j_collatz1991'</etrans>
+      <!-- RuBP saturated gross carboxylation rate -->
+      <wc>'f_wc_farquhar1980'</wc>
+      <!-- RuBP limited gross carboxylation rate -->
+      <wj>'f_wj_generic'</wj>
+      <!-- TPU limited gross carboxylation rate, mostly all variants of this are special cases of that presented in von Caemmerer 2000 -->
+      <wp>'f_wp_vonc2000'</wp>
+      <!-- gas diffusion function, Fick's law; added a zero bound when testing the solver but I think this is unnecessary -->
+      <gas_diff>'f_ficks_ci'</gas_diff>
+      <!-- scaling of Rd at reftemp.rd, f(Vcmax), f(N), -->
+      <respiration>'f_rd_lin_vcmax'</respiration>
+      <!-- scaling of Rd in the dark to rd in the light, default is fixed ratio with ratio set to 1 -->
+      <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
+      <!-- is temperature scaling of Rd the same as that of Vcmax or not -->
+      <rd_tcor_dependence>'f_rd_tcor_dependent'</rd_tcor_dependence> 
+      <!-- function to determine Q10 for rd, vcmax, & jmax; can be used for temperature acclimation -->
+      <q10_func.vcmax>'f_q10_constant'</q10_func.vcmax>          
+      <!-- internal resistance to CO2 transport -->
+      <ri>'f_r_zero'</ri>
+      <!-- stomatal resistance to H2O & CO2 transport, constant CiCa is implicit in LPJ and Cox 1999 does something similar for JULES -->
+      <rs>'f_rs_cox1999'</rs>
+      <!-- leaf boundary layer resistance to H2O & CO2 transport -->
+      <rb>'f_r_zero'</rb>
+      <!-- solver, numerical or analytical -->
+      <solver>'f_A_r_leaf_analytical'</solver>
+      <!-- function passed to solver -->
+      <solver_func>'f_A_r_leaf'</solver_func>
+      <!-- selection of limiting rate function, straight minimum Farquhar 1980 or smoothed Collatz 1991 -->
+      <Alim>'f_lim_collatz1991'</Alim>
+    </fnames>
+    <pars>
+      <!-- output diagnostics like transition point and non-stomatal limited photosynthesis, T/F -->
+      <diag>F</diag>
+      <!-- fraction of light absorbed by leaf that is absorbed by photosystems, 0-1 -->
+      <a>0.85</a>
+      <!-- fraction of incident light transmitted through leaf, 0-1 -->
+      <f>0.36</f>
+      <!-- curvature of collatz 1991 limiting rate selection function, wc or wj, 0-1 --> 
+      <theta_collatz>0.83</theta_collatz>
+      <!-- curvature of collatz 1991 limiting rate selection function, (wc or wj) or wp, 0-1 --> 
+      <beta_collatz>0.93</beta_collatz>
+      <!-- intercept & slope of TPU25 to Vcmax25 area relationship, intercept of zero slope of 0.16667 is equivalent to Collatz 1991 Vcmax/2 but in von Caemmerer's notation  -->
+      <atv_25>0</atv_25>
+      <btv_25>0.16667</btv_25>
+      <!-- stomatal conductance to environment slope parameter for JULES solved for g1 using g1=1.6/(f0-1) f0 = 0.875 unitless broad leaf tree -->
+      <g1_leuning>12.8</g1_leuning>
+      <!-- stomatal conductance to environment vpd normalisation parameter for JULES solved using D0=D*/((g1/1.6)-1) = 0.07125 kg kg-1, then converted to KPa (*163.077) -->
+      <d0>11.41539</d0>
+      <!-- intercept & slope of Rd25 to Vcmax25 area relationship -->
+      <a_rdv_25>0.0</a_rdv_25>
+      <b_rdv_25>0.015</b_rdv_25>
+      <!-- ratio of Rd in the light to Rd in the dark -->
+      <rl_rd_ratio>1</rl_rd_ratio>
+      <!-- reference temperatures for temperature sensitive parameters -->
+      <reftemp.vcmax>25</reftemp.vcmax>
+      <reftemp.Kc>25</reftemp.Kc>
+      <reftemp.Ko>25</reftemp.Ko>
+      <reftemp.tau>25</reftemp.tau>
+      <!-- constants at reference temperature for temperature sensitive parameters JULES vcmax: 0.0008*PFT N0 = 36.8 -->
+      <atref.vcmax>36.8</atref.vcmax>
+      <atref.Kc>30</atref.Kc>
+      <atref.Ko>30</atref.Ko>
+      <atref.tau>2600</atref.tau>
+      <!-- activation energy for temperature sensitive parameters -->
+      <q10.vcmax>2</q10.vcmax>
+      <q10.Kc>2.1</q10.Kc>
+      <q10.Ko>1.2</q10.Ko>
+      <q10.tau>0.57</q10.tau>
+      <!-- upper and lower temperatures for Cox temperature scaling for temperature sensitive parameters -->
+      <tupp_cox.vcmax>36</tupp_cox.vcmax>
+      <tlow_cox.vcmax>0</tlow_cox.vcmax>
+      <exp_cox.vcmax>0.3</exp_cox.vcmax>
+      <!-- universal gas constant -->
+      <R>8.31446</R>
+    </pars>
+    <env>
+      <!-- atmospheric O2 concentration -->
+      <o2_conc>0.21</o2_conc>
+      <!-- atmospheric pressure -->
+      <atm_press>101325</atm_press>
+    </env>
+  </leaf>
+</default>
