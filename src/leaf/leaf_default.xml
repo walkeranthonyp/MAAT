@@ -125,9 +125,11 @@
       <a_deltaS_t.rd>490</a_deltaS_t.rd>
       <a_deltaS_t.vcmax>668</a_deltaS_t.vcmax>
       <a_deltaS_t.jmax>660</a_deltaS_t.jmax>
-      <b_deltaS_t.rd>0</b_deltaS_t.rd>
+      <a_deltaS_t.tpu>660</a_deltaS_t.tpu>
+      <b_deltaS_t.rd>485</b_deltaS_t.rd>
       <b_deltaS_t.vcmax>-1.07</b_deltaS_t.vcmax>
       <b_deltaS_t.jmax>-0.75</b_deltaS_t.jmax>
+      <b_deltaS_t.tpu>0</b_deltaS_t.tpu>
       <q10.rd>2</q10.rd>
       <q10.vcmax>2</q10.vcmax>
       <q10.jmax>2</q10.jmax>

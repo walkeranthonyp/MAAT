@@ -80,7 +80,7 @@ leaf_object <-
         get(.$fnames$jmax_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.jmax,Ha=.$pars$Ha.jmax,Hd=.$pars$Hd.jmax,Topt=.$pars$Topt.jmax,q10=.$pars$q10.jmax,
                                                    a_deltaS_t=.$pars$a_deltaS_t.jmax,b_deltaS_t=.$pars$b_deltaS_t.jmax,deltaS=.$pars$deltaS.jmax))
       .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor_dependence)(.) 
-        
+
       # conductance/resistance terms
       # - if either of these functions become a function of co2 or assimilation they can be easily moved into the solver
       .$state_pars$rb      <- get(.$fnames$rb)(.)
@@ -382,10 +382,12 @@ leaf_object <-
       deltaS.tpu    = numeric(0), #
       a_deltaS_t.rd     = 490,    # linear temperature response of rd deltaS   
       a_deltaS_t.vcmax  = 668,    # linear temperature response of vcmax deltaS (Kattge & Knorr)  
-      a_deltaS_t.jmax   = 660,    # linear temperature response of jmax deltaS (Kattge & Knorr)
+      a_deltaS_t.jmax   = 660,    # linear temperature response of jmax  deltaS (Kattge & Knorr)
+      a_deltaS_t.tpu    = 485,    # linear temperature response of tpu   deltaS (Kattge & Knorr)
       b_deltaS_t.rd     = 0,      # linear temperature response of rd deltaS
       b_deltaS_t.vcmax  = -1.07,  # linear temperature response of vcmax deltaS (Kattge & Knorr)
       b_deltaS_t.jmax   = -0.75,  # linear temperature response of jmax deltaS (Kattge & Knorr)
+      b_deltaS_t.tpu    = 0,      # linear temperature response of tpu deltaS (Kattge & Knorr)
       q10.rd        = 2,          # Q10 of Rd                                               (-)
       q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
       q10.jmax      = 2,          # Q10 of Jmax                                             (-)

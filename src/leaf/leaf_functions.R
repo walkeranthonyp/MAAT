@@ -68,7 +68,10 @@ f_A_r_leaf_analytical <- function(.) {
   # - wc and wj equations also have the same form, the f_R_analytical function exploits this similarity in form
   .$state$wc <- f_R_analytical(.,v=.$state_pars$vcmaxlt, k=.$state_pars$Km,      r=r_simple)
   .$state$wj <- f_R_analytical(.,v=.$state$J/4,          k=2*.$state_pars$gstar, r=r_simple)
-  .$state$wp <- NULL
+  .$state$wp <- f_R_analytical(.,v=3*.$state_pars$tpult, k=-(1+3*.$pars$wp_alpha)*.$state_pars$gstar, r=r_simple)
+  
+  # remove tpu limitation potential at low cc
+  if( .$state$cc <= (1+3*.$pars$wp_alpha)*.$state_pars$gstar) .$state$wp <- NA
   
   # calculate limiting cycle
   wmin <- get(.$fnames$Alim)(.) 
@@ -294,7 +297,7 @@ f_wp_vonc2000 <- function(.,cc=.$state$cc){
   
   if( cc <= (1+3*.$pars$wp_alpha)*.$state_pars$gstar) NA
 #   3*.$state_pars$tpu*cc / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
-  else 3*.$state_pars$tpu / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
+  else 3*.$state_pars$tpult / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
 }
 
 f_wp_foley1996 <- function(.,cc=.$state$cc){
@@ -309,7 +312,7 @@ f_wp_foley1996 <- function(.,cc=.$state$cc){
     .$state$wp <- NA
     wmin <- get(.$fnames$Alim)(.) 
 
-    (3*.$state_pars$tpu + wmin) / cc
+    (3*.$state_pars$tpult + wmin) / cc
   }
 }
 
@@ -441,13 +444,14 @@ f_tpu_lin <- function(.) {
 
 f_tpu_tcor_independent <- function(.) {
   # TPU temperature scaling is independent
+  
   get(.$fnames$tpu_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.tpu,Ha=.$pars$Ha.tpu,q10=.$pars$q10.tpu)) *
-  get(.$fnames$tpu_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,deltaS=.$pars$deltaS.tpu))
+  get(.$fnames$tpu_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,
+                                            a_deltaS_t=.$pars$a_deltaS_t.tpu,b_deltaS_t=.$pars$b_deltaS_t.tpu,deltaS=.$pars$deltaS.tpu))
 }
 
 f_tpu_tcor_dependent <- function(.) {
   # TPU temperature scaling is identical to that of Vcmax
-
   .$state_pars$vcmaxlt / .$state_pars$vcmax
 }
 
@@ -595,7 +599,7 @@ f_rs_cox1999 <- function(.,A=.$state$A,c=.$state$cb) {
   ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar)) / ( .$env$atm_press*1.6e-6*A )
 }
 
-f_rs_cox1998_fg1 <- function(.,c=.$state$cb) {
+f_rs_cox1999_fg1 <- function(.,c=.$state$cb) {
   # simplified version of rs   
   f0    <- 1 - 1.6/.$pars$g1_leuning
   dstar <- (.$pars$g1_leuning/1.6 - 1) * .$pars$d0
