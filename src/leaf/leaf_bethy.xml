@@ -23,13 +23,13 @@
       <!-- function to determine delta S (entropy term) for rd, vcmax, & jmax; can be used for temperature acclimation -->
       <deltaS>'f_deltaS_lin_t'</deltaS>
       <!-- electron transport -->
-      <etrans>'f_j_farquhar1980'</etrans>
+      <etrans>'f_j_harley1992'</etrans>
       <!-- RuBP saturated gross carboxylation rate -->
       <wc>'f_wc_farquhar1980'</wc>
       <!-- RuBP limited gross carboxylation rate -->
       <wj>'f_wj_generic'</wj>
       <!-- gas diffusion function, Fick's law; added a zero bound when testing the solver but I think this is unnecessary -->
-      <gas_diff>c('f_ficks_ci','f_ficks_ci_bound0')</gas_diff>
+      <gas_diff>'f_ficks_ci'</gas_diff>
       <!-- scaling of Rd at reftemp.rd, f(Vcmax), f(N), -->
       <respiration>'f_rd_lin_vcmax'</respiration>
       <!-- scaling of Rd in the dark to rd in the light, default is fixed ratio with ratio set to 1 -->
