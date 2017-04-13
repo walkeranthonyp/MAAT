@@ -118,10 +118,10 @@
       <Topt.vcmax>27.56</Topt.vcmax>
       <Topt.jmax>19.89</Topt.jmax>
       <Topt.tpu>27.56</Topt.tpu>
-      <deltaS.rd>NA</deltaS.rd>
-      <deltaS.vcmax>NA</deltaS.vcmax>
-      <deltaS.jmax>NA</deltaS.jmax>
-      <deltaS.tpu>NA</deltaS.tpu>
+      <deltaS.rd>650</deltaS.rd>
+      <deltaS.vcmax>650</deltaS.vcmax>
+      <deltaS.jmax>650</deltaS.jmax>
+      <deltaS.tpu>650</deltaS.tpu>
       <a_deltaS_t.rd>490</a_deltaS_t.rd>
       <a_deltaS_t.vcmax>668</a_deltaS_t.vcmax>
       <a_deltaS_t.jmax>660</a_deltaS_t.jmax>

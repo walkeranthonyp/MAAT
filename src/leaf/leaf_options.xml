@@ -3,7 +3,7 @@
     <fnames>
       <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
       f_gstar_constref will get a specified value at 25 and scale according to gstar_tcor, f_gstar_c1991 calculates from tau the CO2:O2 specificity ratio -->
-      <gstar>c('f_constant_gstar','f_gstar_f1980','f_gstar_constref','f_gstar_c1991')</gstar>
+      <gstar>c('f_constant_gstar',',df_par8','f_gstar_constref','f_gstar_c1991')</gstar>
       <!-- temperature scaling of gamma star, only used if <gstar> is set to 'f_gstar_constref' -->
       <gstar_tcor>c('f_temp_scalar_quadratic_bf1985','f_temp_scalar_Arrhenius')</gstar_tcor>
       <!-- temperature scaling of tau, only used if <gstar> is set to 'f_gstar_c1991' -->
@@ -31,7 +31,7 @@
       <!-- decreasing component of temperature scaling of TPU, if independent of Vcmax -->
       <tpu_tcor_des>c('f_scalar_none','f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</tpu_tcor_des>
       <!-- function to determine delta S (entropy term) for rd, vcmax, & jmax; can be used for temperature acclimation -->
-      <deltaS>'f_deltaS'</deltaS>
+      <deltaS>c('f_deltaS_constant','f_deltaS','f_deltaS_lin_t')</deltaS>
       <!-- electron transport -->
       <etrans>c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991','f_j_farquhar1980')</etrans>
       <!-- RuBP saturated gross carboxylation rate -->
