@@ -53,9 +53,10 @@ leaf_object <-
       # O2 partial pressure  (kPa)
       .$state$oi <- .$env$o2_conc * .$env$atm_press * 1e-3
       # leaf temperature
-      .$state$leaf_temp    <- .$env$temp               
-      
-      
+      .$state$leaf_temp <- .$env$temp               
+      # RH from VPD
+      .$env$rh   <- f_rh_from_vpd(.)
+
       # calculate state parameters
       # photosynthetic parameters
       .$state_pars$vcmax   <- get(.$fnames$vcmax)(.)
@@ -235,7 +236,7 @@ leaf_object <-
       sphag_l   = 0,                   # (mm) Sphagnum surface relative to hollow surfwce
       temp      = 25,                  # (oC)
       vpd       = 2,                   # (kPa)
-      rh        = 0.8,                 # (unitless - proportion)
+      rh        = numeric(0),          # (unitless - proportion)
       atm_press = 101325               # ( Pa)
     )
 
