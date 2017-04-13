@@ -16,6 +16,8 @@
       <vcmax_tcor_des>'f_temp_scalar_collatz1991_des'</vcmax_tcor_des>
       <!-- is temperature scaling of TPU the same as that of Vcmax or not -->
       <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
+      <!-- function to determine delta S (entropy term) for rd, vcmax, & jmax; can be used for temperature acclimation -->
+      <deltaS>'f_deltaS_constant'</deltaS>
       <!-- electron transport -->
       <etrans>'f_j_collatz1991'</etrans>
       <!-- RuBP saturated gross carboxylation rate -->
@@ -72,9 +74,7 @@
       <atref.Kc>30</atref.Kc>
       <atref.Ko>30</atref.Ko>
       <!-- deactivation energy for temperature sensitive parameters -->
-      <Hd.vcmax>2.1e+05</Hd.vcmax>
-      <!-- deactivation energy for temperature sensitive parameters -->
-      <Hd.vcmax>2e+05</Hd.vcmax>
+      <Hd.vcmax>2.2e+05</Hd.vcmax>
       <!-- delta S for temperature sensitive parameters -->
       <deltaS.vcmax>710</deltaS.vcmax>
       <!-- Q10 for temperature sensitive parameters -->
