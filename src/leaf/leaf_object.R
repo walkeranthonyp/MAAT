@@ -717,7 +717,7 @@ leaf_object <-
       ol
     }
 
-    .test_aci_lim <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50), 
+    .test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_j_farquharwong1984',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1500,50), 
                                      ana_only=F,verbose=F,verbose_loop=F,diag=F) {
       
       .$cpars$verbose       <- verbose
@@ -730,6 +730,7 @@ leaf_object <-
       .$fnames$rs           <- rs
       .$fnames$ri           <- 'f_r_zero'
       .$fnames$gas_diff     <- 'f_ficks_ci'
+      .$fnames$etrans       <- et
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
@@ -744,9 +745,10 @@ leaf_object <-
       
       odf <- rbind(Fout,Cout)
       
-      p1 <- xyplot(A~cc|as.factor(odf$leaf.par),odf,groups=unlist(Alim),abline=0,
+      p1 <- xyplot(A~cc|as.factor(et),odf,groups=unlist(Alim),abline=0,
                    ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[c]*' [Pa]'),
-                   auto.key=T,
+                   type='l',auto.key=list(x=0.9,y=0.1,corner=c(1,0),points=F,lines=T),
+                   strip=strip.custom(bg='grey90'),
                    panel=function(subscripts=subscripts,...) {
                      if(diag) {
                        panel.abline(v=odf$transition[subscripts][1])
@@ -767,7 +769,7 @@ leaf_object <-
                    })
       
       print(p1)
-      print(p2)
+      # print(p2)
       odf
     }
     
