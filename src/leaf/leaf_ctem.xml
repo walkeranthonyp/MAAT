@@ -39,6 +39,7 @@
       <!-- increasing component of temperature scaling of Rd, if independent of Vcmax -->
       <rd_tcor_asc>'f_temp_scalar_Q10'</rd_tcor_asc> <!-- the f25(Q10d,n) function accounts for different temperature sensitivities of leaf respiration
       during day (d) and night (n). -->
+      <!-- decreasing component of temperature scaling of Rd, if independent of Vcmax -->
       <rd_tcor_des>'f_scalar_none'</rd_tcor_des>
       <!-- function to determine Q10 for rd, vcmax, & jmax; can be used for temperature acclimation -->
       <q10_func.rd>'f_q10_constant'</q10_func.rd> <!-- different Q10 for day and night -->

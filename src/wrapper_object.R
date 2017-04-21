@@ -394,7 +394,9 @@ wrapper_object <-
       # process & record output
       if(.$wpars$unit_testing) { 
         hd     <- getwd()
-        setwd('~/tmp')
+        temp_dir <- '~/tmp'
+        if (! file.exists(temp_dir)) dir.create(temp_dir,recursive=TRUE)
+        setwd(temp_dir)
         ofname <- 'Ye_test' 
       } else setwd(odir)
       
