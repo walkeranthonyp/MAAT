@@ -295,59 +295,21 @@ canopy_object <-
         if(nas>1) stop else if(nas==0) names(cls) <- paste('canopy',names(cls),sep='.') # need to write error message in here
         if(nas==0&is.na(comb_ls)) cls else c(comb_ls,cls) 
         
-#         if(!is.na(lls)) names(lls) <- paste('leaf',names(lls),sep='.')
-#         if(!is.na(cls)) names(cls) <- paste('canopy',names(cls),sep='.')
-#         comb_ls <- if(!is.na(lls)) lls else NA
-#         if(!is.na(cls)&is.na(comb_ls)) cls else c(comb_ls,cls) 
       }
       
-      maat$static$fnames <- comb_init_list(lls=.$init_ls$lfs,cls=.$init_ls$cfs)
-      maat$static$pars   <- comb_init_list(lls=.$init_ls$lps,cls=.$init_ls$cps)
-      maat$static$env    <- comb_init_list(lls=.$init_ls$les,cls=.$init_ls$ces)
-
-      maat$vars$fnames   <- comb_init_list(lls=.$init_ls$lfv,cls=.$init_ls$cfv)
-      maat$vars$pars     <- comb_init_list(lls=.$init_ls$lpv,cls=.$init_ls$cpv)
-      maat$vars$env      <- comb_init_list(lls=.$init_ls$lev,cls=.$init_ls$cev)
+      maat$static$fnames <- comb_init_list(lls=.$init_static$leaf$fnames,
+                                           cls=.$init_static$canopy$fnames)
+      maat$static$pars   <- comb_init_list(lls=.$init_static$leaf$pars,
+                                           cls=.$init_static$canopy$pars)
+      maat$static$env    <- comb_init_list(lls=.$init_static$leaf$env,
+                                           cls=.$init_static$canopy$env)
       
-#       # Static during runtime
-#       # add prefix to list names
-#       if(!is.na(initls$lfs)) names(initls$lfs) <- paste('leaf',names(initls$lfs),sep='.')
-#       if(!is.na(initls$cfs)) names(initls$cfs) <- paste('canopy',names(initls$cfs),sep='.')
-#       if(!is.na(initls$lps)) names(initls$lps) <- paste('leaf',names(initls$lps),sep='.')
-#       if(!is.na(initls$cps)) names(initls$cps) <- paste('canopy',names(initls$cps),sep='.')
-#       if(!is.na(initls$les)) names(initls$les) <- paste('leaf',names(initls$les),sep='.')
-#       if(!is.na(initls$ces)) names(initls$ces) <- paste('canopy',names(initls$ces),sep='.')
-#       
-#       # assign lists
-#       fs <- if(!is.na(initls$lfs)) initls$lfs else NA
-#       ps <- if(!is.na(initls$lps)) initls$lps else NA
-#       es <- if(!is.na(initls$les)) initls$les else NA
-#       fs <- if(!is.na(initls$cfs)&is.na(fs)) initls$cfs else c(fs,initls$cfs) 
-#       ps <- if(!is.na(initls$cps)&is.na(ps)) initls$cps else c(ps,initls$cps) 
-#       es <- if(!is.na(initls$ces)&is.na(es)) initls$ces else c(es,initls$ces)
-#       .$static$fnames <- fs
-#       .$static$pars   <- ps
-#       .$static$env    <- es
-#       
-#       # Dynamic during runtime
-#       # add prefix to list names
-#       if(!is.na(initls$lfv)) names(initls$lfv) <- paste('leaf',names(initls$lfv),sep='.')
-#       if(!is.na(initls$cfv)) names(initls$cfv) <- paste('canopy',names(initls$cfv),sep='.')
-#       if(!is.na(initls$lpv)) names(initls$lpv) <- paste('leaf',names(initls$lpv),sep='.')
-#       if(!is.na(initls$cpv)) names(initls$cpv) <- paste('canopy',names(initls$cpv),sep='.')
-#       if(!is.na(initls$lev)) names(initls$lev) <- paste('leaf',names(initls$lev),sep='.')
-#       if(!is.na(initls$cev)) names(initls$cev) <- paste('canopy',names(initls$cev),sep='.')
-#       
-#       # assign lists
-#       fv <- if(!is.na(initls$lfv)) initls$lfv else NA
-#       pv <- if(!is.na(initls$lpv)) initls$lpv else NA
-#       ev <- if(!is.na(initls$lev)) initls$lev else NA
-#       fv <- if(!is.na(initls$cfv)&is.na(fv)) initls$cfv else c(fv,initls$cfv) 
-#       pv <- if(!is.na(initls$cpv)&is.na(pv)) initls$cpv else c(pv,initls$cpv) 
-#       ev <- if(!is.na(initls$cev)&is.na(ev)) initls$cev else c(ev,initls$cev)
-#       .$vars$fnames <- fv
-#       .$vars$pars   <- pv
-#       .$vars$env    <- ev
+      maat$vars$fnames   <- comb_init_list(lls=.$init_dynamic$leaf$fnames,
+                                           cls=.$init_dynamic$canopy$fnames)
+      maat$vars$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars,
+                                           cls=.$init_dynamic$canopy$pars)
+      maat$vars$env      <- comb_init_list(lls=.$init_dynamic$leaf$env,
+                                           cls=.$init_dynamic$canopy$env)
       
     }
     
