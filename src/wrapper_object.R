@@ -149,8 +149,9 @@ wrapper_object <-
             do.call(
               rbind, {
                 # multicore or not
-                if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf,mc.cores=.$wpars$procs)
-                else                 lapply(1:.$dataf$lf,.$runf)
+                # if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf,mc.cores=.$wpars$procs)
+                # else                 lapply(1:.$dataf$lf,.$runf)
+                lapply(1:.$dataf$lf,.$runf)
               }
             ))
 
@@ -183,8 +184,9 @@ wrapper_object <-
         print('',quote=F)
         
         .$dataf$out_saltelli <-
-          if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs)
-          else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
+          # if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs)
+          # else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
+          lapply(1:.$dataf$lf,.$runf_saltelli)          
         
         write_to_file(.$dataf$out_saltelli,paste(ofname,'salt','ABi',sep='_'),type='rds')  
         if(!.$wpars$unit_testing) .$dataf$out_saltelli <- matrix(1)   
@@ -222,8 +224,9 @@ wrapper_object <-
       data.frame(
         do.call(
           rbind, {
-            if(.$wpars$multic) mclapply(1:.$dataf$lp,.$runp,mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)) )
-            else                 lapply(1:.$dataf$lp,.$runp)
+            # if(.$wpars$multic) mclapply(1:.$dataf$lp,.$runp,mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)) )
+            if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, mc.cores=.$wpars$procs ) 
+            else                 lapply(1:.$dataf$lp, .$runp )
           }
       ))
     }
@@ -272,8 +275,9 @@ wrapper_object <-
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
       # call next run function
-      if(.$wpars$multic) mclapply(1:.$dataf$le,.$rune_saltelli,mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)) )
-      else                 lapply(1:.$dataf$le,.$rune_saltelli)
+      # if(.$wpars$multic) mclapply(1:.$dataf$le,.$rune_saltelli,mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)) )
+      # else                 lapply(1:.$dataf$le,.$rune_saltelli)
+      lapply(1:.$dataf$le,.$rune_saltelli)
     }
 
     rune_saltelli <- function(.,k) {
@@ -301,7 +305,13 @@ wrapper_object <-
       # call runp_saltelli
 
       # returns a numeric matrix
-      do.call(rbind,lapply((.$wpars$n+1):.$dataf$lp,.$runp_saltelli,pk=p))      
+      # do.call(rbind,lapply((.$wpars$n+1):.$dataf$lp,.$runp_saltelli,pk=p))      
+      do.call(
+        rbind, {
+          if(.$wpars$multic) mclapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, mc.cores=.$wpars$procs ) 
+          else                 lapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, .$runp )
+        }
+      )
     }
     
     runp_saltelli <- function(.,j,pk) {
@@ -383,11 +393,12 @@ wrapper_object <-
       .$dataf$lpB     <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
       
       # call the below run function
-      .$dataf$out     <- {
-        if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs)
-        else                 lapply(1:.$dataf$lfA, .$run_repA)
-      }
-
+      # .$dataf$out     <- {
+      #   if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs)
+      #   else                 lapply(1:.$dataf$lfA, .$run_repA)
+      # }
+      .$dataf$out     <- lapply(1:.$dataf$lfA, .$run_repA)
+      
       # convert dataframe output to list output
       .$dataf$out     <- transpose_list(.$dataf$out)
 
@@ -425,9 +436,10 @@ wrapper_object <-
       # call process A parameter run function
       data.frame(
         do.call(rbind,
-                if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=osg,mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1) )
-                else                 lapply(1:.$dataf$lp,.$run_parA,offset=osg)
-      ))
+                # if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=osg,mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1) )
+                # else                 lapply(1:.$dataf$lp,.$run_parA,offset=osg)
+                lapply(1:.$dataf$lp, .$run_parA, offset=osg)
+        ))
     }
         
     run_parA <- function(.,h,offset) {
@@ -461,7 +473,14 @@ wrapper_object <-
       oss <- (.$wpars$n*(os-1) + 1):(.$wpars$n*(os))    
       
       # call process B parameter run function
-      data.frame(do.call(rbind,lapply(oss,.$run_parB)))      
+      # data.frame(do.call(rbind,lapply(oss,.$run_parB)))      
+      data.frame(
+        do.call(
+          rbind, {
+            if(.$wpars$multic) mclapply(oss, .$run_parB, mc.cores=.$wpars$procs ) 
+            else                 lapply(oss, .$run_parB )
+          }
+        ))
     }
     
     run_parB <- function(.,j) {
