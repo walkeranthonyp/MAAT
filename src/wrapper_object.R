@@ -49,7 +49,6 @@ wrapper_object <-
       
       # Initialisation checks
       # need to add a check for equal par vector legnths if this is a UQ run, or add functionality that allows a function to be specified that will generate pars
-      
       # need to add a checking function that allows the names of fnames, pars, and env to be checked and if they don't match up to print an error message 
       
       # configure initialisation lists - not called if unit testing (need to develop unit testing specifically for the model object init functions)
@@ -136,6 +135,8 @@ wrapper_object <-
       .$print_run()
 
 
+      ###########################################################################
+      # run ensemble
       
       # Call initial run function in the hierarchy of nested run functions
       if(.$wpars$UQ&.$wpars$UQtype=='ye') {
@@ -156,38 +157,26 @@ wrapper_object <-
             ))
 
         # print summary of results
-        # - output function needs to be called from run script
-        print("output ::",quote=F)
-        print(paste('length ::',length(.$dataf$out[,1])),quote=F)
-        print(head(.$dataf$out),quote=F)
-        print('',quote=F)      
-        
+        # - output function is called from run script or from within run function 
+        .$print_output()
       }
         
       # if Saltelli SA generate output from parameter matrices ABi
       if(.$wpars$UQtype=='saltelli') {
         
-        # process & record output
-        if(.$wpars$unit_testing) { 
-          hd     <- getwd()
-          setwd('~/tmp')
-          ofname <- 'Salt_test' 
-        } else setwd(odir)
-        
-        # output AB matrix and clear out df
+        # write AB matrix output
+        if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Salt_test' } else setwd(odir)
         write_to_file(.$output_saltelli_AB(),paste(ofname,'salt','AB',sep='_'),type='rds')  
         if(!.$wpars$unit_testing) .$dataf$out <- matrix(1)   
-        print('Saltelli matrix AB completed', quote=F)
-        print('',quote=F)
-        print('',quote=F)
-        print('run Saltelli array ABi',quote=F)
-        print('',quote=F)
+        .$print_saltelli()
         
+        # run over ABi matrices
         .$dataf$out_saltelli <-
           # if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs)
           # else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
           lapply(1:.$dataf$lf,.$runf_saltelli)          
         
+        # write ABi matrices output
         write_to_file(.$dataf$out_saltelli,paste(ofname,'salt','ABi',sep='_'),type='rds')  
         if(!.$wpars$unit_testing) .$dataf$out_saltelli <- matrix(1)   
         print('Saltelli array ABi completed',quote=F)
@@ -196,7 +185,6 @@ wrapper_object <-
         if(.$wpars$unit_testing) setwd(hd)
       }             
     }
-    
     
     
     ###########################################################################
@@ -309,7 +297,7 @@ wrapper_object <-
       do.call(
         rbind, {
           if(.$wpars$multic) mclapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, mc.cores=.$wpars$procs ) 
-          else                 lapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, .$runp )
+          else                 lapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p )
         }
       )
     }
@@ -712,6 +700,7 @@ wrapper_object <-
       list(AB=.$output_saltelli_AB(),ABi=.$dataf$out_saltelli)
     }
     
+    
     # Print functions
     ###########################################################################
     
@@ -728,7 +717,6 @@ wrapper_object <-
           else                     .$dataf$lf*.$wpars$n*(2+dim(.$dataf$pars)[2])*.$dataf$le
         } else .$dataf$lf*.$dataf$lp *.$dataf$le
       
-      print(paste('ensemble number:',ens_n),quote=F)
       if(!is.null(.$dataf$met)) {
         print(paste('timesteps in met data:',.$dataf$lm),quote=F)                
         print(paste('total number of timesteps:',ens_n*.$dataf$lm),quote=F)                
@@ -760,10 +748,25 @@ wrapper_object <-
       print('',quote=F)
       print("MAAT :: run model",quote=F)
       print('',quote=F)
-      if(.$wpars$multic) {
-        print(paste('parallel processing over ::',.$wpars$procs,'cores'),quote=F)        
-        print('',quote=F)
-      }
+      print(paste('ensemble number:',ens_n),quote=F)
+      if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'),quote=F)
+      else               print(paste('serial processing.'),quote=F)
+      print('',quote=F)
+    }
+    
+    print_output <- function(.) {
+      print("output ::",quote=F)
+      print(paste('length ::',length(.$dataf$out[,1])),quote=F)
+      print(head(.$dataf$out),quote=F)
+      print('',quote=F)      
+    }
+    
+    print_saltelli <- function(.) {
+      print('Saltelli matrix AB completed', quote=F)
+      print('',quote=F)
+      print('',quote=F)
+      print('run Saltelli array ABi',quote=F)
+      print('',quote=F)
     }
     
     
