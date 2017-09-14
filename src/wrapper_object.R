@@ -425,8 +425,9 @@ wrapper_object <-
       data.frame(
         do.call(rbind,
                 # if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=osg,mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1) )
-                # else                 lapply(1:.$dataf$lp,.$run_parA,offset=osg)
-                lapply(1:.$dataf$lp, .$run_parA, offset=osg)
+                if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run_parA, offset=osg, mc.cores=.$wpars$procs )
+                else                 lapply(1:.$dataf$lp, .$run_parA, offset=osg)
+                # lapply(1:.$dataf$lp, .$run_parA, offset=osg)
         ))
     }
         
@@ -461,14 +462,14 @@ wrapper_object <-
       oss <- (.$wpars$n*(os-1) + 1):(.$wpars$n*(os))    
       
       # call process B parameter run function
-      # data.frame(do.call(rbind,lapply(oss,.$run_parB)))      
-      data.frame(
-        do.call(
-          rbind, {
-            if(.$wpars$multic) mclapply(oss, .$run_parB, mc.cores=.$wpars$procs ) 
-            else                 lapply(oss, .$run_parB )
-          }
-        ))
+      data.frame(do.call(rbind,lapply(oss,.$run_parB)))
+      # data.frame(
+      #   do.call(
+      #     rbind, {
+      #       if(.$wpars$multic) mclapply(oss, .$run_parB, mc.cores=.$wpars$procs ) 
+      #       else                 lapply(oss, .$run_parB )
+      #     }
+      #   ))
     }
     
     run_parB <- function(.,j) {
