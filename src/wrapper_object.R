@@ -132,7 +132,7 @@ wrapper_object <-
       
       # output summary of maat setup
       .$print_data()
-      .$print_run()
+      .$print_data(otype='run')
 
 
       ###########################################################################
@@ -705,54 +705,56 @@ wrapper_object <-
     # Print functions
     ###########################################################################
     
-    print_data <- function(.) {
-      print('',quote=F)
-      print('',quote=F)
-      print('',quote=F)
-      print("MAAT :: summary of data",quote=F)
-      print('',quote=F)
-
+    print_data <- function(.,otype='data') {
+      
       ens_n <- 
         if(.$wpars$UQ) {
           if(.$wpars$UQtype=='ye') .$dataf$lf*prod(unlist(lapply(.$vars$fnames,length)))*.$wpars$n^2*.$dataf$le
           else                     .$dataf$lf*.$wpars$n*(2+dim(.$dataf$pars)[2])*.$dataf$le
         } else .$dataf$lf*.$dataf$lp *.$dataf$le
+     
+      if(otype=='data') { 
+        print('',quote=F)
+        print('',quote=F)
+        print('',quote=F)
+        print("MAAT :: summary of data",quote=F)
+        print('',quote=F)
+  
+        if(!is.null(.$dataf$met)) {
+          print(paste('timesteps in met data:',.$dataf$lm),quote=F)                
+          print(paste('total number of timesteps:',ens_n*.$dataf$lm),quote=F)                
+        }
+        
+        print('',quote=F)
+        print('',quote=F)
+        print("fnames ::",quote=F)
+        print(summary(.$dataf$fnames),quote=F)
+        print('',quote=F)
+        print("pars ::",quote=F)
+        if(!.$wpars$UQtype=='ye') print(summary(.$dataf$pars),quote=F)
+        else {
+          print(.$vars$pars_proc,quote=F)
+          print(paste('sample n:',.$wpars$n),quote=F)
+        }                      
+        print('',quote=F)
+        print("env ::",quote=F)
+        print(summary(.$dataf$env),quote=F)
+        print('',quote=F)
+        print("met data ::",quote=F)
+        print(summary(.$dataf$met),quote=F)
+        print('',quote=F)
       
-      if(!is.null(.$dataf$met)) {
-        print(paste('timesteps in met data:',.$dataf$lm),quote=F)                
-        print(paste('total number of timesteps:',ens_n*.$dataf$lm),quote=F)                
-      }
-      
-      print('',quote=F)
-      print('',quote=F)
-      print("fnames ::",quote=F)
-      print(summary(.$dataf$fnames),quote=F)
-      print('',quote=F)
-      print("pars ::",quote=F)
-      if(!.$wpars$UQtype=='ye') print(summary(.$dataf$pars),quote=F)
-      else {
-        print(.$vars$pars_proc,quote=F)
-        print(paste('sample n:',.$wpars$n),quote=F)
-      }                      
-      print('',quote=F)
-      print("env ::",quote=F)
-      print(summary(.$dataf$env),quote=F)
-      print('',quote=F)
-      print("met data ::",quote=F)
-      print(summary(.$dataf$met),quote=F)
-      print('',quote=F)
-    }
-    
-    print_run <- function(.) {
-      print('',quote=F)
-      print('',quote=F)
-      print('',quote=F)
-      print("MAAT :: run model",quote=F)
-      print('',quote=F)
-      print(paste('ensemble number:',ens_n),quote=F)
-      if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'),quote=F)
-      else               print(paste('serial processing.'),quote=F)
-      print('',quote=F)
+      } else if(otype=='run') {
+        print('',quote=F)
+        print('',quote=F)
+        print('',quote=F)
+        print("MAAT :: run model",quote=F)
+        print('',quote=F)
+        print(paste('ensemble number:',ens_n),quote=F)
+        if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'),quote=F)
+        else               print(paste('serial processing.'),quote=F)
+        print('',quote=F)
+      } 
     }
     
     print_output <- function(.) {
