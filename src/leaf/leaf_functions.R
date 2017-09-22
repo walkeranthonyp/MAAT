@@ -767,7 +767,7 @@ f_gstar_f1980 <- function(.,...){
   # Farquhar 1980 Eq 38
   # 0.21 = ko/kc
   
-  0.21 * .$state_pars$Kc*.$state$oi/(2*.$state_pars$Ko)
+  .$pars$ko_kc_ratio * .$state_pars$Kc*.$state$oi/(2*.$state_pars$Ko)
 }
 
 f_gstar_constref <- function(.) {

@@ -46,6 +46,8 @@
       <a>0.85</a>
       <!-- fraction of incident light transmitted through leaf, 0-1 -->
       <f>0.52</f>
+      <!-- ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless) -->
+      <ko_kc_ratio>0.21</ko_kc_ratio>       
       <!-- intercept & slope of TPU25 to Vcmax25 area relationship, intercept of zero slope of 0.16667 is equivalent to Collatz 1991 Vcmax/2 but in von Caemmerer's notation  -->
       <atv_25>0</atv_25>
       <btv_25>0.16667</btv_25>

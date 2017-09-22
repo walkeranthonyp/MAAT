@@ -80,6 +80,8 @@
       <a>0.8</a>
       <!-- fraction of incident light transmitted through leaf, 0-1 -->
       <f>0.23</f>
+      <!-- ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless) -->
+      <ko_kc_ratio>0.21</ko_kc_ratio>       
       <!-- curvature of farquhar and wong 1984 electron transport, 0-1 --> 
       <theta>0.9</theta>
       <!-- curvature of collatz 1991 limiting rate selection function, wc or wj, 0-1 --> 

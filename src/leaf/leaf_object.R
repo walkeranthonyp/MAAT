@@ -109,8 +109,8 @@ leaf_object <-
         .$state$respiration  <- get(.$fnames$rl_rd_scalar)(.) * .$state$respiration
         # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
         .$state$A       <- get(.$fnames$solver)(.)      
-        # assign the limitation state - assumes the minimum is the dominant limiting rate
-        .$state$lim     <- c('wc','wj','wp')[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
+        # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
+        .$state$lim     <- c(2,3,7)[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
         # after the fact calculations
         .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca)
         if(!grepl('analytical',.$fnames$solver)) .$state_pars$rs <- get(.$fnames$rs)(.) 
@@ -297,6 +297,7 @@ leaf_object <-
       # deprecated    alpha    = 0.24,         # harley 1992 alpha - Williams & Flannagan 1998 use 0.21 but calculate 0.25 
       a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
       f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
+      ko_kc_ratio   = 0.21,       # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)
       theta         = 0.90,       # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
       theta_collatz = 0.98,       # curvature of 1st limitation quadratic in Collatz 1991  (unitless)
       beta_collatz  = 0.95,       # curvature of 2nd limitation quadratic in Collatz 1991  (unitless)
@@ -407,7 +408,7 @@ leaf_object <-
       verbose       = F,          # write diagnostic output during runtime 
       verbose_loop  = F,          # write diagnostic output on the solver during runtime 
       cverbose      = F,          # write configuration output during runtime 
-      output        = 'run'       # type of output from run function
+      output        = 'slim'      # type of output from run function
     )
     
     
