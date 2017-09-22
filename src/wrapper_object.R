@@ -150,9 +150,9 @@ wrapper_object <-
             do.call(
               rbind, {
                 # multicore or not
-                # if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf,mc.cores=.$wpars$procs)
-                # else                 lapply(1:.$dataf$lf,.$runf)
-                lapply(1:.$dataf$lf,.$runf)
+                if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf, mc.cores=.$wpars$procs, mc.preschedule=F )
+                else                 lapply( 1:.$dataf$lf, .$runf )
+                #lapply(1:.$dataf$lf,.$runf)
               }
             ))
 
@@ -172,14 +172,14 @@ wrapper_object <-
         
         # run over ABi matrices
         .$dataf$out_saltelli <-
-          # if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs)
+          # if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs, mc.preschedule=F )
           # else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
           lapply(1:.$dataf$lf,.$runf_saltelli)          
         
         # write ABi matrices output
         write_to_file(.$dataf$out_saltelli,paste(ofname,'salt','ABi',sep='_'),type='rds')  
         if(!.$wpars$unit_testing) .$dataf$out_saltelli <- matrix(1)   
-        print('Saltelli array ABi completed',quote=F)
+        print(paste('Saltelli array ABi completed',Sys.time()),quote=F)
         print('',quote=F)
         
         if(.$wpars$unit_testing) setwd(hd)
@@ -212,8 +212,8 @@ wrapper_object <-
       data.frame(
         do.call(
           rbind, {
-            # if(.$wpars$multic) mclapply(1:.$dataf$lp,.$runp,mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)) )
-            if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, mc.cores=.$wpars$procs ) 
+            if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=F  )
+            #if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, mc.cores=.$wpars$procs, mc.preschedule=F  ) 
             else                 lapply(1:.$dataf$lp, .$runp )
           }
       ))
@@ -263,7 +263,7 @@ wrapper_object <-
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
       # call next run function
-      # if(.$wpars$multic) mclapply(1:.$dataf$le,.$rune_saltelli,mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)) )
+      # if(.$wpars$multic) mclapply(1:.$dataf$le,.$rune_saltelli,mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=F  )
       # else                 lapply(1:.$dataf$le,.$rune_saltelli)
       lapply(1:.$dataf$le,.$rune_saltelli)
     }
@@ -279,7 +279,10 @@ wrapper_object <-
       
       # call parameter matrix run function
       if(is.null(.$dataf$met)){
-        omatl <- lapply(1:dim(.$dataf$pars)[2],.$runpmat_saltelli)
+        # omatl <- lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
+        omatl <- 
+            if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
+            else                 lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
         # convert to 3 dim array
         array( unlist(omatl) , c(dim(omatl[[1]]),length(omatl)) )
       } else {
@@ -293,11 +296,12 @@ wrapper_object <-
       # call runp_saltelli
 
       # returns a numeric matrix
-      # do.call(rbind,lapply((.$wpars$n+1):.$dataf$lp,.$runp_saltelli,pk=p))      
+      #do.call(rbind,lapply((.$wpars$n+1):.$dataf$lp,.$runp_saltelli,pk=p))     
+      ncores <- max(1,floor(.$wpars$procs/dim(.$dataf$pars)[2])) 
       do.call(
         rbind, {
-          if(.$wpars$multic) mclapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, mc.cores=.$wpars$procs ) 
-          else                 lapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p )
+          if(.$wpars$multic&ncores>2) mclapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, mc.cores=ncores, mc.preschedule=F ) 
+          else                          lapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p )
         }
       )
     }
@@ -382,7 +386,7 @@ wrapper_object <-
       
       # call the below run function
       # .$dataf$out     <- {
-      #   if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs)
+      #   if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs, mc.preschedule=F )
       #   else                 lapply(1:.$dataf$lfA, .$run_repA)
       # }
       .$dataf$out     <- lapply(1:.$dataf$lfA, .$run_repA)
@@ -424,8 +428,8 @@ wrapper_object <-
       # call process A parameter run function
       data.frame(
         do.call(rbind,
-                # if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=osg,mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1) )
-                if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run_parA, offset=osg, mc.cores=.$wpars$procs )
+                # if(.$wpars$multic) mclapply(1:.$dataf$lp,.$run_parA,offset=osg,mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1), mc.preschedule=F  )
+                if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run_parA, offset=osg, mc.cores=.$wpars$procs, mc.preschedule=F )
                 else                 lapply(1:.$dataf$lp, .$run_parA, offset=osg)
                 # lapply(1:.$dataf$lp, .$run_parA, offset=osg)
         ))
@@ -444,7 +448,8 @@ wrapper_object <-
       osh <- offset + .$dataf$lfB * (h-1)        
       
       # call process B process representation run function
-      data.frame(do.call(rbind,lapply(1:.$dataf$lfB,.$run_repB,offset=osh)))      
+      return(data.frame(do.call(rbind, lapply(1:.$dataf$lfB, .$run_repB, offset=osh ))))
+      gc() 
     }
 
     run_repB <- function(.,i,offset) {
@@ -462,11 +467,12 @@ wrapper_object <-
       oss <- (.$wpars$n*(os-1) + 1):(.$wpars$n*(os))    
       
       # call process B parameter run function
-      data.frame(do.call(rbind,lapply(oss,.$run_parB)))
+      return(data.frame(do.call(rbind, lapply(oss, .$run_parB ))))
+      gc()
       # data.frame(
       #   do.call(
       #     rbind, {
-      #       if(.$wpars$multic) mclapply(oss, .$run_parB, mc.cores=.$wpars$procs ) 
+      #       if(.$wpars$multic) mclapply(oss, .$run_parB, mc.cores=.$wpars$procs, mc.preschedule=F  ) 
       #       else                 lapply(oss, .$run_parB )
       #     }
       #   ))
@@ -482,7 +488,7 @@ wrapper_object <-
       if(.$wpars$cverbose) .$printc('pars',.$dataf$parsB[j,])
       
       # call the environment run function to loop over CO2 values
-      data.frame(do.call(rbind,lapply(1:.$dataf$le,.$rune)))
+      data.frame(do.call(rbind, lapply(1:.$dataf$le, .$rune )))
     }
         
     
@@ -719,14 +725,14 @@ wrapper_object <-
         print('',quote=F)
         print("MAAT :: summary of data",quote=F)
         print('',quote=F)
+        print('',quote=F)
   
         if(!is.null(.$dataf$met)) {
           print(paste('timesteps in met data:',.$dataf$lm),quote=F)                
           print(paste('total number of timesteps:',ens_n*.$dataf$lm),quote=F)                
+          print('',quote=F)
         }
         
-        print('',quote=F)
-        print('',quote=F)
         print("fnames ::",quote=F)
         print(summary(.$dataf$fnames),quote=F)
         print('',quote=F)
@@ -748,7 +754,7 @@ wrapper_object <-
         print('',quote=F)
         print('',quote=F)
         print('',quote=F)
-        print("MAAT :: run model",quote=F)
+        print(paste("MAAT :: run model",Sys.time()),quote=F)
         print('',quote=F)
         print(paste('ensemble number:',ens_n),quote=F)
         if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'),quote=F)
@@ -759,17 +765,20 @@ wrapper_object <-
     
     print_output <- function(.) {
       print("output ::",quote=F)
-      print(paste('length ::',length(.$dataf$out[,1])),quote=F)
-      print(head(.$dataf$out),quote=F)
-      print('',quote=F)      
+      print(paste('length ::', length(.$dataf$out[,1])), quote=F)
+      print(head(.$dataf$out), quote=F)
+      print('', quote=F)      
+      print('', quote=F)      
+      print(Sys.time(), quote=F)      
+      print('', quote=F)      
     }
     
     print_saltelli <- function(.) {
       print('Saltelli matrix AB completed', quote=F)
-      print('',quote=F)
-      print('',quote=F)
-      print('run Saltelli array ABi',quote=F)
-      print('',quote=F)
+      print('', quote=F)
+      print('', quote=F)
+      print('run Saltelli array ABi', quote=F)
+      print('', quote=F)
     }
     
     

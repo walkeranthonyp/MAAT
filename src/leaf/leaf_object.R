@@ -259,7 +259,7 @@ leaf_object <-
       wp = numeric(0),                 # TPU limited rate of carboxylation                  (umol m-2 s-1)
       A            = numeric(0),       # actual rate of carboxylation                       (umol m-2 s-1)
       respiration  = numeric(0),       # actual rate of respiration                         (umol m-2 s-1)
-      lim          = character(0),     # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
+      lim          = numeric(0),       # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
 
       # diagnostic state
       A_noR        = numeric(0),       # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
