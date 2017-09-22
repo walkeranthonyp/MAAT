@@ -245,7 +245,8 @@ wrapper_object <-
       if(is.null(.$dataf$met)){
         .$model$run()        
       } else {
-        data.frame(do.call(rbind,lapply(1:.$dataf$lm,.$model$run_met)))
+        #data.frame(do.call(rbind,lapply(1:.$dataf$lm,.$model$run_met)))
+        t(vapply(1:.$dataf$lm, .$model$run_met, .$model$output() ))
       }  
     }
 
