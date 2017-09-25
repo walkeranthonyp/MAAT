@@ -673,7 +673,11 @@ f_temp_scalar_modArrhenius_des <- function(.,parlist,...){
   # Trk    -- reference temperature (K) 
   # Tsk    -- temperature to adjust parameter to (K) 
   
-  print(parlist)
+  if(.$cpars$verbose) {
+    print('Arrhenius descending function')
+    print(.$state$leaf_temp)
+    print(parlist)
+  }
   
   # convert to Kelvin
   Trk <- parlist$Tr + 273.15
