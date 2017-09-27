@@ -834,12 +834,13 @@ wrapper_object <-
       
       ens_n <- 
         if(.$wpars$UQ) {
-          if(.$wpars$UQtype=='ye') .$dataf$lf*prod(unlist(lapply(.$vars$fnames,length)))*.$wpars$n^2*.$dataf$le
-          else                     .$dataf$lf*.$wpars$n*(2+dim(.$dataf$pars)[2])*.$dataf$le
-        } else .$dataf$lf*.$dataf$lp *.$dataf$le
+          if(.$wpars$UQtype=='ye') .$dataf$lf * prod(unlist(lapply(.$vars$fnames,length))) * .$wpars$n^2 * .$dataf$le
+          else                     .$dataf$lf * .$wpars$n * (2+dim(.$dataf$pars)[2]) * .$dataf$le
+        } else                     .$dataf$lf * .$dataf$lp *.$dataf$le
      
-      if(otype=='data') {         print('',quote=F)
+      if(otype=='data') {         
         
+        print('',quote=F)
         print('',quote=F)
         print('',quote=F)
         print('',quote=F)
