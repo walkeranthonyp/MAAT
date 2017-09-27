@@ -88,15 +88,17 @@ wrapper_object <-
           .$wpars$n <- .$wpars$n * .$wpars$nmult
           
           if(.$wpars$eval_strings) {
-            # sample parameters from character string code snippets
+            # sample parameters from character string code snippets to generate matrices A and B
             n <- 2 * .$wpars$n
             .$vars$pars <- lapply(.$vars$pars_eval,function(cs) eval(parse(text=cs)))
           }
           if(is.na(.$vars$pars[1] )) stop('wrapper: pars list in vars list is empty')
          
-          # create pars matrix and remove pars list 
-          .$dataf$pars  <- do.call(cbind,.$vars$pars )
-          .$vars$pars   <- lapply(.$vars$parsl,function(e) numeric(1) )        
+          # create pars matrix
+          .$dataf$pars  <- do.call(cbind, .$vars$pars )
+          
+          # remove potentially large pars list 
+          .$vars$pars   <- lapply(.$vars$parsl, function(e) numeric(1) )        
 
         } else if(.$wpars$UQtype=='ye') {
           # Ye et al process SA method 
@@ -135,7 +137,7 @@ wrapper_object <-
       .$dataf$le <- if(is.null(.$dataf$env)|(sum(dim(.$dataf$env)==0)==2)      ) 1 else length(.$dataf$env[,1])    
       .$dataf$lm <- if(is.null(.$dataf$met)|(sum(dim(.$dataf$met)==0)==2)      ) 1 else length(.$dataf$met[,1])    
       
-      # create example model output
+      # store model output template (currently must be a vector)
       .$dataf$mout <- .$model$output()
       
       # print summary of maat setup
@@ -152,8 +154,10 @@ wrapper_object <-
         # - Ye process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure  
         #lapply(1:.$dataf$lf,.$run_general_process_SA)
         vapply(1:.$dataf$lf, .$run_general_process_SA, numeric(0) )
+        
       } else {
         # Saltelli SA matrix AB run, or factorial run
+        
         # .$dataf$out <-
         #   as.data.frame(
         #     do.call(
@@ -165,7 +169,10 @@ wrapper_object <-
         #       }
         #     ))
         
-        # # initialise output matrix
+        # if a Saltelli SA and a met dataset has been specified, stop
+        if(!is.null(.$dataf$met)&.$wpars$UQtype=='saltelli') stop('No current method to run Saltelli SA with a met dataset')
+
+        # initialise output matrix
         .$dataf$out <- matrix(0, .$dataf$lm*.$dataf$le*.$dataf$lp*.$dataf$lf, length(.$dataf$mout) )
         colnames(.$dataf$out) <- names(.$dataf$mout)
 
@@ -182,23 +189,36 @@ wrapper_object <-
         .$print_output()
       }
         
-      # if Saltelli SA generate output from parameter matrices ABi
+      # if Saltelli SA, write output from AB matrix iteration above, then run and write ABi matrix iteration
       if(.$wpars$UQtype=='saltelli') {
         
-        # write AB matrix output
+        # write AB output array
         if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Salt_test' } else setwd(odir)
-        write_to_file(.$output_saltelli_AB(),paste(ofname,'salt','AB',sep='_'),type='rds')  
+        write_to_file(.$output_saltelli_AB(), paste(ofname,'salt','AB',sep='_'), type='rds' )  
         if(!.$wpars$unit_testing) .$dataf$out <- matrix(1)   
         .$print_saltelli()
         
         # run over ABi matrices
-        .$dataf$out_saltelli <-
-          # if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs, mc.preschedule=F )
-          # else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
-          lapply(1:.$dataf$lf,.$runf_saltelli)          
+        # .$dataf$out_saltelli <-
+        #   # if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs, mc.preschedule=F )
+        #   # else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
+        #   lapply(1:.$dataf$lf,.$runf_saltelli)
         
-        # write ABi matrices output
-        write_to_file(.$dataf$out_saltelli,paste(ofname,'salt','ABi',sep='_'),type='rds')  
+        # initialise output array
+        # .$dataf$out_saltelli is an array
+        # - dim 1 (rows)      sample
+        # - dim 2 (columns)   output variable
+        # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
+        # - dim 4 (cube rows) environment combination
+        # - dim 5 (cube cols) model combination
+        .$dataf$out_saltelli <- array(0, dim=c(.$wpars$n, length(.$dataf$mout), dim(.$dataf$pars)[2], .$dataf$le, .$dataf$lf ))
+        dimnames(.$dataf$out_saltelli) <- list(NULL, names(.$dataf$mout), colnames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
+        
+        # run over ABi matrices
+        .$dataf$out_saltelli[] <- vapply(1:.$dataf$lf, .$runf_saltelli, .$dataf$out_saltelli[,,,,1] )          
+
+        # write ABi output array 
+        write_to_file(.$output_saltelli_ABi(), paste(ofname,'salt','ABi',sep='_'), type='rds' )  
         if(!.$wpars$unit_testing) .$dataf$out_saltelli <- matrix(1)   
         print(paste('Saltelli array ABi completed',Sys.time()),quote=F)
         print('',quote=F)
@@ -232,18 +252,15 @@ wrapper_object <-
       # call runp
       
       # configure function names in the model
-      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[i,],F)
-      if(.$wpars$cverbose)         .$printc('fnames',.$dataf$fnames[i,])
-      print('here twat')
-      
+      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames', df=.$dataf$fnames[i,], F )
+      if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
+
       # call next run function
-      do.call(
-        rbind, {
+      do.call('rbind', {
           if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, fi=i, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=F  )
           #if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, mc.cores=.$wpars$procs, mc.preschedule=F  ) 
           else                 lapply(1:.$dataf$lp, .$runp, fi=i )
-        })
-      # ))
+      })
     }
     
     runp <- function(.,j,fi) {
@@ -252,12 +269,12 @@ wrapper_object <-
       # call rune
       
       # configure parameters in the model
-      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=.$dataf$pars[j,],F)
-      if(.$wpars$cverbose)       .$printc('pars',.$dataf$pars[j,])
+      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars', df=.$dataf$pars[j,], F )
+      if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[j,] )
       
       # call next run function
       # #data.frame(do.call(rbind,lapply(1:.$dataf$le,.$rune)))      
-      funv   <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ))
+      funv   <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )
       out    <- vapply(1:.$dataf$le, .$rune, funv )
       # # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking) 
       # # the resulting matrix can be then be allocated to the correct rows in a pre-defined output matrix
@@ -284,15 +301,15 @@ wrapper_object <-
       # call .$model$run or .$model$run_met if met data are provided
       
       # configure environment in the model
-      if(!is.null(.$dataf$env)) .$model$configure(func='write_env',df=.$dataf$env[k,],F)
-      if(.$wpars$cverbose)      .$printc('env',.$dataf$env[k,])
+      if(!is.null(.$dataf$env)) .$model$configure(func='write_env', df=.$dataf$env[k,], F )
+      if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
       
       # call next run function
       if(is.null(.$dataf$met)) {
         .$model$run()        
       } else {
         #data.frame(do.call(rbind,lapply(1:.$dataf$lm,.$model$run_met)))
-        t(vapply(1:.$dataf$lm, .$model$run_met, .$model$output() ))
+        t(vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout ))
       }  
     }
 
@@ -312,7 +329,12 @@ wrapper_object <-
       # call next run function
       # if(.$wpars$multic) mclapply(1:.$dataf$le,.$rune_saltelli,mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=F  )
       # else                 lapply(1:.$dataf$le,.$rune_saltelli)
-      lapply(1:.$dataf$le,.$rune_saltelli)
+      # lapply(1:.$dataf$le, .$rune_saltelli )
+      
+      # If FUN.VALUE is an array, the result is an array a with dim(a) == c(dim(FUN.VALUE), length(X))
+      # 3 dim array - sample (rows), model output variable (columns), parameter (slices)
+      # funv <- array(0, dim=c(.$wpars$n, length(.$dataf$mout), dim(.$dataf$pars)[2] ) )
+      vapply(1:.$dataf$le, .$rune_saltelli, .$dataf$out_saltelli[,,,1,1] )
     }
 
     rune_saltelli <- function(.,k) {
@@ -321,20 +343,26 @@ wrapper_object <-
       # call runpmat_saltelli
       
       # configure environment in the model
-      if(!is.null(.$dataf$env)) .$model$configure(func='write_env',df=.$dataf$env[k,],F)
-      if(.$wpars$cverbose) .$printc('env',.$dataf$env[k,])
+      if(!is.null(.$dataf$env)) .$model$configure(func='write_env', df=.$dataf$env[k,], F )
+      if(.$wpars$cverbose) .$printc('env', .$dataf$env[k,] )
       
       # call parameter matrix run function
       if(is.null(.$dataf$met)){
+        
         # omatl <- lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
-        omatl <- 
+        omatl   <- array(0, c(.$wpars$n*dim(.$dataf$pars)[2], length(.$dataf$mout) ) )
+        omatl[] <- do.call('rbind', {
             if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
             else                 lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
-        # convert to 3 dim array
-        array( unlist(omatl) , c(dim(omatl[[1]]),length(omatl)) )
+        })
+        
+        # convert to 3 dim array - sample (rows), model output variable (columns), parameter (slices)
+        aperm(array(omatl, c(.$wpars$n, dim(.$dataf$pars)[2], length(.$dataf$mout) ) ), c(1,3,2) )
+        
       } else {
-        print('Met data run not yet supported with Sobol',quote=F)
-        stop
+        # met data run not yet supported with Sobol, but should be caught before getting here
+        stop('Saltelli')
+        
       }  
     }
     
@@ -342,15 +370,13 @@ wrapper_object <-
       # This wrapper function is called from an lapply or mclappy function to be run once for each parameter (i.e. each column of the dataf$pars matrix)
       # call runp_saltelli
 
-      # returns a numeric matrix
+      # returns a numeric matrix - sample (rows), model output variable (columns)
       #do.call(rbind,lapply((.$wpars$n+1):.$dataf$lp,.$runp_saltelli,pk=p))     
-      ncores <- max(1,floor(.$wpars$procs/dim(.$dataf$pars)[2])) 
-      do.call(
-        rbind, {
+      ncores <- max(1, floor(.$wpars$procs/dim(.$dataf$pars)[2]) ) 
+      do.call('rbind', {
           if(.$wpars$multic&ncores>2) mclapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, mc.cores=ncores, mc.preschedule=F ) 
           else                          lapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p )
-        }
-      )
+      })
     }
     
     runp_saltelli <- function(.,j,pk) {
@@ -360,22 +386,23 @@ wrapper_object <-
       # call .$model$run
       
       # create index matrix to create row on matrix ABi for the .$dataf$par matrix (which is matrix A stacked on top of matrix B)
-      sub     <- rep(j-.$wpars$n,dim(.$dataf$pars)[2])
+      sub     <- rep(j-.$wpars$n, dim(.$dataf$pars)[2] )
       sub[pk] <- j
-      smat    <- cbind(sub,1:dim(.$dataf$pars)[2])      
+      smat    <- cbind(sub, 1:dim(.$dataf$pars)[2] )      
       
-      # create a dataframe from vector and add names
+      # create a matrix from vector and add names
       psdf        <- t(.$dataf$pars[smat])
       names(psdf) <- colnames(.$dataf$pars)
 
       # configure parameters in the model
-      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=psdf,F)
-      if(.$wpars$cverbose) .$printc('pars',psdf)
+      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars', df=psdf, F )
+      if(.$wpars$cverbose) .$printc('pars', psdf )
       
       # run model
-      # - rune_saltelli requires a numeric vector for the output from runpmat_saltelli
-      # - warnings are suppressed because character strings in model output are converted to NAs which comes with a warning   
-      suppressWarnings(as.numeric( .$model$run() ))        
+      # # - rune_saltelli requires a numeric vector for the output from runpmat_saltelli
+      # # - warnings are suppressed because character strings in model output are converted to NAs which comes with a warning   
+      # suppressWarnings(as.numeric( .$model$run() ))        
+      .$model$run()        
     }
     
     
@@ -461,8 +488,8 @@ wrapper_object <-
       
       write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')
       
-      # clear memory space - I'm not sure this is a good idea
-      if(!.$wpars$unit_testing) rm(.$dataf$out)   
+      # clear memory space
+      if(!.$wpars$unit_testing) .$dataf$out <- matrix(1)
       gc()
 
       if(.$wpars$unit_testing) setwd(hd)
@@ -551,7 +578,7 @@ wrapper_object <-
       funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$dataf$le*.$dataf$lm, length(.$model$output())) ) 
               else                     array(0, dim=c(.$dataf$le,            length(.$model$output())) )  
       out  <- vapply(oss, .$run_parB, funv )
-      # the output is an array, needs permuting and stacking
+      # the output is an array, needs stacking
       .$stack(out)
       
       # data.frame(
@@ -704,7 +731,7 @@ wrapper_object <-
               # if Saltelli SA
               # this is not currently used by the run scripts as the Saltelli method expects a different organisation of output
               # can be called by user to inspect Saltelli run output from matrix AB in a user readable format
-              # for example, to inspect relationship between parameetrs and output
+              # for example, to inspect relationship between parameters and output
 
               vardf <- cbind( 
                 # fnames
@@ -755,7 +782,7 @@ wrapper_object <-
         # if no vars  
         } else {
           # if met data
-          if(!is.null(.$dataf$met)) cbind( .$dataf$met , .$dataf$out ) else .$dataf$out  
+          if(!is.null(.$dataf$met)) cbind(.$dataf$met , .$dataf$out ) else .$dataf$out  
         }
       )
     }
@@ -772,30 +799,31 @@ wrapper_object <-
 
       # create AB output matrix array
       # - suppressWarnings on the as.numeric call as there can be character strings in .$dataf$out which cause warnings when converted to NAs
-      ab_mat_out  <- array(suppressWarnings(as.numeric(unlist(.$dataf$out))),c(.$dataf$le,2*.$wpars$n,.$dataf$lf,length(.$dataf$out)))
-
+      AB  <- array(.$dataf$out, c(.$dataf$le, 2*.$wpars$n, .$dataf$lf, length(.$dataf$mout) ))
+      dimnames(AB) <- list( NULL, NULL, apply(.$dataf$fnames, 1, toString), names(.$dataf$mout)  )
+      
       # output a list composed of the AB matrix output array, the fnames that define each model combination, the parameter names
-      list(AB=aperm(ab_mat_out,c(3,1,2,4)), fnames=.$dataf$fnames, par_names=colnames(.$dataf$pars) )
+      aperm(AB, c(3,1,2,4) )
     }
   
-    output_saltelli <- function(.) {
+    output_saltelli_ABi <- function(.) {
       # creates output for a saltelli Sobol sensitivity analysis 
 
-      # AB output is an array
-      # - dim 1 (rows)   model combination
-      # - dim 2 (cols)   environment combination
-      # - dim 3 (slices) sample
-      # - dim 4          output variable (character variables are coerced to NAs)
+      # ABi output is an array
+      # - dim 1 (rows)         model combination
+      # - dim 2 (cols)         environment combination
+      # - dim 3 (slices)       sample
+      # - dim 4 (cube rows)    output variable
+      # - dim 5 (cube columns) parameter that has used value from matrix B while all other par values are from matrix A
       
-      # ABi output is a nested list
-      # - list 1 model combination
-      # - list 2 environment combination
-      # - each element of list 2 is a 3 dimesional arrays 
-      #    - dim 1 (rows)   sample
-      #    - dim 2 (cols)   output variable
-      #    - dim 3 (slices) parameter that has used value from matrix B while all other par values are from matrix A
-      
-      list(AB=.$output_saltelli_AB(),ABi=.$dataf$out_saltelli)
+      # .$dataf$out_saltelli needs permuting to acheive above array dim order
+      # - dim 1 (rows)      sample
+      # - dim 2 (columns)   output variable
+      # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
+      # - dim 4 (cube rows) environment combination
+      # - dim 5 (cube cols) model combination
+
+      aperm(.$dataf$out_saltelli, c(5,4,1:3) )
     }
     
     
@@ -1172,7 +1200,7 @@ wrapper_object <-
       print('',quote=F)
       
       # process & record output
-      out_list <- .$output_saltelli()
+      out_list <- list(AB=.$output_saltelli_AB(), ABi=.$output_saltelli_ABi() )
       # p1 <- xyplot(A~ci|leaf.etrans*leaf.rs,df,type='l',auto.key=T)
       # p1 <- bwplot(leaf.ca_conc~A|leaf.Alim*leaf.etrans,out_list[[1]],auto.key=T,abline=0)
       # c(out_list,p1)
