@@ -125,7 +125,7 @@ leaf_object <-
         .$state$A_noR      <- NA
         .$state$transition <- NA
         .$state$A          <- -.$state$respiration      
-        .$state$lim        <- 'night'       
+        .$state$lim        <- 0       
         .$state_pars$rs    <- get(.$fnames$rs)(.)
       }
       
