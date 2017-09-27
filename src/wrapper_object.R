@@ -49,7 +49,7 @@ wrapper_object <-
     run   <- function(.,verbose=T) {
       
       # Initialisation checks
-      # need to add a check for equal par vector legnths if this is a UQ run, or add functionality that allows a function to be specified that will generate pars
+      # need to add a check for equal par vector lengths if this is a UQ run
       # need to add a checking function that allows the names of fnames, pars, and env to be checked and if they don't match up to print an error message 
       
       # configure initialisation lists - not called if unit testing (need to develop unit testing specifically for the model object init functions)
@@ -63,7 +63,7 @@ wrapper_object <-
         stop(paste('wrapper: eval_strings = T but vars$pars_eval not set. \n
               vars$pars_eval:,\n',.$vars$pars_eval,'\n 
               NOTE: Ye method SA must draw parameter samples during runtime \n
-              from code snippets expressed as strings in vars$pars_eval')) 
+              from code snippets written as strings in vars$pars_eval')) 
       }
 
       # initialise model with static variables
@@ -106,8 +106,10 @@ wrapper_object <-
           # check input vars$pars* are same length
           test_in <- length(.$vars$pars_eval) - length(.$vars$pars_proc)
           if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
+          
           # assign same list structure as vars$pars_eval to vars$pars 
-          .$vars$pars   <- lapply(.$vars$pars_eval,function(e) numeric(1) ) 
+          .$vars$pars   <- lapply(.$vars$pars_eval,function(e) numeric(1) )
+          
           # check input vars$pars* elements have same names
           # - to be done
           
@@ -118,22 +120,25 @@ wrapper_object <-
         
       } else {
         # not a formal SA/UQ run - factorial combination of variables specified in the vars lists  
-        .$dataf$pars    <- if(!is.na(.$vars$pars[1])) as.matrix(expand.grid(.$vars$pars,stringsAsFactors=F))   else NULL
+        .$dataf$pars <- if(!is.na(.$vars$pars[1])) as.matrix(expand.grid(.$vars$pars,stringsAsFactors=F))   else NULL
       } 
       
       # calculate input matrix lengths 
       ################################
       # if no matrix return 1
       # - used to set the number of iterations in the run functions  
-      # - parameter lengths 
       if(.$wpars$UQ&.$wpars$UQtype=='ye') {
         # determine number of processes to be analaysed
         .$dataf$lf <- length(.$vars$fnames)
+        
       } else {
         # any type of run other than Ye process sensitivity analysis 
         .$dataf$lf <- if(is.null(.$dataf$fnames)|(sum(dim(.$dataf$fnames)==0)==2)) 1 else length(.$dataf$fnames[,1]) 
         .$dataf$lp <- if(is.null(.$dataf$pars)|(sum(dim(.$dataf$pars)==0)==2) )    1 else length(.$dataf$pars[,1])
+        
       }
+      
+      # enviroment matrix and met matrix
       .$dataf$le <- if(is.null(.$dataf$env)|(sum(dim(.$dataf$env)==0)==2)      ) 1 else length(.$dataf$env[,1])    
       .$dataf$lm <- if(is.null(.$dataf$met)|(sum(dim(.$dataf$met)==0)==2)      ) 1 else length(.$dataf$met[,1])    
       
@@ -152,22 +157,10 @@ wrapper_object <-
       if(.$wpars$UQ&.$wpars$UQtype=='ye') {
         # process UQ run, or either general variable run or matrix A and B of Saltelli method
         # - Ye process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure  
-        #lapply(1:.$dataf$lf,.$run_general_process_SA)
         vapply(1:.$dataf$lf, .$run_general_process_SA, numeric(0) )
         
       } else {
         # Saltelli SA matrix AB run, or factorial run
-        
-        # .$dataf$out <-
-        #   as.data.frame(
-        #     do.call(
-        #       rbind, {
-        #         # multicore or not
-        #         if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf, mc.cores=.$wpars$procs, mc.preschedule=F )
-        #         else                 lapply( 1:.$dataf$lf, .$runf )
-        #         #lapply(1:.$dataf$lf,.$runf)
-        #       }
-        #     ))
         
         # if a Saltelli SA and a met dataset has been specified, stop
         if(!is.null(.$dataf$met)&.$wpars$UQtype=='saltelli') stop('No current method to run Saltelli SA with a met dataset')
@@ -185,7 +178,6 @@ wrapper_object <-
             })
         
         # print summary of results
-        # - output function is called from run script or from within run function 
         .$print_output()
       }
         
@@ -197,12 +189,6 @@ wrapper_object <-
         write_to_file(.$output_saltelli_AB(), paste(ofname,'salt','AB',sep='_'), type='rds' )  
         if(!.$wpars$unit_testing) .$dataf$out <- matrix(1)   
         .$print_saltelli()
-        
-        # run over ABi matrices
-        # .$dataf$out_saltelli <-
-        #   # if(.$wpars$multic) mclapply(1:.$dataf$lf,.$runf_saltelli,mc.cores=.$wpars$procs, mc.preschedule=F )
-        #   # else                 lapply(1:.$dataf$lf,.$runf_saltelli)          
-        #   lapply(1:.$dataf$lf,.$runf_saltelli)
         
         # initialise output array
         # .$dataf$out_saltelli is an array
@@ -258,7 +244,6 @@ wrapper_object <-
       # call next run function
       do.call('rbind', {
           if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, fi=i, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=F  )
-          #if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, mc.cores=.$wpars$procs, mc.preschedule=F  ) 
           else                 lapply(1:.$dataf$lp, .$runp, fi=i )
       })
     }
@@ -276,19 +261,6 @@ wrapper_object <-
       # #data.frame(do.call(rbind,lapply(1:.$dataf$le,.$rune)))      
       funv   <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )
       out    <- vapply(1:.$dataf$le, .$rune, funv )
-      # # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking) 
-      # # the resulting matrix can be then be allocated to the correct rows in a pre-defined output matrix
-      # orows  <- .$dataf$lm * .$dataf$le
-      # offset <- (fi-1) * .$dataf$lp * orows + (j-1) * orows
-      # nout   <- if(class(out)=='array') .$stack(out) else t(out)
-      # print(offset)
-      # print(out)
-      # print(nout)
-      # .$dataf$out[(offset+1):(offset+orows),] <- nout
-      # rm(out); gc()
-      # 
-      # # finally returns nothing
-      # numeric(0)
 
       # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
       # returns matrix
@@ -308,7 +280,6 @@ wrapper_object <-
       if(is.null(.$dataf$met)) {
         .$model$run()        
       } else {
-        #data.frame(do.call(rbind,lapply(1:.$dataf$lm,.$model$run_met)))
         t(vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout ))
       }  
     }
@@ -327,13 +298,7 @@ wrapper_object <-
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
       # call next run function
-      # if(.$wpars$multic) mclapply(1:.$dataf$le,.$rune_saltelli,mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=F  )
-      # else                 lapply(1:.$dataf$le,.$rune_saltelli)
-      # lapply(1:.$dataf$le, .$rune_saltelli )
-      
-      # If FUN.VALUE is an array, the result is an array a with dim(a) == c(dim(FUN.VALUE), length(X))
-      # 3 dim array - sample (rows), model output variable (columns), parameter (slices)
-      # funv <- array(0, dim=c(.$wpars$n, length(.$dataf$mout), dim(.$dataf$pars)[2] ) )
+      # output a 3 dim array - sample (rows), model output variable (columns), parameter (slices)
       vapply(1:.$dataf$le, .$rune_saltelli, .$dataf$out_saltelli[,,,1,1] )
     }
 
@@ -349,7 +314,6 @@ wrapper_object <-
       # call parameter matrix run function
       if(is.null(.$dataf$met)){
         
-        # omatl <- lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
         omatl   <- array(0, c(.$wpars$n*dim(.$dataf$pars)[2], length(.$dataf$mout) ) )
         omatl[] <- do.call('rbind', {
             if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
@@ -362,7 +326,6 @@ wrapper_object <-
       } else {
         # met data run not yet supported with Sobol, but should be caught before getting here
         stop('Saltelli')
-        
       }  
     }
     
@@ -371,7 +334,6 @@ wrapper_object <-
       # call runp_saltelli
 
       # returns a numeric matrix - sample (rows), model output variable (columns)
-      #do.call(rbind,lapply((.$wpars$n+1):.$dataf$lp,.$runp_saltelli,pk=p))     
       ncores <- max(1, floor(.$wpars$procs/dim(.$dataf$pars)[2]) ) 
       do.call('rbind', {
           if(.$wpars$multic&ncores>2) mclapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, mc.cores=ncores, mc.preschedule=F ) 
@@ -399,9 +361,6 @@ wrapper_object <-
       if(.$wpars$cverbose) .$printc('pars', psdf )
       
       # run model
-      # # - rune_saltelli requires a numeric vector for the output from runpmat_saltelli
-      # # - warnings are suppressed because character strings in model output are converted to NAs which comes with a warning   
-      # suppressWarnings(as.numeric( .$model$run() ))        
       .$model$run()        
     }
     
@@ -458,22 +417,11 @@ wrapper_object <-
       .$dataf$lp      <- .$wpars$n # convert these to be the row number of the actual matrices
       .$dataf$lpB     <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
       
-      # # call the below run function
-      # # .$dataf$out     <- {
-      # #   if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs, mc.preschedule=F )
-      # #   else                 lapply(1:.$dataf$lfA, .$run_repA)
-      # # }
-      # .$dataf$out     <- lapply(1:.$dataf$lfA, .$run_repA)
-      # 
-      # # convert dataframe output to list output
-      # .$dataf$out     <- transpose_list(.$dataf$out)
-
       # initialise output matrix
       .$dataf$out <- matrix(0, .$dataf$lm*.$dataf$le*.$dataf$lpB, length(.$dataf$mout) )
       colnames(.$dataf$out) <- names(.$dataf$mout)
       
       # call the below run function
-      # vapply(1:.$dataf$lfA, .$run_repA, numeric(0) )
       .$dataf$out[] <- do.call('rbind', {
         if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs, mc.preschedule=F )
         else                 lapply(1:.$dataf$lfA, .$run_repA)
@@ -504,29 +452,20 @@ wrapper_object <-
       # call run_parA
      
       print('',quote=F)
-      print(paste('started process:',.$dataf$fnames[g,],', of:',colnames(.$dataf$fnames)),quote=F)
+      print(paste('started process:', .$dataf$fnames[g,], ', of:', colnames(.$dataf$fnames)), quote=F )
  
       # configure function names in the model
-      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[g,],F)
-      if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[g,])
+      if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames', df=.$dataf$fnames[g,] , F )
+      if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnames[g,] )
 
       # calculate offset to correctly subset parsB matrix
       osg <- .$wpars$n * .$dataf$lfB * (g-1) 
  
       # call process A parameter run function
-      # data.frame(
       do.call('rbind', {
         if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run_parA, offset=osg, mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1), mc.preschedule=F  )
-        # if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run_parA, offset=osg, mc.cores=.$wpars$procs, mc.preschedule=F )
         else                 lapply(1:.$dataf$lp, .$run_parA, offset=osg)
       })
-      #           # lapply(1:.$dataf$lp, .$run_parA, offset=osg)
-      #   ))
-      # if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run_parA, offset=osg, mc.cores=.$wpars$procs, mc.preschedule=F )
-      # else                 lapply(1:.$dataf$lp, .$run_parA, offset=osg)
-      
-      # # return nothing
-      # numeric(0)
     }
         
     run_parA <- function(.,h,offset) {
@@ -535,27 +474,19 @@ wrapper_object <-
       # call run_repB
       
       # configure parameters in the model
-      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars',df=.$dataf$pars[h,],F)
-      if(.$wpars$cverbose) .$printc('pars',.$dataf$pars[h,])
+      if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars', df=.$dataf$pars[h,], F )
+      if(.$wpars$cverbose) .$printc('pars', .$dataf$pars[h,] )
       
       # calculate offset to correctly subset parsB matrix
       osh  <- offset + .$dataf$lfB * (h-1)        
       
       # call process B process representation run function
-      #return(data.frame(do.call(rbind, lapply(1:.$dataf$lfB, .$run_repB, offset=osh ))))
-      #gc() 
-      funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$wpars$n*.$dataf$le*.$dataf$lm, length(.$model$output())) ) 
-              else                     array(0, dim=c(.$wpars$n*.$dataf$le,            length(.$model$output())) )  
+      funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$wpars$n*.$dataf$le*.$dataf$lm, length(.$dataf$mout) ) ) 
+              else                     array(0, dim=c(.$wpars$n*.$dataf$le,            length(.$dataf$mout) ) )  
       out  <- vapply(1:.$dataf$lfB, .$run_repB, funv, offset=osh )
+
       # the output is an array, needs permuting and stacking
       .$stack(out)
-      
-      # # then can be allocated to a pre-defined output matrix
-      # .$dataf$out[subrows,] <- out
-      # gc()
-      # 
-      # # finally returns nothing
-      # numeric(0)
     }
 
     run_repB <- function(.,i,offset) {
@@ -564,8 +495,8 @@ wrapper_object <-
       # call run_parB
       
       # configure function names in the model
-      if(!is.null(.$dataf$fnamesB)) .$model$configure(func='write_fnames',df=.$dataf$fnamesB[i,],F)
-      if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnamesB[i,])
+      if(!is.null(.$dataf$fnamesB)) .$model$configure(func='write_fnames', df=.$dataf$fnamesB[i,], F )
+      if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnamesB[i,] )
       
       # calculate offset to correctly subset parsB matrix
       os  <- offset + i
@@ -573,21 +504,12 @@ wrapper_object <-
       oss <- (.$wpars$n*(os-1) + 1):(.$wpars$n*(os))    
       
       # call process B parameter run function
-      #return(data.frame(do.call(rbind, lapply(oss, .$run_parB ))))
-      #gc()
-      funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$dataf$le*.$dataf$lm, length(.$model$output())) ) 
-              else                     array(0, dim=c(.$dataf$le,            length(.$model$output())) )  
+      funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$dataf$le*.$dataf$lm, length(.$dataf$mout) ) ) 
+              else                     array(0, dim=c(.$dataf$le,            length(.$dataf$mout) ) )  
       out  <- vapply(oss, .$run_parB, funv )
+      
       # the output is an array, needs stacking
       .$stack(out)
-      
-      # data.frame(
-      #   do.call(
-      #     rbind, {
-      #       if(.$wpars$multic) mclapply(oss, .$run_parB, mc.cores=.$wpars$procs, mc.preschedule=F  ) 
-      #       else                 lapply(oss, .$run_parB )
-      #     }
-      #   ))
     }
     
     run_parB <- function(.,j) {
@@ -600,9 +522,9 @@ wrapper_object <-
       if(.$wpars$cverbose) .$printc('pars',.$dataf$parsB[j,])
       
       # call the environment run function to loop over CO2 values
-      #data.frame(do.call(rbind, lapply(1:.$dataf$le, .$rune )))
-      funv <- if(is.null(.$dataf$met)) .$model$output() else array(0, dim=c(.$dataf$lm, length(.$model$output()) ) )  
+      funv <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )  
       out  <- vapply(1:.$dataf$le, .$rune, funv )
+      
       # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
       # returns matrix
       if(class(out)=='array') .$stack(out) else t(out)
