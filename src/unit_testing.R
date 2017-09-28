@@ -39,7 +39,7 @@ xyplot(A~leaf.par |leaf.etrans*leaf.rs,out[[1]],type='l',panel=function(...) { p
 
 # Leaf, Ye SA
 source('wrapper_object.R')
-out <- wrapper_object$.test_ye(mc=T,pr=6,oconf=F,n=100)
+out <- wrapper_object$.test_ye(mc=T,pr=6,oconf=F,n=10)
 
 out[[2]]
 out <- out[[1]]

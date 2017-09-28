@@ -459,7 +459,7 @@ wrapper_object <-
       .$dataf$lpB     <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
       
       # initialise output matrix
-      .$dataf$out <- matrix(0, .$dataf$lm*.$dataf$le*.$dataf$lpB, length(.$dataf$mout) )
+      .$dataf$out     <- matrix(0, .$dataf$lm*.$dataf$le*.$dataf$lpB, length(.$dataf$mout) )
       colnames(.$dataf$out) <- names(.$dataf$mout)
       
       # call the below run function
@@ -469,17 +469,14 @@ wrapper_object <-
       })
       
       # process & record output
-      if(.$wpars$unit_testing) { 
-        hd     <- getwd()
-        setwd('~/tmp')
-        ofname <- 'Ye_test' 
-      } else setwd(odir)
-      
+      if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Ye_test' }
+      else                     setwd(odir)
       write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')
       
       # clear memory space
-      if(!.$wpars$unit_testing) .$dataf$out <- matrix(1)
-      gc()
+      # if(!.$wpars$unit_testing) 
+      # .$dataf$out <- matrix(1)
+      # gc()
 
       if(.$wpars$unit_testing) setwd(hd)
       
