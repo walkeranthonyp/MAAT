@@ -187,19 +187,10 @@ wrapper_object <-
         # write AB output array
         if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Salt_test' } else setwd(odir)
         write_to_file(.$output_saltelli_AB(), paste(ofname,'salt','AB',sep='_'), type='rds' )  
-        if(!.$wpars$unit_testing) .$dataf$out <- matrix(1)   
+        write_to_file(.$dataf$pars          , paste(ofname,'salt','AB','pars',sep='_'), type='rds' )  
+        if(!.$wpars$unit_testing) .$dataf$out <- NULL   
         .$print_saltelli()
         
-        # initialise output array
-        # .$dataf$out_saltelli is an array
-        # # - dim 1 (rows)      sample
-        # # - dim 2 (columns)   output variable
-        # # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
-        # # - dim 4 (cube rows) environment combination
-        # # - dim 5 (cube cols) model combination
-        # .$dataf$out_saltelli <- array(0, dim=c(.$wpars$n, length(.$dataf$mout), dim(.$dataf$pars)[2], .$dataf$le, .$dataf$lf ))
-        # dimnames(.$dataf$out_saltelli) <- list(NULL, names(.$dataf$mout), colnames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
-
         # initialise output array
         # - dim 1 (rows)      output variable
         # - dim 2 (columns)   sample
@@ -308,16 +299,10 @@ wrapper_object <-
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
       # call next run function
-      # # output a 3 dim array - sample (rows), model output variable (columns), parameter (slices)
-      # vapply(1:.$dataf$le, .$rune_saltelli, .$dataf$out_saltelli[,,,1,1] )
-      
       vapply({
         if(.$wpars$multic) mclapply(1:.$dataf$le, .$rune_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
         else                 lapply(1:.$dataf$le, .$rune_saltelli )
       }, function(a) a, .$dataf$out_saltelli[,,,1,1] )
-      
-      # # convert to 3 dim array - sample (rows), model output variable (columns), parameter (slices)
-      # aperm(array(omatl, c(.$wpars$n, dim(.$dataf$pars)[2], length(.$dataf$mout) ) ), c(1,3,2) )
     }
 
     rune_saltelli <- function(.,k) {
@@ -332,28 +317,7 @@ wrapper_object <-
       # call parameter matrix run function
       if(is.null(.$dataf$met)){
         
-        # omatl   <- array(0, c(.$wpars$n*dim(.$dataf$pars)[2], length(.$dataf$mout) ) )
-        # omatl[] <- do.call('rbind', {
-        #     if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
-        #     else                 lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
-        # })
-        # 
-        # # convert to 3 dim array - sample (rows), model output variable (columns), parameter (slices)
-        # aperm(array(omatl, c(.$wpars$n, dim(.$dataf$pars)[2], length(.$dataf$mout) ) ), c(1,3,2) )
-
         ncores <- max(1, floor(.$wpars$procs/.$dataf$le) )
-        
-        # # pre-allocate output array
-        # oa     <- array(0, c(length(.$dataf$mout), dim(.$dataf$pars)[2], .$wpars$n ) )
-        # 
-        # # call next run function, wrapped within vapply to convert list output to an array
-        # oa[]   <- vapply({
-        #   if(.$wpars$multic&ncores>=2) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
-        #   else                           lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
-        # },function(m) m, oa[,,1] )
-        # 
-        # # permute output array to: sample (rows), model output variable (columns), parameter (slices)
-        # aperm(oa, c(3,1,2) )
         
         # call next run function, wrapped within vapply to convert (mc)lapply list output to an array
         # returns a numeric array - model output variable (rows), sample (columns), parameter (slices)
@@ -372,12 +336,6 @@ wrapper_object <-
       # This wrapper function is called from an lapply or mclappy function to be run once for each parameter (i.e. each column of the dataf$pars matrix)
       # call runp_saltelli
 
-      # returns a numeric matrix - sample (rows), model output variable (columns)
-      # ncores <- max(1, floor(.$wpars$procs/dim(.$dataf$pars)[2]) ) 
-      # do.call('rbind', {
-      #     if(.$wpars$multic&ncores>2) mclapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, mc.cores=ncores, mc.preschedule=F ) 
-      #     else                          lapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p )
-      # })
       # returns a numeric matrix - model output variable (rows), sample (columns)
       vapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, .$dataf$mout, pk=p )
     }
@@ -423,15 +381,15 @@ wrapper_object <-
       # The principle is to create a loop that runs the process SA nested loops once for each process to be analysed
       # This separates out the process in question - process A - from the other process(es) - process B (can be more than one process).
       # This function partitions the parameters to process A and and process B, 
-      # then creates the fnames and pars dataframes for process A and process B,
+      # then creates the fnames and pars matrices for process A and process B,
       # calls the below run function,
       # outputs an .RDS for each process segregation
 
-      # create the fnames dataframes for process A and process B
+      # create the fnames matrices for process A and process B
       .$dataf$fnames  <- if(!is.na(.$vars$fnames[f]))  as.matrix(expand.grid(.$vars$fnames[f] ,stringsAsFactors=F)) else stop()
       .$dataf$fnamesB <- if(!is.na(.$vars$fnames[-f])) as.matrix(expand.grid(.$vars$fnames[-f],stringsAsFactors=F)) else stop()
       
-      # determine the number of the rows in process dataframes
+      # determine the number of the rows in process matrices
       .$dataf$lfA     <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
       .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
       
@@ -454,7 +412,7 @@ wrapper_object <-
       .$dataf$parsB   <- if(!is.na(.$vars$pars[2])) do.call(cbind,.$vars$pars[-.$procA_subs]) else stop()
       .$vars$pars     <- lapply(.$vars$pars_eval,function(e) numeric(1) ) 
 
-      # determine the number of the rows in parameter dataframes
+      # determine the number of the rows in parameter matrices
       .$dataf$lp      <- .$wpars$n # convert these to be the row number of the actual matrices
       .$dataf$lpB     <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
       
@@ -463,6 +421,8 @@ wrapper_object <-
       colnames(.$dataf$out) <- names(.$dataf$mout)
       
       # call the below run function
+      print('',quote=F)
+      print(paste('started process:', colnames(.$dataf$fnames), Sys.time()), quote=F )
       .$dataf$out[] <- do.call('rbind', {
         if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs, mc.preschedule=F )
         else                 lapply(1:.$dataf$lfA, .$run_repA)
@@ -472,7 +432,8 @@ wrapper_object <-
       if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Ye_test' }
       else                     setwd(odir)
       write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')
-      
+      print(paste('completed process:', colnames(.$dataf$fnames), Sys.time()), quote=F )
+
       # clear memory space
       # if(!.$wpars$unit_testing) 
       # .$dataf$out <- matrix(1)
@@ -489,8 +450,7 @@ wrapper_object <-
       # assumes that each row of the fnames matrix are independent and non-sequential
       # call run_parA
      
-      print('',quote=F)
-      print(paste('started process:', .$dataf$fnames[g,], ', of:', colnames(.$dataf$fnames)), quote=F )
+      print(paste('started representation:', .$dataf$fnames[g,], ', of process:', colnames(.$dataf$fnames)), quote=F )
  
       # configure function names in the model
       if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames', df=.$dataf$fnames[g,] , F )
@@ -668,6 +628,7 @@ wrapper_object <-
               #  - i.e. repeats lines in input dataframes/matrices to align with output
               #  - the number of rows in the resultant dataframe is lf*lfB*n^2*le
  
+              print(Sys.time())
               print(paste('Rows df$fnames:', dim(.$dataf$fnames)[1], .$dataf$lfA),quote=F)
               print(paste('Rows df$fnamesB:',dim(.$dataf$fnamesB)[1],.$dataf$lfB),quote=F)
               print(paste('Rows df$pars:',   dim(.$dataf$pars)[1],   .$wpars$n),quote=F)
