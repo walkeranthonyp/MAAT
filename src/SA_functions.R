@@ -217,7 +217,7 @@ calc_parameter_sensitivity <- function(sn,outdata,delta) {
   for(m in 1:nmod) {
     # scenario loop
     for(e in 1:nscen) {
-      out1 <- list(func_sobol_sensitivity(sn, k, outdata$AB[m,e,,delta], outdata$ABi[m,e,,delta,], pnames=dimnames(outdata$ABi)[5] ))      
+      out1 <- list(func_sobol_sensitivity(sn, k, outdata$AB[m,e,,delta], outdata$ABi[m,e,,delta,], pnames=dimnames(outdata$ABi)[[5]] ))      
       out2 <- if(e==1) out1 else c(out2, out1 )
     }
     sensout <- if(m==1) list(out2) else c(sensout, list(out2) )
