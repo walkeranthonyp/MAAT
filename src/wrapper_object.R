@@ -416,29 +416,38 @@ wrapper_object <-
       .$dataf$lp      <- .$wpars$n # convert these to be the row number of the actual matrices
       .$dataf$lpB     <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
       
-      # initialise output matrix
-      .$dataf$out     <- matrix(0, .$dataf$lm*.$dataf$le*.$dataf$lpB, length(.$dataf$mout) )
-      colnames(.$dataf$out) <- names(.$dataf$mout)
+      # # initialise output matrix
+      # .$dataf$out     <- matrix(0, .$dataf$lm*.$dataf$le*.$dataf$lpB, length(.$dataf$mout) )
+      # colnames(.$dataf$out) <- names(.$dataf$mout)
+
+      # initialise output array
+      # - dim 1 (rows)        output variable
+      # - dim 2 (columns)     environment combination
+      # - dim 3 (slices)      process(es) B parameter sample 
+      # - dim 4 (cube rows)   process(es) B representation(s)
+      # - dim 5 (cube cols)   process A parameter sample
+      # - dim 6 (cube slices) process A representation
       
-      # call the below run function
+      # if met data then ... .$dataf$out     <- array(0, c(length(.$dataf$mout), .$dataf$lm, .$dataf$le, .$wpars$n, .$dataf$lfB, .$wpars$n, .$dataf$lfA  ) )
+      .$dataf$out           <- array(0, c(length(.$dataf$mout), .$dataf$le, .$wpars$n, .$dataf$lfB, .$wpars$n, .$dataf$lfA  ) )
+      dimnames(.$dataf$out) <- list(names(.$dataf$mout), NULL, NULL, apply(.$dataf$fnamesB, 1, toString), NULL, .$dataf$fnames )
+      
       print('',quote=F)
       print(paste('started process:', colnames(.$dataf$fnames), Sys.time()), quote=F )
-      .$dataf$out[] <- do.call('rbind', {
+
+      # call the below run function
+      .$dataf$out[] <- vapply({
         if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs, mc.preschedule=F )
         else                 lapply(1:.$dataf$lfA, .$run_repA)
-      })
+      }, function(a) a, .$dataf$out[,,,,,1] )
       
       # process & record output
       if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Ye_test' }
       else                     setwd(odir)
-      write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')
-      print(paste('completed process:', colnames(.$dataf$fnames), Sys.time()), quote=F )
-
-      # clear memory space
-      # if(!.$wpars$unit_testing) 
-      # .$dataf$out <- matrix(1)
-      # gc()
-
+      # write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')
+      write_to_file(.$dataf$out, paste(ofname, 'proc', f, sep='_' ), type='rds' )
+      
+      print(paste('completed process:', colnames(.$dataf$fnames), Sys.time() ), quote=F )
       if(.$wpars$unit_testing) setwd(hd)
       
       # return nothing
@@ -460,10 +469,10 @@ wrapper_object <-
       osg <- .$wpars$n * .$dataf$lfB * (g-1) 
  
       # call process A parameter run function
-      do.call('rbind', {
+      vapply({
         if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run_parA, offset=osg, mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1), mc.preschedule=F  )
         else                 lapply(1:.$dataf$lp, .$run_parA, offset=osg)
-      })
+      }, function(a) a, .$dataf$out[,,,,1,1] )
     }
         
     run_parA <- function(.,h,offset) {
@@ -479,12 +488,13 @@ wrapper_object <-
       osh  <- offset + .$dataf$lfB * (h-1)        
       
       # call process B process representation run function
-      funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$wpars$n*.$dataf$le*.$dataf$lm, length(.$dataf$mout) ) ) 
-              else                     array(0, dim=c(.$wpars$n*.$dataf$le,            length(.$dataf$mout) ) )  
-      out  <- vapply(1:.$dataf$lfB, .$run_repB, funv, offset=osh )
-
+      # funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$wpars$n*.$dataf$le*.$dataf$lm, length(.$dataf$mout) ) ) 
+      #         else                     array(0, dim=c(.$wpars$n*.$dataf$le,            length(.$dataf$mout) ) )  
+      # out  <- vapply(1:.$dataf$lfB, .$run_repB, funv, offset=osh )
+      vapply(1:.$dataf$lfB, .$run_repB, .$dataf$out[,,,1,1,1], offset=osh )
+      
       # the output is an array, needs permuting and stacking
-      .$stack(out)
+      # .$stack(out)
     }
 
     run_repB <- function(.,i,offset) {
@@ -502,12 +512,13 @@ wrapper_object <-
       oss <- (.$wpars$n*(os-1) + 1):(.$wpars$n*(os))    
       
       # call process B parameter run function
-      funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$dataf$le*.$dataf$lm, length(.$dataf$mout) ) ) 
-              else                     array(0, dim=c(.$dataf$le,            length(.$dataf$mout) ) )  
-      out  <- vapply(oss, .$run_parB, funv )
+      # funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$dataf$le*.$dataf$lm, length(.$dataf$mout) ) ) 
+      #         else                     array(0, dim=c(.$dataf$le,            length(.$dataf$mout) ) )  
+      # out  <- vapply(oss, .$run_parB, funv )
+      vapply(oss, .$run_parB, .$dataf$out[,,1,1,1,1] )
       
       # the output is an array, needs stacking
-      .$stack(out)
+      # .$stack(out)
     }
     
     run_parB <- function(.,j) {
@@ -516,16 +527,20 @@ wrapper_object <-
       # call rune
       
       # configure parameters in the model
-      if(!is.null(.$dataf$parsB)) .$model$configure(func='write_pars',df=.$dataf$parsB[j,],F)
-      if(.$wpars$cverbose) .$printc('pars',.$dataf$parsB[j,])
+      if(!is.null(.$dataf$parsB)) .$model$configure(func='write_pars', df=.$dataf$parsB[j,], F )
+      if(.$wpars$cverbose)        .$printc('pars', .$dataf$parsB[j,] )
       
-      # call the environment run function to loop over CO2 values
-      funv <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )  
-      out  <- vapply(1:.$dataf$le, .$rune, funv )
+      # call the environment run function
+      # funv <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )  
+      # out  <- vapply(1:.$dataf$le, .$rune, funv )
+
+      # call the environment run function
+      vapply(1:.$dataf$le, .$rune, .$dataf$out[,1,1,1,1,1] )
       
-      # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
-      # returns matrix
-      if(class(out)=='array') .$stack(out) else t(out)
+      # ignoring met data possibility for now 
+      # # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
+      # # returns matrix
+      # if(class(out)=='array') .$stack(out) else t(out)
     }
         
     
@@ -628,25 +643,25 @@ wrapper_object <-
               #  - i.e. repeats lines in input dataframes/matrices to align with output
               #  - the number of rows in the resultant dataframe is lf*lfB*n^2*le
  
-              print(Sys.time())
-              print(paste('Rows df$fnames:', dim(.$dataf$fnames)[1], .$dataf$lfA),quote=F)
-              print(paste('Rows df$fnamesB:',dim(.$dataf$fnamesB)[1],.$dataf$lfB),quote=F)
-              print(paste('Rows df$pars:',   dim(.$dataf$pars)[1],   .$wpars$n),quote=F)
-              print(paste('Rows df$parsB:',  dim(.$dataf$parsB)[1],  .$wpars$n^2*.$dataf$lfA*.$dataf$lfB),quote=F)
-              print(paste('Rows df$env:',    dim(.$dataf$env)[1],    .$dataf$le),quote=F)
-
-              vardf    <- list(
-                # fnames of process A - length lf * lfB * le * n^2
-                fnames  = apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
-                # pars of process A
-                pars    = apply(.$dataf$pars,   2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lfA) ),
-                # fnames of process B
-                fnamesB = apply(.$dataf$fnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lfA*.$wpars$n) ),
-                # parsB
-                parsB   = apply(.$dataf$parsB,  2,function(v) rep(v,each=.$dataf$le) ),
-                # environment
-                env     = apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lfA*.$dataf$lfB*.$wpars$n^2) )
-              )
+              # print(Sys.time())
+              # print(paste('Rows df$fnames:', dim(.$dataf$fnames)[1], .$dataf$lfA),quote=F)
+              # print(paste('Rows df$fnamesB:',dim(.$dataf$fnamesB)[1],.$dataf$lfB),quote=F)
+              # print(paste('Rows df$pars:',   dim(.$dataf$pars)[1],   .$wpars$n),quote=F)
+              # print(paste('Rows df$parsB:',  dim(.$dataf$parsB)[1],  .$wpars$n^2*.$dataf$lfA*.$dataf$lfB),quote=F)
+              # print(paste('Rows df$env:',    dim(.$dataf$env)[1],    .$dataf$le),quote=F)
+              # 
+              # vardf    <- list(
+              #   # fnames of process A - length lf * lfB * le * n^2
+              #   fnames  = apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
+              #   # pars of process A
+              #   pars    = apply(.$dataf$pars,   2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lfA) ),
+              #   # fnames of process B
+              #   fnamesB = apply(.$dataf$fnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lfA*.$wpars$n) ),
+              #   # parsB
+              #   parsB   = apply(.$dataf$parsB,  2,function(v) rep(v,each=.$dataf$le) ),
+              #   # environment
+              #   env     = apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lfA*.$dataf$lfB*.$wpars$n^2) )
+              # )
               
             } else if(.$wpars$UQtype=='saltelli') { 
               # if Saltelli SA
@@ -707,7 +722,7 @@ wrapper_object <-
         }
       )
     }
-    
+
     output_saltelli_AB <- function(.) {
       # creates output for a saltelli Sobol sensitivity analysis 
       # A and B matrices are stacked in a single matrix, which for each model and environment combination are then stored in an array 
@@ -1042,13 +1057,6 @@ wrapper_object <-
       print(st)
       print('',quote=F)
       
-      # process & record output
-      df <- .$output()
-      p1 <- bwplot(df$env[,which(colnames(df$env)=='leaf.ca_conc')] ~ df$A | 
-                     df$fnamesB[,which(colnames(df$fnamesB)=='leaf.Alim')] *
-                     df$fnames[,which(colnames(df$fnames)=='leaf.etrans')] ,
-                   auto.key=T,abline=0)
-      list(df,p1)
     }    
     
     # test function for Saltelli method Sobol parametric sensitivity analysis
@@ -1123,11 +1131,7 @@ wrapper_object <-
       print('',quote=F)
       
       # process & record output
-      out_list <- list(AB=.$output_saltelli_AB(), ABi=.$output_saltelli_ABi() )
-      # p1 <- xyplot(A~ci|leaf.etrans*leaf.rs,df,type='l',auto.key=T)
-      # p1 <- bwplot(leaf.ca_conc~A|leaf.Alim*leaf.etrans,out_list[[1]],auto.key=T,abline=0)
-      # c(out_list,p1)
-      out_list
+      list(AB=.$output_saltelli_AB(), ABi=.$output_saltelli_ABi() )
     }    
     
     ###########################################################################

@@ -15,7 +15,14 @@ calc_process_sensitivity <- function(df,res,col,colname,n,nA=1,nB=3,...) {
   
   # extract model output of interest (i.e. Delta)
   # f     <- as.vector(df[,which(names(df)==colname)])
-  f     <- as.vector(df[[res]][,col])
+  # f     <- as.vector(df[[res]][,col])
+  # - dim 1 (rows)        output variable
+  # - dim 2 (columns)     environment combination    - eliminated either manually or by running an apply function over this dimension? So that df is a 5D array
+  # - dim 3 (slices)      process(es) B parameter sample 
+  # - dim 4 (cube rows)   process(es) B representation(s)
+  # - dim 5 (cube cols)   process A parameter sample
+  # - dim 6 (cube slices) process A representation
+  f     <- as.vector(df[col,,,,])
   
   # total mean & variance in Delta
   # - variance should be normalised by the total sample size, not sample size - 1
