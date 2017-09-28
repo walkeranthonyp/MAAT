@@ -57,6 +57,7 @@ out$env[,which(colnames(out$env)=='leaf.ca_conc')]
 rm(list=ls())
 source('wrapper_object.R')
 out <- wrapper_object$.test_saltelli(mc=F,pr=6,oconf=F,n=10)
+out <- wrapper_object$.test_saltelli(mc=T,pr=6,oconf=F,n=10)
 
 out
 length(out)

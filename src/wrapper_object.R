@@ -192,13 +192,22 @@ wrapper_object <-
         
         # initialise output array
         # .$dataf$out_saltelli is an array
-        # - dim 1 (rows)      sample
-        # - dim 2 (columns)   output variable
-        # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
+        # # - dim 1 (rows)      sample
+        # # - dim 2 (columns)   output variable
+        # # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
+        # # - dim 4 (cube rows) environment combination
+        # # - dim 5 (cube cols) model combination
+        # .$dataf$out_saltelli <- array(0, dim=c(.$wpars$n, length(.$dataf$mout), dim(.$dataf$pars)[2], .$dataf$le, .$dataf$lf ))
+        # dimnames(.$dataf$out_saltelli) <- list(NULL, names(.$dataf$mout), colnames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
+
+        # initialise output array
+        # - dim 1 (rows)      output variable
+        # - dim 2 (columns)   sample
+        # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A 
         # - dim 4 (cube rows) environment combination
         # - dim 5 (cube cols) model combination
-        .$dataf$out_saltelli <- array(0, dim=c(.$wpars$n, length(.$dataf$mout), dim(.$dataf$pars)[2], .$dataf$le, .$dataf$lf ))
-        dimnames(.$dataf$out_saltelli) <- list(NULL, names(.$dataf$mout), colnames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
+        .$dataf$out_saltelli <- array(0, dim=c(length(.$dataf$mout), .$wpars$n, dim(.$dataf$pars)[2], .$dataf$le, .$dataf$lf ))
+        dimnames(.$dataf$out_saltelli) <- list(names(.$dataf$mout), NULL, colnames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
         
         # run over ABi matrices
         .$dataf$out_saltelli[] <- vapply(1:.$dataf$lf, .$runf_saltelli, .$dataf$out_saltelli[,,,,1] )          
@@ -223,9 +232,10 @@ wrapper_object <-
       print(r2,quote=F)
     }
     
-    # takes a 3D array and stacks it into a 2D matrix
+    # takes a >=3 D array and stacks it into a 2D matrix
     stack <- function(.,a) {
-      array(aperm(a, c(1,3,2)), c(dim(a)[1]*dim(a)[3], dim(a)[2]) )
+      # array(aperm(a, c(1,3,2)), c(dim(a)[1]*dim(a)[3], dim(a)[2]) )
+      apply(a, 2, function(v) v )
     }
     
 
@@ -298,8 +308,16 @@ wrapper_object <-
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
       # call next run function
-      # output a 3 dim array - sample (rows), model output variable (columns), parameter (slices)
-      vapply(1:.$dataf$le, .$rune_saltelli, .$dataf$out_saltelli[,,,1,1] )
+      # # output a 3 dim array - sample (rows), model output variable (columns), parameter (slices)
+      # vapply(1:.$dataf$le, .$rune_saltelli, .$dataf$out_saltelli[,,,1,1] )
+      
+      vapply({
+        if(.$wpars$multic) mclapply(1:.$dataf$le, .$rune_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
+        else                 lapply(1:.$dataf$le, .$rune_saltelli )
+      }, function(a) a, .$dataf$out_saltelli[,,,1,1] )
+      
+      # # convert to 3 dim array - sample (rows), model output variable (columns), parameter (slices)
+      # aperm(array(omatl, c(.$wpars$n, dim(.$dataf$pars)[2], length(.$dataf$mout) ) ), c(1,3,2) )
     }
 
     rune_saltelli <- function(.,k) {
@@ -309,19 +327,40 @@ wrapper_object <-
       
       # configure environment in the model
       if(!is.null(.$dataf$env)) .$model$configure(func='write_env', df=.$dataf$env[k,], F )
-      if(.$wpars$cverbose) .$printc('env', .$dataf$env[k,] )
+      if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
       
       # call parameter matrix run function
       if(is.null(.$dataf$met)){
         
-        omatl   <- array(0, c(.$wpars$n*dim(.$dataf$pars)[2], length(.$dataf$mout) ) )
-        omatl[] <- do.call('rbind', {
-            if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
-            else                 lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
-        })
+        # omatl   <- array(0, c(.$wpars$n*dim(.$dataf$pars)[2], length(.$dataf$mout) ) )
+        # omatl[] <- do.call('rbind', {
+        #     if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
+        #     else                 lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
+        # })
+        # 
+        # # convert to 3 dim array - sample (rows), model output variable (columns), parameter (slices)
+        # aperm(array(omatl, c(.$wpars$n, dim(.$dataf$pars)[2], length(.$dataf$mout) ) ), c(1,3,2) )
+
+        ncores <- max(1, floor(.$wpars$procs/.$dataf$le) )
         
-        # convert to 3 dim array - sample (rows), model output variable (columns), parameter (slices)
-        aperm(array(omatl, c(.$wpars$n, dim(.$dataf$pars)[2], length(.$dataf$mout) ) ), c(1,3,2) )
+        # # pre-allocate output array
+        # oa     <- array(0, c(length(.$dataf$mout), dim(.$dataf$pars)[2], .$wpars$n ) )
+        # 
+        # # call next run function, wrapped within vapply to convert list output to an array
+        # oa[]   <- vapply({
+        #   if(.$wpars$multic&ncores>=2) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
+        #   else                           lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
+        # },function(m) m, oa[,,1] )
+        # 
+        # # permute output array to: sample (rows), model output variable (columns), parameter (slices)
+        # aperm(oa, c(3,1,2) )
+        
+        # call next run function, wrapped within vapply to convert (mc)lapply list output to an array
+        # returns a numeric array - model output variable (rows), sample (columns), parameter (slices)
+        vapply({
+          if(.$wpars$multic&ncores>=2) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
+          else                           lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
+        },function(a) a, .$dataf$out_saltelli[,,1,1,1] )
         
       } else {
         # met data run not yet supported with Sobol, but should be caught before getting here
@@ -334,11 +373,13 @@ wrapper_object <-
       # call runp_saltelli
 
       # returns a numeric matrix - sample (rows), model output variable (columns)
-      ncores <- max(1, floor(.$wpars$procs/dim(.$dataf$pars)[2]) ) 
-      do.call('rbind', {
-          if(.$wpars$multic&ncores>2) mclapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, mc.cores=ncores, mc.preschedule=F ) 
-          else                          lapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p )
-      })
+      # ncores <- max(1, floor(.$wpars$procs/dim(.$dataf$pars)[2]) ) 
+      # do.call('rbind', {
+      #     if(.$wpars$multic&ncores>2) mclapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p, mc.cores=ncores, mc.preschedule=F ) 
+      #     else                          lapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, pk=p )
+      # })
+      # returns a numeric matrix - model output variable (rows), sample (columns)
+      vapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, .$dataf$mout, pk=p )
     }
     
     runp_saltelli <- function(.,j,pk) {
@@ -739,13 +780,14 @@ wrapper_object <-
       # - dim 5 (cube columns) parameter that has used value from matrix B while all other par values are from matrix A
       
       # .$dataf$out_saltelli needs permuting to acheive above array dim order
-      # - dim 1 (rows)      sample
-      # - dim 2 (columns)   output variable
-      # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
+      # - dim 1 (rows)      output variable
+      # - dim 2 (columns)   sample
+      # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A 
       # - dim 4 (cube rows) environment combination
       # - dim 5 (cube cols) model combination
-
-      aperm(.$dataf$out_saltelli, c(5,4,1:3) )
+      
+      # aperm(.$dataf$out_saltelli, c(5,4,1:3) )
+      aperm(.$dataf$out_saltelli, c(5,4,2,1,3) )
     }
     
     
