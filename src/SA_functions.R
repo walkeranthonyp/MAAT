@@ -7,40 +7,46 @@
 ################################
 
 #####################################################
-calc_process_sensitivity <- function(df,res,col,colname,n,nA=1,nB=3,...) {
+calc_process_sensitivity <- function(a1,colname,n,nA=1,nB=3,...) {
+  
+  # get dim extents, a1 should be a 4D array
+  # - dim 1 (rows)      process(es) B parameter sample 
+  # - dim 2 (columns)   process(es) B representation(s)
+  # - dim 3 (slices)    process A parameter sample
+  # - dim 4 (cube rows) process A representation
+  adim  <- dim(a1) 
+  nA    <- adim[4]
+  nB    <- adim[2]
+  n     <- adim[1] # adim[1] and adim[3] should be the same
   
   # assume equal probability for each model
-  mpA   <- rep(1/nA,nA)
-  mpB   <- rep(1/nB,nB)
+  mpA   <- rep(1/nA, nA )
+  mpB   <- rep(1/nB, nB )
   
   # extract model output of interest (i.e. Delta)
   # f     <- as.vector(df[,which(names(df)==colname)])
   # f     <- as.vector(df[[res]][,col])
-  # - dim 1 (rows)        output variable
-  # - dim 2 (columns)     environment combination    - eliminated either manually or by running an apply function over this dimension? So that df is a 5D array
-  # - dim 3 (slices)      process(es) B parameter sample 
-  # - dim 4 (cube rows)   process(es) B representation(s)
-  # - dim 5 (cube cols)   process A parameter sample
-  # - dim 6 (cube slices) process A representation
-  f     <- as.vector(df[col,,,,])
-  
-  # total mean & variance in Delta
+
+  # total variance in Delta
   # - variance should be normalised by the total sample size, not sample size - 1
-  var_t <- var(f) 
+  # var_t <- var(f) 
+  var_t <- var(a1) 
   
-  # reshape f vector into array dim = nA,n,nB,n - first dimension cycles first, like FORTRAN
-  f     <- array(f,dim=c(n,nB,n,nA))
-  f     <- aperm(f,4:1)
+  # permute a1 into dim = nA,n,nB,n - first dimension cycles first, like FORTRAN
+  # f     <- array(f,dim=c(n,nB,n,nA))
+  # f     <- aperm(f,4:1)
+  a1    <- aperm(a1, 4:1 )
   
   # call function to calculate variance in Delta caused by variability in process x
-  var_A <- func_process_sensitivity(1,f,nA,nB,mpA,mpB,n)
-  var_B <- func_process_sensitivity(2,f,nA,nB,mpA,mpB,n)
-  var_p <- c(var_A,var_B)
+  var_A <- func_process_sensitivity(1,a1,nA,nB,mpA,mpB,n)
+  # var_B <- func_process_sensitivity(2,a1,nA,nB,mpA,mpB,n)
+  # var_p <- c(var_A,var_B)
   
   # output a list of a scalar of total variance, and a matrix of variance caused by each process, and their proportion of total variance
-  Tvar <- c(mean=mean(f),total_var=var_t,total_sd=var_t^0.5)
+  Tvar <- c(mean=mean(a1),total_var=var_t,total_sd=var_t^0.5)
   
-  list(Tvar=Tvar,par_var=var_p,sensitivity=var_p/var_t)
+  # list(Tvar=Tvar,par_var=var_p,sensitivity=var_p/var_t)
+  list(Tvar=Tvar,par_var=var_A,sensitivity=var_A/var_t)
 }
 
 
