@@ -187,7 +187,11 @@ wrapper_object <-
         # write AB output array
         if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Salt_test' } else setwd(odir)
         write_to_file(.$output_saltelli_AB(), paste(ofname,'salt','AB',sep='_'), type='rds' )  
-        write_to_file(.$dataf$pars          , paste(ofname,'salt','AB','pars',sep='_'), type='rds' )  
+
+        # write dataf matrices used in AB run
+        write_to_file(list(fnames=.$dataf$fnames, pars=.$dataf$pars, env=.$dataf$env ), paste(ofname,'salt','AB','dataf',sep='_'), type='rds' )  
+        
+        # remove large out array
         if(!.$wpars$unit_testing) .$dataf$out <- NULL   
         .$print_saltelli()
         
