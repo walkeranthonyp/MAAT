@@ -104,6 +104,9 @@ runid        <- NULL
 # basic output file name
 of_main      <- 'out'
 
+# model output switch 
+mod_out      <- 'run'
+
 # output file format.  supported: rds, csv (default)
 of_format    <- 'csv'
 
@@ -210,6 +213,7 @@ maat$wpars$coef_var      <- coef_var
 maat$wpars$nmult         <- salt_nmult       
 maat$wpars$eval_strings  <- eval_strings       
 maat$model$cpars$verbose <- F
+maat$model$cpars$output  <- mod_out
 
 
 
