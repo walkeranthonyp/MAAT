@@ -83,11 +83,11 @@
       <!-- ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless) -->
       <ko_kc_ratio>0.21</ko_kc_ratio>       
       <!-- curvature of farquhar and wong 1984 electron transport, 0-1 --> 
-      <theta>0.9</theta>
-      <!-- curvature of collatz 1991 limiting rate selection function, wc or wj, 0-1 --> 
-      <theta_collatz>0.98</theta_collatz>
-      <!-- curvature of collatz 1991 limiting rate selection function, (wc or wj) or wp, 0-1 --> 
-      <beta_collatz>0.95</beta_collatz>
+      <theta_j>0.9</theta_j>
+      <!-- curvature of collatz 1991 limiting rate selection function, theta in Collatz notation, wc or wj, 0-1 --> 
+      <theta_col_cj>0.95</theta_col_cj>
+      <!-- curvature of collatz 1991 limiting rate selection function, beta in Collatz notation, (wc or wj) or wp, 0-1 --> 
+      <theta_col_cjp>0.95</theta_col_cjp>
       <!-- intercept & slope of Vcmax25 to leaf N area relationship -->
       <avn_25>10</avn_25>
       <bvn_25>30</bvn_25>

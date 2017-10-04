@@ -44,9 +44,9 @@
       <a>0.8</a>
       <f>0.23</f>
       <ko_kc_ratio>0.21</ko_kc_ratio>       
-      <theta>0.9</theta>
-      <theta_collatz>0.98</theta_collatz>
-      <beta_collatz>0.95</beta_collatz>
+      <theta_j>0.9</theta_j>
+      <theta_col_cj>0.95</theta_col_cj>
+      <theta_col_cjp>0.98</theta_col_cjp>
       <avn_25>10</avn_25>
       <bvn_25>30</bvn_25>
       <ajv_25>29</ajv_25>

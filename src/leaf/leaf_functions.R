@@ -262,7 +262,7 @@ f_j_farquharwong1984 <- function(.){
   # if so von C 2000's alpha is 0.36125
     
   I2 <- .$env$par * .$pars$a * .$state_pars$alpha    
-  a  <- .$pars$theta
+  a  <- .$pars$theta_j
   b  <- -1 * (I2 + .$state_pars$jmaxlt)
   c  <- I2 * .$state_pars$jmaxlt
   
@@ -319,14 +319,14 @@ f_lim_farquhar1980 <- function(.){
 f_lim_collatz1991 <- function(.){
   # smoothed solution of all three possible limiting states
 
-  a  <- .$pars$theta_collatz
+  a  <- .$pars$theta_col_cj
   b  <- -1 * (.$state$wc + .$state$wj)
   c  <- .$state$wc * .$state$wj
   
   sol1 <- quad_sol(a,b,c)
 
   if(!is.na(.$state$wp)) {
-    a  <- .$pars$beta_collatz
+    a  <- .$pars$theta_col_cjp
     b  <- -1 * (.$state$wp + sol1)
     c  <- .$state$wp * sol1
     

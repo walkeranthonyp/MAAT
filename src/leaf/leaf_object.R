@@ -334,9 +334,9 @@ leaf_object <-
       a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
       f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
       ko_kc_ratio   = 0.21,       # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)
-      theta         = 0.90,       # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
-      theta_collatz = 0.98,       # curvature of 1st limitation quadratic in Collatz 1991  (unitless)
-      beta_collatz  = 0.95,       # curvature of 2nd limitation quadratic in Collatz 1991  (unitless)
+      theta_j       = 0.90,       # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
+      theta_col_cj  = 0.95,       # curvature of 1st limitation quadratic, theta, in Collatz 1991  (unitless)
+      theta_col_cjp = 0.98,       # curvature of 2nd limitation quadratic, beta, in Collatz 1991   (unitless)
       avn_25        = 10,         # intercept of linear vcmax25 to leaf N relationship     (umolm-2s-1)
       bvn_25        = 30,         # slope of linear vcmax25 to leaf N relationship         (umolm-2s-1g-1 N)
       ajv_25        = 29,         # intercept of linear jmax25 to vcmax25 relationship     (umolm-2s-1)
