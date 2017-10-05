@@ -18,9 +18,9 @@
       <tpu_tcor_des>'f_temp_scalar_modArrhenius_des'</tpu_tcor_des>
       <deltaS>'f_deltaS'</deltaS>
       <etrans>'f_j_harley1992'</etrans>
-      <wc>'f_wc_farquhar1980'</wc>
-      <wj>'f_wj_generic'</wj>
-      <wp>'f_wp_vonc2000'</wp>
+      <Acg>'f_Acg_farquhar1980'</Acg>
+      <Ajg>'f_Ajg_generic'</Ajg>
+      <Apg>'f_Apg_vonc2000'</Apg>
       <gas_diff>'f_ficks_ci_bound0'</gas_diff>
       <respiration>'f_rd_lin_vcmax'</respiration>
       <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
@@ -60,7 +60,7 @@
       <flnr>0.09</flnr>
       <fnr>7.16</fnr>
       <Rsa>60</Rsa>
-      <wp_alpha>0.05</wp_alpha>
+      <Apg_alpha>0.05</Apg_alpha>
       <g0>0.01</g0>
       <g1_medlyn>5</g1_medlyn>
       <g1_leuning>5</g1_leuning>

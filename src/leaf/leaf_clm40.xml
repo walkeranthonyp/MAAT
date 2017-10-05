@@ -19,11 +19,11 @@
       <!-- electron transport -->
       <etrans>'f_j_collatz1991'</etrans>
       <!-- RuBP saturated gross carboxylation rate -->
-      <wc>'f_wc_farquhar1980'</wc>
+      <Acg>'f_Acg_farquhar1980'</Acg>
       <!-- RuBP limited gross carboxylation rate -->
-      <wj>'f_wj_generic'</wj>
+      <Ajg>'f_Ajg_generic'</Ajg>
       <!-- TPU limited gross carboxylation rate, mostly all variants of this are special cases of that presented in von Caemmerer 2000 -->
-      <wp>'f_wp_vonc2000'</wp>
+      <Apg>'f_Apg_vonc2000'</Apg>
       <!-- gas diffusion function, Fick's law; added a zero bound when testing the solver but I think this is unnecessary -->
       <gas_diff>'f_ficks_ci'</gas_diff>
       <!-- scaling of Rd at reftemp.rd, rd is zero in the photosynthesis calculations -->
@@ -58,7 +58,7 @@
       <!-- RuBisCO CO2 specific activity -->
       <Rsa>60</Rsa>
       <!-- fraction of phosphate not returned to the chloroplast -->
-      <wp_alpha>0</wp_alpha>
+      <Apg_alpha>0</Apg_alpha>
       <!-- minimum stomatal conductance, mol m-2s-1 -->
       <g0>0.01</g0>
       <!-- stomatal conductance to environment slope parameter -->

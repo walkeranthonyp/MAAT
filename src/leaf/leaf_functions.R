@@ -60,23 +60,23 @@ f_A_r_leaf_analytical <- function(.) {
   .$state$cc      <- .$state$ci 
     
   # calculate electron transport rate
-  get(.$fnames$wj)(.)
+  get(.$fnames$Ajg)(.)
 
   # calculate w
   # - this calculation of w does not use the same functions as the numerical solver function 
   # - wc and wj do not have multiple respective equations for their calculation
   # - wc and wj equations also have the same form, the f_R_analytical function exploits this similarity in form
-  .$state$wc <- f_R_analytical(.,v=.$state_pars$vcmaxlt, k=.$state_pars$Km,      r=r_simple)
-  .$state$wj <- f_R_analytical(.,v=.$state$J/4,          k=2*.$state_pars$gstar, r=r_simple)
-  .$state$wp <- NULL
+  .$state$Acg <- f_R_analytical(.,v=.$state_pars$vcmaxlt, k=.$state_pars$Km,      r=r_simple)
+  .$state$Ajg <- f_R_analytical(.,v=.$state$J/4,          k=2*.$state_pars$gstar, r=r_simple)
+  .$state$Apg <- NULL
   
   # calculate limiting cycle
   wmin <- get(.$fnames$Alim)(.) 
   
   # calculate actual w
-  .$state$wc <- .$state$wc * .$state$ci 
-  .$state$wj <- .$state$wj * .$state$ci 
-  .$state$wp <- .$state$wp * .$state$ci
+  .$state$Acg <- .$state$Acg * .$state$ci 
+  .$state$Ajg <- .$state$Ajg * .$state$ci 
+  .$state$Apg <- .$state$Apg * .$state$ci
   
   # calculate net A
   Anet <- wmin*.$state$ci - wmin*.$state_pars$gstar - .$state$respiration
@@ -111,17 +111,17 @@ f_A_r_leaf <- function(A,.,...) {
   
   # calculate w/cc
   # - w/cc and not w is calculated for numerical stability at low cc
-  .$state$wc <- get(.$fnames$wc)(.)
-  .$state$wj <- get(.$fnames$wj)(.)
-  .$state$wp <- get(.$fnames$wp)(.)
+  .$state$Acg <- get(.$fnames$Acg)(.)
+  .$state$Ajg <- get(.$fnames$Ajg)(.)
+  .$state$Apg <- get(.$fnames$Apg)(.)
 
   # calculate limiting cycle
   wmin <- get(.$fnames$Alim)(.) 
   
   # calculate actual w
-  .$state$wc <- .$state$wc * .$state$cc
-  .$state$wj <- .$state$wj * .$state$cc
-  .$state$wp <- .$state$wp * .$state$cc
+  .$state$Acg <- .$state$Acg * .$state$cc
+  .$state$Ajg <- .$state$Ajg * .$state$cc
+  .$state$Apg <- .$state$Apg * .$state$cc
   
   # calculate net A
   wmin*.$state$cc - wmin*.$state_pars$gstar - .$state$respiration - A
@@ -143,17 +143,17 @@ f_A_r_leaf_noRs <- function(A,.,...) {
   
   # calculate w/cc
   # - w/cc and not w is calculated for numerical stability at low cc
-  .$state$wc <- get(.$fnames$wc)(.,cc=cc)
-  .$state$wj <- get(.$fnames$wj)(.,cc=cc)
-  .$state$wp <- get(.$fnames$wp)(.,cc=cc)
+  .$state$Acg <- get(.$fnames$Acg)(.,cc=cc)
+  .$state$Ajg <- get(.$fnames$Ajg)(.,cc=cc)
+  .$state$Apg <- get(.$fnames$Apg)(.,cc=cc)
   
   # calculate limiting cycle
   wmin <- get(.$fnames$Alim)(.) 
   
   # calculate actual w
-  .$state$wc <- .$state$wc * cc
-  .$state$wj <- .$state$wj * cc
-  .$state$wp <- .$state$wp * cc
+  .$state$Acg <- .$state$Acg * cc
+  .$state$Ajg <- .$state$Ajg * cc
+  .$state$Apg <- .$state$Apg * cc
   
   # calculate net A
   wmin*cc - wmin*.$state_pars$gstar - .$state$respiration - A
@@ -171,17 +171,17 @@ f_A_r_leaf_noR <- function(.,...) {
   
   # calculate w/cc
   # - w/cc and not w is calculated for numerical stability at low cc
-  .$state$wc <- get(.$fnames$wc)(.,cc=cc)
-  .$state$wj <- get(.$fnames$wj)(.,cc=cc)
-  .$state$wp <- get(.$fnames$wp)(.,cc=cc)
+  .$state$Acg <- get(.$fnames$Acg)(.,cc=cc)
+  .$state$Ajg <- get(.$fnames$Ajg)(.,cc=cc)
+  .$state$Apg <- get(.$fnames$Apg)(.,cc=cc)
   
   # calculate limiting cycle
   wmin <- get(.$fnames$Alim)(.) 
   
   # calculate actual w
-  .$state$wc <- .$state$wc * cc
-  .$state$wj <- .$state$wj * cc
-  .$state$wp <- .$state$wp * cc
+  .$state$Acg <- .$state$Acg * cc
+  .$state$Ajg <- .$state$Ajg * cc
+  .$state$Apg <- .$state$Apg * cc
   
   # calculate net A
   wmin*cc - wmin*.$state_pars$gstar - .$state$respiration
@@ -202,7 +202,7 @@ transition_cc <- function(.) {
 ################################
 
 # Carboxylation limitation
-f_wc_farquhar1980 <- function(.,cc=.$state$cc){   
+f_Acg_farquhar1980 <- function(.,cc=.$state$cc){   
   # Farquhar 1980 eq to calculate RuBisCO limited photosynthetic rate
   # umol m-2 s-1
   # Wc<-(Vcmax*(Ci-Gamma))/(Ci+Kc*(1+(O/Ko)))
@@ -227,7 +227,7 @@ f_wc_farquhar1980 <- function(.,cc=.$state$cc){
 
 
 # electron transport limitation
-f_wj_generic <- function(.,cc=.$state$cc){
+f_Ajg_generic <- function(.,cc=.$state$cc){
   # generic eq to calculate light limited photosynthetic rate from user selected electron transport and etoc function
   # umol m-2 s-1
   
@@ -278,7 +278,7 @@ f_j_collatz1991 <- function(.){
 
 
 # TPU limitation
-f_wp_vonc2000 <- function(.,cc=.$state$cc){
+f_Apg_vonc2000 <- function(.,cc=.$state$cc){
   # triose phosphate limitation from vonCaemmerer 2000 as corrected in Gu 2010
   # this is derived from Harley & Sharkey 1991
   # the difference is that Harley & Sharkey iteratively solved to find tpu, while here tpu is set independently
@@ -287,12 +287,12 @@ f_wp_vonc2000 <- function(.,cc=.$state$cc){
   # alpha = 0, tpu = vcmax/6
   # and tpu temperature scaling is identical to vcmax
   
-  if( cc <= (1+3*.$pars$wp_alpha)*.$state_pars$gstar) NA
-#   3*.$state_pars$tpu*cc / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
-  else 3*.$state_pars$tpu / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
+  if( cc <= (1+3*.$pars$Apg_alpha)*.$state_pars$gstar) NA
+#   3*.$state_pars$tpu*cc / ( cc-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar )
+  else 3*.$state_pars$tpu / ( cc-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar )
 }
 
-f_wp_foley1996 <- function(.,cc=.$state$cc){
+f_Apg_foley1996 <- function(.,cc=.$state$cc){
   # triose phosphate limitation from Foley 1996, citing Harlkey & Sharkey 1991
   # its not clear to me how they derive this from Harley and Sharkey
   # Eq 5 from Foley 1996: Js = 3 * tpu * (1 - gstar/cc) + Jp * gstar / cc
@@ -301,7 +301,7 @@ f_wp_foley1996 <- function(.,cc=.$state$cc){
   if( cc <= .$state_pars$gstar ) NA
   else {
     # calculate limiting cycle of wc and wj
-    .$state$wp <- NA
+    .$state$Apg <- NA
     wmin <- get(.$fnames$Alim)(.) 
 
     (3*.$state_pars$tpu + wmin) / cc
@@ -313,22 +313,22 @@ f_wp_foley1996 <- function(.,cc=.$state$cc){
 f_lim_farquhar1980 <- function(.){
   # simple minimum of all three possible limitating states
   
-  min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T)
+  min(c(.$state$Acg,.$state$Ajg,.$state$Apg),na.rm=T)
 }
 
 f_lim_collatz1991 <- function(.){
   # smoothed solution of all three possible limiting states
 
   a  <- .$pars$theta_col_cj
-  b  <- -1 * (.$state$wc + .$state$wj)
-  c  <- .$state$wc * .$state$wj
+  b  <- -1 * (.$state$Acg + .$state$Ajg)
+  c  <- .$state$Acg * .$state$Ajg
   
   sol1 <- quad_sol(a,b,c)
 
-  if(!is.na(.$state$wp)) {
+  if(!is.na(.$state$Apg)) {
     a  <- .$pars$theta_col_cjp
-    b  <- -1 * (.$state$wp + sol1)
-    c  <- .$state$wp * sol1
+    b  <- -1 * (.$state$Apg + sol1)
+    c  <- .$state$Apg * sol1
     
     quad_sol(a,b,c)
   } else sol1

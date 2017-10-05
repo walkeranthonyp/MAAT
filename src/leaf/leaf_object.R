@@ -110,7 +110,7 @@ leaf_object <-
         # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
         .$state$A       <- get(.$fnames$solver)(.)      
         # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
-        .$state$lim     <- c(2,3,7)[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
+        .$state$lim     <- c(2,3,7)[which(c(.$state$Acg,.$state$Ajg,.$state$Apg)==min(c(.$state$Acg,.$state$Ajg,.$state$Apg),na.rm=T))]       
         # after the fact calculations
         .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca)
         if(!grepl('analytical',.$fnames$solver)) .$state_pars$rs <- get(.$fnames$rs)(.) 
@@ -143,44 +143,7 @@ leaf_object <-
     ###########################################################################
     # Output functions
 
-    #output processing function
-#    # -- returns a list of outputs
-#    output <- function(.){
-#      if(.$cpars$output=='slim') {
-#        lout <- 
-#          list(A=.$state$A,ci=.$state$ci,lim=.$state$lim)
-#        
-#      } else if(.$cpars$output=='run') {
-#        lout <- 
-#          list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
-#               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
-#               respiration=.$state$respiration,lim=.$state$lim)
-#        
-#      } else if(.$cpars$output=='all_lim') {
-#        lout <- 
-#          list(A=.$state$A,wc=.$state$wc,wj=.$state$wj,wp=.$state$wp,
-#               cc=.$state$cc,ci=.$state$ci,ca=.$state$ca,
-#               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
-#               respiration=.$state$respiration,lim=.$state$lim)     
-#        
-#      } else if(.$cpars$output=='full') {
-#        lout <- c(.$state,.$state_pars)
-#        
-#      } else if(.$cpars$output=='sphagnum') {
-#        lout <-
-#          list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
-#               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
-#               respiration=.$state$respiration,lim=.$state$lim,fwdw=.$state$fwdw_ratio) 
-#        
-#      }
-#      
-#      if(.$pars$diag&.$cpars$output!='full') c( lout, list(A_noR=.$state$A_noR,transition=.$state$transition) ) 
-#      else                                    lout
-#      
-#    }    
-    
     # -- returns a vector of outputs
-
     state_retrive <- function(.,snames) {
       lsubs <- match(snames,names(.$state))
       unlist(.$state[lsubs])
@@ -213,8 +176,7 @@ leaf_object <-
       else                                    lout
       
     }    
-    
-    
+
     
     
     ###########################################################################
@@ -239,9 +201,9 @@ leaf_object <-
       tpu_tcor_des        = 'f_temp_scalar_modArrhenius_des',
       deltaS              = 'f_deltaS',
       etrans              = 'f_j_harley1992',
-      wc                  = 'f_wc_farquhar1980',
-      wj                  = 'f_wj_generic',
-      wp                  = 'f_wp_vonc2000',            
+      Acg                 = 'f_Acg_farquhar1980',
+      Ajg                 = 'f_Ajg_generic',
+      Apg                 = 'f_Apg_vonc2000',            
       gas_diff            = 'f_ficks_ci',
       respiration         = 'f_rd_lin_vcmax',
       rl_rd_scalar        = 'f_scalar_none',
@@ -289,10 +251,10 @@ leaf_object <-
       fwdw_ratio = 5,                  # fresh weight dry weight ratio, used for Sphagnum conductance term 
       
       #calculated state
-      J  = numeric(1),                 # electron transport rate                            (umol electrons m-2 s-1) 
-      wc = numeric(1),                 # Carboxylaton limited rate of net asssimilation     (umol m-2 s-1)
-      wj = numeric(1),                 # light limited rate of carboxylation                (umol m-2 s-1)
-      wp = numeric(1),                 # TPU limited rate of carboxylation                  (umol m-2 s-1)
+      J   = numeric(1),                # electron transport rate                            (umol electrons m-2 s-1) 
+      Acg = numeric(1),                # Carboxylaton limited rate of net asssimilation     (umol m-2 s-1)
+      Ajg = numeric(1),                # light limited rate of carboxylation                (umol m-2 s-1)
+      Apg = numeric(1),                # TPU limited rate of carboxylation                  (umol m-2 s-1)
       A            = numeric(1),       # actual rate of carboxylation                       (umol m-2 s-1)
       respiration  = numeric(1),       # actual rate of respiration                         (umol m-2 s-1)
       lim          = numeric(1),       # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
@@ -350,7 +312,7 @@ leaf_object <-
       flnr          = 0.09,       # fraction of leafN in RuBisCO -- PFT specific           (unitless)
       fnr           = 7.16,       # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
       Rsa           = 60,         # specific activity of RuBisCO                           ()
-      wp_alpha      = 0,          # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
+      Apg_alpha     = 0,          # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
       # resistance parameters
       g0            = 0.01,       # Medlyn 2011 min gs                                     (molm-2s-1)
       g1_medlyn     = 6,          # Medlyn 2011 gs slope                                   (kPa^0.5)
@@ -476,10 +438,10 @@ leaf_object <-
       maat$vars$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
       maat$vars$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
       
-      if(.$wpars$UQ) {
-        if(.$wpars$UQtype=='ye') maat$vars$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
-        if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$wpars$eval_strings <- T
-        if(.$wpars$eval_strings) maat$vars$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
+      if(.$Apgars$UQ) {
+        if(.$Apgars$UQtype=='ye') maat$vars$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
+        if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$Apgars$eval_strings <- T
+        if(.$Apgars$eval_strings) maat$vars$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
       }
     }
     
