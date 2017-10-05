@@ -566,7 +566,7 @@ f_cica_constant <- function(.) {
   .$pars$cica_chi
 }
 
-f_rs_cox1999 <- function(.,A=.$state$A,c=.$state$cb) {
+f_rs_cox1998 <- function(.,A=.$state$A,c=.$state$cb) {
   # implied JULES etc assumption for stomatal resistance that keeps a variant of Ci:Ca constant
   # expects c in Pa
   # output in m2s mol-1 h2o

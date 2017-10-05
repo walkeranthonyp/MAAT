@@ -679,7 +679,7 @@ leaf_object <-
                        panel.xyplot(subscripts=subscripts,...)
                      })
         
-        p3 <- xyplot(gs~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
+        p3 <- xyplot(rs~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
                      main=rs,
                      ylab=expression(g[s]*' ['*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']')
                      )
