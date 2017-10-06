@@ -438,10 +438,10 @@ leaf_object <-
       maat$vars$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
       maat$vars$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
       
-      if(.$Apgars$UQ) {
-        if(.$Apgars$UQtype=='ye') maat$vars$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
-        if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$Apgars$eval_strings <- T
-        if(.$Apgars$eval_strings) maat$vars$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
+      if(.$wpars$UQ) {
+        if(.$wpars$UQtype=='ye') maat$vars$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
+        if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$wpars$eval_strings <- T
+        if(.$wpars$eval_strings) maat$vars$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
       }
     }
     
