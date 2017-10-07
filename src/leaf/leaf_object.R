@@ -445,19 +445,39 @@ leaf_object <-
       }
     }
     
-    configure <- function(.,func,df,o=T){
+#     configure <- function(.,func,df,o=T){
+#       # This function is called from any of the run functions, or during model initialisation
+#       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
+#       
+# #       print(func)
+# #       print(df)
+#       
+#       # name and assign the UQ variables
+#       uqvars     <- names(df)
+#       prefix     <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
+#       lapply(uqvars[which(prefix=='leaf')], func, .=., df=df)
+# 
+# #       print(func)
+#       
+#       if(.$cpars$cverbose&o) {
+#         print('',quote=F)
+#         print('Leaf configure:',quote=F)
+#         print(prefix,quote=F)
+#         print(df,quote=F)
+#         print(.$fnames,quote=F)
+#       }
+#     }
+    
+    configure <- function(.,vlist,df,o=T){
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
       
-#       print(func)
-#       print(df)
-      
       # name and assign the UQ variables
-      uqvars     <- names(df)
-      prefix     <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
-      lapply(uqvars[which(prefix=='leaf')], func, .=., df=df)
-
-#       print(func)
+      uqvars <- names(df)
+      prefix <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
+      dfss   <- which(prefix=='leaf')
+      vlss   <- match(uqvars[dfss], paste0('leaf','.',names(.[[vlist]])))
+      .[[vlist]][vlss] <- df[dfss]
       
       if(.$cpars$cverbose&o) {
         print('',quote=F)
@@ -478,17 +498,18 @@ leaf_object <-
       # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
       
       # met data assignment
-      .$configure(func='write_env',df=.$dataf$met[l,],F)
+      # .$configure(func='write_env',df=.$dataf$met[l,],F)
+      .$configure(vlist='env',df=.$dataf$met[l,],F)
       
       # run model
       .$run()              
     }
     
-    # variable assignment functions - called from the above configuration function
-    write_fnames <- function(.,var,df) .$fnames[which(names(.$fnames)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))] <- df[which(names(df)==var)]
-    write_pars   <- function(.,var,df) .$pars[which(names(.$pars)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]     <- df[which(names(df)==var)]
-    write_env    <- function(.,var,df) .$env[which(names(.$env)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]       <- df[which(names(df)==var)]
-    write_state  <- function(.,var,df) .$state[which(names(.$state)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]   <- df[which(names(df)==var)]
+    # # variable assignment functions - called from the above configuration function
+    # write_fnames <- function(.,var,df) .$fnames[which(names(.$fnames)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))] <- df[which(names(df)==var)]
+    # write_pars   <- function(.,var,df) .$pars[which(names(.$pars)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]     <- df[which(names(df)==var)]
+    # write_env    <- function(.,var,df) .$env[which(names(.$env)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]       <- df[which(names(df)==var)]
+    # write_state  <- function(.,var,df) .$state[which(names(.$state)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]   <- df[which(names(df)==var)]
     
     
     
