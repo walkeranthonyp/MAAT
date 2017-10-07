@@ -59,9 +59,9 @@ wrapper_object <-
       # for Ye et al SA method
       # due to different parameter sample numbers in process A and B loops,
       # parameters samples must be generated from code snippets as strings
-      if(.$wpars$eval_string&is.na(.$vars$pars_eval[[1]])) {
+      if(.$wpars$eval_string&is.na(.$dynamic$pars_eval[[1]])) {
         stop(paste('wrapper: eval_strings = T but vars$pars_eval not set. \n
-              vars$pars_eval:,\n',.$vars$pars_eval,'\n 
+              vars$pars_eval:,\n',.$dynamic$pars_eval,'\n 
               NOTE: Ye method SA must draw parameter samples during runtime \n
               from code snippets written as strings in vars$pars_eval')) 
       }
@@ -75,8 +75,8 @@ wrapper_object <-
       # create matrices of runtime variables  
       ######################################
       # expand the fnames and driving variables  
-      .$dataf$fnames  <- if(!is.na(.$vars$fnames[1])) as.matrix(expand.grid(.$vars$fnames,stringsAsFactors=F)) else NULL
-      .$dataf$env     <- if(!is.na(.$vars$env[1]))    as.matrix(expand.grid(.$vars$env,stringsAsFactors=F   )) else NULL
+      .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[1])) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
+      .$dataf$env     <- if(!is.na(.$dynamic$env[1]))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
           
       if(.$wpars$UQ) {
         # if an SA/UQ run
@@ -90,25 +90,25 @@ wrapper_object <-
           if(.$wpars$eval_strings) {
             # sample parameters from character string code snippets to generate matrices A and B
             n <- 2 * .$wpars$n
-            .$vars$pars <- lapply(.$vars$pars_eval,function(cs) eval(parse(text=cs)))
+            .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
           }
-          if(is.na(.$vars$pars[1] )) stop('wrapper: pars list in vars list is empty')
+          if(is.na(.$dynamic$pars[1] )) stop('wrapper: pars list in vars list is empty')
          
           # create pars matrix
-          .$dataf$pars  <- do.call(cbind, .$vars$pars )
+          .$dataf$pars  <- do.call(cbind, .$dynamic$pars )
           
           # remove potentially large pars list 
-          .$vars$pars   <- lapply(.$vars$parsl, function(e) numeric(1) )        
+          .$dynamic$pars   <- lapply(.$dynamic$parsl, function(e) numeric(1) )        
 
         } else if(.$wpars$UQtype=='ye') {
           # Ye et al process SA method 
           
           # check input vars$pars* are same length
-          test_in <- length(.$vars$pars_eval) - length(.$vars$pars_proc)
+          test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
           if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
           
           # assign same list structure as vars$pars_eval to vars$pars 
-          .$vars$pars   <- lapply(.$vars$pars_eval,function(e) numeric(1) )
+          .$dynamic$pars   <- lapply(.$dynamic$pars_eval,function(e) numeric(1) )
           
           # check input vars$pars* elements have same names
           # - to be done
@@ -120,7 +120,7 @@ wrapper_object <-
         
       } else {
         # not a formal SA/UQ run - factorial combination of variables specified in the vars lists  
-        .$dataf$pars <- if(!is.na(.$vars$pars[1])) as.matrix(expand.grid(.$vars$pars,stringsAsFactors=F))   else NULL
+        .$dataf$pars <- if(!is.na(.$dynamic$pars[1])) as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F))   else NULL
       } 
       
       # calculate input matrix lengths 
@@ -129,7 +129,7 @@ wrapper_object <-
       # - used to set the number of iterations in the run functions  
       if(.$wpars$UQ&.$wpars$UQtype=='ye') {
         # determine number of processes to be analaysed
-        .$dataf$lf <- length(.$vars$fnames)
+        .$dataf$lf <- length(.$dynamic$fnames)
         
       } else {
         # any type of run other than Ye process sensitivity analysis 
@@ -396,31 +396,31 @@ wrapper_object <-
       # outputs an .RDS for each process segregation
 
       # create the fnames matrices for process A and process B
-      .$dataf$fnames  <- if(!is.na(.$vars$fnames[f]))  as.matrix(expand.grid(.$vars$fnames[f] ,stringsAsFactors=F)) else stop()
-      .$dataf$fnamesB <- if(!is.na(.$vars$fnames[-f])) as.matrix(expand.grid(.$vars$fnames[-f],stringsAsFactors=F)) else stop()
+      .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[f]))  as.matrix(expand.grid(.$dynamic$fnames[f] ,stringsAsFactors=F)) else stop()
+      .$dataf$fnamesB <- if(!is.na(.$dynamic$fnames[-f])) as.matrix(expand.grid(.$dynamic$fnames[-f],stringsAsFactors=F)) else stop()
       
       # determine the number of the rows in process matrices
       .$dataf$lfA     <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
       .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
       
       # partition the parameters to process A and and process B
-      .$procA_name    <- names(.$vars$fnames)[f]
-      .$procA_subs    <- which(unlist(.$vars$pars_proc)==.$procA_name)
+      .$procA_name    <- names(.$dynamic$fnames)[f]
+      .$procA_subs    <- which(unlist(.$dynamic$pars_proc)==.$procA_name)
 
       # evaluate parameter strings to sample vectors
       # - this allows a distribution function to be specifed
       # - also allows the dynamic calcuation of n for process A and B parameter samples
       if(.$wpars$eval_strings) {
         n <- .$wpars$n
-        .$vars$pars[.$procA_subs ] <- lapply(.$vars$pars_eval[.$procA_subs ],function(cs) eval(parse(text=cs)))
+        .$dynamic$pars[.$procA_subs ] <- lapply(.$dynamic$pars_eval[.$procA_subs ],function(cs) eval(parse(text=cs)))
         n <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
-        .$vars$pars[-.$procA_subs] <- lapply(.$vars$pars_eval[-.$procA_subs],function(cs) eval(parse(text=cs)))
+        .$dynamic$pars[-.$procA_subs] <- lapply(.$dynamic$pars_eval[-.$procA_subs],function(cs) eval(parse(text=cs)))
       }
       
       # bind the parameter vectors into run matrices 
-      .$dataf$pars    <- if(!is.na(.$vars$pars[1])) do.call(cbind,.$vars$pars[.$procA_subs] ) else stop()
-      .$dataf$parsB   <- if(!is.na(.$vars$pars[2])) do.call(cbind,.$vars$pars[-.$procA_subs]) else stop()
-      .$vars$pars     <- lapply(.$vars$pars_eval,function(e) numeric(1) ) 
+      .$dataf$pars    <- if(!is.na(.$dynamic$pars[1])) do.call(cbind,.$dynamic$pars[.$procA_subs] ) else stop()
+      .$dataf$parsB   <- if(!is.na(.$dynamic$pars[2])) do.call(cbind,.$dynamic$pars[-.$procA_subs]) else stop()
+      .$dynamic$pars     <- lapply(.$dynamic$pars_eval,function(e) numeric(1) ) 
 
       # determine the number of the rows in parameter matrices
       .$dataf$lp      <- .$wpars$n # convert these to be the row number of the actual matrices
@@ -580,7 +580,7 @@ wrapper_object <-
     # each list in the 'vars' list comprise vectors of the values for each variable, 
     # each element of the list is labelled by the variable name prefixed by the name of the model object that the variable belongs to
     # each of these lists is expanded, often factorially by expand.grid, and placed into the below list of dataframes
-    vars <- list( 
+    dynamic <- list( 
       fnames    = NA,
       fnamesB   = NA,
       pars      = NA,
@@ -696,9 +696,9 @@ wrapper_object <-
             }   
           } else { 
             # if factorial combination run
-            vpars    <- if(is.null(.$dataf$pars))    NULL else .$vars$pars
-            venv     <- if(is.null(.$dataf$env))     NULL else .$vars$env
-            vfnames  <- if(is.null(.$dataf$fnames))  NULL else .$vars$fnames
+            vpars    <- if(is.null(.$dataf$pars))    NULL else .$dynamic$pars
+            venv     <- if(is.null(.$dataf$env))     NULL else .$dynamic$env
+            vfnames  <- if(is.null(.$dataf$fnames))  NULL else .$dynamic$fnames
 
             vardf <- expand.grid(c(venv,vpars,vfnames),stringsAsFactors=F)        
           }
@@ -785,7 +785,7 @@ wrapper_object <-
       
       ens_n <- 
         if(.$wpars$UQ) {
-          if(.$wpars$UQtype=='ye') .$dataf$lf * prod(unlist(lapply(.$vars$fnames,length))) * .$wpars$n^2 * .$dataf$le
+          if(.$wpars$UQtype=='ye') .$dataf$lf * prod(unlist(lapply(.$dynamic$fnames,length))) * .$wpars$n^2 * .$dataf$le
           else                     .$dataf$lf * .$wpars$n * (2+dim(.$dataf$pars)[2]) * .$dataf$le
         } else                     .$dataf$lf * .$dataf$lp *.$dataf$le
      
@@ -805,7 +805,7 @@ wrapper_object <-
         print("pars ::",quote=F)
         if(!.$wpars$UQtype=='ye') print(summary(.$dataf$pars),quote=F)
         else {
-          print(.$vars$pars_proc,quote=F)
+          print(.$dynamic$pars_proc,quote=F)
           print(paste('sample n:',.$wpars$n),quote=F)
         }                      
         print('',quote=F)
@@ -893,15 +893,15 @@ wrapper_object <-
       ### Define the static parameters and model functions  
       ###############################
       .$static$fnames <- list(leaf.vcmax='f_vcmax_lin')
-      .$vars$fnames <- list(
+      .$dynamic$fnames <- list(
         leaf.etrans = c('f_j_farquhar1980')
       )
       
-      .$vars$env <- list(
+      .$dynamic$env <- list(
         leaf.vpd  = 1
       )
       
-      .$vars$pars <- list(
+      .$dynamic$pars <- list(
         leaf.avn_25 = 10
       )
       
@@ -966,17 +966,17 @@ wrapper_object <-
       
       # add the SA/UQ variables to the maat wrapper object
       # - the wrapper object takes care of combining these lists into the full ensemble      
-      .$vars$fnames <- list(
+      .$dynamic$fnames <- list(
         leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991'),
         leaf.rs     = c('f_r_zero','f_rs_medlyn2011')
       )
         
-      .$vars$env <- list(
+      .$dynamic$env <- list(
         leaf.vpd  = c(1,2),
         leaf.temp = c(5,20)
       )
         
-      .$vars$pars <- list(
+      .$dynamic$pars <- list(
         leaf.avn_25 = 9:11,
         leaf.bvn_25 = 4:6
       )
@@ -1032,33 +1032,33 @@ wrapper_object <-
       # add the SA/UQ variables to the maat wrapper object
       # - the wrapper object takes care of combining these lists into the full ensemble      
       .$static$fnames <- list(vcmax='f_vcmax_lin')
-      .$vars$fnames <- list(
+      .$dynamic$fnames <- list(
         leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
         leaf.etrans = c('f_j_farquharwong1984','f_j_collatz1991','f_j_harley1992')
       )
 
-      .$vars$pars <- list(
+      .$dynamic$pars <- list(
         leaf.avn_25   = NA,
         leaf.bvn_25   = NA,
-        leaf.theta    = NA,
+        leaf.theta_j  = NA,
         leaf.e_ajv_25 = NA
       )
 
-      .$vars$pars_eval <- list(
+      .$dynamic$pars_eval <- list(
         leaf.avn_25   = ' 10 * rnorm(n,1,.$wpars$coef_var)',
         leaf.bvn_25   = '  5 * rnorm(n,1,.$wpars$coef_var)',
-        leaf.theta    = '0.9 * rnorm(n,1,.$wpars$coef_var)',
+        leaf.theta_j  = '0.9 * rnorm(n,1,.$wpars$coef_var)',
         leaf.e_ajv_25 = '0.9 * rnorm(n,1,.$wpars$coef_var)'
       )
       
-      .$vars$pars_proc <- list(
+      .$dynamic$pars_proc <- list(
         leaf.avn_25   = 'leaf.Alim',
         leaf.bvn_25   = 'leaf.Alim',
-        leaf.theta    = 'leaf.etrans',
+        leaf.theta_j  = 'leaf.etrans',
         leaf.e_ajv_25 = 'leaf.etrans'
       ) 
 
-      .$vars$env <- list(
+      .$dynamic$env <- list(
         leaf.ca_conc  = c(400,600)
       )
       
@@ -1109,13 +1109,13 @@ wrapper_object <-
       
       # add the SA/UQ variables to the maat wrapper object
       # - the wrapper object takes care of combining these lists into the full ensemble      
-      .$vars$fnames <- list(
+      .$dynamic$fnames <- list(
         leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
         leaf.etrans = c('f_j_farquharwong1984','f_j_collatz1991','f_j_harley1992')
       )
 
       if(eval_strings) {
-        .$vars$pars_eval <- list(
+        .$dynamic$pars_eval <- list(
           leaf.avn_25   = ' 10 * rnorm(n,1,.$wpars$coef_var)',
           leaf.bvn_25   = '  5 * rnorm(n,1,.$wpars$coef_var)',
           leaf.theta    = '0.9 * rnorm(n,1,.$wpars$coef_var)',
@@ -1123,7 +1123,7 @@ wrapper_object <-
         )
       } else {
         n <- 2 * n
-        .$vars$pars <- list(
+        .$dynamic$pars <- list(
           leaf.avn_25   =  10 * rnorm(n,1,.$wpars$coef_var),
           leaf.bvn_25   =   5 * rnorm(n,1,.$wpars$coef_var),
           leaf.theta    = 0.9 * rnorm(n,1,.$wpars$coef_var),
@@ -1131,7 +1131,7 @@ wrapper_object <-
         )
       }
       
-      .$vars$env <- list(
+      .$dynamic$env <- list(
         leaf.ca_conc  = c(400,600)
       )
       

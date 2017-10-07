@@ -434,14 +434,14 @@ leaf_object <-
       maat$static$pars   <- comb_init_list(lls=.$init_static$leaf$pars)
       maat$static$env    <- comb_init_list(lls=.$init_static$leaf$env)
       
-      maat$vars$fnames   <- comb_init_list(lls=.$init_dynamic$leaf$fnames)
-      maat$vars$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
-      maat$vars$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
+      maat$dynamic$fnames   <- comb_init_list(lls=.$init_dynamic$leaf$fnames)
+      maat$dynamic$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
+      maat$dynamic$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
       
       if(.$wpars$UQ) {
-        if(.$wpars$UQtype=='ye') maat$vars$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
+        if(.$wpars$UQtype=='ye') maat$dynamic$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
         if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$wpars$eval_strings <- T
-        if(.$wpars$eval_strings) maat$vars$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
+        if(.$wpars$eval_strings) maat$dynamic$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
       }
     }
     
