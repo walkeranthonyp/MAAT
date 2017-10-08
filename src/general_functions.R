@@ -147,7 +147,8 @@ fuselists <- function(mainlist,sublist) {
   if(n!=l) {
     print(c(l,n))
     # stop(paste("\n names mismatch when fusing initialisation lists:",names(mainlist)[mlsub],names(sublist)[i]))
-    stop(paste("\n names mismatch when fusing initialisation lists, sublist element:",names(sublist)[error_i],'; not found in mainlist'))
+    stop(paste('\n names mismatch when fusing initialisation lists, sublist element:', names(sublist)[error_i],
+               '; not found in mainlist \n This is likely a mis-spelling of a variable name in the input file'))
   }
   mainlist
 }

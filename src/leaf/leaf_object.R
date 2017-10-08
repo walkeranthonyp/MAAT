@@ -8,7 +8,7 @@
 
 library(proto)
 library(stringr)
-library(plyr)
+#library(plyr)
 
 source('leaf_functions.R')
 
@@ -421,29 +421,88 @@ leaf_object <-
       # the 'init' function resides in the model as initialisation depends on the hierarchical structure of the model (e.g. leaf within canopy )
       
       # this function prefixes the names of a list with 'leaf.' 
-      comb_init_list <- function(.,lls) {
+      comb_init_list <- function(., v, modobj ) {
 
-        if(sum(is.na(lls))==length(lls)) NA
+        if(sum(is.na(v))==length(v)) NA
         else {
-          names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
-          lls
+          names(v) <- paste(modobj, names(v), sep='.' ) 
+          v
         }
       }
-            
-      maat$static$fnames <- comb_init_list(lls=.$init_static$leaf$fnames)
-      maat$static$pars   <- comb_init_list(lls=.$init_static$leaf$pars)
-      maat$static$env    <- comb_init_list(lls=.$init_static$leaf$env)
-      
-      maat$dynamic$fnames   <- comb_init_list(lls=.$init_dynamic$leaf$fnames)
-      maat$dynamic$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
-      maat$dynamic$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
-      
-      if(.$wpars$UQ) {
-        if(.$wpars$UQtype=='ye') maat$dynamic$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
-        if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$wpars$eval_strings <- T
-        if(.$wpars$eval_strings) maat$dynamic$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
+
+      # append model object to variable names, and check variables exist in object      
+      modobj <- 'leaf'
+      type   <- c('static', 'dynamic')
+      vlists <- c('fnames', 'pars', 'env' )
+      for( t in type ) {
+        for( vl in vlists ) {
+          # input variables
+          vars <- maat[[paste0('init_',t)]][[modobj]][[vl]]
+
+          # check input variable names match names in model object 
+          # - this is unlikely to ever find an error as the error will be caught when fusing input lists
+          for( vn in names(vars) ) if( !any(vn==names(.[[vl]])) ) 
+            stop(paste('\n Input variable:', vn, ', not found in:', modobj, vl, 'list' )) 
+          
+          # assign variables to wrapper, prefix variable names with the name of the model object that they belong to 
+          maat[[t]][[vl]] <- comb_init_list(v=vars, modobj=modobj )
+        }
       }
+      
+      # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
+      if(.$wpars$UQ) {
+        if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$wpars$eval_strings <- T
+        
+        if(.$wpars$eval_strings) {
+          vars <- maat[['init_dynamic']][[modobj]][['pars_eval']]
+          maat[['dynamic']][['pars_eval']] <- comb_init_list(v=vars, modobj=modobj )
+          for( vn in names(vars) ) if( !any(vn==names(.[['pars']])) ) 
+            stop(paste('\n Input variable:', vn, 'in pars_eval, not found in:', modobj, 'pars', 'list' )) 
+        } 
+
+        if(.$wpars$UQtype=='ye') {
+          vars <- maat[['init_dynamic']][[modobj]][['pars_proc']]
+          maat[['dynamic']][['pars_proc']] <- comb_init_list(v=vars, modobj=modobj )
+          for( vn in names(vars) ) if( !any(vn==names(.[['pars']])) ) 
+            stop(paste('\n Input variable:', vn, 'in pars_proc, not found in:', modobj, 'pars', 'list' )) 
+          for( vn in names(vars) ) if( !any(vn==names(maat[['init_dynamic']][[modobj]][['pars_eval']])) ) 
+            stop(paste('\n Input variable:', vn, 'in pars_proc, not found in: pars_eval list.',
+                       '\n The proc_pars input list must contain exactly the same parameter names as pars_eval input list.',
+                       '\n The proc_pars is required to assign a parameter to a process as part of a process sensitivity analysis.')) 
+        }
+      }
+      
     }
+
+    # init <- function(.) {
+    #   # when run this function expects this model object to be cloned within the wrapper object, 
+    #   # and for the wrapper object to be named maat
+    #   # the 'init' function resides in the model as initialisation depends on the hierarchical structure of the model (e.g. leaf within canopy )
+    #   
+    #   # this function prefixes the names of a list with 'leaf.' 
+    #   comb_init_list <- function(.,lls) {
+    #     
+    #     if(sum(is.na(lls))==length(lls)) NA
+    #     else {
+    #       names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
+    #       lls
+    #     }
+    #   }
+    #   
+    #   maat$static$fnames <- comb_init_list(lls=.$init_static$leaf$fnames)
+    #   maat$static$pars   <- comb_init_list(lls=.$init_static$leaf$pars)
+    #   maat$static$env    <- comb_init_list(lls=.$init_static$leaf$env)
+    #   
+    #   maat$dynamic$fnames   <- comb_init_list(lls=.$init_dynamic$leaf$fnames)
+    #   maat$dynamic$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
+    #   maat$dynamic$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
+    #   
+    #   if(.$wpars$UQ) {
+    #     if(.$wpars$UQtype=='ye') maat$dynamic$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
+    #     if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$wpars$eval_strings <- T
+    #     if(.$wpars$eval_strings) maat$dynamic$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
+    #   }
+    # }
     
 #     configure <- function(.,func,df,o=T){
 #       # This function is called from any of the run functions, or during model initialisation
@@ -475,8 +534,9 @@ leaf_object <-
       # name and assign the UQ variables
       uqvars <- names(df)
       prefix <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
-      dfss   <- which(prefix=='leaf')
-      vlss   <- match(uqvars[dfss], paste0('leaf','.',names(.[[vlist]])))
+      modobj <- 'leaf'
+      dfss   <- which(prefix==modobj)
+      vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
       .[[vlist]][vlss] <- df[dfss]
       
       if(.$cpars$cverbose&o) {

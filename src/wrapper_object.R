@@ -8,7 +8,7 @@
 
 library(proto)
 library(parallel)
-library(plyr)
+#library(plyr)
 
 source('general_functions.R')
 source('calc_functions.R')
@@ -102,6 +102,9 @@ wrapper_object <-
 
         } else if(.$wpars$UQtype=='ye') {
           # Ye et al process SA method 
+          
+          # need a minimum of >1 processes
+          if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sesitivity analysis')
           
           # check input vars$pars* are same length
           test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
