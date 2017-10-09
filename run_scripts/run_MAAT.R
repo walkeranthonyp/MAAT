@@ -186,15 +186,17 @@ if(!is.null(mod_mimic)) {
 # Configure and initialise the MAAT model
 
 # build and clone the model object
-model <- get(paste(mod_obj,'object',sep='_'))$.build()
+# model <- get(paste(mod_obj,'object',sep='_'))$.build()
 
 
 
 ##################################
 # Configure the MAAT wrapper
 
-# build and clone the maat wrapper object
-maat <- wrapper_object$.build(model=model)
+# clone and build the maat wrapper and model object
+maat <- as.proto(wrapper_object$as.list()) 
+maat$build(model=paste(mod_obj,'object',sep='_'))
+rm(wrapper_object)
 
 # factorial analysis over-rides UQ analysis
 if(!uq) factorial <- T

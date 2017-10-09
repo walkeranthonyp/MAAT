@@ -30,10 +30,10 @@ wrapper_object <-
     model <- NULL    
     
     # build function
-    .build <- function(.,model) {
-      maat       <- as.proto(.$as.list(),parent=.GlobalEnv)
-      maat$model <- as.proto(model$as.list(),parent=maat)
-      maat
+    build <- function(.,model) {
+      # maat       <- as.proto(.$as.list(),parent=.GlobalEnv)
+      .$model <- as.proto(get(model)$as.list())
+      .$model$build()
     }
     
     # clean function to reset object
@@ -54,8 +54,9 @@ wrapper_object <-
       
       # configure initialisation lists - not called if unit testing (need to develop unit testing specifically for the model object init functions)
       if(.$wpars$UQtype=='ye')  .$wpars$eval_strings <- T
-      if(!.$wpars$unit_testing) .$model$init()
-      print(.$wpars$eval_strings) 
+      # if(!.$wpars$unit_testing) .$model$init()
+      if(!.$wpars$unit_testing) .$init()
+      
       # for Ye et al SA method
       # due to different parameter sample numbers in process A and B loops,
       # parameters samples must be generated from code snippets as strings
@@ -560,6 +561,56 @@ wrapper_object <-
       # if(class(out)=='array') .$stack(out) else t(out)
     }
         
+    
+    ###########################################################################
+    # initialisation function
+
+    init <- function(.) {
+
+      # this function prefixes the names of a list with 'leaf.' 
+      comb_init_list <- function(., v, modobj ) {
+        
+        if(sum(is.na(v))==length(v)) NA
+        else {
+          names(v) <- paste(modobj, names(v), sep='.' ) 
+          v
+        }
+      }
+      
+      # append model object to variable names      
+      modobj <- .$model$name
+      type   <- c('static', 'dynamic')
+      vlists <- c('fnames', 'pars', 'env' )
+      for( t in type ) {
+        for( vl in vlists ) {
+          # input variables
+          vars <- .[[paste0('init_',t)]][[modobj]][[vl]]
+          
+          # assign variables to wrapper, prefix variable names with the name of the model object that they belong to 
+          .[[t]][[vl]] <- comb_init_list(v=vars, modobj=modobj )
+        }
+      }
+      
+      # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
+      if(.$wpars$UQ) {
+        if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$wpars$eval_strings <- T
+
+        if(.$wpars$eval_strings) {
+          vars <- .[['init_dynamic']][[modobj]][['pars_eval']]
+          .[['dynamic']][['pars_eval']] <- comb_init_list(v=vars, modobj=modobj )
+        }
+
+        if(.$wpars$UQtype=='ye') {
+          vars <- .[['init_dynamic']][[modobj]][['pars_proc']]
+          maat[['dynamic']][['pars_proc']] <- comb_init_list(v=vars, modobj=modobj )
+          for( vn in names(vars) ) if( !any(vn==names(.[['init_dynamic']][[modobj]][['pars_eval']])) )
+            stop(paste('\n Input variable:', vn, 'in pars_proc, not found in: pars_eval list.',
+                       '\n The proc_pars input list must contain exactly the same parameter names as pars_eval input list.',
+                       '\n The proc_pars is required to assign a parameter to a process as part of a process sensitivity analysis.'))
+        }
+      }
+      
+    }
     
     
     ###########################################################################
