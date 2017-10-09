@@ -422,7 +422,7 @@ leaf_object <-
       # name and assign the UQ variables
       uqvars <- names(df)
       prefix <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
-      modobj <- 'leaf'
+      modobj <- .$name
       dfss   <- which(prefix==modobj)
       vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
       .[[vlist]][vlss] <- df[dfss]

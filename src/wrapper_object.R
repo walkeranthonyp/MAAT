@@ -233,7 +233,6 @@ wrapper_object <-
     
     # takes a >=3 D array and stacks it into a 2D matrix
     stack <- function(.,a) {
-      # array(aperm(a, c(1,3,2)), c(dim(a)[1]*dim(a)[3], dim(a)[2]) )
       apply(a, 2, function(v) v )
     }
     
@@ -247,7 +246,6 @@ wrapper_object <-
       # call runp
       
       # configure function names in the model
-      # if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames', df=.$dataf$fnames[i,], F )
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
       if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
 
@@ -264,12 +262,10 @@ wrapper_object <-
       # call rune
       
       # configure parameters in the model
-      # if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars', df=.$dataf$pars[j,], F )
       if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[j,], F )
       if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[j,] )
       
       # call next run function
-      # #data.frame(do.call(rbind,lapply(1:.$dataf$le,.$rune)))      
       funv   <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )
       out    <- vapply(1:.$dataf$le, .$rune, funv )
 
@@ -284,7 +280,6 @@ wrapper_object <-
       # call .$model$run or .$model$run_met if met data are provided
       
       # configure environment in the model
-      # if(!is.null(.$dataf$env)) .$model$configure(func='write_env', df=.$dataf$env[k,], F )
       if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[k,], F )
       if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
       
@@ -306,7 +301,6 @@ wrapper_object <-
       # call rune_saltelli
       
       # configure function names in the model
-      # if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames',df=.$dataf$fnames[i,],F)
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames',df=.$dataf$fnames[i,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
@@ -323,7 +317,6 @@ wrapper_object <-
       # call runpmat_saltelli
       
       # configure environment in the model
-      # if(!is.null(.$dataf$env)) .$model$configure(func='write_env', df=.$dataf$env[k,], F )
       if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[k,], F )
       if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
       
@@ -369,7 +362,6 @@ wrapper_object <-
       names(psdf) <- colnames(.$dataf$pars)
 
       # configure parameters in the model
-      # if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars', df=psdf, F )
       if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=psdf, F )
       if(.$wpars$cverbose) .$printc('pars', psdf )
       
@@ -430,10 +422,6 @@ wrapper_object <-
       .$dataf$lp      <- .$wpars$n # convert these to be the row number of the actual matrices
       .$dataf$lpB     <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
       
-      # # initialise output matrix
-      # .$dataf$out     <- matrix(0, .$dataf$lm*.$dataf$le*.$dataf$lpB, length(.$dataf$mout) )
-      # colnames(.$dataf$out) <- names(.$dataf$mout)
-
       # initialise output array
       # - dim 1 (rows)        output variable
       # - dim 2 (columns)     environment combination
@@ -458,7 +446,6 @@ wrapper_object <-
       # process & record output
       if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Ye_test' }
       else                     setwd(odir)
-      # write_to_file(.$output(),paste(ofname,'proc',f,sep='_'),type='rds')
       write_to_file(.$dataf$out, paste(ofname, 'proc', f, sep='_' ), type='rds' )
       
       print(paste('completed process:', colnames(.$dataf$fnames), Sys.time() ), quote=F )
@@ -476,7 +463,6 @@ wrapper_object <-
       print(paste('started representation:', .$dataf$fnames[g,], ', of process:', colnames(.$dataf$fnames)), quote=F )
  
       # configure function names in the model
-      # if(!is.null(.$dataf$fnames)) .$model$configure(func='write_fnames', df=.$dataf$fnames[g,] , F )
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[g,] , F )
       if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnames[g,] )
 
@@ -496,7 +482,6 @@ wrapper_object <-
       # call run_repB
       
       # configure parameters in the model
-      # if(!is.null(.$dataf$pars)) .$model$configure(func='write_pars', df=.$dataf$pars[h,], F )
       if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[h,], F )
       if(.$wpars$cverbose) .$printc('pars', .$dataf$pars[h,] )
       
@@ -504,13 +489,7 @@ wrapper_object <-
       osh  <- offset + .$dataf$lfB * (h-1)        
       
       # call process B process representation run function
-      # funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$wpars$n*.$dataf$le*.$dataf$lm, length(.$dataf$mout) ) ) 
-      #         else                     array(0, dim=c(.$wpars$n*.$dataf$le,            length(.$dataf$mout) ) )  
-      # out  <- vapply(1:.$dataf$lfB, .$run_repB, funv, offset=osh )
       vapply(1:.$dataf$lfB, .$run_repB, .$dataf$out[,,,1,1,1], offset=osh )
-      
-      # the output is an array, needs permuting and stacking
-      # .$stack(out)
     }
 
     run_repB <- function(.,i,offset) {
@@ -519,7 +498,6 @@ wrapper_object <-
       # call run_parB
       
       # configure function names in the model
-      # if(!is.null(.$dataf$fnamesB)) .$model$configure(func='write_fnames', df=.$dataf$fnamesB[i,], F )
       if(!is.null(.$dataf$fnamesB)) .$model$configure(vlist='fnames', df=.$dataf$fnamesB[i,], F )
       if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnamesB[i,] )
       
@@ -529,13 +507,7 @@ wrapper_object <-
       oss <- (.$wpars$n*(os-1) + 1):(.$wpars$n*(os))    
       
       # call process B parameter run function
-      # funv <- if(is.null(.$dataf$met)) array(0, dim=c(.$dataf$le*.$dataf$lm, length(.$dataf$mout) ) ) 
-      #         else                     array(0, dim=c(.$dataf$le,            length(.$dataf$mout) ) )  
-      # out  <- vapply(oss, .$run_parB, funv )
       vapply(oss, .$run_parB, .$dataf$out[,,1,1,1,1] )
-      
-      # the output is an array, needs stacking
-      # .$stack(out)
     }
     
     run_parB <- function(.,j) {
@@ -544,14 +516,9 @@ wrapper_object <-
       # call rune
       
       # configure parameters in the model
-      # if(!is.null(.$dataf$parsB)) .$model$configure(func='write_pars', df=.$dataf$parsB[j,], F )
       if(!is.null(.$dataf$parsB)) .$model$configure(vlist='pars', df=.$dataf$parsB[j,], F )
       if(.$wpars$cverbose)        .$printc('pars', .$dataf$parsB[j,] )
       
-      # call the environment run function
-      # funv <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )  
-      # out  <- vapply(1:.$dataf$le, .$rune, funv )
-
       # call the environment run function
       vapply(1:.$dataf$le, .$rune, .$dataf$out[,1,1,1,1,1] )
       
@@ -609,7 +576,6 @@ wrapper_object <-
                        '\n The proc_pars is required to assign a parameter to a process as part of a process sensitivity analysis.'))
         }
       }
-      
     }
     
     
