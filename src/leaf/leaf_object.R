@@ -161,7 +161,7 @@ leaf_object <-
         
       } else if(.$cpars$output=='all_lim') {
         
-        lout <- .$state_retrive(snames=c('A','wc','wj','wp','cc','ci','ca','ri','rs','rb','respiration','lim')) 
+        lout <- .$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','ri','rs','rb','respiration','lim')) 
         
       } else if(.$cpars$output=='full') {
         
@@ -447,6 +447,7 @@ leaf_object <-
       
       # met data assignment
       .$configure(vlist='env',df=.$dataf$met[l,],F)
+      print(.$env$ca_conc)
       
       # run model
       .$run()              
@@ -630,7 +631,7 @@ leaf_object <-
                        panel.xyplot(subscripts=subscripts,...)
                      })
         
-        p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
+        p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,
                      main=rs,auto.key=T,
                      ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
                      panel=function(subscripts=subscripts,...) {
