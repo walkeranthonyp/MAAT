@@ -11,6 +11,9 @@ f_none <- function(.) {
   NA
 }
 
+### ANALYTICAL SOLUTIONS
+################################
+
 quad_sol <- function(a,b,c,out='lower') {
   # robust numerical solution to the quadratic
   # taken from Numerical Recipes
@@ -23,19 +26,14 @@ quad_sol <- function(a,b,c,out='lower') {
   else roots 
 }
 
-
-
-### SOLVERS & SOLVER FUNCTIONS
-################################
-
 f_A_r_leaf_analytical <- function(.) {
   # combines A, rs, ci, cc eqs to a single f(), 
   # combines all rate limiting processes
   # solves A analytically by assuming g0 = 0 in the stomatal resistance function, and rb and ri are also assumed zero 
-
+  
   .$state_pars$rb <- 0
   .$state_pars$ri <- 0
-
+  
   # calculate cb, ci & cc
   .$state$cb      <- .$state$ca
   fe              <- get(paste(.$fnames$rs,'fe',sep='_') )(.) 
@@ -65,6 +63,38 @@ f_A_r_leaf_analytical <- function(.) {
   Anet
 }
 
+f_A_r_leaf_noR <- function(.,...) {
+  # same as above function but with no resistance to CO2 diffusion
+  # from the atmosphere to the site of carboxylation
+  # These functions can be used to calculate the stomatal limitation to photosynthesis
+  
+  # combines all rate limiting processes
+  
+  # assume cc = ca
+  cc <- .$state$ca
+  
+  # calculate Ag/cc
+  # - Ag/cc and not Ag is calculated for numerical stability at low cc
+  .$state$Acg <- get(.$fnames$Acg)(.,cc=cc)
+  .$state$Ajg <- get(.$fnames$Ajg)(.,cc=cc)
+  .$state$Apg <- get(.$fnames$Apg)(.,cc=cc)
+  
+  # calculate limiting cycle
+  Amin <- get(.$fnames$Alim)(.) 
+  
+  # calculate actual w
+  .$state$Acg <- .$state$Acg * cc
+  .$state$Ajg <- .$state$Ajg * cc
+  .$state$Apg <- .$state$Apg * cc
+  
+  # calculate net A
+  Amin*cc - Amin*.$state_pars$gstar - .$state$respiration
+}
+
+
+
+### SOLVERS & RESIDUAL FUNCTIONS
+################################
 
 f_R_Brent_solver <- function(.,...) {
   # ... could be used to pass through different functions 'func(.$env$atm_press * 1.6e-6)' to the solver function, not currently necessary
@@ -100,7 +130,7 @@ f_A_r_leaf <- function(A,.,...) {
   .$state$Ajg <- .$state$Ajg * .$state$cc
   .$state$Apg <- .$state$Apg * .$state$cc
   
-  # calculate net A
+  # calculate residual of net A
   Amin*.$state$cc - Amin*.$state_pars$gstar - .$state$respiration - A
 } 
 
@@ -132,40 +162,17 @@ f_A_r_leaf_noRs <- function(A,.,...) {
   .$state$Ajg <- .$state$Ajg * cc
   .$state$Apg <- .$state$Apg * cc
   
-  # calculate net A
+  # calculate residual of net A
   Amin*cc - Amin*.$state_pars$gstar - .$state$respiration - A
 }
 
-f_A_r_leaf_noR <- function(.,...) {
-  # same as above function but with no resistance to CO2 diffusion
-  # from the atmosphere to the site of carboxylation
-  # These functions can be used to calculate the stomatal limitation to photosynthesis
 
-  # combines all rate limiting processes
 
-  # assume cc = ca
-  cc <- .$state$ca
-  
-  # calculate Ag/cc
-  # - Ag/cc and not Ag is calculated for numerical stability at low cc
-  .$state$Acg <- get(.$fnames$Acg)(.,cc=cc)
-  .$state$Ajg <- get(.$fnames$Ajg)(.,cc=cc)
-  .$state$Apg <- get(.$fnames$Apg)(.,cc=cc)
-  
-  # calculate limiting cycle
-  Amin <- get(.$fnames$Alim)(.) 
-  
-  # calculate actual w
-  .$state$Acg <- .$state$Acg * cc
-  .$state$Ajg <- .$state$Ajg * cc
-  .$state$Apg <- .$state$Apg * cc
-  
-  # calculate net A
-  Amin*cc - Amin*.$state_pars$gstar - .$state$respiration
-}
+### PHOTOSYNTHESIS FUNCTIONS
+################################
 
+# Transition point function, calculates the cc at which Acg = Ajg, i.e. the transition cc
 transition_cc <- function(.) {
-  # calculates the cc at which wc = wj, i.e. the transition cc
   
   vcm_et_ratio <- .$state_pars$vcmaxlt/.$state$J 
   
@@ -173,10 +180,6 @@ transition_cc <- function(.) {
     (1 - 4*vcm_et_ratio)
 }
 
-
-
-### PHOTOSYNTHESIS FUNCTIONS
-################################
 
 # Carboxylation limitation
 f_Acg_farquhar1980 <- function(.,cc=.$state$cc){   
@@ -451,7 +454,7 @@ f_r_zero <- function(.,...){
   0
 }
 
-f_r_zero_fg1 <- function(.,...){
+f_r_zero_fe <- function(.,...){
   0
 }
 
@@ -475,8 +478,8 @@ f_rs_medlyn2011 <- function(.,A=.$state$A,c=.$state$cb){
   # output in m2s mol-1 h2o
   
   # if( A < 0 ) 1/.$pars$g0
-  # else 1 / (.$pars$g0 + (1 + .$pars$g1_medlyn/.$env$vpd^0.5) * A / (c/(.$env$atm_press * 1e-6)) )
-  1 / (.$pars$g0 + (1 + .$pars$g1_medlyn/.$env$vpd^0.5) * A / (c/(.$env$atm_press * 1e-6)) )
+  # else 
+  1 / (.$pars$g0 + f_rs_medlyn2011_fe(.) * A * .$env$atm_press*1e-6 / c )
 }
 
 f_rs_medlyn2011_fe <- function(.) {
@@ -491,8 +494,8 @@ f_rs_leuning1995 <- function(.,A=.$state$A,c=.$state$cb){
   # output in m2s mol-1  h2o
 
   # if( A < 0 ) 1/.$pars$g0
-  # else 1 / (.$pars$g0 + .$pars$g1_leuning/(1+.$env$vpd/.$pars$d0) * A / ( (c-.$state_pars$gamma)/(.$env$atm_press * 1e-6) - .$state$respiration) )
-  1 / ( .$pars$g0 + .$pars$g1_leuning * A / ( (1+.$env$vpd/.$pars$d0) * (c-.$state_pars$gamma)/(.$env$atm_press * 1e-6)) ) 
+  # else 
+  1 / ( .$pars$g0 + f_rs_leuning1995_fe(.,c=c) * A * .$env$atm_press*1e-6 / c ) 
 }
 
 f_rs_leuning1995_fe <- function(.,c=.$state$cb) {
@@ -507,13 +510,13 @@ f_rs_ball1987 <- function(.,A=.$state$A,c=.$state$cb){
   # output in m2s mol-1 h2o
   
   # if( A < 0 ) 1/.$pars$g0
-  # else 1 / (.$pars$g0 + .$pars$g1_ball*.$env$rh * A / (c/(.$env$atm_press * 1e-6)) )
-  1 / ( .$pars$g0 + .$pars$g1_ball*.$env$rh*A / (c/(.$env$atm_press * 1e-6)) )
+  # else
+  1 / ( .$pars$g0 + f_rs_ball1987_fe(.) * A * .$env$atm_press*1e-6 / c )
 }
 
 f_rs_ball1987_fe <- function(.) {
   # f(e) component of rs from Ball 1987   
-  (.$pars$g1_ball*.$env$rh)
+  .$pars$g1_ball * .$env$rh
 }
 
 
@@ -526,8 +529,8 @@ f_rs_constantCiCa <- function(.,A=.$state$A,c=.$state$cb) {
   .$state_pars$cica_chi <- get(.$fnames$cica_ratio)(.)
   
   # if( A < 0 ) 1/1e-9
-  # else ( c * (1 - .$state_pars$cica_chi) ) / ( .$env$atm_press*1.6e-6*A ) 
-  ( (1 - .$state_pars$cica_chi) * c ) / ( .$env$atm_press*1.6e-6*A )
+  # else
+  1 / (f_rs_constantCiCa_fe(.) * A * .$env$atm_press*1e-6 / c )
 }
 
 f_rs_constantCiCa_fe <- function(.) {
@@ -548,11 +551,12 @@ f_rs_cox1998 <- function(.,A=.$state$A,c=.$state$cb) {
   
   f0    <- 1 - 1.6/.$pars$g1_leuning
   dstar <- (.$pars$g1_leuning/1.6 - 1) * .$pars$d0
-  CmCP  <- (c - .$state_pars$gamma)
-
+  # CmCP  <- (c - .$state_pars$gamma)
+  CmCP  <- (1 - .$state_pars$gamma/c)
+  
   # if( A < 0 ) 1/1e-9
-  # else ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar)) / ( .$env$atm_press*1.6e-6*A )
-  ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar)) / ( .$env$atm_press*1.6e-6*A )
+  # else
+  1 / ( f_rs_cox1998_fe(.,c=c) * A * .$env$atm_press*1e-6 / c )
 }
 
 f_rs_cox1998_fe <- function(.,c=.$state$cb) {

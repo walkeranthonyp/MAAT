@@ -447,8 +447,7 @@ leaf_object <-
       
       # met data assignment
       .$configure(vlist='env',df=.$dataf$met[l,],F)
-      print(.$env$ca_conc)
-      
+
       # run model
       .$run()              
     }
@@ -589,7 +588,7 @@ leaf_object <-
       if(output) .$dataf$out_full
     }
 
-    .test_aci_analytical <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50), 
+    .test_aci_analytical <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(1,1200,50), 
                                      ana_only=F,verbose=F,verbose_loop=F,diag=F) {
       
       .$cpars$verbose       <- verbose
