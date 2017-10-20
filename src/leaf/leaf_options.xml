@@ -65,7 +65,7 @@
       <!-- stomatal resistance to H2O & CO2 transport, constant CiCa is implicit in LPJ and Cox 1999 does something similar for JULES -->
       <rs>c('f_r_zero','f_rs_ball1987','f_rs_leuning1995','f_rs_medlyn2011','f_rs_constantCiCa','f_rs_cox1998')</rs>
       <!-- leaf boundary layer resistance to H2O & CO2 transport -->
-      <rb>'f_r_zero'</rb>
+      <rb>c('f_r_zero','f_rb_constant')</rb>
       <!-- solver, numerical or analytical -->
       <solver>c('f_R_Brent_solver','f_A_r_leaf_analytical')</solver>
       <!-- function passed to solver -->
@@ -125,6 +125,8 @@
       <rs>6.667</rs>
       <!-- constant Ci:Ca ratio -->
       <cica_chi>0.7</cica_chi>
+      <!-- constant leaf boundary layer resistance -->
+      <rb>0.1</rb>
       <!-- constant internal resistance -->
       <ri>28.5714285714286</ri>
       <!-- diffusivity of CO2 in water -->

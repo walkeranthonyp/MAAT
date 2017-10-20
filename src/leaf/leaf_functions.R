@@ -381,14 +381,14 @@ f_jmax_walker2014 <- function(.) {
 }
 
 f_jmax_lin <- function(.) {
-  .$pars$ajv_25 + .$state_pars$vcmax25 * .$pars$bjv_25    
+  .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25    
 }
 
 f_jmax_lin_t <- function(.) {
   .$pars$ajv_25 <- 0.0
   .$pars$bjv_25 <- .$pars$a_jvt_25 + .$state$leaf_temp * .$pars$b_jvt_25
     
-  .$pars$ajv_25 + .$state_pars$vcmax25 * .$pars$bjv_25    
+  .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25    
 }
 
 
@@ -572,8 +572,7 @@ f_rs_cox1998_fe <- function(.,c=.$state$cb) {
 
 # internal/mesophyll
 # internal/mesophyll resistances are all assumed by the solver to be in co2 units 
-
-f_ri_constant <- function(.,...){
+f_ri_constant <- function(., ... ) {
   # output in m2s mol-1 co2
   
   .$pars$ri
@@ -581,6 +580,18 @@ f_ri_constant <- function(.,...){
 
 # leaf boundary layer
 # leaf boundary layer resistances are all assumed by the solver to be in h2o units  
+f_rb_constant <- function(., ... ) {
+  # output in m2s mol-1 h2o
+  
+  .$pars$rb
+}
+
+# f_rb_leafdim <- function(., ... ) {
+#   # output in s m-1 h2o
+#   
+#   ( .$env$lwind / .$pars$leaf_width )^-0.5 / .$pars$can_ttc
+# }
+
 
 
 
@@ -691,7 +702,6 @@ f_temp_scalar_cox2001_des <- function(.,parlist,...){
   # descending component of temperature scaling from Cox etal 2001
   
   # input parameters  
-  # Q10    -- factor by which rate increases for every 10 oC of temp increase  
   # Tr     -- reference temperature (oC) 
   
   1 / ( (1 + exp(parlist$exp*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(parlist$exp*(parlist$tlow-.$state$leaf_temp))) )
@@ -770,7 +780,7 @@ f_gstar_c1991 <- function(.) {
 
 f_temp_scalar_quadratic_bf1985 <- function(.,parlist,...){
   # calculates Gamma star (umol mol-1) temperature scalar (K or oC)
-  # could be expanded to incorporate parameters in parlist, buit currently gstar specific
+  # could be expanded to incorporate parameters in parlist, but currently gstar specific
   # Brooks&Farquhar 1985
   # rearranged to give a scalar of value at 25oC 
 

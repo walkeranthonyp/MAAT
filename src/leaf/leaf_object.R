@@ -305,7 +305,7 @@ leaf_object <-
       ajv_25        = 29,         # intercept of linear jmax25 to vcmax25 relationship     (umolm-2s-1)
       bjv_25        = 1.63,       # slope of linear jmax25 to vcmax25 relationship         (unitless)
       a_jvt_25      = 2.59,       # intercept of linear jmax25:vcmax25 relationship to temperature   (e C-1)
-      b_jvt_25      = 0.035,      # slope of linear jmax25:vcmax25 relationship to temperature       (e C-1 oC-1)
+      b_jvt_25      = -0.035,     # slope of linear jmax25:vcmax25 relationship to temperature       (e C-1 oC-1)
       e_ajv_25      = 1.01,       # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
       e_bjv_25      = 0.89,       # slope of log-log jmax25 to vcmax25 relationship        (unitless)
       atv_25        = 0,          # intercept of linear tpu25 to vcmax25 relationship      (umolm-2s-1)
@@ -322,6 +322,7 @@ leaf_object <-
       g1_ball       = 6,          # Ball 1987 gs slope                                     (unitless - multiplier on RH as a proportion)
       rs            = 1/0.15,     # stomatal resistance                                    (m2s mol-1 h2o)
       cica_chi      = 0.7,        # constant Ci:Ca ratio                                   (unitless)
+      rb            = 1/10,       # leaf boundary layer resistance                         (m2s mol-1 h2o)
       ri            = 1/0.15,     # mesophyll resistance                                   (m2s mol-1 - expressed in these units for consistency with other resistance terms, often expressed in the literature multiplied by Pa)
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
       hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
@@ -458,7 +459,7 @@ leaf_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci'){
+    .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci') {
       
       if(verbose) {
         str.proto(.)
@@ -479,7 +480,32 @@ leaf_object <-
       .$run()
     }
 
+
+    .test_solverFunc <- function(.,verbose=T,verbose_loop=T,leaf.par=200,leaf.ca_conc=300,rs='f_rs_medlyn2011') {
+      
+      if(verbose) {
+        str.proto(.)
+        print(.$env)
+      }
+      .$cpars$verbose       <- verbose
+      .$cpars$verbose_loop  <- verbose_loop
+
+      .$fnames$ri          <- 'f_r_zero'
+      .$fnames$rs          <- rs
+      .$fnames$solver_func <- 'f_A_r_leaf'
+      .$fnames$gas_diff    <- 'f_ficks_ci'
+      
+      .$env$ca_conc        <- leaf.ca_conc
+      .$env$par            <- 0
+      .$run()
+
+      # proper calc of electron transport rate
+      .$env$par            <- leaf.par
+      .$state$J <- get(.$fnames$etrans)(.)
+      f_A_r_leaf(.,A=-10:100)
+    }
     
+        
     .test_tscalar <- function(.,leaf.temp=0:50,leaf.par=c(1000),leaf.ca_conc=400,rs='f_rs_medlyn2011',
                               tcor_asc='f_temp_scalar_Arrhenius',tcor_des='f_scalar_none', 
                               verbose=F,verbose_loop=F) {
@@ -588,7 +614,7 @@ leaf_object <-
       if(output) .$dataf$out_full
     }
 
-    .test_aci_analytical <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(1,1200,50), 
+    .test_aci_analytical <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50),leaf.rb=0, 
                                      ana_only=F,verbose=F,verbose_loop=F,diag=F) {
       
       .$cpars$verbose       <- verbose
@@ -600,6 +626,8 @@ leaf_object <-
       
       .$fnames$rs           <- rs
       .$fnames$ri           <- 'f_r_zero'
+      .$fnames$rb           <- 'f_rb_constant'
+      .$pars$rb             <- leaf.rb
       .$fnames$gas_diff     <- 'f_ficks_ci'
       
       .$dataf     <- list()

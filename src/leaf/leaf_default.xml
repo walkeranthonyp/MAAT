@@ -68,6 +68,7 @@
       <g1_ball>5</g1_ball>
       <rs>6.667</rs>
       <cica_chi>0.7</cica_chi>
+      <rb>0.1</rb>
       <ri>28.5714285714286</ri>
       <co2_diff>1.7e-09</co2_diff>
       <hco_co2_ratio>0</hco_co2_ratio>
