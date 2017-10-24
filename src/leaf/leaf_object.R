@@ -435,6 +435,7 @@ leaf_object <-
       modobj <- .$name
       dfss   <- which(prefix==modobj)
       vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
+      # could write a line to catch NAs in vlss
       .[[vlist]][vlss] <- df[dfss]
       
       if(.$cpars$cverbose&o) {

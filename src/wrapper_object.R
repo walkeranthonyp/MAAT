@@ -544,7 +544,7 @@ wrapper_object <-
         }
       }
       
-      # append model object to variable names      
+      # prepend model object to variable names      
       modobj <- .$model$name
       type   <- c('static', 'dynamic')
       vlists <- c('fnames', 'pars', 'env' )
@@ -560,7 +560,7 @@ wrapper_object <-
       
       # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
       if(.$wpars$UQ) {
-        if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$wpars$eval_strings <- T
+        if(is.na(.$init_dynamic[[modobj]]$pars[1])&!is.na(.$init_dynamic[[modobj]]$pars_eval[1])) maat$wpars$eval_strings <- T
 
         if(.$wpars$eval_strings) {
           vars <- .[['init_dynamic']][[modobj]][['pars_eval']]
@@ -1138,7 +1138,7 @@ wrapper_object <-
         .$dynamic$pars_eval <- list(
           leaf.avn_25   = ' 10 * rnorm(n,1,.$wpars$coef_var)',
           leaf.bvn_25   = '  5 * rnorm(n,1,.$wpars$coef_var)',
-          leaf.theta    = '0.9 * rnorm(n,1,.$wpars$coef_var)',
+          leaf.theta_j  = '0.9 * rnorm(n,1,.$wpars$coef_var)',
           leaf.e_ajv_25 = '0.9 * rnorm(n,1,.$wpars$coef_var)'
         )
       } else {
@@ -1146,7 +1146,7 @@ wrapper_object <-
         .$dynamic$pars <- list(
           leaf.avn_25   =  10 * rnorm(n,1,.$wpars$coef_var),
           leaf.bvn_25   =   5 * rnorm(n,1,.$wpars$coef_var),
-          leaf.theta    = 0.9 * rnorm(n,1,.$wpars$coef_var),
+          leaf.theta_j  = 0.9 * rnorm(n,1,.$wpars$coef_var),
           leaf.e_ajv_25 = 0.9 * rnorm(n,1,.$wpars$coef_var)
         )
       }
