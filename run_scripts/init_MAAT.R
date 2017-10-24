@@ -50,7 +50,7 @@ leaf.fnames.static <- list(
   gstar           = 'f_scalar_none',
   Kc_tcor         = 'f_scalar_none',
   Ko_tcor         = 'f_scalar_none',
-  vcmax           = 'f_constant_vcmax',
+  vcmax           = 'f_vcmax_constant',
   jmax            = 'f_jmax_walker2014',
   vcmax_tcor_asc  = 'f_scalar_none',
   jmax_tcor_asc   = 'f_scalar_none',

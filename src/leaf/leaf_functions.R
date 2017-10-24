@@ -358,7 +358,7 @@ f_rl_rd_lloyd1995 <- function(.) {
 ################################
 
 # vcmax
-f_constant_vcmax <- function(.) {
+f_vcmax_constant <- function(.) {
   .$pars$atref.vcmax
 }
 
@@ -372,7 +372,7 @@ f_vcmax_clm <- function(.) {
 }
 
 # jmax
-f_constant_jmax <- function(.) {
+f_jmax_constant <- function(.) {
   .$pars$atref.jmax
 }
 
@@ -393,7 +393,7 @@ f_jmax_lin_t <- function(.) {
 
 
 # TPU
-f_constant_tpu <- function(.) {
+f_tpu_constant <- function(.) {
   .$pars$atref.tpu
 }
 
@@ -751,7 +751,7 @@ f_q10_lin_t <- function(.,parlist,...){
 
 
 ### Gamma star - CO2 compensation point in the absence of dark respiration
-f_constant_gstar <- function(.,...){
+f_gstar_constant <- function(.,...){
   .$pars$atref.gstar
 }
 

@@ -6,7 +6,7 @@
       <tau_tcor>'f_temp_scalar_Q10'</tau_tcor>
       <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
       <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
-      <vcmax>'f_constant_vcmax'</vcmax>
+      <vcmax>'f_vcmax_constant'</vcmax>
       <jmax>'f_jmax_walker2014'</jmax>
       <tpu>'f_tpu_lin'</tpu>
       <vcmax_tcor_asc>'f_temp_scalar_Arrhenius'</vcmax_tcor_asc>

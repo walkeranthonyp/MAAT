@@ -3,7 +3,7 @@
     <fnames>
       <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
       f_gstar_constref will get a specified value at 25 and scale according to gstar_tcor, f_gstar_c1991 calculates from tau the CO2:O2 specificity ratio -->
-      <gstar>c('f_constant_gstar','f_gstar_f1980','f_gstar_constref','f_gstar_c1991')</gstar>
+      <gstar>c('f_gstar_constant','f_gstar_f1980','f_gstar_constref','f_gstar_c1991')</gstar>
       <!-- temperature scaling of gamma star, only used if <gstar> is set to 'f_gstar_constref' -->
       <gstar_tcor>'f_temp_scalar_quadratic_bf1985'</gstar_tcor>
       <!-- temperature scaling of tau, only used if <gstar> is set to 'f_gstar_c1991' -->
@@ -13,11 +13,11 @@
       <!-- temperature scaling of Ko -->
       <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
       <!-- scaling of Vcmax at reftemp.rd -->
-      <vcmax>c('f_constant_vcmax','f_vcmax_lin','f_vcmax_clm')</vcmax>
+      <vcmax>c('f_vcmax_constant','f_vcmax_lin','f_vcmax_clm')</vcmax>
       <!-- scaling of Jmax at reftemp.rd, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
-      <jmax>c('f_constant_jmax','f_jmax_walker2014','f_jmax_lin','f_jmax_lin_t)</jmax>
+      <jmax>c('f_jmax_constant','f_jmax_walker2014','f_jmax_lin','f_jmax_lin_t)</jmax>
       <!-- scaling of TPU at reftemp.rd, f(Vcmax) -->
-      <tpu>c('f_constant_tpu','f_tpu_lin')</tpu>
+      <tpu>c('f_tpu_constant','f_tpu_lin')</tpu>
       <!-- increasing component of temperature scaling of Vcmax and Jmax -->
       <vcmax_tcor_asc>c('f_scalar_none','f_temp_scalar_Q10','f_temp_scalar_Arrhenius')</vcmax_tcor_asc>
       <jmax_tcor_asc>c('f_scalar_none','f_temp_scalar_Q10','f_temp_scalar_Arrhenius')</jmax_tcor_asc>
