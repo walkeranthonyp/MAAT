@@ -104,6 +104,9 @@ runid        <- NULL
 # basic output file name
 of_main      <- 'out'
 
+# model output switch 
+mod_out      <- 'run'
+
 # output file format.  supported: rds, csv (default)
 of_format    <- 'csv'
 
@@ -183,15 +186,17 @@ if(!is.null(mod_mimic)) {
 # Configure and initialise the MAAT model
 
 # build and clone the model object
-model <- get(paste(mod_obj,'object',sep='_'))$.build()
+# model <- get(paste(mod_obj,'object',sep='_'))$.build()
 
 
 
 ##################################
 # Configure the MAAT wrapper
 
-# build and clone the maat wrapper object
-maat <- wrapper_object$.build(model=model)
+# clone and build the maat wrapper and model object
+maat <- as.proto(wrapper_object$as.list()) 
+maat$build(model=paste(mod_obj,'object',sep='_'))
+rm(wrapper_object)
 
 # factorial analysis over-rides UQ analysis
 if(!uq) factorial <- T
@@ -210,6 +215,7 @@ maat$wpars$coef_var      <- coef_var
 maat$wpars$nmult         <- salt_nmult       
 maat$wpars$eval_strings  <- eval_strings       
 maat$model$cpars$verbose <- F
+maat$model$cpars$output  <- mod_out
 
 
 

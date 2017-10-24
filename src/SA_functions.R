@@ -7,33 +7,46 @@
 ################################
 
 #####################################################
-calc_process_sensitivity <- function(df,res,col,colname,n,nA=1,nB=3,...) {
+calc_process_sensitivity <- function(a1,colname,n,nA=1,nB=3,...) {
+  
+  # get dim extents, a1 should be a 4D array
+  # - dim 1 (rows)      process(es) B parameter sample 
+  # - dim 2 (columns)   process(es) B representation(s)
+  # - dim 3 (slices)    process A parameter sample
+  # - dim 4 (cube rows) process A representation
+  adim  <- dim(a1) 
+  nA    <- adim[4]
+  nB    <- adim[2]
+  n     <- adim[1] # adim[1] and adim[3] should be the same
   
   # assume equal probability for each model
-  mpA   <- rep(1/nA,nA)
-  mpB   <- rep(1/nB,nB)
+  mpA   <- rep(1/nA, nA )
+  mpB   <- rep(1/nB, nB )
   
   # extract model output of interest (i.e. Delta)
   # f     <- as.vector(df[,which(names(df)==colname)])
-  f     <- as.vector(df[[res]][,col])
-  
-  # total mean & variance in Delta
+  # f     <- as.vector(df[[res]][,col])
+
+  # total variance in Delta
   # - variance should be normalised by the total sample size, not sample size - 1
-  var_t <- var(f) 
+  # var_t <- var(f) 
+  var_t <- var(a1) 
   
-  # reshape f vector into array dim = nA,n,nB,n - first dimension cycles first, like FORTRAN
-  f     <- array(f,dim=c(n,nB,n,nA))
-  f     <- aperm(f,4:1)
+  # permute a1 into dim = nA,n,nB,n - first dimension cycles first, like FORTRAN
+  # f     <- array(f,dim=c(n,nB,n,nA))
+  # f     <- aperm(f,4:1)
+  a1    <- aperm(a1, 4:1 )
   
   # call function to calculate variance in Delta caused by variability in process x
-  var_A <- func_process_sensitivity(1,f,nA,nB,mpA,mpB,n)
-  var_B <- func_process_sensitivity(2,f,nA,nB,mpA,mpB,n)
-  var_p <- c(var_A,var_B)
+  var_A <- func_process_sensitivity(1,a1,nA,nB,mpA,mpB,n)
+  # var_B <- func_process_sensitivity(2,a1,nA,nB,mpA,mpB,n)
+  # var_p <- c(var_A,var_B)
   
   # output a list of a scalar of total variance, and a matrix of variance caused by each process, and their proportion of total variance
-  Tvar <- c(mean=mean(f),total_var=var_t,total_sd=var_t^0.5)
+  Tvar <- c(mean=mean(a1),total_var=var_t,total_sd=var_t^0.5)
   
-  list(Tvar=Tvar,par_var=var_p,sensitivity=var_p/var_t)
+  # list(Tvar=Tvar,par_var=var_p,sensitivity=var_p/var_t)
+  list(Tvar=Tvar,par_var=var_A,sensitivity=var_A/var_t)
 }
 
 
@@ -156,25 +169,22 @@ func_sobol_sensitivity <- function(sn,k,ABout,ABiout,pnames=NULL) {
 
 
 ########################################################
-calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
+calc_parameter_sensitivity <- function(sn,outdata,delta) {
   # calcualtes Sobol sensitivity indices using output from a Saltelli algorithm
   # Expects the use of multiple models and scenarios
-  # Expects outdata to be a list of two objects - a 4D array AB - & a 2D list composed of 3D arrays ABi  
-  # Expects outdata to be a list of two objects - a 3 element list AB - & a 2D list composed of 3D arrays ABi  
-  # AB
-  # list element 1 - a 4D numeric array AB 
-  # - dim 1 - the various models used
-  # - dim 2 - the various scenarios/environments used
-  # - dim 3 - the parameter samples used
-  # - dim 4 - the various output columns from the model (variable of interest subscript - delta)
-  # list element 2 - a character matrix of model process combinations 
-  # list element 3 - a character vector of parameter names 
-  # ABi
-  # - list dim 1  - the various models used
-  # - list dim 2  - the various scenarios/environments used
-  # - array dim 1 - the parameter samples used
-  # - array dim 2 - the various output columns from the model (variable of interest subscript - delta)
-  # - array dim 3 - the parameters in the analysis (length - k)
+
+  # Expects outdata to be a list of two objects - AB: a 4D array & ABi: a 5D array  
+  # AB, list element 1 - a 4D numeric array AB 
+  # - dim 1 - models  (number - nmod)
+  # - dim 2 - scenarios/environments  (number - nscen)
+  # - dim 3 - parameter samples (number - 2*sn)
+  # - dim 4 - output columns from the model (variable of interest subscript - delta)
+  # ABi, list element 2 - a 5D numeric array ABi 
+  # - dim 1 - models  (number - nmod)
+  # - dim 2 - scenarios/environments  (number - nscen)
+  # - dim 3 - parameter samples (number - sn)
+  # - dim 4 - output columns from the model (variable of interest subscript - delta)
+  # - dim 5 - parameters (number - k)
   
   # list processing function 
   # - creates a weighted average across list elements from a Sobol list 
@@ -204,8 +214,10 @@ calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
   }
   
   # calculate number of models and scenarios
-  nmod    <- dim(outdata$AB$AB)[1]
-  nscen   <- dim(outdata$AB$AB)[2]
+  nmod    <- dim(outdata$AB)[1]
+  nscen   <- dim(outdata$AB)[2]
+  sn      <- dim(outdata$ABi)[3]
+  k       <- dim(outdata$ABi)[5]
   
   # assume models are of equal probability
   pmod    <- rep(1/nmod,nmod)
@@ -218,17 +230,16 @@ calc_parameter_sensitivity <- function(sn,k,outdata,delta) {
   for(m in 1:nmod) {
     # scenario loop
     for(e in 1:nscen) {
-      out1 <- list(func_sobol_sensitivity(sn,k,outdata$AB$AB[m,e,,delta],outdata$ABi[[m]][[e]][,delta,],pnames=outdata$AB$par_names))      
-      out2 <- if(e==1) out1 else c(out2,out1)
+      out1 <- list(func_sobol_sensitivity(sn, k, outdata$AB[m,e,,delta], outdata$ABi[m,e,,delta,], pnames=dimnames(outdata$ABi)[[5]] ))      
+      out2 <- if(e==1) out1 else c(out2, out1 )
     }
-    sensout <- if(m==1) list(out2) else c(sensout,list(out2))
+    sensout <- if(m==1) list(out2) else c(sensout, list(out2) )
   }
   
   # calculate Sobol including scenario uncertainty
   # hold model constant  
   for(m in 1:nmod) {
-#     print(sensout)
-    out1 <- average_list(sensout[[m]],pscen)
+    out1 <- average_list(sensout[[m]], pscen )
     outs <- if(m==1) list(out1) else c(outs,list(out1))
   }
   

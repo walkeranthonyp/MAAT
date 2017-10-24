@@ -63,10 +63,18 @@ out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_ball1987')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_constantCiCa')
-out <- leaf_object$.test_aci_analytical(rs='f_rs_cox1999')
+out <- leaf_object$.test_aci_analytical(rs='f_rs_cox1998')
 
+out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011',leaf.rb=0.1)
+out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995',leaf.rb=0.0001)
 
-
+# leaf solver function
+source('leaf_object.R')
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F)
+leaf_object$fnames$Alim <- 'f_lim_collatz1991'
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F)
+leaf_object$fnames$jmax <- 'f_jmax_lin'
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F)
 
 
 

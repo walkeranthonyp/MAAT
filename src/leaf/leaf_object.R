@@ -8,7 +8,7 @@
 
 library(proto)
 library(stringr)
-library(plyr)
+#library(plyr)
 
 source('leaf_functions.R')
 
@@ -27,9 +27,10 @@ leaf_object <-
     
     # no expected child objects
     
-    # build function
-    .build <- function(.) {
-      as.proto(.$as.list())
+    # build function - no expected child objects so returns null
+    build <- function(.) {
+      # as.proto(.$as.list())
+      NULL
     }
     
     
@@ -111,8 +112,8 @@ leaf_object <-
         .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
         # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
         .$state$A       <- get(.$fnames$solver)(.)      
-        # assign the limitation state - assumes the minimum is the dominant limiting rate
-        .$state$lim     <- c('wc','wj','wp')[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
+        # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
+        .$state$lim     <- c(2,3,7)[which(c(.$state$Acg,.$state$Ajg,.$state$Apg)==min(c(.$state$Acg,.$state$Ajg,.$state$Apg),na.rm=T))]       
         # after the fact calculations
         .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca)
         if(!grepl('analytical',.$fnames$solver)) .$state_pars$rs <- get(.$fnames$rs)(.) 
@@ -127,8 +128,7 @@ leaf_object <-
         .$state$A_noR      <- NA
         .$state$transition <- NA
         .$state$A          <- -.$state$respiration      
-        .$state$lim        <- 'night'
-        .$state_pars$gamma <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
+        .$state$lim        <- 0       
         .$state_pars$rs    <- get(.$fnames$rs)(.)
       }
       
@@ -146,38 +146,36 @@ leaf_object <-
     ###########################################################################
     # Output functions
 
-    #output processing function
-    # -- returns a list of outputs
+    # -- returns a vector of outputs
+    state_retrive <- function(.,snames) {
+      lsubs <- match(snames,names(.$state))
+      unlist(.$state[lsubs])
+    }
+
     output <- function(.){
       if(.$cpars$output=='slim') {
-        lout <- 
-          list(A=.$state$A,ci=.$state$ci,lim=.$state$lim)
+        
+        lout <- .$state_retrive(snames=c('A','ci','lim')) 
         
       } else if(.$cpars$output=='run') {
-        lout <- 
-          list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
-               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
-               respiration=.$state$respiration,lim=.$state$lim)
+        
+        lout <- .$state_retrive(snames=c('A','cc','ci','ri','rs','rb','respiration','lim')) 
         
       } else if(.$cpars$output=='all_lim') {
-        lout <- 
-          list(A=.$state$A,wc=.$state$wc,wj=.$state$wj,wp=.$state$wp,
-               cc=.$state$cc,ci=.$state$ci,ca=.$state$ca,
-               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
-               respiration=.$state$respiration,lim=.$state$lim)     
+        
+        lout <- .$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','ri','rs','rb','respiration','lim')) 
         
       } else if(.$cpars$output=='full') {
-        lout <- c(.$state,.$state_pars)
+        
+        lout <- unlist(c(.$state, .$state_pars ))
         
       } else if(.$cpars$output=='sphagnum') {
-        lout <-
-          list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
-               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
-               respiration=.$state$respiration,lim=.$state$lim,fwdw=.$state$fwdw_ratio) 
+        
+        lout <- .$state_retrive(snames=c('A','cc','ci','ri','rs','rb','respiration','lim','fwdw_ratio')) 
         
       }
       
-      if(.$pars$diag&.$cpars$output!='full') c( lout, list(A_noR=.$state$A_noR,transition=.$state$transition) ) 
+      if(.$pars$diag&.$cpars$output!='full') c( lout, A_noR=.$state$A_noR, transition=.$state$transition ) 
       else                                    lout
       
     }    
@@ -205,9 +203,9 @@ leaf_object <-
       tpu_tcor_des        = 'f_temp_scalar_modArrhenius_des',
       deltaS              = 'f_deltaS',
       etrans              = 'f_j_harley1992',
-      wc                  = 'f_wc_farquhar1980',
-      wj                  = 'f_wj_generic',
-      wp                  = 'f_wp_vonc2000',            
+      Acg                 = 'f_Acg_farquhar1980',
+      Ajg                 = 'f_Ajg_generic',
+      Apg                 = 'f_Apg_vonc2000',            
       gas_diff            = 'f_ficks_ci',
       respiration         = 'f_rd_lin_vcmax',
       rl_rd_scalar        = 'f_scalar_none',
@@ -229,10 +227,10 @@ leaf_object <-
     
     # leaf environment
     env <- list(
-      ca_conc   = numeric(0),          # (umol mol-1)
+      ca_conc   = numeric(1),          # (umol mol-1)
       o2_conc   = 0.21,                # ( mol mol-1)
-      par       = numeric(0),          # (umol photons m-2 s-1)
-      water_l   = numeric(0),          # (mm) water level relative to hollow surfwce
+      par       = numeric(1),          # (umol photons m-2 s-1)
+      water_l   = numeric(1),          # (mm) water level relative to hollow surfwce
       sphag_l   = 0,                   # (mm) Sphagnum surface relative to hollow surfwce
       temp      = 25,                  # (oC)
       vpd       = 2,                   # (kPa)
@@ -243,29 +241,29 @@ leaf_object <-
     # leaf state
     state <- list(
       #environmental state
-      oi = numeric(0),                 # atmospheric & internal O2  (kPa)
-      ca = numeric(0),                 # atmospheric CO2            ( Pa)
-      cb = numeric(0),                 # boundary layer CO2         ( Pa)
-      ci = numeric(0),                 # leaf internal CO2          ( Pa) 
-      cc = numeric(0),                 # chloroplast CO2            ( Pa)
-      leaf_temp = numeric(0),          # leaf temperature           (oC)
+      oi = numeric(1),                 # atmospheric & internal O2  (kPa)
+      ca = numeric(1),                 # atmospheric CO2            ( Pa)
+      cb = numeric(1),                 # boundary layer CO2         ( Pa)
+      ci = numeric(1),                 # leaf internal CO2          ( Pa) 
+      cc = numeric(1),                 # chloroplast CO2            ( Pa)
+      leaf_temp = numeric(1),          # leaf temperature           (oC)
       
       #leaf state - calculated by canopy object so need initialisation
       leafN_area = 2,                  # leaf N per unit area       (g N m-2)
       fwdw_ratio = 5,                  # fresh weight dry weight ratio, used for Sphagnum conductance term 
       
       #calculated state
-      J  = numeric(0),                 # electron transport rate                            (umol electrons m-2 s-1) 
-      wc = numeric(0),                 # Carboxylaton limited rate of net asssimilation     (umol m-2 s-1)
-      wj = numeric(0),                 # light limited rate of carboxylation                (umol m-2 s-1)
-      wp = numeric(0),                 # TPU limited rate of carboxylation                  (umol m-2 s-1)
-      A            = numeric(0),       # actual rate of carboxylation                       (umol m-2 s-1)
-      respiration  = numeric(0),       # actual rate of respiration                         (umol m-2 s-1)
-      lim          = character(0),     # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
+      J   = numeric(1),                # electron transport rate                            (umol electrons m-2 s-1) 
+      Acg = numeric(1),                # Carboxylaton limited rate of net asssimilation     (umol m-2 s-1)
+      Ajg = numeric(1),                # light limited rate of carboxylation                (umol m-2 s-1)
+      Apg = numeric(1),                # TPU limited rate of carboxylation                  (umol m-2 s-1)
+      A            = numeric(1),       # actual rate of carboxylation                       (umol m-2 s-1)
+      respiration  = numeric(1),       # actual rate of respiration                         (umol m-2 s-1)
+      lim          = numeric(1),       # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
 
       # diagnostic state
-      A_noR        = numeric(0),       # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
-      transition   = numeric(0)        # cc at the transition point where wc = wj                        (Pa)
+      A_noR        = numeric(1),       # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
+      transition   = numeric(1)        # cc at the transition point where wc = wj                        (Pa)
     )
     
     # results from solver
@@ -273,23 +271,23 @@ leaf_object <-
     
     #leaf state parameters (i.e. calculated parameters)
     state_pars <- list(
-      vcmax    = numeric(0),   # umol m-2 s-1
-      vcmaxlt  = numeric(0),   # umol m-2 s-1
-      jmax     = numeric(0),   # umol m-2 s-1
-      jmaxlt   = numeric(0),   # umol m-2 s-1
-      tpu      = numeric(0),   # umol m-2 s-1
-      rd       = numeric(0),   # umol m-2 s-1; respiration at reftemp
-      Kc       = numeric(0),   #  Pa
-      Ko       = numeric(0),   # kPa
-      Km       = numeric(0),   #  Pa
-      gstar    = numeric(0),   #  Pa
-      tau      = numeric(0),   #  -
-      gamma    = numeric(0),   #  Pa
-      rb       = numeric(0),   # m2s mol-1 H2O
-      rs       = numeric(0),   # m2s mol-1 H2O
-      ri       = numeric(0),   # m2s mol-1 CO2     
-      alpha    = numeric(0),   # mol electrons mol-1 absorbed photosynthetically active photons
-      cica_chi = numeric(0)    # Ci:Ca ratio 
+      vcmax    = numeric(1),   # umol m-2 s-1
+      vcmaxlt  = numeric(1),   # umol m-2 s-1
+      jmax     = numeric(1),   # umol m-2 s-1
+      jmaxlt   = numeric(1),   # umol m-2 s-1
+      tpu      = numeric(1),   # umol m-2 s-1
+      rd       = numeric(1),   # umol m-2 s-1; respiration at reftemp
+      Kc       = numeric(1),   #  Pa
+      Ko       = numeric(1),   # kPa
+      Km       = numeric(1),   #  Pa
+      gstar    = numeric(1),   #  Pa
+      tau      = numeric(1),   #  -
+      gamma    = numeric(1),   #  Pa
+      rb       = numeric(1),   # m2s mol-1 H2O
+      rs       = numeric(1),   # m2s mol-1 H2O
+      ri       = numeric(1),   # m2s mol-1 CO2     
+      alpha    = numeric(1),   # mol electrons mol-1 absorbed photosynthetically active photons
+      cica_chi = numeric(1)    # Ci:Ca ratio 
     )
     
     #leaf parameters
@@ -299,15 +297,16 @@ leaf_object <-
       # deprecated    alpha    = 0.24,         # harley 1992 alpha - Williams & Flannagan 1998 use 0.21 but calculate 0.25 
       a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
       f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
-      theta         = 0.90,       # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
-      theta_collatz = 0.98,       # curvature of 1st limitation quadratic in Collatz 1991  (unitless)
-      beta_collatz  = 0.95,       # curvature of 2nd limitation quadratic in Collatz 1991  (unitless)
+      ko_kc_ratio   = 0.21,       # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)
+      theta_j       = 0.90,       # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
+      theta_col_cj  = 0.95,       # curvature of 1st limitation quadratic, theta, in Collatz 1991  (unitless)
+      theta_col_cjp = 0.98,       # curvature of 2nd limitation quadratic, beta, in Collatz 1991   (unitless)
       avn_25        = 10,         # intercept of linear vcmax25 to leaf N relationship     (umolm-2s-1)
       bvn_25        = 30,         # slope of linear vcmax25 to leaf N relationship         (umolm-2s-1g-1 N)
       ajv_25        = 29,         # intercept of linear jmax25 to vcmax25 relationship     (umolm-2s-1)
       bjv_25        = 1.63,       # slope of linear jmax25 to vcmax25 relationship         (unitless)
       a_jvt_25      = 2.59,       # intercept of linear jmax25:vcmax25 relationship to temperature   (e C-1)
-      b_jvt_25      = 0.035,      # slope of linear jmax25:vcmax25 relationship to temperature       (e C-1 oC-1)
+      b_jvt_25      = -0.035,     # slope of linear jmax25:vcmax25 relationship to temperature       (e C-1 oC-1)
       e_ajv_25      = 1.01,       # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
       e_bjv_25      = 0.89,       # slope of log-log jmax25 to vcmax25 relationship        (unitless)
       atv_25        = 0,          # intercept of linear tpu25 to vcmax25 relationship      (umolm-2s-1)
@@ -315,7 +314,7 @@ leaf_object <-
       flnr          = 0.09,       # fraction of leafN in RuBisCO -- PFT specific           (unitless)
       fnr           = 7.16,       # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
       Rsa           = 60,         # specific activity of RuBisCO                           ()
-      wp_alpha      = 0,          # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
+      Apg_alpha     = 0,          # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
       # resistance parameters
       g0            = 0.01,       # Medlyn 2011 min gs                                     (molm-2s-1)
       g1_medlyn     = 6,          # Medlyn 2011 gs slope                                   (kPa^0.5)
@@ -324,6 +323,7 @@ leaf_object <-
       g1_ball       = 6,          # Ball 1987 gs slope                                     (unitless - multiplier on RH as a proportion)
       rs            = 1/0.15,     # stomatal resistance                                    (m2s mol-1 h2o)
       cica_chi      = 0.7,        # constant Ci:Ca ratio                                   (unitless)
+      rb            = 1/10,       # leaf boundary layer resistance                         (m2s mol-1 h2o)
       ri            = 1/0.15,     # mesophyll resistance                                   (m2s mol-1 - expressed in these units for consistency with other resistance terms, often expressed in the literature multiplied by Pa)
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
       hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
@@ -359,7 +359,7 @@ leaf_object <-
       atref.Ko      = 27.84,      # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
       atref.gstar   = 4.325,      # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
       atref.tau     = 2600,       # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (-)
-      atref.vomax   = numeric(0),
+      atref.vomax   = numeric(1),
       Ha.rd         = 69830,      # activation energy of respiration                        (J mol-1)
       Ha.vcmax      = 69830,      # activation energy of Vcmax                              (J mol-1)
       Ha.jmax       = 100280,     # activation energy of Jmax                               (J mol-1)
@@ -377,10 +377,10 @@ leaf_object <-
       Topt.vcmax    = 27.56,      # temperature optimum of Vcmax                            (oC)
       Topt.jmax     = 19.89,      # temperature optimum of Jmax                             (oC)
       Topt.tpu      = 27.56,      # temperature optimum of TPU                              (oC)
-      deltaS.rd     = numeric(0), # 
-      deltaS.vcmax  = numeric(0), # 
-      deltaS.jmax   = numeric(0), #
-      deltaS.tpu    = numeric(0), #
+      deltaS.rd     = numeric(1), # 
+      deltaS.vcmax  = numeric(1), # 
+      deltaS.jmax   = numeric(1), #
+      deltaS.tpu    = numeric(1), #
       a_deltaS_t.rd     = 490,    # linear temperature response of rd deltaS   
       a_deltaS_t.vcmax  = 668,    # linear temperature response of vcmax deltaS (Kattge & Knorr)  
       a_deltaS_t.jmax   = 660,    # linear temperature response of jmax  deltaS (Kattge & Knorr)
@@ -417,58 +417,25 @@ leaf_object <-
       verbose       = F,          # write diagnostic output during runtime 
       verbose_loop  = F,          # write diagnostic output on the solver during runtime 
       cverbose      = F,          # write configuration output during runtime 
-      output        = 'run'       # type of output from run function
+      output        = 'slim'      # type of output from run function
     )
     
     
     
     ###########################################################################
-    # Run & configure functions
-    
-    # initialisation function
-    init <- function(.) {
-      # when run this function expects this model object to be cloned within the wrapper object, 
-      # and for the wrapper object to be named maat
-      # the 'init' function resides in the model as initialisation depends on the hierarchical structure of the model (e.g. leaf within canopy )
-      
-      # this function prefixes the names of a list with 'leaf.' 
-      comb_init_list <- function(.,lls) {
+    # configure & run_met functions
 
-        if(sum(is.na(lls))==length(lls)) NA
-        else {
-          names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
-          lls
-        }
-      }
-            
-      maat$static$fnames <- comb_init_list(lls=.$init_static$leaf$fnames)
-      maat$static$pars   <- comb_init_list(lls=.$init_static$leaf$pars)
-      maat$static$env    <- comb_init_list(lls=.$init_static$leaf$env)
-      
-      maat$vars$fnames   <- comb_init_list(lls=.$init_dynamic$leaf$fnames)
-      maat$vars$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars)
-      maat$vars$env      <- comb_init_list(lls=.$init_dynamic$leaf$env)
-      
-      if(.$wpars$UQ) {
-        if(.$wpars$UQtype=='ye') maat$vars$pars_proc <- comb_init_list(lls=.$init_dynamic$leaf$pars_proc)
-        if(is.na(.$init_dynamic$leaf$pars[1])&!is.na(.$init_dynamic$leaf$pars_eval[1])) maat$wpars$eval_strings <- T
-        if(.$wpars$eval_strings) maat$vars$pars_eval <- comb_init_list(lls=.$init_dynamic$leaf$pars_eval)
-      }
-    }
-    
-    configure <- function(.,func,df,o=T){
+    configure <- function(.,vlist,df,o=T){
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
       
-#       print(func)
-#       print(df)
-      
       # name and assign the UQ variables
-      uqvars     <- names(df)
-      prefix     <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
-      lapply(uqvars[which(prefix=='leaf')], func, .=., df=df)
-
-#       print(func)
+      uqvars <- names(df)
+      prefix <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
+      modobj <- .$name
+      dfss   <- which(prefix==modobj)
+      vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
+      .[[vlist]][vlss] <- df[dfss]
       
       if(.$cpars$cverbose&o) {
         print('',quote=F)
@@ -489,17 +456,11 @@ leaf_object <-
       # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
       
       # met data assignment
-      .$configure(func='write_env',df=.$dataf$met[l,],F)
-      
+      .$configure(vlist='env',df=.$dataf$met[l,],F)
+
       # run model
       .$run()              
     }
-    
-    # variable assignment functions - called from the above configuration function
-    write_fnames <- function(.,var,df) .$fnames[which(names(.$fnames)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))] <- df[which(names(df)==var)]
-    write_pars   <- function(.,var,df) .$pars[which(names(.$pars)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]     <- df[which(names(df)==var)]
-    write_env    <- function(.,var,df) .$env[which(names(.$env)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]       <- df[which(names(df)==var)]
-    write_state  <- function(.,var,df) .$state[which(names(.$state)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]   <- df[which(names(df)==var)]
     
     
     
@@ -507,7 +468,7 @@ leaf_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci'){
+    .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci') {
       
       if(verbose) {
         str.proto(.)
@@ -528,7 +489,32 @@ leaf_object <-
       .$run()
     }
 
+
+    .test_solverFunc <- function(.,verbose=T,verbose_loop=T,leaf.par=200,leaf.ca_conc=300,rs='f_rs_medlyn2011') {
+      
+      if(verbose) {
+        str.proto(.)
+        print(.$env)
+      }
+      .$cpars$verbose       <- verbose
+      .$cpars$verbose_loop  <- verbose_loop
+
+      .$fnames$ri          <- 'f_r_zero'
+      .$fnames$rs          <- rs
+      .$fnames$solver_func <- 'f_A_r_leaf'
+      .$fnames$gas_diff    <- 'f_ficks_ci'
+      
+      .$env$ca_conc        <- leaf.ca_conc
+      .$env$par            <- 0
+      .$run()
+
+      # proper calc of electron transport rate
+      .$env$par            <- leaf.par
+      .$state$J <- get(.$fnames$etrans)(.)
+      f_A_r_leaf(.,A=-10:100)
+    }
     
+        
     .test_tscalar <- function(.,leaf.temp=0:50,leaf.par=c(1000),leaf.ca_conc=400,rs='f_rs_medlyn2011',
                               tcor_asc='f_temp_scalar_Arrhenius',tcor_des='f_scalar_none', 
                               verbose=F,verbose_loop=F) {
@@ -637,7 +623,7 @@ leaf_object <-
       if(output) .$dataf$out_full
     }
 
-    .test_aci_analytical <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50), 
+    .test_aci_analytical <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50),leaf.rb=0, 
                                      ana_only=F,verbose=F,verbose_loop=F,diag=F) {
       
       .$cpars$verbose       <- verbose
@@ -649,6 +635,8 @@ leaf_object <-
       
       .$fnames$rs           <- rs
       .$fnames$ri           <- 'f_r_zero'
+      .$fnames$rb           <- 'f_rb_constant'
+      .$pars$rb             <- leaf.rb
       .$fnames$gas_diff     <- 'f_ficks_ci'
       
       .$dataf     <- list()
@@ -679,7 +667,7 @@ leaf_object <-
                        panel.xyplot(subscripts=subscripts,...)
                      })
         
-        p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
+        p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,
                      main=rs,auto.key=T,
                      ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
                      panel=function(subscripts=subscripts,...) {
@@ -690,7 +678,7 @@ leaf_object <-
                        panel.xyplot(subscripts=subscripts,...)
                      })
         
-        p3 <- xyplot(gs~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
+        p3 <- xyplot(rs~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
                      main=rs,
                      ylab=expression(g[s]*' ['*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']')
                      )

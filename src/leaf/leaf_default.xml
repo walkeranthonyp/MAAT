@@ -6,8 +6,8 @@
       <tau_tcor>'f_temp_scalar_Q10'</tau_tcor>
       <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
       <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
-      <vcmax>'f_constant_vcmax'</vcmax>
-      <jmax>'f_jmax_power'</jmax>
+      <vcmax>'f_vcmax_constant'</vcmax>
+      <jmax>'f_jmax_walker2014'</jmax>
       <tpu>'f_tpu_lin'</tpu>
       <vcmax_tcor_asc>'f_temp_scalar_Arrhenius'</vcmax_tcor_asc>
       <jmax_tcor_asc>'f_temp_scalar_Arrhenius'</jmax_tcor_asc>
@@ -18,9 +18,9 @@
       <tpu_tcor_des>'f_temp_scalar_modArrhenius_des'</tpu_tcor_des>
       <deltaS>'f_deltaS'</deltaS>
       <etrans>'f_j_harley1992'</etrans>
-      <wc>'f_wc_farquhar1980'</wc>
-      <wj>'f_wj_generic'</wj>
-      <wp>'f_wp_vonc2000'</wp>
+      <Acg>'f_Acg_farquhar1980'</Acg>
+      <Ajg>'f_Ajg_generic'</Ajg>
+      <Apg>'f_Apg_vonc2000'</Apg>
       <gas_diff>'f_ficks_ci_bound0'</gas_diff>
       <respiration>'f_rd_lin_vcmax'</respiration>
       <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
@@ -43,9 +43,10 @@
       <diag>F</diag>
       <a>0.8</a>
       <f>0.23</f>
-      <theta>0.9</theta>
-      <theta_collatz>0.98</theta_collatz>
-      <beta_collatz>0.95</beta_collatz>
+      <ko_kc_ratio>0.21</ko_kc_ratio>       
+      <theta_j>0.9</theta_j>
+      <theta_col_cj>0.95</theta_col_cj>
+      <theta_col_cjp>0.98</theta_col_cjp>
       <avn_25>10</avn_25>
       <bvn_25>30</bvn_25>
       <ajv_25>29</ajv_25>
@@ -59,7 +60,7 @@
       <flnr>0.09</flnr>
       <fnr>7.16</fnr>
       <Rsa>60</Rsa>
-      <wp_alpha>0</wp_alpha>
+      <Apg_alpha>0.05</Apg_alpha>
       <g0>0.01</g0>
       <g1_medlyn>5</g1_medlyn>
       <g1_leuning>5</g1_leuning>
@@ -67,6 +68,7 @@
       <g1_ball>5</g1_ball>
       <rs>6.667</rs>
       <cica_chi>0.7</cica_chi>
+      <rb>0.1</rb>
       <ri>28.5714285714286</ri>
       <co2_diff>1.7e-09</co2_diff>
       <hco_co2_ratio>0</hco_co2_ratio>

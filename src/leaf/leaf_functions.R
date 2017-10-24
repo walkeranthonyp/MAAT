@@ -11,17 +11,6 @@ f_none <- function(.) {
   NA
 }
 
-quad_sol <- function(a,b,c,out='lower') {
-  # robust numerical solution to the quadratic
-  # taken from Numerical Recipes
-
-  q     <- -0.5 * ( b + sign(b)*(b^2 - 4*a*c)^0.5 )
-  roots <- c( q/a , c/q )
-  
-  if(out=='lower')      min(roots,na.rm=T) 
-  else if(out=='upper') max(roots,na.rm=T)
-  else roots 
-}
 
 # VPD
 ################################
@@ -48,75 +37,93 @@ sat_vp_buck <- function(t){
 
 
 
-### SOLVERS & SOLVER FUNCTIONS
+### ANALYTICAL SOLUTIONS
 ################################
 
-f_R_analytical <- function(.,v,k,r) {
+quad_sol <- function(a,b,c,out='lower') {
+  # robust numerical solution to the quadratic
+  # taken from Numerical Recipes
+
+  q     <- -0.5 * ( b + sign(b)*(b^2 - 4*a*c)^0.5 )
+  roots <- c( q/a , c/q )
   
-  # num       <-  v * (.$state$cb - r - .$state_pars$gstar)
-  # denom     <- .$state$cb - r + k
-  # carboxylation gross of rd
-  # num/denom
-  # carboxylation net of rd
-  # num/denom - .$state$respiration
-  
-  v / (.$state$cb - r + k)
+  if(out=='lower')      min(roots,na.rm=T) 
+  else if(out=='upper') max(roots,na.rm=T)
+  else roots 
 }
 
 f_A_r_leaf_analytical <- function(.) {
   # combines A, rs, ci, cc eqs to a single f(), 
   # combines all rate limiting processes
-  # solves A analytically by assuming g0 = 0 in the stomatal resistance function 
-  # and using a general analytical function that allows parameters and process representation to vary 
-
-  # for this analytical solution rb and ri are assumed zero
-  # this is because resistance terms sum to get overall resistance of CO2 to the chloroplast
-  # and therefore the simplification in f_R_analytical does not apply
+  # solves A analytically by assuming g0 = 0 in the stomatal resistance function, and rb and ri are also assumed zero 
+  
   .$state_pars$rb <- 0
   .$state_pars$ri <- 0
-  .$state$cb      <- .$state$ca
-  rs_simple       <- get(paste(.$fnames$rs,'fg1',sep='_') )(.) 
-  r_simple        <- rs_simple * .$env$atm_press * 1.6e-6
-
-  # calculate ci & cc
-  .$state$ci      <- .$state$cb - r_simple
-  .$state$cc      <- .$state$ci 
-    
-  # calculate electron transport rate
-  get(.$fnames$wj)(.)
-
-  # calculate w
-  # - this calculation of w does not use the same functions as the numerical solver function 
-  # - wc and wj do not have multiple respective equations for their calculation
-  # - wc and wj equations also have the same form, the f_R_analytical function exploits this similarity in form
-  .$state$wc <- f_R_analytical(.,v=.$state_pars$vcmaxlt, k=.$state_pars$Km,      r=r_simple)
-  .$state$wj <- f_R_analytical(.,v=.$state$J/4,          k=2*.$state_pars$gstar, r=r_simple)
-  .$state$wp <- f_R_analytical(.,v=3*.$state_pars$tpult, k=-(1+3*.$pars$wp_alpha)*.$state_pars$gstar, r=r_simple)
   
-  # remove tpu limitation potential at low cc
-  if( .$state$cc <= (1+3*.$pars$wp_alpha)*.$state_pars$gstar) .$state$wp <- NA
+  # calculate cb, ci & cc
+  .$state$cb      <- .$state$ca
+  fe              <- get(paste(.$fnames$rs,'fe',sep='_') )(.) 
+  .$state$ci      <- .$state$ca * (1 - (1.6 / fe) )
+  .$state$cc      <- .$state$ci 
+  
+  # calculate Ag / cc for each limiting process
+  .$state$Acg     <- get(.$fnames$Acg)(.)
+  .$state$Ajg     <- get(.$fnames$Ajg)(.)
+  .$state$Apg     <- get(.$fnames$Apg)(.)
   
   # calculate limiting cycle
-  wmin <- get(.$fnames$Alim)(.) 
+  Amin            <- get(.$fnames$Alim)(.) 
   
-  # calculate actual w
-  .$state$wc <- .$state$wc * .$state$ci 
-  .$state$wj <- .$state$wj * .$state$ci 
-  .$state$wp <- .$state$wp * .$state$ci
+  # calculate Ag (gross asimilation) for each limiting process
+  .$state$Acg     <- .$state$Acg * .$state$cc 
+  .$state$Ajg     <- .$state$Ajg * .$state$cc 
+  .$state$Apg     <- .$state$Apg * .$state$cc
   
   # calculate net A
-  Anet <- wmin*.$state$ci - wmin*.$state_pars$gstar - .$state$respiration
-
+  Anet <- Amin*.$state$ci - Amin*.$state_pars$gstar - .$state$respiration
+  
   # calculate rs
-  # - the /1.6 is needed to convert back to H2O units
-  .$state_pars$rs <- rs_simple / Anet / 1.6
+  .$state_pars$rs <- .$state$ca / (fe * Anet) 
   
   # return net A
   Anet
 }
 
+f_A_r_leaf_noR <- function(.,...) {
+  # same as above function but with no resistance to CO2 diffusion
+  # from the atmosphere to the site of carboxylation
+  # These functions can be used to calculate the stomatal limitation to photosynthesis
+  
+  # combines all rate limiting processes
+  
+  # assume cc = ca
+  cc <- .$state$ca
+  
+  # calculate Ag/cc
+  # - Ag/cc and not Ag is calculated for numerical stability at low cc
+  .$state$Acg <- get(.$fnames$Acg)(.,cc=cc)
+  .$state$Ajg <- get(.$fnames$Ajg)(.,cc=cc)
+  .$state$Apg <- get(.$fnames$Apg)(.,cc=cc)
+  
+  # calculate limiting cycle
+  Amin <- get(.$fnames$Alim)(.) 
+  
+  # calculate actual w
+  .$state$Acg <- .$state$Acg * cc
+  .$state$Ajg <- .$state$Ajg * cc
+  .$state$Apg <- .$state$Apg * cc
+  
+  # calculate net A
+  Amin*cc - Amin*.$state_pars$gstar - .$state$respiration
+}
+
+
+
+### SOLVERS & RESIDUAL FUNCTIONS
+################################
+
 f_R_Brent_solver <- function(.,...) {
-  # ... could be used to pass through different functions 'func' to the solver function, not currently necessary
+  # ... could be used to pass through different functions 'func(.$env$atm_press * 1.6e-6)' to the solver function, not currently necessary
 
   if(.$cpars$verbose_loop) print(.$env)  
   .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no',...)
@@ -140,22 +147,22 @@ f_A_r_leaf <- function(A,.,...) {
   # print(.$state_pars$ri)
   .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)) + .$state_pars$ri ) )
   
-  # calculate w/cc
-  # - w/cc and not w is calculated for numerical stability at low cc
-  .$state$wc <- get(.$fnames$wc)(.)
-  .$state$wj <- get(.$fnames$wj)(.)
-  .$state$wp <- get(.$fnames$wp)(.)
+  # calculate Ag/cc
+  # - Ag/cc and not Ag is calculated for numerical stability at low cc
+  .$state$Acg <- get(.$fnames$Acg)(.)
+  .$state$Ajg <- get(.$fnames$Ajg)(.)
+  .$state$Apg <- get(.$fnames$Apg)(.)
 
   # calculate limiting cycle
-  wmin <- get(.$fnames$Alim)(.) 
+  Amin <- get(.$fnames$Alim)(.) 
   
   # calculate actual w
-  .$state$wc <- .$state$wc * .$state$cc
-  .$state$wj <- .$state$wj * .$state$cc
-  .$state$wp <- .$state$wp * .$state$cc
+  .$state$Acg <- .$state$Acg * .$state$cc
+  .$state$Ajg <- .$state$Ajg * .$state$cc
+  .$state$Apg <- .$state$Apg * .$state$cc
   
-  # calculate net A
-  wmin*.$state$cc - wmin*.$state_pars$gstar - .$state$respiration - A
+  # calculate residual of net A
+  Amin*.$state$cc - Amin*.$state_pars$gstar - .$state$respiration - A
 } 
 
 f_A_r_leaf_noRs <- function(A,.,...) {
@@ -172,54 +179,31 @@ f_A_r_leaf_noRs <- function(A,.,...) {
   # assumes mesophyll resistance is in co2 units
   cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + .$state_pars$ri ) )
   
-  # calculate w/cc
-  # - w/cc and not w is calculated for numerical stability at low cc
-  .$state$wc <- get(.$fnames$wc)(.,cc=cc)
-  .$state$wj <- get(.$fnames$wj)(.,cc=cc)
-  .$state$wp <- get(.$fnames$wp)(.,cc=cc)
+  # calculate Ag/cc
+  # - Ag/cc and not Ag is calculated for numerical stability at low cc
+  .$state$Acg <- get(.$fnames$Acg)(.,cc=cc)
+  .$state$Ajg <- get(.$fnames$Ajg)(.,cc=cc)
+  .$state$Apg <- get(.$fnames$Apg)(.,cc=cc)
   
   # calculate limiting cycle
-  wmin <- get(.$fnames$Alim)(.) 
+  Amin <- get(.$fnames$Alim)(.) 
   
   # calculate actual w
-  .$state$wc <- .$state$wc * cc
-  .$state$wj <- .$state$wj * cc
-  .$state$wp <- .$state$wp * cc
+  .$state$Acg <- .$state$Acg * cc
+  .$state$Ajg <- .$state$Ajg * cc
+  .$state$Apg <- .$state$Apg * cc
   
-  # calculate net A
-  wmin*cc - wmin*.$state_pars$gstar - .$state$respiration - A
+  # calculate residual of net A
+  Amin*cc - Amin*.$state_pars$gstar - .$state$respiration - A
 }
 
-f_A_r_leaf_noR <- function(.,...) {
-  # same as above function but with no resistance to CO2 diffusion
-  # from the atmosphere to the site of carboxylation
-  # These functions can be used to calculate the stomatal limitation to photosynthesis
 
-  # combines all rate limiting processes
 
-  # assume cc = ca
-  cc <- .$state$ca
-  
-  # calculate w/cc
-  # - w/cc and not w is calculated for numerical stability at low cc
-  .$state$wc <- get(.$fnames$wc)(.,cc=cc)
-  .$state$wj <- get(.$fnames$wj)(.,cc=cc)
-  .$state$wp <- get(.$fnames$wp)(.,cc=cc)
-  
-  # calculate limiting cycle
-  wmin <- get(.$fnames$Alim)(.) 
-  
-  # calculate actual w
-  .$state$wc <- .$state$wc * cc
-  .$state$wj <- .$state$wj * cc
-  .$state$wp <- .$state$wp * cc
-  
-  # calculate net A
-  wmin*cc - wmin*.$state_pars$gstar - .$state$respiration
-}
+### PHOTOSYNTHESIS FUNCTIONS
+################################
 
+# Transition point function, calculates the cc at which Acg = Ajg, i.e. the transition cc
 transition_cc <- function(.) {
-  # calculates the cc at which wc = wj, i.e. the transition cc
   
   vcm_et_ratio <- .$state_pars$vcmaxlt/.$state$J 
   
@@ -228,12 +212,8 @@ transition_cc <- function(.) {
 }
 
 
-
-### PHOTOSYNTHESIS FUNCTIONS
-################################
-
 # Carboxylation limitation
-f_wc_farquhar1980 <- function(.,cc=.$state$cc){   
+f_Acg_farquhar1980 <- function(.,cc=.$state$cc){   
   # Farquhar 1980 eq to calculate RuBisCO limited photosynthetic rate
   # umol m-2 s-1
   # Wc<-(Vcmax*(Ci-Gamma))/(Ci+Kc*(1+(O/Ko)))
@@ -250,22 +230,19 @@ f_wc_farquhar1980 <- function(.,cc=.$state$cc){
   # Kc, Ci and Gamma must be in same units
   
   #gross of rd and G*
-#   .$state_pars$vcmaxlt*cc /
-#     (cc+.$state_pars$Kc*(1+(.$state$oi/.$state_pars$Ko)))
   .$state_pars$vcmaxlt /
     (cc + .$state_pars$Km)
 }
 
 
 # electron transport limitation
-f_wj_generic <- function(.,cc=.$state$cc){
+f_Ajg_generic <- function(.,cc=.$state$cc){
   # generic eq to calculate light limited photosynthetic rate from user selected electron transport and etoc function
   # umol m-2 s-1
   
   # calculate gross electron transport limited carboxylation 
   # i.e. rd and G* not included
-  #   (.$state$J/4) * (cc/(cc+2*.$state_pars$gstar)) # currently no other formualtion exists (other than slighly different parameters in the denominator)
-  .$state$J / (4*(cc+2*.$state_pars$gstar))        # currently no other formualtion exists (other than slighly different parameters in the denominator)
+  .$state$J / (4*(cc+2*.$state_pars$gstar))        # currently no other formulation exists (other than slighly different parameters in the denominator)
 }
 
 f_j_farquhar1980 <- function(.){
@@ -293,7 +270,7 @@ f_j_farquharwong1984 <- function(.){
   # if so von C 2000's alpha is 0.36125
     
   I2 <- .$env$par * .$pars$a * .$state_pars$alpha    
-  a  <- .$pars$theta
+  a  <- .$pars$theta_j
   b  <- -1 * (I2 + .$state_pars$jmaxlt)
   c  <- I2 * .$state_pars$jmaxlt
   
@@ -309,7 +286,7 @@ f_j_collatz1991 <- function(.){
 
 
 # TPU limitation
-f_wp_vonc2000 <- function(.,cc=.$state$cc){
+f_Apg_vonc2000 <- function(.,cc=.$state$cc){
   # triose phosphate limitation from vonCaemmerer 2000 as corrected in Gu 2010
   # this is derived from Harley & Sharkey 1991
   # the difference is that Harley & Sharkey iteratively solved to find tpu, while here tpu is set independently
@@ -318,12 +295,11 @@ f_wp_vonc2000 <- function(.,cc=.$state$cc){
   # alpha = 0, tpu = vcmax/6
   # and tpu temperature scaling is identical to vcmax
   
-  if( cc <= (1+3*.$pars$wp_alpha)*.$state_pars$gstar) NA
-#   3*.$state_pars$tpu*cc / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
-  else 3*.$state_pars$tpult / ( cc-(1+3*.$pars$wp_alpha)*.$state_pars$gstar )
+  if( cc <= (1+3*.$pars$Apg_alpha)*.$state_pars$gstar) NA
+  else 3*.$state_pars$tpu / ( cc-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar )
 }
 
-f_wp_foley1996 <- function(.,cc=.$state$cc){
+f_Apg_foley1996 <- function(.,cc=.$state$cc){
   # triose phosphate limitation from Foley 1996, citing Harlkey & Sharkey 1991
   # its not clear to me how they derive this from Harley and Sharkey
   # Eq 5 from Foley 1996: Js = 3 * tpu * (1 - gstar/cc) + Jp * gstar / cc
@@ -332,7 +308,7 @@ f_wp_foley1996 <- function(.,cc=.$state$cc){
   if( cc <= .$state_pars$gstar ) NA
   else {
     # calculate limiting cycle of wc and wj
-    .$state$wp <- NA
+    .$state$Apg <- NA
     wmin <- get(.$fnames$Alim)(.) 
 
     (3*.$state_pars$tpult + wmin) / cc
@@ -344,22 +320,22 @@ f_wp_foley1996 <- function(.,cc=.$state$cc){
 f_lim_farquhar1980 <- function(.){
   # simple minimum of all three possible limitating states
   
-  min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T)
+  min(c(.$state$Acg,.$state$Ajg,.$state$Apg),na.rm=T)
 }
 
 f_lim_collatz1991 <- function(.){
   # smoothed solution of all three possible limiting states
 
-  a  <- .$pars$theta_collatz
-  b  <- -1 * (.$state$wc + .$state$wj)
-  c  <- .$state$wc * .$state$wj
+  a  <- .$pars$theta_col_cj
+  b  <- -1 * (.$state$Acg + .$state$Ajg)
+  c  <- .$state$Acg * .$state$Ajg
   
   sol1 <- quad_sol(a,b,c)
 
-  if(!is.na(.$state$wp)) {
-    a  <- .$pars$beta_collatz
-    b  <- -1 * (.$state$wp + sol1)
-    c  <- .$state$wp * sol1
+  if(!is.na(.$state$Apg)) {
+    a  <- .$pars$theta_col_cjp
+    b  <- -1 * (.$state$Apg + sol1)
+    c  <- .$state$Apg * sol1
     
     quad_sol(a,b,c)
   } else sol1
@@ -421,7 +397,7 @@ f_rl_rd_lloyd1995 <- function(.) {
 ################################
 
 # vcmax
-f_constant_vcmax <- function(.) {
+f_vcmax_constant <- function(.) {
   .$pars$atref.vcmax
 }
 
@@ -436,7 +412,7 @@ f_vcmax_clm <- function(.) {
 }
 
 # jmax
-f_constant_jmax <- function(.) {
+f_jmax_constant <- function(.) {
   .$pars$atref.jmax
 }
 
@@ -451,13 +427,12 @@ f_jmax_lin <- function(.) {
 f_jmax_lin_t <- function(.) {
   .$pars$ajv_25 <- 0.0
   .$pars$bjv_25 <- .$pars$a_jvt_25 + .$state$leaf_temp * .$pars$b_jvt_25
-
   .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25    
 }
 
 
 # TPU
-f_constant_tpu <- function(.) {
+f_tpu_constant <- function(.) {
   .$pars$atref.tpu
 }
 
@@ -519,7 +494,7 @@ f_r_zero <- function(.,...){
   0
 }
 
-f_r_zero_fg1 <- function(.,...){
+f_r_zero_fe <- function(.,...){
   0
 }
 
@@ -536,19 +511,20 @@ f_rs_constant <- function(.,...) {
   .$pars$rs
 }
 
+
 f_rs_medlyn2011 <- function(.,A=.$state$A,c=.$state$cb){
   # Medlyn et al 2011 eq for stomatal resistance
   # expects c in Pa
   # output in m2s mol-1 h2o
   
   # if( A < 0 ) 1/.$pars$g0
-  # else 1 / (.$pars$g0 + (1 + .$pars$g1_medlyn/.$env$vpd^0.5) * A / (c/(.$env$atm_press * 1e-6)) )
-  1 / (.$pars$g0 + (1 + .$pars$g1_medlyn/.$env$vpd^0.5) * A / (c/(.$env$atm_press * 1e-6)) )
+  # else 
+  1 / (.$pars$g0 + f_rs_medlyn2011_fe(.) * A * .$env$atm_press*1e-6 / c )
 }
 
-f_rs_medlyn2011_fg1 <- function(.,c=.$state$cb) {
-  # simplified version of rs   
-  c / (.$env$atm_press * 1e-6) / ( 1 + .$pars$g1_medlyn / .$env$vpd^0.5 )
+f_rs_medlyn2011_fe <- function(.) {
+  # f(e) component of rs from Medlyn 2011   
+  ( 1 + .$pars$g1_medlyn / .$env$vpd^0.5 )
 }
 
 
@@ -558,14 +534,13 @@ f_rs_leuning1995 <- function(.,A=.$state$A,c=.$state$cb){
   # output in m2s mol-1  h2o
 
   # if( A < 0 ) 1/.$pars$g0
-  # else 1 / (.$pars$g0 + .$pars$g1_leuning/(1+.$env$vpd/.$pars$d0) * A / ( (c-.$state_pars$gamma)/(.$env$atm_press * 1e-6) - .$state$respiration) )
-  1 / ( .$pars$g0 + .$pars$g1_leuning * A / ( (1+.$env$vpd/.$pars$d0) * (c-.$state_pars$gamma)/(.$env$atm_press * 1e-6)) ) 
+  # else 
+  1 / ( .$pars$g0 + f_rs_leuning1995_fe(.,c=c) * A * .$env$atm_press*1e-6 / c ) 
 }
 
-f_rs_leuning1995_fg1 <- function(.,c=.$state$cb) {
-  # simplified version of rs
-  
-  ( (c - .$state_pars$gamma)/(.$env$atm_press * 1e-6) * (1+.$env$vpd/.$pars$d0) ) / .$pars$g1_leuning 
+f_rs_leuning1995_fe <- function(.,c=.$state$cb) {
+  # f(e) component of rs from Leuning 1995   
+  .$pars$g1_leuning / ( (1 - .$state_pars$gamma/c) * (1 + .$env$vpd/.$pars$d0) )  
 }
 
 
@@ -575,13 +550,13 @@ f_rs_ball1987 <- function(.,A=.$state$A,c=.$state$cb){
   # output in m2s mol-1 h2o
   
   # if( A < 0 ) 1/.$pars$g0
-  # else 1 / (.$pars$g0 + .$pars$g1_ball*.$env$rh * A / (c/(.$env$atm_press * 1e-6)) )
-  1 / ( .$pars$g0 + .$pars$g1_ball*.$env$rh*A / (c/(.$env$atm_press * 1e-6)) )
+  # else
+  1 / ( .$pars$g0 + f_rs_ball1987_fe(.) * A * .$env$atm_press*1e-6 / c )
 }
 
-f_rs_ball1987_fg1 <- function(.,c=.$state$cb) {
-  # simplified version of rs   
-  c / (.$env$atm_press * 1e-6) / (.$pars$g1_ball*.$env$rh)
+f_rs_ball1987_fe <- function(.) {
+  # f(e) component of rs from Ball 1987   
+  .$pars$g1_ball * .$env$rh
 }
 
 
@@ -594,49 +569,50 @@ f_rs_constantCiCa <- function(.,A=.$state$A,c=.$state$cb) {
   .$state_pars$cica_chi <- get(.$fnames$cica_ratio)(.)
   
   # if( A < 0 ) 1/1e-9
-  # else ( c * (1 - .$state_pars$cica_chi) ) / ( .$env$atm_press*1.6e-6*A ) 
-  ( c * (1 - .$state_pars$cica_chi) ) / ( .$env$atm_press*1.6e-6*A )
+  # else
+  1 / (f_rs_constantCiCa_fe(.) * A * .$env$atm_press*1e-6 / c )
 }
 
-f_rs_constantCiCa_fg1 <- function(.,c=.$state$cb) {
-  # simplified version of rs   
+f_rs_constantCiCa_fe <- function(.) {
+  # f(e) component of rs for constant Ci:Ca   
   .$state_pars$cica_chi <- get(.$fnames$cica_ratio)(.)
-  ( c * (1 - .$state_pars$cica_chi) ) / ( .$env$atm_press*1.6e-6 )
+  1.6 / (1 - .$state_pars$cica_chi)
 }
 
 f_cica_constant <- function(.) {
   .$pars$cica_chi
 }
 
-f_rs_cox1999 <- function(.,A=.$state$A,c=.$state$cb) {
+
+f_rs_cox1998 <- function(.,A=.$state$A,c=.$state$cb) {
   # implied JULES etc assumption for stomatal resistance that keeps a variant of Ci:Ca constant
   # expects c in Pa
   # output in m2s mol-1 h2o
   
   f0    <- 1 - 1.6/.$pars$g1_leuning
   dstar <- (.$pars$g1_leuning/1.6 - 1) * .$pars$d0
-  CmCP  <- (c - .$state_pars$gamma)
+  # CmCP  <- (c - .$state_pars$gamma)
+  CmCP  <- (1 - .$state_pars$gamma/c)
   
   # if( A < 0 ) 1/1e-9
-  # else ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar)) / ( .$env$atm_press*1.6e-6*A )
-  ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar)) / ( .$env$atm_press*1.6e-6*A )
+  # else
+  1 / ( f_rs_cox1998_fe(.,c=c) * A * .$env$atm_press*1e-6 / c )
 }
 
-f_rs_cox1999_fg1 <- function(.,c=.$state$cb) {
-  # simplified version of rs   
+f_rs_cox1998_fe <- function(.,c=.$state$cb) {
+  # f(e) component of rs for Cox 1998   
+  
   f0    <- 1 - 1.6/.$pars$g1_leuning
   dstar <- (.$pars$g1_leuning/1.6 - 1) * .$pars$d0
-  CmCP  <- (c - .$state_pars$gamma)
-  
-  ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar)) / (.$env$atm_press * 1.6e-6)
-}
+  CmCP  <- (1 - .$state_pars$gamma/c)
 
+  1.6 / ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar))
+}
 
 
 # internal/mesophyll
 # internal/mesophyll resistances are all assumed by the solver to be in co2 units 
-
-f_ri_constant <- function(.,...){
+f_ri_constant <- function(., ... ) {
   # output in m2s mol-1 co2
   
   .$pars$ri
@@ -644,6 +620,18 @@ f_ri_constant <- function(.,...){
 
 # leaf boundary layer
 # leaf boundary layer resistances are all assumed by the solver to be in h2o units  
+f_rb_constant <- function(., ... ) {
+  # output in m2s mol-1 h2o
+  
+  .$pars$rb
+}
+
+# f_rb_leafdim <- function(., ... ) {
+#   # output in s m-1 h2o
+#   
+#   ( .$env$lwind / .$pars$leaf_width )^-0.5 / .$pars$can_ttc
+# }
+
 
 
 
@@ -724,6 +712,12 @@ f_temp_scalar_modArrhenius_des <- function(.,parlist,...){
   # Trk    -- reference temperature (K) 
   # Tsk    -- temperature to adjust parameter to (K) 
   
+  if(.$cpars$verbose) {
+    print('Arrhenius descending function')
+    print(.$state$leaf_temp)
+    print(parlist)
+  }
+  
   # convert to Kelvin
   Trk <- parlist$Tr + 273.15
   Tsk <- .$state$leaf_temp + 273.15
@@ -757,7 +751,6 @@ f_temp_scalar_cox2001_des <- function(.,parlist,...){
   # descending component of temperature scaling from Cox etal 2001
   
   # input parameters  
-  # Q10    -- factor by which rate increases for every 10 oC of temp increase  
   # Tr     -- reference temperature (oC) 
   
   1 / ( (1 + exp(parlist$exp*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(parlist$exp*(parlist$tlow-.$state$leaf_temp))) )
@@ -807,7 +800,7 @@ f_q10_lin_t <- function(.,parlist,...) {
 
 
 ### Gamma star - CO2 compensation point in the absence of dark respiration
-f_constant_gstar <- function(.,...) {
+f_gstar_constant <- function(.,...){
   .$pars$atref.gstar
 }
 
@@ -816,7 +809,7 @@ f_gstar_f1980 <- function(.,...) {
   # Farquhar 1980 Eq 38
   # 0.21 = ko/kc
   
-  0.21 * .$state_pars$Kc*.$state$oi/(2*.$state_pars$Ko)
+  .$pars$ko_kc_ratio * .$state_pars$Kc*.$state$oi/(2*.$state_pars$Ko)
 }
 
 f_gstar_constref <- function(.) {
@@ -836,7 +829,7 @@ f_gstar_c1991 <- function(.) {
 
 f_temp_scalar_quadratic_bf1985 <- function(.,parlist,...) {
   # calculates Gamma star (umol mol-1) temperature scalar (K or oC)
-  # could be expanded to incorporate parameters in parlist, buit currently gstar specific
+  # could be expanded to incorporate parameters in parlist, but currently gstar specific
   # Brooks&Farquhar 1985
   # rearranged to give a scalar of value at 25oC 
 

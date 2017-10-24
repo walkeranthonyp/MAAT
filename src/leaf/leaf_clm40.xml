@@ -21,11 +21,11 @@
       <!-- electron transport -->
       <etrans>'f_j_collatz1991'</etrans>
       <!-- RuBP saturated gross carboxylation rate -->
-      <wc>'f_wc_farquhar1980'</wc>
+      <Acg>'f_Acg_farquhar1980'</Acg>
       <!-- RuBP limited gross carboxylation rate -->
-      <wj>'f_wj_generic'</wj>
+      <Ajg>'f_Ajg_generic'</Ajg>
       <!-- TPU limited gross carboxylation rate, mostly all variants of this are special cases of that presented in von Caemmerer 2000 -->
-      <wp>'f_wp_vonc2000'</wp>
+      <Apg>'f_Apg_vonc2000'</Apg>
       <!-- gas diffusion function, Fick's law; added a zero bound when testing the solver but I think this is unnecessary -->
       <gas_diff>'f_ficks_ci'</gas_diff>
       <!-- scaling of Rd at reftemp.rd, rd is zero in the photosynthesis calculations -->
@@ -48,6 +48,8 @@
       <a>0.85</a>
       <!-- fraction of incident light transmitted through leaf, 0-1 -->
       <f>0.52</f>
+      <!-- ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless) -->
+      <ko_kc_ratio>0.21</ko_kc_ratio>       
       <!-- intercept & slope of TPU25 to Vcmax25 area relationship, intercept of zero slope of 0.16667 is equivalent to Collatz 1991 Vcmax/2 but in von Caemmerer's notation  -->
       <atv_25>0</atv_25>
       <btv_25>0.16667</btv_25>
@@ -58,7 +60,7 @@
       <!-- RuBisCO CO2 specific activity -->
       <Rsa>60</Rsa>
       <!-- fraction of phosphate not returned to the chloroplast -->
-      <wp_alpha>0</wp_alpha>
+      <Apg_alpha>0</Apg_alpha>
       <!-- minimum stomatal conductance, mol m-2s-1 -->
       <g0>0.01</g0>
       <!-- stomatal conductance to environment slope parameter -->
