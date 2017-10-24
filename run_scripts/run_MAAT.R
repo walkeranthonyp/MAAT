@@ -176,6 +176,7 @@ source(paste(mod_obj,'object.R',sep='_'))
 init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
 # read model mimic setup
 if(!is.null(mod_mimic)) {
+  setwd('./mimic_xmls')
   init_mimic   <- readXML(paste(mod_obj,'_',mod_mimic,'.xml',sep=''))
   init_default <- fuselists(init_default,init_mimic) 
 }
