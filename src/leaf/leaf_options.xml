@@ -12,11 +12,11 @@
       <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
       <!-- temperature scaling of Ko -->
       <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
-      <!-- scaling of Vcmax at reftemp.rd -->
+      <!-- calculate Vcmax at <reftemp.vcmax> -->
       <vcmax>c('f_vcmax_constant','f_vcmax_lin','f_vcmax_clm')</vcmax>
-      <!-- scaling of Jmax at reftemp.rd, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
+      <!-- calculate Jmax at <reftemp.jmax>, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
       <jmax>c('f_jmax_constant','f_jmax_walker2014','f_jmax_lin','f_jmax_lin_t)</jmax>
-      <!-- scaling of TPU at reftemp.rd, f(Vcmax) -->
+      <!-- calculate TPU at <reftemp.tpu>, f(Vcmax) -->
       <tpu>c('f_tpu_constant','f_tpu_lin')</tpu>
       <!-- increasing component of temperature scaling of Vcmax and Jmax -->
       <vcmax_tcor_asc>c('f_scalar_none','f_temp_scalar_Q10','f_temp_scalar_Arrhenius')</vcmax_tcor_asc>
@@ -24,8 +24,8 @@
       <!-- decreasing component of temperature scaling of Vcmax and Jmax -->
       <vcmax_tcor_des>c('f_scalar_none','f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</vcmax_tcor_des>
       <jmax_tcor_des>c('f_scalar_none','f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')</jmax_tcor_des>
-      <!-- is temperature scaling of TPU the same as that of Vcmax or not -->
-      <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
+      <!-- dependence of TPU temperature scaling on Vcmax -->
+      <tpu_tcor_dependence>c('f_tpu_tcor_dependent','f_tpu_tcor_independent')</tpu_tcor_dependence>
       <!-- increasing component of temperature scaling of TPU, if independent of Vcmax -->
       <tpu_tcor_asc>c('f_scalar_none','f_temp_scalar_Q10','f_temp_scalar_Arrhenius')</tpu_tcor_asc>
       <!-- decreasing component of temperature scaling of TPU, if independent of Vcmax -->
@@ -40,9 +40,9 @@
       <Ajg>'f_Ajg_generic'</Ajg>
       <!-- TPU limited gross carboxylation rate, mostly all variants of this are special cases of that presented in von Caemmerer 2000 -->
       <Apg>c('f_Apg_vonc2000','f_Apg_foley1996')</Apg>
-      <!-- gas diffusion function, Fick's law; added a zero bound when testing the solver but I think this is unnecessary -->
+      <!-- gas diffusion function, Fick's law; can apply a zero bound as gs solution can be negative at low ci -->
       <gas_diff>c('f_ficks_ci','f_ficks_ci_bound0')</gas_diff>
-      <!-- scaling of Rd at reftemp.rd, f(Vcmax), f(N), -->
+      <!-- calculate Rd at <reftemp.rd>, f(Vcmax), f(N), -->
       <respiration>c('f_rd_constant','f_rd_lin_vcmax','f_rd_lin_N')</respiration>
       <!-- scaling of Rd in the dark to rd in the light, default is fixed ratio with ratio set to 1 -->
       <rl_rd_scalar>c('f_rl_rd_fixed','f_rl_rd_lloyd1995')</rl_rd_scalar>
@@ -60,11 +60,11 @@
       <q10_func.jmax>'f_q10_constant'</q10_func.jmax> 
       <!-- fresh weight dry weight ratio of Sphagnum -->
       <fwdw_ratio>'f_none'</fwdw_ratio>
-      <!-- Ci:Ca ratio, only used if <rs> is '' -->
+      <!-- Ci:Ca ratio, only used if <rs> is 'f_rs_constantCiCa' -->
       <cica_ratio>'f_cica_constant'</cica_ratio>  
       <!-- internal resistance to CO2 transport -->
       <ri>c('f_r_zero','f_ri_constant')</ri>
-      <!-- stomatal resistance to H2O & CO2 transport, constant CiCa is implicit in LPJ and Cox 1999 does something similar for JULES -->
+      <!-- stomatal resistance to H2O & CO2 transport, constant CiCa is implicit in LPJ and Cox 1998 does something similar for JULES -->
       <rs>c('f_r_zero','f_rs_ball1987','f_rs_leuning1995','f_rs_medlyn2011','f_rs_constantCiCa','f_rs_cox1998')</rs>
       <!-- leaf boundary layer resistance to H2O & CO2 transport -->
       <rb>c('f_r_zero','f_rb_constant')</rb>
@@ -78,32 +78,32 @@
     <pars>
       <!-- output diagnostics like transition point and non-stomatal limited photosynthesis, T/F -->
       <diag>F</diag>
-      <!-- fraction of light absorbed by leaf that is absorbed by photosystems, 0-1 -->
+      <!-- fraction of incident light absorbed by leaf, 0-1 -->
       <a>0.8</a>
       <!-- fraction of absorbed light not absorbed by light harvesting complexes, 0-1
       this effectively sets the intrisic quantum efficiency (alpha_i) where alpha_i = 0.5(1-f) -->
       <f>0.23</f>
       <!-- ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless) -->
       <ko_kc_ratio>0.21</ko_kc_ratio>       
-      <!-- curvature of farquhar and wong 1984 electron transport, 0-1 --> 
+      <!-- empirical smoothing of farquhar and wong 1984 electron transport, 0-1 --> 
       <theta_j>0.9</theta_j>
-      <!-- curvature of collatz 1991 limiting rate selection function, theta in Collatz notation, Acg or Ajg, 0-1 --> 
+      <!--  empirical smoothing of collatz 1991 limiting rate selection function, theta in Collatz notation, Acg or Ajg, 0-1 --> 
       <theta_col_cj>0.95</theta_col_cj>
-      <!-- curvature of collatz 1991 limiting rate selection function, beta in Collatz notation, (Acg or Ajg) or Apg, 0-1 --> 
-      <theta_col_cjp>0.95</theta_col_cjp>
-      <!-- intercept & slope of Vcmax25 to leaf N area relationship -->
+      <!-- empirical smoothing of collatz 1991 limiting rate selection function, beta in Collatz notation, (Acg or Ajg) or Apg, 0-1 --> 
+      <theta_col_cjp>0.98</theta_col_cjp>
+      <!-- intercept & slope of Vcmax25 to leaf N area linear relationship -->
       <avn_25>10</avn_25>
       <bvn_25>30</bvn_25>
-      <!-- intercept & slope of Jmax25 to Vcmax25 area relationship -->
+      <!-- intercept & slope of Jmax25 to Vcmax25 area linear relationship -->
       <ajv_25>29</ajv_25>
       <bjv_25>1.63</bjv_25>
-      <!-- intercept & slope of Jmax25:Vcmax25 ratio to leaf temperature relationship -->
+      <!-- intercept & slope of Jmax25:Vcmax25 ratio to leaf temperature linear relationship -->
       <a_jvt_25>2.59</a_jvt_25>      
       <b_jvt_25>0.035</b_jvt_25>      
-      <!-- normalisation constant & exponent of Jmax25 to Vcmax25 area relationship -->
+      <!-- normalisation constant & exponent of Jmax25 to Vcmax25 area power law relationship -->
       <e_ajv_25>1.01</e_ajv_25>
       <e_bjv_25>0.89</e_bjv_25>
-      <!-- intercept & slope of TPU25 to Vcmax25 area relationship, intercept of zero slope of 0.16667 is equivalent to Collatz 1991 Vcmax/2 but in von Caemmerer's notation  -->
+      <!-- intercept & slope of TPU25 to Vcmax25 area linear relationship, intercept of zero slope of 0.16667 is equivalent to Collatz 1991 Vcmax/2 but in von Caemmerer's notation  -->
       <atv_25>0</atv_25>
       <btv_25>0.16667</btv_25>
       <!-- fraction of leaf N in RuBisCO -->
@@ -114,7 +114,7 @@
       <Rsa>60</Rsa>
       <!-- fraction of phosphate not returned to the chloroplast -->
       <Apg_alpha>0</Apg_alpha>
-      <!-- minimum stomatal conductance, mol m-2s-1 -->
+      <!-- minimum stomatal conductance, mol H2O m-2s-1 -->
       <g0>0.01</g0>
       <!-- stomatal conductance to environment slope parameter -->
       <g1_medlyn>5</g1_medlyn>
@@ -144,10 +144,10 @@
       <!-- normalisation constant & exponent of Sphagnum fresh weight dry weight ratio to water table depth -->
       <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>
       <fwdw_wl_exp_b>3.254</fwdw_wl_exp_b>
-      <!-- intercept & slope of Rd25 to Vcmax25 area relationship -->
+      <!-- intercept & slope of Rd25 to Vcmax25 area linear relationship -->
       <a_rdv_25>0.0</a_rdv_25>
       <b_rdv_25>0.015</b_rdv_25>
-      <!-- intercept & slope of Rd25 to leaf N area relationship -->
+      <!-- intercept & slope of Rd25 to leaf N area linear relationship -->
       <a_rdn_25>0.5</a_rdn_25>
       <b_rdn_25>0.15</b_rdn_25>
       <!-- ratio of Rd in the light to Rd in the dark -->
@@ -155,7 +155,7 @@
       <!-- parameters for Lloyd 1995 Rd in the light function of Rd in the dark -->
       <rl_rd_lloyd_a>0.5</rl_rd_lloyd_a>
       <rl_rd_lloyd_b>0.05</rl_rd_lloyd_b>
-      <!-- intercept & slope of b_rdv_25 relationship with temperature -->
+      <!-- intercept & slope of b_rdv_25 linear relationship with temperature -->
       <a_rdv_25_t>0.015</a_rdv_25_t>
       <b_rdv_25_t>-0.0005</b_rdv_25_t>
       <!-- reference temperatures for temperature sensitive parameters -->
@@ -192,7 +192,7 @@
       <Hd.vcmax>2e+05</Hd.vcmax>
       <Hd.jmax>2e+05</Hd.jmax>
       <Hd.tpu>2e+05</Hd.tpu>
-      <!-- temperature optimum for temperature sensitive parameters -->
+      <!-- temperature optima for temperature sensitive parameters -->
       <Topt.rd>27.56</Topt.rd>
       <Topt.vcmax>27.56</Topt.vcmax>
       <Topt.jmax>19.89</Topt.jmax>
@@ -202,7 +202,7 @@
       <deltaS.vcmax>NA</deltaS.vcmax>
       <deltaS.jmax>NA</deltaS.jmax>
       <deltaS.tpu>NA</deltaS.tpu>
-      <!-- intercept and slope of delta S to leaf temperature for temperature sensitive parameters -->
+      <!-- intercept and slope of delta S to leaf temperature linear relationship for temperature sensitive parameters -->
       <a_deltaS_t.rd>490</a_deltaS_t.rd>
       <a_deltaS_t.vcmax>668</a_deltaS_t.vcmax>
       <a_deltaS_t.jmax>660</a_deltaS_t.jmax>
@@ -219,7 +219,7 @@
       <q10.Kc>2</q10.Kc>
       <q10.Ko>2</q10.Ko>
       <q10.tau>0.57</q10.tau>
-      <!-- intercept and slope of delta S to leaf temperature for temperature sensitive parameters -->
+      <!-- intercept and slope of delta S to leaf temperature linear relationship for temperature sensitive parameters -->
       <a_q10_t.rd>3.22</a_q10_t.rd>
       <b_q10_t.rd>-0.046</b_q10_t.rd>
       <!-- upper and lower temperatures for Cox temperature scaling for temperature sensitive parameters -->
@@ -237,10 +237,24 @@
       <R>8.31446</R>
     </pars>
     <env>
+      <!-- atmospheric CO2 concentration -->
+      <ca_conc>400</ca_conc>
       <!-- atmospheric O2 concentration -->
       <o2_conc>0.21</o2_conc>
+      <!-- PAR incident on leaf -->
+      <par>1000</par>
+      <!-- leaf temperature -->
+      <temp>25</temp>
+      <!-- atmospheric vapour pressure deficit -->
+      <vpd>2</vpd>
+      <!-- relative humidity -->
+      <rh>0.8</rh>
       <!-- atmospheric pressure -->
       <atm_press>101325</atm_press>
+      <!-- (mm) water level relative to hollow surface -->
+      <water_l>0</water_l>    
+      <!-- (mm) Sphagnum surface relative to hollow surface --> 
+      <sphag_l>0</sphag_l>       
     </env>
   </leaf>
 </default>

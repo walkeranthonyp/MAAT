@@ -157,8 +157,11 @@
       <o2_conc>0.21</o2_conc>
       <par>1000</par>
       <temp>25</temp>
-      <vpd>2</vpd>
+      <vpd>1</vpd>
+      <rh>0.8</rh>
       <atm_press>101325</atm_press>
+      <water_l>0</water_l>    
+      <sphag_l>0</sphag_l>       
     </env>
   </leaf>
 </default>

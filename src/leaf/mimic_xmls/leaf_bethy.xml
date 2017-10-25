@@ -1,117 +1,73 @@
 <default>
   <leaf>
     <fnames>
-      <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
-      f_gstar_constref will get a specified value at 25 and scale according to gstar_tcor, f_gstar_c1991 calculates from tau the CO2:O2 specificity ratio -->
       <gstar>'f_gstar_constref'</gstar>
-      <!-- temperature scaling of gamma star, only used if <gstar> is set to 'f_gstar_constref' -->
       <gstar_tcor>'f_temp_scalar_Arrhenius'</gstar_tcor>
-            <!-- temperature scaling of Kc -->
       <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
-      <!-- temperature scaling of Ko -->
       <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
-      <!-- scaling of Vcmax at reftemp.rd -->
       <vcmax>'f_vcmax_lin'</vcmax>
-      <!-- scaling of Jmax at reftemp.rd, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
       <jmax>'f_jmax_lin_t'</jmax>
-      <!-- increasing component of temperature scaling of Vcmax and Jmax -->
       <vcmax_tcor_asc>'f_temp_scalar_Arrhenius'</vcmax_tcor_asc>
       <jmax_tcor_asc>'f_temp_scalar_Arrhenius'</jmax_tcor_asc>
-      <!-- decreasing component of temperature scaling of Vcmax and Jmax -->
       <vcmax_tcor_des>'f_temp_scalar_modArrhenius_des'</vcmax_tcor_des>
       <jmax_tcor_des>'f_temp_scalar_modArrhenius_des'</jmax_tcor_des>
-      <!-- function to determine delta S (entropy term) for rd, vcmax, & jmax; can be used for temperature acclimation -->
       <deltaS>'f_deltaS_lin_t'</deltaS>
-      <!-- electron transport -->
       <etrans>'f_j_harley1992'</etrans>
-      <!-- RuBP saturated gross carboxylation rate -->
-      <wc>'f_wc_farquhar1980'</wc>
-      <!-- RuBP limited gross carboxylation rate -->
-      <wj>'f_wj_generic'</wj>
-      <!-- gas diffusion function, Fick's law; added a zero bound when testing the solver but I think this is unnecessary -->
+      <Acg>'f_Acg_farquhar1980'</Acg>
+      <Ajg>'f_Ajg_generic'</Ajg>
       <gas_diff>'f_ficks_ci'</gas_diff>
-      <!-- scaling of Rd at reftemp.rd, f(Vcmax), f(N), -->
       <respiration>'f_rd_lin_vcmax'</respiration>
-      <!-- scaling of Rd in the dark to rd in the light, default is fixed ratio with ratio set to 1 -->
       <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
-      <!-- is temperature scaling of Rd the same as that of Vcmax or not -->
       <rd_tcor_dependence>'f_rd_tcor_independent'</rd_tcor_dependence> 
-      <!-- increasing component of temperature scaling of Rd, if independent of Vcmax -->
       <rd_tcor_asc>'f_temp_scalar_bethy'</rd_tcor_asc>
-      <!-- decreasing component of temperature scaling of Rd, if independent of Vcmax -->
       <rd_tcor_des>'f_scalar_none'</rd_tcor_des>
-      <!-- internal resistance to CO2 transport -->
       <ri>'f_r_zero'</ri>
-      <!-- stomatal resistance to H2O & CO2 transport, constant CiCa is implicit in LPJ and Cox 1999 does something similar for JULES -->
       <rs>'f_rs_constantCiCa'</rs>
-      <!-- leaf boundary layer resistance to H2O & CO2 transport -->
       <rb>'f_r_zero'</rb>
-      <!-- solver, numerical or analytical -->
       <solver>'f_A_r_leaf_analytical'</solver>
-      <!-- function passed to solver -->
       <solver_func>'f_A_r_leaf'</solver_func>
-      <!-- selection of limiting rate function, straight minimum Farquhar 1980 or smoothed Collatz 1991 -->
       <Alim>'f_lim_farquhar1980'</Alim>
     </fnames>
     <pars>
-      <!-- output diagnostics like transition point and non-stomatal limited photosynthesis, T/F -->
       <diag>F</diag>
-      <!-- fraction of light absorbed by leaf that is absorbed by photosystems, 0-1 -->
       <a>0.88</a>
-      <!-- fraction of incident light transmitted through leaf, 0-1 -->
       <f>0.44</f>
-      <!-- intercept & slope of Vcmax25 to leaf N area relationship -->
       <avn_25>8.31</avn_25>
       <bvn_25>9.11</bvn_25>
-      <!-- intercept & slope of Jmax25 to Vcmax25 area relationship -->
       <ajv_25>29</ajv_25>
       <bjv_25>1.63</bjv_25>
-      <!-- intercept & slope of Jmax25:Vcmax25 ratio to leaf temperature relationship -->
       <a_jvt_25>2.59</a_jvt_25>      
       <b_jvt_25>-0.035</b_jvt_25>      
-      <!-- constant Ci:Ca ratio -->
       <cica_chi>0.87</cica_chi>
-      <!-- intercept & slope of Rd25 to Vcmax25 area relationship, and for temperature acclimation (Eq24 Ziehn aux mat) -->
       <a_rdv_25_t>0.015</a_rdv_25_t>
       <b_rdv_25_t>-0.0005</b_rdv_25_t>
-      <!-- ratio of Rd in the light to Rd in the dark -->
       <rl_rd_ratio>0.75</rl_rd_ratio>
-      <!-- reference temperatures for temperature sensitive parameters -->
       <reftemp.rd>25</reftemp.rd>
       <reftemp.vcmax>25</reftemp.vcmax>
       <reftemp.jmax>25</reftemp.jmax>
       <reftemp.Kc>25</reftemp.Kc>
       <reftemp.Ko>25</reftemp.Ko>
       <reftemp.gstar>25</reftemp.gstar>
-      <!-- constants at reference temperature for temperature sensitive parameters -->
       <atref.Kc>40.5</atref.Kc>
       <atref.Ko>27.8</atref.Ko>
       <atref.gstar>4.275</atref.gstar>
-      <!-- activation energy for temperature sensitive parameters -->
       <Ha.vcmax>71510</Ha.vcmax>
       <Ha.jmax>49880</Ha.jmax>
       <Ha.Kc>79430</Ha.Kc>
       <Ha.Ko>36380</Ha.Ko>
       <Ha.gstar>37830</Ha.gstar>
-      <!-- deactivation energy for temperature sensitive parameters -->
       <Hd.vcmax>200000</Hd.vcmax>
       <Hd.jmax>200000</Hd.jmax>
-      <!-- temperature optimum for temperature sensitive parameters -->
-      <!-- intercept and slope of delta S to leaf temperature for temperature sensitive parameters -->
       <a_deltaS_t.vcmax>668</a_deltaS_t.vcmax>
       <a_deltaS_t.jmax>660</a_deltaS_t.jmax>
       <b_deltaS_t.vcmax>-1.07</b_deltaS_t.vcmax>
       <b_deltaS_t.jmax>-0.75</b_deltaS_t.jmax>
-      <!-- intercept and slope of delta S to leaf temperature for temperature sensitive parameters -->
       <a_q10_t.rd>3.22</a_q10_t.rd>
       <b_q10_t.rd>-0.046</b_q10_t.rd>
-      <!-- universal gas constant -->
       <R>8.31446</R>
     </pars>
     <env>
-      <!-- atmospheric O2 concentration -->
       <o2_conc>0.21</o2_conc>
-      <!-- atmospheric pressure -->
       <atm_press>101325</atm_press>
     </env>
   </leaf>

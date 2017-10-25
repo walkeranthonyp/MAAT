@@ -1,91 +1,53 @@
 <default>
   <leaf>
     <fnames>
-      <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
-      f_gstar_constref will get a specified value at 25 and scale according to gstar_tcor, f_gstar_c1991 calculates from tau the CO2:O2 specificity ratio -->
       <gstar>'f_gstar_f1980'</gstar>
-      <!-- temperature scaling of Kc -->
       <Kc_tcor>'f_temp_scalar_Q10'</Kc_tcor>
-      <!-- temperature scaling of Ko -->
       <Ko_tcor>'f_temp_scalar_Q10'</Ko_tcor>
-      <!-- scaling of Vcmax at reftemp.rd -->
       <vcmax>'f_vcmax_clm'</vcmax>
-      <!-- increasing component of temperature scaling of Vcmax and Jmax -->
       <vcmax_tcor_asc>'f_temp_scalar_Q10'</vcmax_tcor_asc>
-      <!-- decreasing component of temperature scaling of Vcmax and Jmax -->
       <vcmax_tcor_des>'f_temp_scalar_collatz1991_des'</vcmax_tcor_des>
-      <!-- is temperature scaling of TPU the same as that of Vcmax or not -->
       <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
-      <!-- function to determine delta S (entropy term) for rd, vcmax, & jmax; can be used for temperature acclimation -->
       <deltaS>'f_deltaS_constant'</deltaS>
-      <!-- electron transport -->
       <etrans>'f_j_collatz1991'</etrans>
-      <!-- RuBP saturated gross carboxylation rate -->
       <Acg>'f_Acg_farquhar1980'</Acg>
-      <!-- RuBP limited gross carboxylation rate -->
       <Ajg>'f_Ajg_generic'</Ajg>
-      <!-- TPU limited gross carboxylation rate, mostly all variants of this are special cases of that presented in von Caemmerer 2000 -->
       <Apg>'f_Apg_vonc2000'</Apg>
-      <!-- gas diffusion function, Fick's law; added a zero bound when testing the solver but I think this is unnecessary -->
       <gas_diff>'f_ficks_ci'</gas_diff>
-      <!-- scaling of Rd at reftemp.rd, rd is zero in the photosynthesis calculations -->
       <respiration>'f_rd_constant'</respiration>
-      <!-- stomatal resistance to H2O & CO2 transport, constant CiCa is implicit in LPJ and Cox 1999 does something similar for JULES -->
       <rs>'f_rs_ball1987'</rs>
-      <!-- leaf boundary layer resistance to H2O & CO2 transport, hmm, not sure need to figure out -->
       <rb>'f_r_zero'</rb>
-      <!-- solver, numerical or analytical -->
       <solver>'f_R_Brent_solver'</solver>
-      <!-- function passed to solver -->
       <solver_func>'f_A_r_leaf'</solver_func>
-      <!-- selection of limiting rate function, straight miniimum Farquhar 1980 or smoothed Collatz 1991 -->
       <Alim>'f_lim_farquhar1980'</Alim>
     </fnames>
     <pars>
-      <!-- output diagnostics like transition point and non-stomatal limited photosynthesis, T/F -->
       <diag>F</diag>
-      <!-- fraction of light absorbed by leaf that is absorbed by photosystems, 0-1 -->
       <a>0.85</a>
-      <!-- fraction of incident light transmitted through leaf, 0-1 -->
       <f>0.52</f>
-      <!-- ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless) -->
       <ko_kc_ratio>0.21</ko_kc_ratio>       
-      <!-- intercept & slope of TPU25 to Vcmax25 area relationship, intercept of zero slope of 0.16667 is equivalent to Collatz 1991 Vcmax/2 but in von Caemmerer's notation  -->
       <atv_25>0</atv_25>
       <btv_25>0.16667</btv_25>
-      <!-- fraction of leaf N in RuBisCO -->
       <flnr>0.06</flnr>
-      <!-- RuBisCO molar weight to N weight ratio -->
       <fnr>7.16</fnr>
-      <!-- RuBisCO CO2 specific activity -->
       <Rsa>60</Rsa>
-      <!-- fraction of phosphate not returned to the chloroplast -->
       <Apg_alpha>0</Apg_alpha>
-      <!-- minimum stomatal conductance, mol m-2s-1 -->
       <g0>0.01</g0>
-      <!-- stomatal conductance to environment slope parameter -->
       <g1_ball>9</g1_ball>
-      <!-- constant internal resistance -->
       <ri>0</ri>
-      <!-- reference temperatures for temperature sensitive parameters -->
       <reftemp.vcmax>25</reftemp.vcmax>
       <reftemp.Kc>25</reftemp.Kc>
       <reftemp.Ko>25</reftemp.Ko>
-      <!-- constants at reference temperature for temperature sensitive parameters -->
       <atref.rd>0</atref.rd>
       <atref.Kc>30</atref.Kc>
       <atref.Ko>30</atref.Ko>
-      <!-- deactivation energy for temperature sensitive parameters -->
       <Hd.vcmax>2.2e+05</Hd.vcmax>
-      <!-- delta S for temperature sensitive parameters -->
       <deltaS.vcmax>710</deltaS.vcmax>
-      <!-- Q10 for temperature sensitive parameters -->
       <q10.vcmax>2.4</q10.vcmax>
       <q10.Kc>2.1</q10.Kc>
       <q10.Ko>1.2</q10.Ko>
     </pars>
     <env>
-      <!-- atmospheric O2 concentration -->
       <o2_conc>0.209</o2_conc>
     </env>
   </leaf>

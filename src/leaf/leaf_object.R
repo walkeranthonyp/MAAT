@@ -234,7 +234,7 @@ leaf_object <-
       sphag_l   = 0,                   # (mm) Sphagnum surface relative to hollow surfwce
       temp      = 25,                  # (oC)
       vpd       = 2,                   # (kPa)
-      rh        = numeric(0),          # (unitless - proportion)
+      rh        = numeric(1),          # (unitless - proportion)
       atm_press = 101325               # ( Pa)
     )
 
