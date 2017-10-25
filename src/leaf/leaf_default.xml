@@ -158,7 +158,7 @@
       <par>1000</par>
       <temp>25</temp>
       <vpd>1</vpd>
-      <rh>0.8</rh>
+      <rh>0.65</rh>
       <atm_press>101325</atm_press>
       <water_l>0</water_l>    
       <sphag_l>0</sphag_l>       

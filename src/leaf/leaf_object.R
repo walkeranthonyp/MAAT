@@ -233,7 +233,7 @@ leaf_object <-
       water_l   = numeric(1),          # (mm) water level relative to hollow surfwce
       sphag_l   = 0,                   # (mm) Sphagnum surface relative to hollow surfwce
       temp      = 25,                  # (oC)
-      vpd       = 2,                   # (kPa)
+      vpd       = 1,                   # (kPa)
       rh        = numeric(1),          # (unitless - proportion)
       atm_press = 101325               # ( Pa)
     )
