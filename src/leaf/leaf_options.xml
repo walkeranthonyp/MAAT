@@ -1,4 +1,4 @@
-<default>
+<options>
   <leaf>
     <fnames>
       <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
@@ -257,4 +257,4 @@
       <sphag_l>0</sphag_l>       
     </env>
   </leaf>
-</default>
+</options>

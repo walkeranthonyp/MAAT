@@ -86,8 +86,6 @@ evalXMLlist <- function(sublist) {
 listtoXML <- function(fname,name,...) {
   # expects the argument - sublist - in ...
   
-  root <- newXMLNode(name)
-  
   rec <- function(node, sublist) {
     for(i in 1:length(sublist)) {
       child <- newXMLNode(names(sublist)[i], parent=node)
@@ -96,10 +94,13 @@ listtoXML <- function(fname,name,...) {
         if(is.null(names(sublist[[i]]))) stop('list or sublist defined with no named elements, likely an empty list')
         rec(child, sublist[[i]]) 
       }
-      else xmlValue(child) <- sublist[[i]]
+      else {
+        xmlValue(child) <- if(class(sublist[[i]])=='character') paste0("'",sublist[[i]],"'") else sublist[[i]]
+      }
     }
   }  
   
+  root <- newXMLNode(name)
   rec(root,...)
   saveXML(root,fname)
 }

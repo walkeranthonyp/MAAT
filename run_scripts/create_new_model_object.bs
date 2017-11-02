@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# simple bash script to copy MAAT runfile to a project directory
-# takes the full path of the project directory as an argument
+# copy MAAT model object template to a new model object 
+# takes new model object name as first argument
+# to be run from maat directory or takes the full path of the maat/src directory as the second argument
 
 NMOD=$1
-run_scripts=${2-$PWD/run_scripts}
-src=${3-$PWD/src}
+src=${2-$PWD/src}
 
 mkdir -p $src/$NMOD >/dev/null 2>&1
-cp       $src/template/* $src/$NMOD && chmod 755 $src/$NMOD/*
+cp       $src/template/*.R $src/$NMOD && chmod 755 $src/$NMOD/*
 rename   "s/template/${NMOD}/g" $src/$NMOD/*
 
 # if else

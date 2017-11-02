@@ -1,4 +1,4 @@
-<default>
+<options>
   <template>
     <fnames>
       <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
@@ -21,4 +21,4 @@
       <atm_press>101325</atm_press>
     </env>
   </template>
-</default>
+</options>
