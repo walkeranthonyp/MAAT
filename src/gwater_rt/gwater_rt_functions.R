@@ -11,9 +11,9 @@ f_none <- function(.) {
   NA
 }
 
+# robust numerical solution to the quadratic
+# taken from Numerical Recipes
 quad_sol <- function(a,b,c,out='lower') {
-  # robust numerical solution to the quadratic
-  # taken from Numerical Recipes
 
   q     <- -0.5 * ( b + sign(b)*(b^2 - 4*a*c)^0.5 )
   roots <- c( q/a , c/q )
@@ -23,65 +23,89 @@ quad_sol <- function(a,b,c,out='lower') {
   else roots 
 }
 
+# function that mimics some of the behaviour of the matlab 'diag' function
+diag_m <- function(v,k=0) {
+  if(k==0) diag(v)
+  else if(k>0) {
+    rbind(cbind(matrix(0,length(v),k),diag(v)), matrix(0,k,length(v)+k) )
+  } else {
+    k <- abs(k)
+    rbind(matrix(0,k,length(v)+k), cbind(diag(v), matrix(0,length(v),k) ))
+  }  
+}
+
+
+
+# hydraulic conductivity
+a   <-  3.35 + 1*rnorm(1)
+b   <-  0.1  + 0.1*runif(1)
+K   <-  15   + 1*rnorm(1)            
+K1  <-  20   + 1*rnorm(1)            
+K2  <-  10   + 1*rnorm(1)            
 
 
 
 
-### PHOTOSYNTHESIS FUNCTIONS
+
+### MODEL FUNCTIONS
 ################################
 
-# Carboxylation limitation
-f_wc_farquhar1980 <- function(.,cc=.$state$cc){   
-  # Farquhar 1980 eq to calculate RuBisCO limited photosynthetic rate
-  # umol m-2 s-1
-  # Wc<-(Vcmax*(Ci-Gamma))/(Ci+Kc*(1+(O/Ko)))
-  
-  # dvars
-  # Ci (or Cc but vcmax needs adjusting)   
-  
-  # params
-  # Vcmax maximum carboxylation rate of RuBisCO  (umol m-2 s-1
-  # Ko Michaelis constant for O2 mbar            (kPa)
-  # Kc Michaelis constant for CO2                ( Pa) 
-  
-  # Ko and O must be in same units
-  # Kc, Ci and Gamma must be in same units
-  
-  #gross of rd and G*
-#   .$state_pars$vcmaxlt*cc /
-#     (cc+.$state_pars$Kc*(1+(.$state$oi/.$state_pars$Ko)))
-  .$state_pars$vcmaxlt /
-    (cc + .$state_pars$Km)
+# recharge
+# power law
+f_rechrg_power <- function(.) {
+  (.$pars$a*(.$env$precip - 355.6)^0.5) * 1e-3/365
+}
+
+# linear
+f_rechrg_lin <- function(.) {
+  (.$pars$b*(.$env$precip - 399.8))     * 1e-3/365
 }
 
 
-# electron transport limitation
-f_wj_generic <- function(.,cc=.$state$cc){
-  # generic eq to calculate light limited photosynthetic rate from user selected electron transport and etoc function
-  # umol m-2 s-1
+# transport over geological domain
+
+# single layer model
+f_trans_single <- function(.) {
+  vapply(1:.$pars$nx, function(jj,.) sqrt(.$env$h1^2 - (.$env$h1^2-.$env$h2^2)*.$state_pars$x[jj]/.$pars$L + 
+                                            .$state$recharge*(.$pars$L-.$state_pars$x[jj])*.$state_pars$x[jj]/.$pars$K), 1, .=. )
+}
+
+# double layer model
+f_trans_double <- function(.) {
+  h11 <-  Double_layer_model_h(.)
+  h11[seq(1,101,5)]
+}
+
+Double_layer_model_h <- function(.) {
+  # Domain information
+  nx    <- 101 # for some reason the horizontal discretisation is finer for this model
+  nx1   <- 70
+  h     <- numeric(nx)
+  A     <- B  <- x2 <- numeric(nx-2)
+  x1    <- x3 <- numeric(nx-3)
+  delta <- 100
   
-  # calculate gross electron transport limited carboxylation 
-  # i.e. rd and G* not included
-  #   (.$state$J/4) * (cc/(cc+2*.$state_pars$gstar)) # currently no other formualtion exists (other than slighly different parameters in the denominator)
-  .$state$J / (4*(cc+2*.$state_pars$gstar))        # currently no other formualtion exists (other than slighly different parameters in the denominator)
-}
-
-f_j_farquhar1980 <- function(.){
-  # calculates J given Jmax, I - irradiance & alpha - electrons transported per incident photon
-  # Farquhar 1980 and others
-  # this is the replacement for eq A2 added in the proofing stage (very last line of the manuscript after all refs etc)
+  # calculations
+  B[1]        <- -2*delta^2*.$state$recharge - .$pars$K1*.$env$h1^2
+  B[nx-2]     <- -2*delta^2*.$state$recharge - .$pars$K2*.$env$h2^2
+  B[2:(nx-3)] <- -2*delta^2*.$state$recharge
   
-  .$state_pars$jmaxlt * .$env$par * (1 - .$pars$f)/(.$env$par + 2.2*.$state_pars$jmaxlt)
+  x1[1:(nx1-2)]      <- .$pars$K1
+  x1[(nx1-1):(nx-3)] <- .$pars$K2
+  x2[1:(nx1-2)]      <- -2*.$pars$K1
+  x2[nx1:(nx-2)]     <- -2*.$pars$K2
+  x2[nx1-1]          <- -(.$pars$K1 + .$pars$K2)
+  x3[1:(nx1-2)]      <- .$pars$K1
+  x3[(nx1-1):(nx-3)] <- .$pars$K2
+  
+  A                  <- diag_m(x1,1) + diag_m(x2) + diag_m(x3,-1)
+  ht                 <- B %*% solve(A)
+  htt                <- ht^0.5
+  h[1]               <- .$env$h1
+  h[nx]              <- .$env$h2
+  h[2:(nx-1)]        <- htt
+  h
 }
-
-f_j_harley1992 <- function(.){
-  # Harley etal 1992 eq to calculate electron transport rate
-  # umol e m-2 s-1
-  harley_alpha <- .$pars$a * .$state_pars$alpha
-  harley_alpha*.$env$par / ( 1.0 + (harley_alpha**2)*(.$env$par**2) / (.$state_pars$jmaxlt**2) )**0.5  
-}
-
-
 
 
 

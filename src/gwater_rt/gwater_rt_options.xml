@@ -1,24 +1,22 @@
-<default>
+<options>
   <gwater_rt>
     <fnames>
-      <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
-      f_gstar_constref will get a specified value at 25 and scale according to gstar_tcor, f_gstar_c1991 calculates from tau the CO2:O2 specificity ratio -->
-      <gstar>c('f_constant_gstar','f_gstar_f1980','f_gstar_constref','f_gstar_c1991')</gstar>
-      <Alim>c('f_lim_farquhar1980','f_lim_collatz1991')</Alim>
+      <recharge>c('f_rechrg_lin','f_rechrg_power')</recharge>
+      <geology>c('f_trans_single','f_trans_double')</geology>
     </fnames>
     <pars>
-      <!-- output diagnostics like transition point and non-stomatal limited photosynthesis, T/F -->
-      <diag>F</diag>
-      <!-- fraction of light absorbed by gwater_rt that is absorbed by photosystems, 0-1 -->
-      <a>0.8</a>
-      <!-- universal gas constant -->
-      <R>8.31446</R>
+      <nx>21</nx>
+      <K>15</K>
+      <K1>20</K1>
+      <K2>10</K2>
+      <a>3.35</a>
+      <b>0.1</b>
+      <L>10000</L>
     </pars>
     <env>
-      <!-- atmospheric O2 concentration -->
-      <o2_conc>0.21</o2_conc>
-      <!-- atmospheric pressure -->
-      <atm_press>101325</atm_press>
+      <h1>180</h1>
+      <h2>100</h2>
+      <precip>1524</precip>
     </env>
   </gwater_rt>
-</default>
+</options>

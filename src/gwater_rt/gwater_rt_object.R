@@ -1,8 +1,9 @@
 ################################
 #
 # gwater_rt for MAAT object functions
-# 
-# AWalker March 2017
+# from Dai etal 2017 WRR 
+#
+# AWalker November 2017
 #
 ################################
 
@@ -13,7 +14,7 @@ source('gwater_rt_functions.R')
 
 
 
-# LEAF OBJECT
+# SIMPLE GROUND WATER REACTIVE TRANSPORT OBJECT
 ###############################################################################
 
 gwater_rt_object <- 
@@ -40,18 +41,14 @@ gwater_rt_object <-
       
 
       # calculate state parameters
-      # photosynthetic parameters
-      .$state_pars$vcmax   <- get(.$fnames$vcmax)(.)
-      .$state_pars$jmax    <- get(.$fnames$jmax)(.)
-      .$state_pars$tpu     <- get(.$fnames$tpu)(.)
-      .$state_pars$rd      <- get(.$fnames$respiration)(.)
-      .$state_pars$alpha   <- 0.5 * (1-.$pars$f)
-
-      .$state$respiration  <- get(.$fnames$rl_rd_scalar)(.) * .$state$respiration
-      # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-      .$state$A       <- get(.$fnames$solver)(.)      
-      # assign the limitation state - assumes the minimum is the dominant limiting rate
-      .$state$lim     <- c('wc','wj','wp')[which(c(.$state$wc,.$state$wj,.$state$wp)==min(c(.$state$wc,.$state$wj,.$state$wp),na.rm=T))]       
+      .$state_pars$x <-  seq(0, .$pars$L, (.$pars$L-0)/(.$pars$nx-1) )
+      
+      # Dai & Ye model 
+      # recharge
+      .$state$recharge <- get(.$fnames$recharge)(.)
+      
+      # geological transport
+      .$state$h        <- get(.$fnames$geology)(.)
       
       # print to screen
       if(.$cpars$verbose) {
@@ -67,21 +64,12 @@ gwater_rt_object <-
     ###########################################################################
     # Output functions
 
-    #output processing function
-    # -- returns a list of outputs
+    # output processing function
+    # -- returns a vector of outputs
     output <- function(.) {
-      if(.$cpars$output=='slim') {
-        lout <- 
-          list(A=.$state$A,ci=.$state$ci,lim=.$state$lim)
-        
-      } else if(.$cpars$output=='run') {
-        lout <- 
-          list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
-               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
-               respiration=.$state$respiration,lim=.$state$lim)
-        
+      if(.$cpars$output=='run') {
+        lout <- .$state$h
       } else stop()
-      
     }    
     
     
@@ -91,40 +79,43 @@ gwater_rt_object <-
     
     # run control parameters
     cpars <- list(
-      verbose       = F,          # write diagnostic output during runtime 
-      output        = 'run'       # type of output from run function
+      verbose  = F,               # write diagnostic output during runtime 
+      output   = 'run'            # type of output from run function
     )
     
     # function names
     fnames <- list(
-      gstar               = 'f_gstar_constref',
-      Alim                = 'f_lim_farquhar1980'
+      recharge = 'f_rechrg_lin',  # recharge function
+      geology  = 'f_trans_single' # geology/transport function
     )
 
-    #gwater_rt parameters
+    # gwater_rt parameters
     pars   <- list(
-      a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - gwater_rt scattering coefficient, there is potential here for improper combination of models
-      #physical constants
-      R   = 8.31446               # molar gas constant                                      (m2 kg s-2 K-1 mol-1  ==  Pa m3 mol-1K-1)
+      nx  = 21,                   # horizontal discretisation of geological domain
+      K   = 15,                   # hydraulic conductivity for single domain geology        (unitless)  
+      K1  = 20,                   # hydraulic conductivity for double domain geology        (unitless)  
+      K2  = 10,                   # hydraulic conductivity for double domain geology        (unitless)
+      a   = 3.35,
+      b   = 0.10,
+      L   = 1e4                   # horizontal domain length (m)
     )
 
     # gwater_rt environment
     env <- list(
-      ca_conc   = numeric(0),          # (umol mol-1)
-      atm_press = 101325               # ( Pa)
-      )
+      h1     = 180,               # hydraulic head left boundary condition  (m)
+      h2     = 100,               # hydraulic head right boundary condition (m)
+      precip = 1524               # precipitation                           (mm)
+    )
 
-    #gwater_rt state parameters (i.e. calculated parameters)
+    # gwater_rt state parameters (i.e. calculated parameters)
     state_pars <- list(
-      vcmax    = numeric(0),   # umol m-2 s-1
-      cica_chi = numeric(0)    # Ci:Ca ratio 
+      x        = numeric(0)
     )
     
     # gwater_rt state
     state <- list(
-      #environmental state
-      oi = numeric(0),                 # atmospheric & internal O2  (kPa)
-      transition   = numeric(0)        # cc at the transition point where wc = wj                        (Pa)
+      recharge = numeric(0),      # recharge rate                    (?)
+      h        = numeric(0)       # hydraulic head across the domain (Pa)
     )
     
     
@@ -132,15 +123,19 @@ gwater_rt_object <-
     ###########################################################################
     # Run & configure functions
     
-    configure <- function(.,func,df,o=T){
+    configure <- function(.,vlist,df,o=T){
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
       
       # name and assign the UQ variables
-      uqvars     <- names(df)
-      prefix     <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
-      lapply(uqvars[which(prefix=='gwater_rt')], func, .=., df=df)
-
+      uqvars <- names(df)
+      prefix <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
+      modobj <- .$name
+      dfss   <- which(prefix==modobj)
+      vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
+      # could write a line to catch NAs in vlss
+      .[[vlist]][vlss] <- df[dfss]
+      
       if(.$cpars$cverbose&o) {
         print('',quote=F)
         print('gwater_rt configure:',quote=F)
@@ -160,7 +155,7 @@ gwater_rt_object <-
       # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
       
       # met data assignment
-      .$configure(func='write_env',df=.$dataf$met[l,],F)
+      .$configure(vlist='env',df=.$dataf$met[l,],F)
       
       # run model
       .$run()              
@@ -172,27 +167,25 @@ gwater_rt_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test_gwater_rt <- function(.,verbose=T,verbose_loop=T,gwater_rt.par=1000,gwater_rt.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci'){
+    .test <- function(., verbose=F, gwater_rt.precip=1524, gwater_rt.recharge='f_rechrg_lin', gwater_rt.geology='f_trans_single' ){
       
       if(verbose) {
-        str.proto(.)
+        str(.)
         print(.$env)
       }
-      .$cpars$verbose       <- verbose
-      .$cpars$verbose_loop  <- verbose_loop
-      .$cpars$output        <-'full'
       
-      .$fnames$ri          <- 'f_r_zero'
-      .$fnames$rs          <- rs
-      .$fnames$solver_func <- 'f_A_r_gwater_rt'
-      .$fnames$gas_diff    <- gd
+      .$cpars$verbose   <- verbose
+      .$cpars$output    <-'run'
       
-      .$env$par     <- gwater_rt.par
-      .$env$ca_conc <- gwater_rt.ca_conc
+      .$env$precip      <- gwater_rt.precip
+      .$fnames$recharge <- gwater_rt.recharge
+      .$fnames$geology  <- gwater_rt.geology
       
       .$run()
     }
 
+    
+    
     #######################################################################        
     # end object      
 })

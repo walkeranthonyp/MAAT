@@ -1,17 +1,22 @@
 <default>
   <gwater_rt>
     <fnames>
-      <gstar>'f_gstar_f1980'</gstar>
-      <Alim>'f_lim_farquhar1980'</Alim>
+      <recharge>'f_rechrg_lin'</recharge>
+      <geology>'f_trans_single'</geology>
     </fnames>
     <pars>
-      <diag>F</diag>
-      <a>0.8</a>
-      <R>8.31446</R>
+      <nx>21</nx>
+      <K>15</K>
+      <K1>20</K1>
+      <K2>10</K2>
+      <a>3.35</a>
+      <b>0.1</b>
+      <L>10000</L>
     </pars>
     <env>
-      <ca_conc>400</ca_conc>
-      <atm_press>101325</atm_press>
+      <h1>180</h1>
+      <h2>100</h2>
+      <precip>1524</precip>
     </env>
   </gwater_rt>
 </default>
