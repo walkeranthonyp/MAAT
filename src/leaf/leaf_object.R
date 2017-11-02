@@ -425,7 +425,7 @@ leaf_object <-
     ###########################################################################
     # configure & run_met functions
 
-    configure <- function(.,vlist,df,o=T){
+    configure <- function(.,vlist,df,o=T) {
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
       
@@ -447,7 +447,7 @@ leaf_object <-
       }
     }
     
-    run_met <- function(.,l){
+    run_met <- function(.,l) {
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe
       # assumes that each row of the dataframe are sequential
       # allows the system state at t-1 to affect the system state at time t if necessary (therefore mclapply cannot be used)

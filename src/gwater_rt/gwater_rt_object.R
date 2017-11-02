@@ -1,6 +1,6 @@
 ################################
 #
-# template for MAAT object functions
+# gwater_rt for MAAT object functions
 # 
 # AWalker March 2017
 #
@@ -9,20 +9,20 @@
 library(proto)
 library(stringr)
 
-source('template_functions.R')
+source('gwater_rt_functions.R')
 
 
 
 # LEAF OBJECT
 ###############################################################################
 
-template_object <- 
+gwater_rt_object <- 
   proto(expr={
     
     ###########################################################################
     # Object name, expected child objects & build function
     
-    name <- 'template'
+    name <- 'gwater_rt'
     
     # no expected child objects
     
@@ -101,26 +101,26 @@ template_object <-
       Alim                = 'f_lim_farquhar1980'
     )
 
-    #template parameters
+    #gwater_rt parameters
     pars   <- list(
-      a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - template scattering coefficient, there is potential here for improper combination of models
+      a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - gwater_rt scattering coefficient, there is potential here for improper combination of models
       #physical constants
       R   = 8.31446               # molar gas constant                                      (m2 kg s-2 K-1 mol-1  ==  Pa m3 mol-1K-1)
     )
 
-    # template environment
+    # gwater_rt environment
     env <- list(
       ca_conc   = numeric(0),          # (umol mol-1)
       atm_press = 101325               # ( Pa)
       )
 
-    #template state parameters (i.e. calculated parameters)
+    #gwater_rt state parameters (i.e. calculated parameters)
     state_pars <- list(
       vcmax    = numeric(0),   # umol m-2 s-1
       cica_chi = numeric(0)    # Ci:Ca ratio 
     )
     
-    # template state
+    # gwater_rt state
     state <- list(
       #environmental state
       oi = numeric(0),                 # atmospheric & internal O2  (kPa)
@@ -132,22 +132,18 @@ template_object <-
     ###########################################################################
     # Run & configure functions
     
-    configure <- function(.,vlist,df,o=T){
+    configure <- function(.,func,df,o=T){
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
       
       # name and assign the UQ variables
-      uqvars <- names(df)
-      prefix <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
-      modobj <- .$name
-      dfss   <- which(prefix==modobj)
-      vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
-      # could write a line to catch NAs in vlss
-      .[[vlist]][vlss] <- df[dfss]
-      
+      uqvars     <- names(df)
+      prefix     <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
+      lapply(uqvars[which(prefix=='gwater_rt')], func, .=., df=df)
+
       if(.$cpars$cverbose&o) {
         print('',quote=F)
-        print('template configure:',quote=F)
+        print('gwater_rt configure:',quote=F)
         print(prefix,quote=F)
         print(df,quote=F)
         print(.$fnames,quote=F)
@@ -164,7 +160,7 @@ template_object <-
       # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
       
       # met data assignment
-      .$configure(vlist='env',df=.$dataf$met[l,],F)
+      .$configure(func='write_env',df=.$dataf$met[l,],F)
       
       # run model
       .$run()              
@@ -176,7 +172,7 @@ template_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test <- function(.,verbose=T,verbose_loop=T,template.par=1000,template.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci'){
+    .test_gwater_rt <- function(.,verbose=T,verbose_loop=T,gwater_rt.par=1000,gwater_rt.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci'){
       
       if(verbose) {
         str.proto(.)
@@ -188,11 +184,11 @@ template_object <-
       
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
-      .$fnames$solver_func <- 'f_A_r_template'
+      .$fnames$solver_func <- 'f_A_r_gwater_rt'
       .$fnames$gas_diff    <- gd
       
-      .$env$par     <- template.par
-      .$env$ca_conc <- template.ca_conc
+      .$env$par     <- gwater_rt.par
+      .$env$ca_conc <- gwater_rt.ca_conc
       
       .$run()
     }
