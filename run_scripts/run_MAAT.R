@@ -1,6 +1,6 @@
 ################################
 #
-# MAAT Leaf Model - example run script
+# MAAT Model - template run script
 # 
 # AWalker (walkerap@ornl.gov) 
 # December 2015
@@ -12,21 +12,18 @@
 ### The MAAT model (Multi-Assumption Architecture & Testbed)
 ###################################################################
 
-# This script runs the leaf or canopy photosynthesis version of the MAAT
-
-# This model is written for ultimate flexibility in function used to represent processes, parameters, and environmental driving data
-# The model can be configured in a vast number of possible ways and can be run many times, varying functions, parameters, and environmental driving data during runtime of the model
+# This script is called to run MAAT
 
 ###
-# This script initialises the MAAT and runs it in the following steps:
+# This script initialises MAAT and runs it in the following steps:
 # - set default arguments
 # - parse command line arguments
 # - set arguments that depend on other arguments
-# - load MAAT objects from source
-# - load init script
+# - load MAAT model objects from source
+# - load init scripts
 # - Configure and initialise the MAAT model
 # - Configure and initialise the MAAT wrapper
-# - Run the MAAT
+# - Run MAAT
 # - Write output
 
 ###################################################################
@@ -79,8 +76,8 @@ coef_var   <- 0.1
 salt_nmult <- 100      
 
 # run options
-# model object to use, currently leaf or canopy
-mod_obj    <- 'leaf'
+# model object to use, currently leaf or gwater_rt
+mod_obj    <- "#MODELOBJ#"
 
 # meteorological data file name
 metdata    <- NULL 
@@ -231,15 +228,13 @@ if(xml) {
   
   # read user defined XMLs of static variables
   staticxml   <- paste(mod_obj,'user','static.xml',sep='_')
-  init_static <- 
-    if(file.exists(staticxml)) readXML(staticxml)
-    else                       list(leaf = list(fnames=NA,pars=NA,env=NA))
+  if(file.exists(staticxml)) init_static <- readXML(staticxml)
+  else                       {lis <- list(list(fnames=NA,pars=NA,env=NA)); names(lis) <- mod_obj; init_static <- lis } 
   
   # read user defined XMLs of dynamic variables
   dynamicxml   <- paste(mod_obj,'user','dynamic.xml',sep='_')
-  init_dynamic <-
-    if(file.exists(dynamicxml)) readXML(dynamicxml)
-    else                        list(leaf = list(fnames=NA,pars=NA,env=NA))
+  if(file.exists(dynamicxml)) init_dynamic <- readXML(dynamicxml)
+  else                       {lid <- list(list(fnames=NA,pars=NA,env=NA)); names(lid) <- mod_obj; init_dynamic <- lid } 
   
   # otherwise read init list R script
 } else source(initf)
@@ -269,14 +264,14 @@ kill <- F
 if(!is.null(metdata)) {
   # read user defined met data translator
   setwd(pdir)
-  if(file.exists('leaf_user_met.xml')) {
-    met_trans <- readXML('leaf_user_met.xml')
+  if(file.exists(paste0(mod_obj,'_user_met.xml'))) {
+    met_trans <- readXML(paste0(mod_obj,'_user_met.xml'))
     # met_trans <- evalXMLlist(met_trans)
     if(any(names(met_trans)==mod_obj)) met_trans <- met_trans[[which(names(met_trans)==mod_obj)]]$env
     else {
       print('',quote=F)
       print('Met translator file:',quote=F)
-      print('leaf_user_met.xml',quote=F)
+      print(paste0(mod_obj,'_user_met.xml'),quote=F)
       print('does not contain list for:',quote=F)
       print(mod_obj,quote=F)      
       stop()
@@ -285,7 +280,7 @@ if(!is.null(metdata)) {
   } else {
     print('',quote=F)
     print('Met translator file:',quote=F)
-    print('leaf_user_met.xml',quote=F)
+    print(paste0(mod_obj,'_user_met.xml'),quote=F)
     print('does not exist in:',quote=F)
     print(pdir,quote=F)
     stop()
@@ -296,8 +291,8 @@ if(!is.null(metdata)) {
   if(file.exists(metdata)&!kill) {
     metdf <- read.csv(metdata,strip.white=T)  
     
-    # order met data in metfile according to that specified in the leaf_user_met.XML 
-    # - need to add a trap to catch met data files that do not contain all the data specified in leaf_user_met.XML 
+    # order met data in metfile according to that specified in the <mod_obj>_user_met.XML 
+    # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML 
     cols  <- match(unlist(sapply(met_trans,function(l) l)),names(metdf))
     metdf <- metdf[,cols] 
         
@@ -306,7 +301,7 @@ if(!is.null(metdata)) {
       tcol  <- which(names(met_trans)=='time')
       metdf <- metdf[, c(tcol,c(1:length(metdf))[-tcol]) ]
       
-      # rename to maat variables as defined in leaf_user_met.XML and prefix with the model object for compatibility with the configure function
+      # rename to maat variables as defined in <mod_obj>_user_met.XML and prefix with the model object for compatibility with the configure function
       names(metdf)[1] <- 'time'               
       names(metdf)[2:length(metdf)] <- paste(mod_obj,names(met_trans)[-tcol],sep='.')
     } else {

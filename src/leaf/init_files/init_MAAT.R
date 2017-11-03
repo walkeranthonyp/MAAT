@@ -20,23 +20,23 @@
 
 # for example, to setup a leaf model object simulation:
 # set static variables during runtime (init_static) by setting:
-# - leaf.fnames.static
-# - leaf.pars.static     
-# - leaf.env.static
+# - fnames.static
+# - pars.static     
+# - env.static
 
 
 # set dynamic variables during runtime (init_dynamic) by setting:
-# - leaf.fnames.var
-# - leaf.pars.var     
-# - leaf.env.var
+# - fnames.var
+# - pars.var     
+# - env.var
 # for a process SA two more sublists need to be added as elements to the init_dynamic$leaf list:
 # - pars_proc and pars_eval, both with the same named elements
-#   - pars_proc is a list of strings that associate each parameter with the process it is associated with, these should be one of the elemnet names in the list init_dynamic$X$fnames
+#   - pars_proc is a list of strings that associate each parameter with the process it is associated with, these should be one of the element names in the list init_dynamic$X$fnames
 #   - pars_eval is a string that once evaluated gives a vector of parameter samples  
 
 
-# This script must set the values of the above 6 lists, 
-# if you do not want to set any values using these lists they must be specified as empty lists, i.e. list()
+# This script must set the values of the above 6(8) lists, 
+# if you do not want to set any values using these lists they must be specified as NA
 
 ###################################################################
 
@@ -46,7 +46,7 @@
 ###############################
 
 # define lists
-leaf.fnames.static <- list(
+fnames.static <- list(
   solver_func     = 'f_A_r_leaf',
   gstar           = 'f_scalar_none',
   Kc_tcor         = 'f_scalar_none',
@@ -63,11 +63,11 @@ leaf.fnames.static <- list(
   rb              = 'f_r_zero'
   )
 
-leaf.pars.static <- list(
+pars.static <- list(
   atref.vcmax  = 50
   )
 
-leaf.env.static  <- list(
+env.static  <- list(
   par     = 1000,
   temp    = 25
   )
@@ -81,17 +81,17 @@ leaf.env.static  <- list(
 # set to NA where variation is not required  
 
 # define lists
-leaf.fnames.var <- list(
+fnames.var <- list(
   etrans = c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991')
 )
 
-leaf.pars.var <- NA
+pars.var <- NA
 
-leaf.pars_proc.var <- NA
+pars_proc.var <- NA
 
-leaf.pars_eval.var <- NA
+pars_eval.var <- NA
 
-leaf.env.var <- list(
+env.var <- list(
   ca_conc = seq(50,1500,50)
 )
 
@@ -102,18 +102,18 @@ leaf.env.var <- list(
 
 init_static <- list(
   leaf = list(
-    fnames = leaf.fnames.static,
-    pars   = leaf.pars.static,
-    env    = leaf.env.static
+    fnames    = fnames.static,
+    pars      = pars.static,
+    env       = env.static
   ))
 
 init_dynamic <- list(
   leaf = list(
-    fnames    = leaf.fnames.var,
-    pars      = leaf.pars.var,
-    pars_proc = leaf.pars_proc.var,
-    pars_eval = leaf.pars_eval.var,
-    env       = leaf.env.var
+    fnames    = fnames.var,
+    pars      = pars.var,
+    pars_proc = pars_proc.var,
+    pars_eval = pars_eval.var,
+    env       = env.var
   ))
 
 
