@@ -33,16 +33,25 @@ setwd(mod_obj)
 mo <- paste0(mod_obj,'_object')
 source(paste0(mo,'.R'))
 
-# create the list
+# create lists to convert to XML
 l1 <- list(list(fnames = get(mo)[['fnames']],
-           pars   = get(mo)[['pars']],
-           env    = get(mo)[['env']]
-           ))
+                pars   = get(mo)[['pars']],
+                env    = get(mo)[['env']]
+              ))
 names(l1) <- mod_obj
+
+l2 <- list(list(env    = get(mo)[['env']]))
+names(l2) <- mod_obj
+l2[[1]][[1]][] <- 'column name of variable in metdata file'
 
 # convert list to XMLs
 listtoXML(paste(mod_obj,'default.xml',sep='_'), 'default',  sublist=l1 )
 listtoXML(paste(mod_obj,'options.xml',sep='_'), 'options',  sublist=l1 )
+setwd('init_files')
+listtoXML(paste(mod_obj,'user_static.xml',sep='_'),  'static',               sublist=l1 )
+listtoXML(paste(mod_obj,'user_dynamic.xml',sep='_'), 'dynamic',              sublist=l1 )
+listtoXML(paste(mod_obj,'user_met.xml',sep='_'),     'met_data_translator',  sublist=l2 )
 
 # open options XML to add labels and non-default options
+setwd('..')
 file.edit(paste(mod_obj,'options.xml',sep='_'))

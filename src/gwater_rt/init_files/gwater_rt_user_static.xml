@@ -1,0 +1,22 @@
+<static>
+  <gwater_rt>
+    <fnames>
+      <recharge>'f_rechrg_lin'</recharge>
+      <geology>'f_trans_single'</geology>
+    </fnames>
+    <pars>
+      <nx>21</nx>
+      <K>15</K>
+      <K1>20</K1>
+      <K2>10</K2>
+      <a>3.35</a>
+      <b>0.1</b>
+      <L>10000</L>
+    </pars>
+    <env>
+      <h1>180</h1>
+      <h2>100</h2>
+      <precip>1524</precip>
+    </env>
+  </gwater_rt>
+</static>

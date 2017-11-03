@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # copy MAAT model object template to a new model object 
-# takes new model object name as first argument
-# to be run from maat directory or takes the full path of the maat/src directory as the second argument
+# 1st argument- new model object name 
+# 2nd argument - path of MAAT source code directory 'src', can be left blank if this script is run from the top level maat source code directory
 
 NMOD=$1
 src=${2-$PWD/src}
@@ -11,9 +11,15 @@ mkdir -p $src/$NMOD >/dev/null 2>&1
 cp       $src/template/*.R $src/$NMOD && chmod 755 $src/$NMOD/*
 rename   "s/template/${NMOD}/g" $src/$NMOD/*
 
-# if else
+mkdir -p $src/$NMOD/init_files >/dev/null 2>&1
+cp       $src/template/init_files/*.R $src/$NMOD/init_files && chmod 755 $src/$NMOD/init_files*
+rename   "s/template/${NMOD}/g" $src/$NMOD/init_files/*
+
+# if mac else linux 
 if [[ $OSTYPE == darwin* ]]; then
   sed -i '' "s@template@$NMOD@g"  $src/$NMOD/*
+  sed -i '' "s@template@$NMOD@g"  $src/$NMOD/init_files/*
 else
   sed -i    "s@template@$NMOD@g"  $src/$NMOD/*
+  sed -i    "s@template@$NMOD@g"  $src/$NMOD/init_files/*
 fi
