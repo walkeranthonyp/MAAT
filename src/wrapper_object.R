@@ -147,6 +147,7 @@ wrapper_object <-
       .$dataf$lm <- if(is.null(.$dataf$met)|(sum(dim(.$dataf$met)==0)==2)      ) 1 else length(.$dataf$met[,1])    
       
       # store model output template (currently must be a vector)
+      # - this will fail when output is a vector of variable length depending on parameter values
       .$dataf$mout <- .$model$output()
       
       # print summary of maat setup

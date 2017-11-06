@@ -27,7 +27,7 @@ template_object <-
     # no expected child objects
     
     # build function
-    .build <- function(.) {
+    build <- function(.) {
       as.proto(.$as.list())
     }
     

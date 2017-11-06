@@ -36,17 +36,6 @@ diag_m <- function(v,k=0) {
 
 
 
-# hydraulic conductivity
-a   <-  3.35 + 1*rnorm(1)
-b   <-  0.1  + 0.1*runif(1)
-K   <-  15   + 1*rnorm(1)            
-K1  <-  20   + 1*rnorm(1)            
-K2  <-  10   + 1*rnorm(1)            
-
-
-
-
-
 ### MODEL FUNCTIONS
 ################################
 

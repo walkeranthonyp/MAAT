@@ -28,7 +28,7 @@ gwater_rt_object <-
     # no expected child objects
     
     # build function
-    .build <- function(.) {
+    build <- function(.) {
       as.proto(.$as.list())
     }
     
@@ -69,7 +69,11 @@ gwater_rt_object <-
     output <- function(.) {
       if(.$cpars$output=='run') {
         lout <- .$state$h
+      } else if(.$cpars$output=='slim') {
+        lout <- c(recharge=.$state$recharge,h=.$state$h[.$pars$out_hsub])
       } else stop()
+      
+      lout
     }    
     
     
@@ -97,7 +101,8 @@ gwater_rt_object <-
       K2  = 10,                   # hydraulic conductivity for double domain geology        (unitless)
       a   = 3.35,
       b   = 0.10,
-      L   = 1e4                   # horizontal domain length (m)
+      L   = 1e4,                  # horizontal domain length (m)
+      out_hsub = 11               # subscript of .$state$h vector for 'slim' output 
     )
 
     # gwater_rt environment
@@ -114,8 +119,8 @@ gwater_rt_object <-
     
     # gwater_rt state
     state <- list(
-      recharge = numeric(0),      # recharge rate                    (?)
-      h        = numeric(0)       # hydraulic head across the domain (Pa)
+      recharge = numeric(1),      # recharge rate                    (?)
+      h        = numeric(21)      # hydraulic head across the domain (Pa)
     )
     
     
@@ -136,13 +141,13 @@ gwater_rt_object <-
       # could write a line to catch NAs in vlss
       .[[vlist]][vlss] <- df[dfss]
       
-      if(.$cpars$cverbose&o) {
-        print('',quote=F)
-        print('gwater_rt configure:',quote=F)
-        print(prefix,quote=F)
-        print(df,quote=F)
-        print(.$fnames,quote=F)
-      }
+      # if(.$cpars$cverbose&o) {
+      #   print('',quote=F)
+      #   print('gwater_rt configure:',quote=F)
+      #   print(prefix,quote=F)
+      #   print(df,quote=F)
+      #   print(.$fnames,quote=F)
+      # }
     }
     
     run_met <- function(.,l){
