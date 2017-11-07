@@ -7,47 +7,53 @@
 ################################
 
 #####################################################
-# Prepare data for the process sensitivity index using Ye method (Dai etal 2017 WRR).
-calc_process_sensitivity <- function(a1,n,nA=1,nB=3,...) {
+# Calculate the process sensitivity index using Ye method (Dai etal 2017 WRR).
+calc_process_sensitivity <- function(delta) {
   
-  # get dim extents, a1 should be a 4D array
+  # delta should be a 4D array comprised of only a single model output variable
   # - dim 1 (rows)      process(es) B parameter sample 
   # - dim 2 (columns)   process(es) B representation(s)
   # - dim 3 (slices)    process A parameter sample
   # - dim 4 (cube rows) process A representation
-  adim  <- dim(a1) 
-  nA    <- adim[4]
-  nB    <- adim[2]
-  n     <- adim[1] # adim[1] and adim[3] should be the same
-  
-  # assume equal probability for each model
-  mpA   <- rep(1/nA, nA )
-  mpB   <- rep(1/nB, nB )
   
   # total variance in Delta
   # - variance should be normalised by the total sample size, not sample size - 1
-  var_t <- var(a1) 
-  
-  # permute a1 into dim = nA,n,nB,n - first dimension cycles first, like FORTRAN
-  a1    <- aperm(a1, 4:1 )
+  var_t <- var(delta) 
   
   # call function to calculate variance in Delta caused by variability in process x
-  pvar  <- func_process_sensitivity(a1,nA,nB,mpA,mpB,n)
+  pvar  <- pvar_process_sensitivity(delta)
 
   # output a list of a scalar of total variance, and a matrix of variance caused by each process, and their proportion of total variance
-  Tvar  <- c(mean=mean(a1), total_var=var_t, total_sd=var_t^0.5 )
+  Tvar  <- c(mean=mean(delta), total_var=var_t, total_sd=var_t^0.5 )
   
-  # list(Tvar=Tvar,par_var=var_p,sensitivity=var_p/var_t)
+  # output list
   list(Tvar=Tvar, par_var=pvar, sensitivity=pvar/var_t )
 }
 
 
 
 #####################################################
-# Calculate the process sensitivity index using Ye method (Dai etal 2017 WRR).
-func_process_sensitivity <- function(delta,nA,nB,mpA,mpB,n) {
+# Calculate partial variance for the process sensitivity index using Ye method (Dai etal 2017 WRR).
+pvar_process_sensitivity <- function(delta) {
+
+  # get dim extents, delta should be a 4D array
+  # - dim 1 (rows)      process(es) B parameter sample 
+  # - dim 2 (columns)   process(es) B representation(s)
+  # - dim 3 (slices)    process A parameter sample
+  # - dim 4 (cube rows) process A representation
+  adim  <- dim(delta) 
+  nA    <- adim[4]
+  nB    <- adim[2]
+  n     <- adim[1] # adim[1] and adim[3] should be the same
+
+  # permute delta array so that dim order = nA,n,nB,n
+  delta <- aperm(delta, 4:1 )
   
-  # define the arrays and matrices
+  # assume equal probability for each model
+  mpA   <- rep(1/nA, nA )
+  mpB   <- rep(1/nB, nB )
+
+  # define the calculation arrays and matrices
   E_ThetaBMB   <- array(0,dim=c(nA,n,nB))
   E_MB         <- matrix(0,nA,n)
   E_ThetaAMA_2 <- matrix(0,nA)
@@ -80,11 +86,6 @@ func_process_sensitivity <- function(delta,nA,nB,mpA,mpB,n) {
   E_MA_2 <- sum(mpA*E_ThetaAMA_2)
   E_MA   <- sum(mpA*E_ThetaAMA)
   
-  # - copied in from bin version, but these stages of the function ought to be identical
-  # Model averaging across models of the process in question
-  #E_MA   <- sum(mpA*E_binThetaAMA_2)
-  #E_MA_2 <- sum(mpA*E_binThetaAMA)^2
-  
   # Calculate the partial variance VB
   pvar   <- E_MA_2 - (E_MA)^2
   return(pvar)
@@ -92,72 +93,12 @@ func_process_sensitivity <- function(delta,nA,nB,mpA,mpB,n) {
 
 
 
-
-#####################################################
-# Calculates Sobol first order and total sensitivity indices using Saltelli method
-func_sobol_sensitivity <- function(sn,k,ABout,ABiout,pnames=NULL) {
-
-  # expects: 
-  # - sn     - the number of iterations in the basic mc
-  # - k      - the number of parameters that have been varied
-  # - ABout  - a vector of output from the 2sn sobol mc, i.e. from param matrices A and B
-  # - ABiout - an sn * k matrix of output from the k ABi matrices
-  
-  # returns a list with objects:
-  # - mean         - overall mean of model output
-  # - total_var    - overall variance of model output
-  # - total_sd     - overall standard deviation of model output
-  # - pvar         - vector of length k, partial variance for each parameter
-  # - pe           - vector of length k, partial mean for each parameter
-  # - sensitivity1 - vector of length k, first order sensitivity (main effect)
-  # - sensitivityT - vector of length k, total sensitivity (including all interactions)
-  
-  # initialise partial variance and mean vectors
-  vv <- numeric(k)
-  ev <- numeric(k)
-  
-  for(p in 1:k) {
-    # Calculate the partial variance caused by single parameter
-    # following the equation (b) in Table 2 Saltelli et al. (2010).
-    vv[p] <- sum( ABout[(sn+1):(2*sn)]*(ABiout[1:sn,p] - ABout[1:sn]) ) / sn      
-
-    # Calculate the partial mean for total effect sensitivity index
-    # following the equation (f) in Table 2 Saltelli et al. (2010),
-    ev[p] <- sum( (ABout[1:sn] - ABiout[1:sn,p])^2 ) / (2*sn)      
-  }
-  
-  # calculate the total variance
-  v_t <- var(ABout)
-  
-  #Calculate first-order sensitivity index
-  si  <- vv/v_t
-  
-  #Calculate total-effect sensitivity index
-  st  <- ev/v_t
-  
-  # name parameter SA vectors
-  if(!is.null(pnames)) {
-    names(si) <- pnames
-    names(st) <- pnames
-  }
-   
-  # a model and scenario name would be useful in this output list - would need to be added to the output from the wrapper 
-  Tvar <- c(mean=mean(ABout),total_var=v_t,total_sd=v_t^0.5)
-
-  # output list
-  list(Tvar=Tvar,pvar=vv,pe=ev,sensitivity1=si,sensitivityT=st)
-#   list(Tvar=Tvar,par_var=rbind(vv,ev),sensitivity=rbind(si,st))
-#   list(mean=mean(ABout),total_var=v_t,total_sd=v_t^0.5,par_var=rbind(vv,ev),sensitivity=rbind(si,st))
-}
-
-
-
 ########################################################
-calc_parameter_sensitivity <- function(sn,outdata,delta) {
+# calc_parameter_sensitivity <- function(AB,ABi,delta) {
+calc_parameter_sensitivity <- function(AB, ABi) {
   # calcualtes Sobol sensitivity indices using output from a Saltelli algorithm
   # Expects the use of multiple models and scenarios
 
-  # Expects outdata to be a list of two objects - AB: a 4D array & ABi: a 5D array  
   # AB, list element 1 - a 4D numeric array AB 
   # - dim 1 - models  (number - nmod)
   # - dim 2 - scenarios/environments  (number - nscen)
@@ -198,23 +139,20 @@ calc_parameter_sensitivity <- function(sn,outdata,delta) {
   }
   
   # calculate number of models and scenarios
-  nmod    <- dim(outdata$AB)[1]
-  nscen   <- dim(outdata$AB)[2]
-  sn      <- dim(outdata$ABi)[3]
-  k       <- dim(outdata$ABi)[5]
-  
+  nmod    <- dim(AB)[1]
+  nscen   <- dim(AB)[2]
+
   # assume models are of equal probability
   pmod    <- rep(1/nmod,nmod)
   # assume scenarios are of equal probability
   pscen   <- rep(1/nscen,nscen)
   
   # calculate Sobol for each scenario and model combination
-  n <- 1
   # model loop
   for(m in 1:nmod) {
     # scenario loop
     for(e in 1:nscen) {
-      out1 <- list(func_sobol_sensitivity(sn, k, outdata$AB[m,e,,delta], outdata$ABi[m,e,,delta,], pnames=dimnames(outdata$ABi)[[5]] ))      
+      out1 <- list(func_sobol_sensitivity(AB[m,e,], ABi[m,e,,] ))      
       out2 <- if(e==1) out1 else c(out2, out1 )
     }
     sensout <- if(m==1) list(out2) else c(sensout, list(out2) )
@@ -242,5 +180,64 @@ calc_parameter_sensitivity <- function(sn,outdata,delta) {
   # output list
   list(individual=sensout,incscenario=outs,incmodel=outm,incmodelscenario=outsm)
 }
+
+
+
+#####################################################
+# Calculates Sobol first order and total sensitivity indices using Saltelli method
+func_sobol_sensitivity <- function(ABout,ABiout) {
+  
+  # expects: 
+  # - ABout  - a vector of output from the 2sn sobol mc, i.e. from param matrices A and B
+  # - ABiout - an sn * k matrix of output from the k ABi matrices
+  
+  # returns a list with objects:
+  # - Tvar         - a vector of mean (overall mean of model output), total_var (overall variance of model output), total_sd (overall standard deviation of model output)
+  # - pvar         - vector of length k, partial variance for each parameter
+  # - pe           - vector of length k, partial mean for each parameter
+  # - sensitivity1 - vector of length k, first order sensitivity (main effect)
+  # - sensitivityT - vector of length k, total sensitivity (including all interactions)
+
+  # calculate dimension extents
+  sn <- dim(ABiout)[1]
+  k  <- dim(ABiout)[2]
+    
+  # initialise partial variance and mean vectors
+  vv <- numeric(k)
+  ev <- numeric(k)
+  
+  for(p in 1:k) {
+    # Calculate the partial variance caused by single parameter
+    # following the equation (b) in Table 2 Saltelli et al. (2010).
+    vv[p] <- sum( ABout[(sn+1):(2*sn)]*(ABiout[1:sn,p] - ABout[1:sn]) ) / sn      
+    
+    # Calculate the partial mean for total effect sensitivity index
+    # following the equation (f) in Table 2 Saltelli et al. (2010),
+    ev[p] <- sum( (ABout[1:sn] - ABiout[1:sn,p])^2 ) / (2*sn)      
+  }
+  
+  # calculate the total variance
+  v_t <- var(ABout)
+  
+  #Calculate first-order sensitivity index
+  si  <- vv/v_t
+  
+  #Calculate total-effect sensitivity index
+  st  <- ev/v_t
+  
+  # name parameter SA vectors
+  pnames <- dimnames(ABi)[[4]]      
+  if(!is.null(pnames)) {
+    names(si) <- pnames
+    names(st) <- pnames
+  }
+  
+  # a model and scenario name would be useful in this output list - would need to be added to the output from the wrapper 
+  Tvar <- c(mean=mean(ABout),total_var=v_t,total_sd=v_t^0.5)
+  
+  # output list
+  list(Tvar=Tvar,pvar=vv,pe=ev,sensitivity1=si,sensitivityT=st)
+}
+
 
 
