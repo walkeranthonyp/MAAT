@@ -7,7 +7,8 @@
 ################################
 
 #####################################################
-calc_process_sensitivity <- function(a1,colname,n,nA=1,nB=3,...) {
+# Prepare data for the process sensitivity index using Ye method (Dai etal 2017 WRR).
+calc_process_sensitivity <- function(a1,n,nA=1,nB=3,...) {
   
   # get dim extents, a1 should be a 4D array
   # - dim 1 (rows)      process(es) B parameter sample 
@@ -23,95 +24,78 @@ calc_process_sensitivity <- function(a1,colname,n,nA=1,nB=3,...) {
   mpA   <- rep(1/nA, nA )
   mpB   <- rep(1/nB, nB )
   
-  # extract model output of interest (i.e. Delta)
-  # f     <- as.vector(df[,which(names(df)==colname)])
-  # f     <- as.vector(df[[res]][,col])
-
   # total variance in Delta
   # - variance should be normalised by the total sample size, not sample size - 1
-  # var_t <- var(f) 
   var_t <- var(a1) 
   
   # permute a1 into dim = nA,n,nB,n - first dimension cycles first, like FORTRAN
-  # f     <- array(f,dim=c(n,nB,n,nA))
-  # f     <- aperm(f,4:1)
   a1    <- aperm(a1, 4:1 )
   
   # call function to calculate variance in Delta caused by variability in process x
-  var_A <- func_process_sensitivity(1,a1,nA,nB,mpA,mpB,n)
-  # var_B <- func_process_sensitivity(2,a1,nA,nB,mpA,mpB,n)
-  # var_p <- c(var_A,var_B)
-  
+  pvar  <- func_process_sensitivity(a1,nA,nB,mpA,mpB,n)
+
   # output a list of a scalar of total variance, and a matrix of variance caused by each process, and their proportion of total variance
-  Tvar <- c(mean=mean(a1),total_var=var_t,total_sd=var_t^0.5)
+  Tvar  <- c(mean=mean(a1), total_var=var_t, total_sd=var_t^0.5 )
   
   # list(Tvar=Tvar,par_var=var_p,sensitivity=var_p/var_t)
-  list(Tvar=Tvar,par_var=var_A,sensitivity=var_A/var_t)
+  list(Tvar=Tvar, par_var=pvar, sensitivity=pvar/var_t )
 }
 
 
 
 #####################################################
-func_process_sensitivity <- function(ps,f,nA,nB,MA,MB,n) {
-  # Process level variance decomposition after Ye et al (in review)  
+# Calculate the process sensitivity index using Ye method (Dai etal 2017 WRR).
+func_process_sensitivity <- function(delta,nA,nB,mpA,mpB,n) {
   
-  # if statements about which process is being quantified
-  if(ps == 1) {
-    nLoop1 <- nA
-    nLoop2 <- nB  
-    mLoop1 <- MA
-    mLoop2 <- MB  
-  } else {
-    nLoop1 <- nB
-    nLoop2 <- nA  
-    mLoop1 <- MB
-    mLoop2 <- MA  
-  }
-  
-  # define the arrays
-  E_tLoop2    <- array(0,dim=c(nLoop1,n,nLoop2))
-  E_Loop2     <- matrix(0,nLoop1,n)
-  E_tLoop1_2  <- matrix(0,nLoop1)
-  E_tLoop1    <- matrix(0,nLoop1)
+  # define the arrays and matrices
+  E_ThetaBMB   <- array(0,dim=c(nA,n,nB))
+  E_MB         <- matrix(0,nA,n)
+  E_ThetaAMA_2 <- matrix(0,nA)
+  E_ThetaAMA   <- matrix(0,nA)
   
   # Loop over the models of the process in question
-  for( i in 1:nLoop1 ) {  
+  for( i in 1:nA ) {  
     
     # Loop over the parameter realizations of the models of the process in question
     for( j in 1:n ) {      
       
       # Loop over the models of the other processes
-      for( k in 1:nLoop2 ) {
+      for( k in 1:nB ) {
         # construct subscripts matrix for output array
-        smat            <- cbind(i,j,k,1:n)
-        if(ps==2) smat  <- smat[,c(3,4,1,2)]  
-        # Calculate the partial mean EA considering uncertain parameters            
-        E_tLoop2[i,j,k] <- mean(f[smat])
+        smat              <- cbind(i,j,k,1:n)
+        # Calculate the partial mean E considering uncertain parameters            
+        E_ThetaBMB[i,j,k] <- mean(delta[smat])
       }
       
       # Calculate the model averaging of the other process
-      E_Loop2[i,j] <- sum(mLoop2*E_tLoop2[i,j,])
+      E_MB[i,j] <- sum(mpB*E_ThetaBMB[i,j,])
     }
     
     # Calculate the partial mean of the process in question (the mean of each representation of the process in question) considering uncertain parameters    
-    E_tLoop1_2[i] <- mean(E_Loop2[i,]^2)
-    E_tLoop1[i]   <- mean(E_Loop2[i,])
+    E_ThetaAMA_2[i] <- mean(E_MB[i,]^2)
+    E_ThetaAMA[i]   <- mean(E_MB[i,])
   }
   
   # Model averaging of each representation of the process in question
-  E_Loop1_2  <- sum(mLoop1*E_tLoop1_2)
-  E_Loop1    <- sum(mLoop1*E_tLoop1)
+  E_MA_2 <- sum(mpA*E_ThetaAMA_2)
+  E_MA   <- sum(mpA*E_ThetaAMA)
+  
+  # - copied in from bin version, but these stages of the function ought to be identical
+  # Model averaging across models of the process in question
+  #E_MA   <- sum(mpA*E_binThetaAMA_2)
+  #E_MA_2 <- sum(mpA*E_binThetaAMA)^2
   
   # Calculate the partial variance VB
-  Var_Loop1 <- E_Loop1_2 - (E_Loop1)^2
-  return(Var_Loop1)
+  pvar   <- E_MA_2 - (E_MA)^2
+  return(pvar)
 }
 
 
 
+
 #####################################################
+# Calculates Sobol first order and total sensitivity indices using Saltelli method
 func_sobol_sensitivity <- function(sn,k,ABout,ABiout,pnames=NULL) {
-  # Calculates Sobol first order and total sensitivity indices using Saltelli method
 
   # expects: 
   # - sn     - the number of iterations in the basic mc
