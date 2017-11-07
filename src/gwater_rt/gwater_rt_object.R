@@ -107,9 +107,9 @@ gwater_rt_object <-
 
     # gwater_rt environment
     env <- list(
-      h1     = 180,               # hydraulic head left boundary condition  (m)
-      h2     = 100,               # hydraulic head right boundary condition (m)
-      precip = 1524               # precipitation                           (mm)
+      h1     = 180,               # hydraulic head left  (x=0) boundary condition (m)
+      h2     = 100,               # hydraulic head right (x=L) boundary condition (m)
+      precip = 1524               # precipitation                                 (mm)
     )
 
     # gwater_rt state parameters (i.e. calculated parameters)

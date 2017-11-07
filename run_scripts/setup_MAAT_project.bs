@@ -14,13 +14,13 @@ src=${4-$PWD/src}
 mkdir -p $PDIR >/dev/null 2>&1
 mkdir -p $PDIR/logs >/dev/null 2>&1
 
-cp    $run_scripts/qsubmit_MAAT.pbs                 $PDIR && chmod 755 ${PDIR}/qsubmit_MAAT.pbs
-cp    $run_scripts/call_run_MAAT.bs                 $PDIR && chmod 755 ${PDIR}/call_run_MAAT.bs
-cp    $run_scripts/run_MAAT.R                       $PDIR && chmod 755 ${PDIR}/run_MAAT.R
-cp    $src/$MODOBJ/init_files/init_MAAT.R           $PDIR && chmod 755 ${PDIR}/init_MAAT.R
-cp    $src/$MODOBJ/init_files/leaf_user_static.xml  $PDIR && chmod 755 ${PDIR}/leaf_user_static.xml
-cp    $src/$MODOBJ/init_files/leaf_user_dynamic.xml $PDIR && chmod 755 ${PDIR}/leaf_user_dynamic.xml
-cp    $src/$MODOBJ/init_files/leaf_user_met.xml     $PDIR && chmod 755 ${PDIR}/leaf_user_met.xml
+cp    $run_scripts/qsubmit_MAAT.pbs       $PDIR && chmod 755 ${PDIR}/qsubmit_MAAT.pbs
+cp    $run_scripts/call_run_MAAT.bs       $PDIR && chmod 755 ${PDIR}/call_run_MAAT.bs
+cp    $run_scripts/run_MAAT.R             $PDIR && chmod 755 ${PDIR}/run_MAAT.R
+cp    $src/$MODOBJ/init_files/init_MAAT.R $PDIR && chmod 755 ${PDIR}/init_MAAT.R
+cp    $src/$MODOBJ/init_files/*.xml       $PDIR && chmod 755 ${PDIR}/*.xml
+#cp    $src/$MODOBJ/init_files/leaf_user_dynamic.xml $PDIR && chmod 755 ${PDIR}/leaf_user_dynamic.xml
+#cp    $src/$MODOBJ/init_files/leaf_user_met.xml     $PDIR && chmod 755 ${PDIR}/leaf_user_met.xml
 #cp    $src/$MODOBJ/init_files/analysis_MAAT.R       $PDIR && chmod 755 ${PDIR}/analysis_MAAT.R
 
 # if else
