@@ -252,7 +252,7 @@ wrapper_object <-
 
       # call next run function
       do.call('rbind', {
-          if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, fi=i, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=F  )
+          if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, fi=i, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=T  )
           else                 lapply(1:.$dataf$lp, .$runp, fi=i )
       })
     }
@@ -329,7 +329,7 @@ wrapper_object <-
         # call next run function, wrapped within vapply to convert (mc)lapply list output to an array
         # returns a numeric array - model output variable (rows), sample (columns), parameter (slices)
         vapply({
-          if(.$wpars$multic&ncores>=2) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
+          if(.$wpars$multic&ncores>=2) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=T ) 
           else                           lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
         },function(a) a, .$dataf$out_saltelli[,,1,1,1] )
         
