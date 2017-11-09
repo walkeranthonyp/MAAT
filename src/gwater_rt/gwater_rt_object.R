@@ -46,6 +46,7 @@ gwater_rt_object <-
       # Dai & Ye model 
       # recharge
       .$state$recharge <- get(.$fnames$recharge)(.)
+      print(get(.$fnames$recharge)(.))
       
       # geological transport
       .$state$h        <- get(.$fnames$geology)(.)
@@ -95,12 +96,12 @@ gwater_rt_object <-
 
     # gwater_rt parameters
     pars   <- list(
-      nx  = 21,                   # horizontal discretisation of geological domain
-      K   = 15,                   # hydraulic conductivity for single domain geology        (unitless)  
-      K1  = 20,                   # hydraulic conductivity for double domain geology        (unitless)  
-      K2  = 10,                   # hydraulic conductivity for double domain geology        (unitless)
-      a   = 3.35,
-      b   = 0.10,
+      nx  = 21,                   # horizontal discretisation of geological domain   
+      K   = 15,                   # hydraulic conductivity for single domain geology 
+      K1  = 20,                   # hydraulic conductivity for double domain geology           
+      K2  = 10,                   # hydraulic conductivity for double domain geology         
+      a   = 3.35,                 # recharge scalar power law (unitless)
+      b   = 0.15,                 # recharge scalar linear    (unitless)
       L   = 1e4,                  # horizontal domain length (m)
       out_hsub = 11               # subscript of .$state$h vector for 'slim' output 
     )
@@ -109,7 +110,7 @@ gwater_rt_object <-
     env <- list(
       h1     = 180,               # hydraulic head left  (x=0) boundary condition (m)
       h2     = 100,               # hydraulic head right (x=L) boundary condition (m)
-      precip = 1524               # precipitation                                 (mm)
+      precip = 60 #1524               # precipitation                                 (mm)
     )
 
     # gwater_rt state parameters (i.e. calculated parameters)
@@ -119,7 +120,7 @@ gwater_rt_object <-
     
     # gwater_rt state
     state <- list(
-      recharge = numeric(1),      # recharge rate                    (?)
+      recharge = numeric(1),      # recharge rate                    (m d-1?)
       h        = numeric(21)      # hydraulic head across the domain (Pa)
     )
     

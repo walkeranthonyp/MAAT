@@ -154,7 +154,8 @@ calc_parameter_sensitivity <- function(AB, ABi) {
   for(m in 1:nmod) {
     # scenario loop
     for(e in 1:nscen) {
-      out1 <- list(func_sobol_sensitivity(AB[m,e,], ABi[m,e,,] ))      
+      # out1 <- list(func_sobol_sensitivity(AB[m,e,], ABi[m,e,,] ))      
+      out1 <- list(func_sobol_sensitivity(as.numeric(AB[m,e,]), ABi[m,e,,] ))      
       out2 <- if(e==1) out1 else c(out2, out1 )
     }
     sensout <- if(m==1) list(out2) else c(sensout, list(out2) )

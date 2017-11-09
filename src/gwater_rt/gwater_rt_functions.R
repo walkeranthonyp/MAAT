@@ -40,14 +40,16 @@ diag_m <- function(v,k=0) {
 ################################
 
 # recharge
-# power law
+# power law (R1 in Heng etal 2017)
 f_rechrg_power <- function(.) {
-  (.$pars$a*(.$env$precip - 355.6)^0.5) * 1e-3/365
+  # (.$pars$a*(.$env$precip - 355.6)^0.5) * 1e-3 / 365
+  (.$pars$a*(.$env$precip - 14)^0.5)    * 2.54e-2 / 365
 }
 
-# linear
+# linear (R2 in Heng etal 2017)
 f_rechrg_lin <- function(.) {
-  (.$pars$b*(.$env$precip - 399.8))     * 1e-3/365
+  # (.$pars$b*(.$env$precip - 399.8))     * 1e-3 / 365
+  (.$pars$b*(.$env$precip - 15.74))     * 2.54e-2 / 365
 }
 
 
