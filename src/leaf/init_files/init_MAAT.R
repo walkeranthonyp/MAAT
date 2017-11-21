@@ -52,7 +52,7 @@ fnames.static <- list(
   Kc_tcor         = 'f_scalar_none',
   Ko_tcor         = 'f_scalar_none',
   vcmax           = 'f_vcmax_constant',
-  jmax            = 'f_jmax_walker2014',
+  jmax            = 'f_jmax_power',
   vcmax_tcor_asc  = 'f_scalar_none',
   jmax_tcor_asc   = 'f_scalar_none',
   vcmax_tcor_des  = 'f_scalar_none',
