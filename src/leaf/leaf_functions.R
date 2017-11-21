@@ -90,9 +90,9 @@ f_A_r_leaf_analytical <- function(.) {
 }
 
 f_A_r_leaf_noR <- function(.,...) {
-  # same as above function but with no resistance to CO2 diffusion
-  # from the atmosphere to the site of carboxylation
-  # These functions can be used to calculate the stomatal limitation to photosynthesis
+  # same as above function but with no resistance to CO2 diffusion from the atmosphere to the site of carboxylation
+  # These functions can be used to calculate the stomatal limitation to photosynthesis when rb and ri are assumed zero 
+  # (when ri and rb are non-zero, use below function 'f_A_r_leaf_noRs' )
   
   # combines all rate limiting processes
   

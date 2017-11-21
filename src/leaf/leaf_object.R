@@ -278,6 +278,7 @@ leaf_object <-
       jmax     = numeric(1),   # umol m-2 s-1
       jmaxlt   = numeric(1),   # umol m-2 s-1
       tpu      = numeric(1),   # umol m-2 s-1
+      tpult    = numeric(1),   # umol m-2 s-1
       rd       = numeric(1),   # umol m-2 s-1; respiration at reftemp
       Kc       = numeric(1),   #  Pa
       Ko       = numeric(1),   # kPa
