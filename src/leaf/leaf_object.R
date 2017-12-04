@@ -429,13 +429,17 @@ leaf_object <-
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
       
-      # name and assign the UQ variables
+      # process UQ variables
       uqvars <- names(df)
       prefix <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
       modobj <- .$name
       dfss   <- which(prefix==modobj)
       vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
-      # could write a line to catch NAs in vlss
+
+      # catch NAs in vlss
+      if(any(is.na(vlss))) stop(paste('names mismatch between model object variables and input list variable:', uqvars[which(is.na(vlss))] ))
+
+      # assign UQ variables
       .[[vlist]][vlss] <- df[dfss]
       
       if(.$cpars$cverbose&o) {

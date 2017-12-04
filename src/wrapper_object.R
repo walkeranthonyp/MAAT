@@ -393,10 +393,10 @@ wrapper_object <-
       # outputs an .RDS for each process segregation
 
       # create the fnames matrices for process A and process B
-      .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[f]))  as.matrix(expand.grid(.$dynamic$fnames[f] ,stringsAsFactors=F)) else stop()
-      .$dataf$fnamesB <- if(!is.na(.$dynamic$fnames[-f])) as.matrix(expand.grid(.$dynamic$fnames[-f],stringsAsFactors=F)) else stop()
+      .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[f]))       as.matrix(expand.grid(.$dynamic$fnames[f] ,stringsAsFactors=F)) else stop()
+      .$dataf$fnamesB <- if(!any(is.na(.$dynamic$fnames[-f]))) as.matrix(expand.grid(.$dynamic$fnames[-f],stringsAsFactors=F)) else stop()
       
-      # determine the number of the rows in process matrices
+      # determine the number of the rows in the fnames process matrices
       .$dataf$lfA     <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
       .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
       
@@ -417,7 +417,7 @@ wrapper_object <-
       # bind the parameter vectors into run matrices 
       .$dataf$pars    <- if(!is.na(.$dynamic$pars[1])) do.call(cbind,.$dynamic$pars[.$procA_subs] ) else stop()
       .$dataf$parsB   <- if(!is.na(.$dynamic$pars[2])) do.call(cbind,.$dynamic$pars[-.$procA_subs]) else stop()
-      .$dynamic$pars     <- lapply(.$dynamic$pars_eval,function(e) numeric(1) ) 
+      .$dynamic$pars  <- lapply(.$dynamic$pars_eval,function(e) numeric(1) ) 
 
       # determine the number of the rows in parameter matrices
       .$dataf$lp      <- .$wpars$n # convert these to be the row number of the actual matrices
