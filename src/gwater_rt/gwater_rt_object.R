@@ -46,7 +46,7 @@ gwater_rt_object <-
       # Dai & Ye model 
       # recharge
       .$state$recharge <- get(.$fnames$recharge)(.)
-      print(get(.$fnames$recharge)(.))
+      #print(get(.$fnames$recharge)(.))
       
       # geological transport
       .$state$h        <- get(.$fnames$geology)(.)
@@ -103,14 +103,14 @@ gwater_rt_object <-
       a   = 3.35,                 # recharge scalar power law (unitless)
       b   = 0.15,                 # recharge scalar linear    (unitless)
       L   = 1e4,                  # horizontal domain length (m)
-      out_hsub = 11               # subscript of .$state$h vector for 'slim' output 
+      out_hsub = 13               # subscript of .$state$h vector for 'slim' output 
     )
 
     # gwater_rt environment
     env <- list(
       h1     = 180,               # hydraulic head left  (x=0) boundary condition (m)
       h2     = 100,               # hydraulic head right (x=L) boundary condition (m)
-      precip = 60 #1524               # precipitation                                 (mm)
+      precip = 1524               # precipitation                                 (mm)
     )
 
     # gwater_rt state parameters (i.e. calculated parameters)
