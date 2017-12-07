@@ -55,7 +55,7 @@ pvar_process_sensitivity <- function(delta) {
   mpA   <- rep(1/nA, nA )
   mpB   <- rep(1/nB, nB )
 
-  # define the calculation arrays and matrices
+  # allocate the calculation arrays and matrices
   E_ThetaBMB   <- array(0,dim=c(nA,n,nB))
   E_MB         <- matrix(0,nA,n)
   E_ThetaAMA_2 <- matrix(0,nA)
@@ -212,21 +212,27 @@ func_sobol_sensitivity <- function(ABout,ABiout) {
   for(p in 1:k) {
     # Calculate the partial variance caused by single parameter
     # following the equation (b) in Table 2 Saltelli et al. (2010).
-    vv[p] <- sum( ABout[(sn+1):(2*sn)]*(ABiout[1:sn,p] - ABout[1:sn]) ) / sn      
+    # vv[p] <- sum( ABout[(sn+1):(2*sn)]*(ABiout[1:sn,p] - ABout[1:sn]) ) / sn      
+    # following the equation (c) in Table 2 Saltelli et al. (2010), (from SobolSensitivity.m)
+    vv[p] <- sum( (ABout[(sn+1):(2*sn)] - ABiout[1:sn,p])^2 )      
     
     # Calculate the partial mean for total effect sensitivity index
     # following the equation (f) in Table 2 Saltelli et al. (2010),
-    ev[p] <- sum( (ABout[1:sn] - ABiout[1:sn,p])^2 ) / (2*sn)      
+    # ev[p] <- sum( (ABout[1:sn] - ABiout[1:sn,p])^2 ) / (2*sn)
+    # following the equation (f) in Table 2 Saltelli et al. (2010), (from SobolSensitivity.m)
+    ev[p] <- sum( (ABout[1:sn] - ABiout[1:sn,p])^2 )
   }
   
   # calculate the total variance
   v_t <- var(ABout)
   
   #Calculate first-order sensitivity index
-  si  <- vv/v_t
+  # si  <- vv/v_t
+  si  <- (v_t - vv / (2*sn)) / v_t
   
   #Calculate total-effect sensitivity index
-  st  <- ev/v_t
+  # st  <- ev/v_t
+  st  <- (ev/(2*sn)) / v_t
   
   # name parameter SA vectors
   pnames <- dimnames(ABi)[[4]]      
