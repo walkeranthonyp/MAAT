@@ -161,16 +161,21 @@ fuselists <- function(mainlist,sublist) {
 #####################################################
 # write Latex doc
 write_Latex <- function(obj,fname,func=write_list_Latex,call=F,...) {
-  write("\\documentclass[10pt]{article}",fname)
-  write("\\usepackage{booktabs}",fname,append=T)
-  write("\\usepackage{placeins}",fname,append=T)
+  fnamec <- paste0(fname,'.tex')
+  
+  write("\\documentclass[10pt]{article}",fnamec)
+  write("\\usepackage{booktabs}",fnamec,append=T)
+  write("\\usepackage{placeins}",fnamec,append=T)
 #   write("\\usepackage[section]{placeins}",fname,append=T)
-  write("\\begin{document}",fname,append=T)
+  write("\\begin{document}",fnamec,append=T)
 
   func(obj,fname,...)
   
-  write("\\end{document}",fname,append=T)  
-  if(call) system(paste('pdflatex',fname)) 
+  write("\\end{document}",fnamec,append=T)  
+  if(call) {
+    system(paste('pdflatex',fnamec))
+    system(paste('rm', paste0(fname,'.log'), paste0(fname,'.aux') ))
+  }
 }
 
 
@@ -242,7 +247,7 @@ print.xtable.apw <- function(x,cap=NULL,...){
                           '\\toprule\n',
                           '\\midrule\n',
                           '\\bottomrule\n')),
-        table.placement='H',
+        table.placement='h',
         ...)
 }
 

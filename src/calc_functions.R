@@ -9,6 +9,7 @@
 library(randtoolbox)
 
 
+
 #####################################################
 res_calc <- function(df1,df2,rcols,type='abs') {
   dfo <- df1
@@ -48,6 +49,9 @@ rsobol <- function(n,pars=c(1,0.1),norm=F) {
   maat$wpars$sobol_init <- F 
 }
 
+
+
+#####################################################
 runif1 <- function(n,pars=c(1,0.1),norm=F) {
   # this function generates a sequence for either 
   # a normal distribution norm=T   or  a uniform distribution norm=F
@@ -65,6 +69,10 @@ runif1 <- function(n,pars=c(1,0.1),norm=F) {
   
   maat$wpars$sobol_init <- F 
 }
+
+
+
+#####################################################
 
 
 
