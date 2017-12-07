@@ -156,9 +156,9 @@ wrapper_object <-
 
 
       # run model ensemble
+      # call initial run function in the hierarchy of nested run functions
       ################################
       
-      # Call initial run function in the hierarchy of nested run functions
       if(.$wpars$UQ&.$wpars$UQtype=='ye') {
         # process UQ run, or either general variable run or matrix A and B of Saltelli method
         # - Ye process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure  
@@ -178,7 +178,7 @@ wrapper_object <-
         .$dataf$out[] <-
           do.call(
             rbind, {
-              if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf, mc.cores=.$wpars$procs, mc.preschedule=F )
+              if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf, mc.cores=min(.$dataf$lf,.$wpars$procs), mc.preschedule=F )
               else                 lapply( 1:.$dataf$lf, .$runf )
             })
         
@@ -307,7 +307,7 @@ wrapper_object <-
       
       # call next run function
       vapply({
-        if(.$wpars$multic) mclapply(1:.$dataf$le, .$rune_saltelli, mc.cores=.$wpars$procs, mc.preschedule=F ) 
+        if(.$wpars$multic) mclapply(1:.$dataf$le, .$rune_saltelli, mc.cores=min(.$dataf$le,.$wpars$procs), mc.preschedule=F ) 
         else                 lapply(1:.$dataf$le, .$rune_saltelli )
       }, function(a) a, .$dataf$out_saltelli[,,,1,1] )
     }
@@ -324,13 +324,11 @@ wrapper_object <-
       # call parameter matrix run function
       if(is.null(.$dataf$met)){
         
-        ncores <- max(1, floor(.$wpars$procs/.$dataf$le) )
-        
         # call next run function, wrapped within vapply to convert (mc)lapply list output to an array
         # returns a numeric array - model output variable (rows), sample (columns), parameter (slices)
         vapply({
-          if(.$wpars$multic&ncores>=2) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=.$wpars$procs, mc.preschedule=T ) 
-          else                           lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
+          if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=max(1,floor(.$wpars$procs/.$dataf$le)), mc.preschedule=T ) 
+          else                 lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
         },function(a) a, .$dataf$out_saltelli[,,1,1,1] )
         
       } else {
@@ -440,7 +438,7 @@ wrapper_object <-
 
       # call the below run function
       .$dataf$out[] <- vapply({
-        if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=.$wpars$procs, mc.preschedule=F )
+        if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=min(.$dataf$lfA,.$wpars$procs), mc.preschedule=F )
         else                 lapply(1:.$dataf$lfA, .$run_repA)
       }, function(a) a, .$dataf$out[,,,,,1] )
       
@@ -472,7 +470,7 @@ wrapper_object <-
  
       # call process A parameter run function
       vapply({
-        if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run_parA, offset=osg, mc.cores=max(floor(.$wpars$procs/.$dataf$lfA),1), mc.preschedule=F  )
+        if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run_parA, offset=osg, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lfA)), mc.preschedule=F  )
         else                 lapply(1:.$dataf$lp, .$run_parA, offset=osg)
       }, function(a) a, .$dataf$out[,,,,1,1] )
     }
