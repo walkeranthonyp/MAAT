@@ -232,17 +232,21 @@ if(xml) {
 } else source(initf)
 
 # combine default values with user defined static values
-inits <- if(exists('init_static')) fuselists(init_default,init_static) else init_default
+init_s <- if(exists('init_static')) fuselists(init_default,init_static) else init_default
+
+# check process representation functions specified in input exist 
+lapply(init_s,       function(v) for( c1 in v ) if(!sum(grepl(c1,ls()))) stop('The function: ',c1,' , specified in init static does not exist') )
+lapply(init_dynamic, function(v) for( c1 in v ) if(!sum(grepl(c1,ls()))) stop('The function: ',c1,' , specified in init dynamic does not exist') )
 
 # add init lists to wrapper
-maat$init_static  <- inits
+maat$init_static  <- init_s
 maat$init_dynamic <- init_dynamic
 
-# write static parameters used in simulation
+# output static parameters used in simulation
 print('',quote=F)
 print('Write record of static run variables',quote=F)
 setwd(odir)
-listtoXML(paste(runid,'setup_static.xml',sep='_'),  'static',  sublist=inits)
+listtoXML(paste(runid,'setup_static.xml',sep='_'),  'static',  sublist=init_s)
 listtoXML(paste(runid,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
 
 

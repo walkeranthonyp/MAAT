@@ -44,9 +44,14 @@ l2 <- list(list(env    = get(mo)[['env']]))
 names(l2) <- mod_obj
 l2[[1]][[1]][] <- 'column name of variable in metdata file'
 
+# read all options
+l1names   <- l1
+l1names[] <- l1 
+l1opt     <- lapply(l1names, function(c1) ls()[grep(paste0('f_',c1))] )
+
 # convert list to XMLs
 listtoXML(paste(mod_obj,'default.xml',sep='_'), 'default',  sublist=l1 )
-listtoXML(paste(mod_obj,'options.xml',sep='_'), 'options',  sublist=l1 )
+listtoXML(paste(mod_obj,'options.xml',sep='_'), 'options',  sublist=l1opt )
 setwd('init_files')
 listtoXML(paste(mod_obj,'user_static.xml',sep='_'),  'static',               sublist=l1 )
 listtoXML(paste(mod_obj,'user_dynamic.xml',sep='_'), 'dynamic',              sublist=l1 )
