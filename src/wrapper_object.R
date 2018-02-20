@@ -137,14 +137,18 @@ wrapper_object <-
         
       } else {
         # any type of run other than Ye process sensitivity analysis 
-        .$dataf$lf <- if(is.null(.$dataf$fnames)|(sum(dim(.$dataf$fnames)==0)==2)) 1 else length(.$dataf$fnames[,1]) 
-        .$dataf$lp <- if(is.null(.$dataf$pars)|(sum(dim(.$dataf$pars)==0)==2) )    1 else length(.$dataf$pars[,1])
+        #.$dataf$lf <- if(is.null(.$dataf$fnames)|(sum(dim(.$dataf$fnames)==0)==2)) 1 else length(.$dataf$fnames[,1]) 
+        #.$dataf$lp <- if(is.null(.$dataf$pars)|(sum(dim(.$dataf$pars)==0)==2) )    1 else length(.$dataf$pars[,1])
+        .$dataf$lf <- if(is.null(.$dataf$fnames)) 1 else length(.$dataf$fnames[,1]) 
+        .$dataf$lp <- if(is.null(.$dataf$pars))   1 else length(.$dataf$pars[,1])
         
       }
       
       # enviroment matrix and met matrix
-      .$dataf$le <- if(is.null(.$dataf$env)|(sum(dim(.$dataf$env)==0)==2)      ) 1 else length(.$dataf$env[,1])    
-      .$dataf$lm <- if(is.null(.$dataf$met)|(sum(dim(.$dataf$met)==0)==2)      ) 1 else length(.$dataf$met[,1])    
+      #.$dataf$le <- if(is.null(.$dataf$env)|(sum(dim(.$dataf$env)==0)==2)      ) 1 else length(.$dataf$env[,1])    
+      #.$dataf$lm <- if(is.null(.$dataf$met)|(sum(dim(.$dataf$met)==0)==2)      ) 1 else length(.$dataf$met[,1])    
+      .$dataf$le <- if(is.null(.$dataf$env)) 1 else length(.$dataf$env[,1])    
+      .$dataf$lm <- if(is.null(.$dataf$met)) 1 else length(.$dataf$met[,1])    
       
       # store model output template (currently must be a vector)
       # - this will fail when output is a vector of variable length depending on parameter values
@@ -176,11 +180,10 @@ wrapper_object <-
 
         # call run function
         .$dataf$out[] <-
-          do.call(
-            rbind, {
+          do.call( 'rbind', {
               if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf, mc.cores=min(.$dataf$lf,.$wpars$procs), mc.preschedule=F )
               else                 lapply( 1:.$dataf$lf, .$runf )
-            })
+          })
         
         # print summary of results
         .$print_output()
@@ -251,7 +254,7 @@ wrapper_object <-
       if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
 
       # call next run function
-      do.call('rbind', {
+      do.call( 'rbind', {
           if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, fi=i, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=T  )
           else                 lapply(1:.$dataf$lp, .$runp, fi=i )
       })
@@ -395,8 +398,10 @@ wrapper_object <-
       .$dataf$fnamesB <- if(!any(is.na(.$dynamic$fnames[-f]))) as.matrix(expand.grid(.$dynamic$fnames[-f],stringsAsFactors=F)) else stop()
       
       # determine the number of the rows in the fnames process matrices
-      .$dataf$lfA     <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
-      .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
+      #.$dataf$lfA     <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
+      #.$dataf$lfB     <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
+      .$dataf$lfA     <- if(is.null(.$dataf$fnames )) 1 else length(.$dataf$fnames[,1]) 
+      .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)) 1 else length(.$dataf$fnamesB[,1]) 
       
       # partition the parameters to process A and and process B
       .$procA_name    <- names(.$dynamic$fnames)[f]
@@ -740,7 +745,7 @@ wrapper_object <-
           # if met data
           # - so far will only work for factorial simulations
           } else {
-            odf <- cbind(do.call(rbind , lapply(1:length(vardf[,1]) , .$combine ,df=vardf )), .$dataf$out )            
+            odf <- cbind(do.call(rbind , lapply(1:length(vardf[,1]) , .$combine, df=vardf ) ), .$dataf$out )            
             print(head(odf))
             if(dim(vardf)[2]==1) names(odf)[which(names(odf)=='df.i...')] <- names(vardf)
             rm(vardf)
