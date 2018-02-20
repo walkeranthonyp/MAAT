@@ -24,12 +24,12 @@ if(is.null(mod_obj)) {
   stop('mod_obj needs to be specified as a command line argument')
 } 
 
-# load function to creat XMLs from lists
+# load function to create XMLs from lists
 setwd('./src/')
 source('general_functions.R')
 
 # open the newly created model object
-setwd(mod_obj)
+setwd(paste('system_models','mod_obj',sep='/'))
 mo <- paste0(mod_obj,'_object')
 source(paste0(mo,'.R'))
 

@@ -9,7 +9,7 @@
 MODOBJ=$1
 PDIR=$2
 run_scripts=${3-$PWD/run_scripts}
-src=${4-$PWD/src}
+src=${4-$PWD/src}/system_models
 
 mkdir -p $PDIR >/dev/null 2>&1
 mkdir -p $PDIR/logs >/dev/null 2>&1
@@ -19,9 +19,6 @@ cp    $run_scripts/call_run_MAAT.bs       $PDIR && chmod 755 ${PDIR}/call_run_MA
 cp    $run_scripts/run_MAAT.R             $PDIR && chmod 755 ${PDIR}/run_MAAT.R
 cp    $src/$MODOBJ/init_files/init_MAAT.R $PDIR && chmod 755 ${PDIR}/init_MAAT.R
 cp    $src/$MODOBJ/init_files/*.xml       $PDIR && chmod 755 ${PDIR}/*.xml
-#cp    $src/$MODOBJ/init_files/leaf_user_dynamic.xml $PDIR && chmod 755 ${PDIR}/leaf_user_dynamic.xml
-#cp    $src/$MODOBJ/init_files/leaf_user_met.xml     $PDIR && chmod 755 ${PDIR}/leaf_user_met.xml
-#cp    $src/$MODOBJ/init_files/analysis_MAAT.R       $PDIR && chmod 755 ${PDIR}/analysis_MAAT.R
 
 # if else
 if [[ $OSTYPE == darwin* ]]; then
@@ -30,14 +27,12 @@ if [[ $OSTYPE == darwin* ]]; then
    sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
    sed -i '' "s@#SOURCEDIR#@$src@"    ${PDIR}/run_MAAT.R
    sed -i '' "s@#MODELOBJ#@$MODOBJ@"  ${PDIR}/run_MAAT.R
-#   sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/analysis_MAAT.R
 else
    sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT.pbs
    sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs
    sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
    sed -i    "s@#SOURCEDIR#@$src@"    ${PDIR}/run_MAAT.R
    sed -i    "s@#MODELOBJ#@$MODOBJ@"  ${PDIR}/run_MAAT.R
-#   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/analysis_MAAT.R
 fi
 
 

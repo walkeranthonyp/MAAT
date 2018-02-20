@@ -79,8 +79,6 @@ evalXMLlist <- function(sublist) {
 }
 
 
-
-
 #####################################################
 # save a list to an xml file
 listtoXML <- function(fname,name,...) {

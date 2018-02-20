@@ -884,9 +884,9 @@ wrapper_object <-
     .test_simple <- function(.,metd=F,mc=F,pr=4,oconf=F) {
       
       # source directory
-      setwd('leaf')
+      setwd('system_models/leaf')
       source('leaf_object.R')
-      setwd('..')
+      setwd('../..')
       
       # clone the model object
       .$model <- as.proto(leaf_object$as.list(),parent=.)
@@ -946,9 +946,9 @@ wrapper_object <-
     .test <- function(.,metd=T,mc=T,pr=4,oconf=F) {
       
       # source directory
-      setwd('leaf')
+      setwd('system_models/leaf')
       source('leaf_object.R')
-      setwd('..')
+      setwd('../..')
       
       library(lattice)
       
@@ -1021,9 +1021,9 @@ wrapper_object <-
     .test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
       
       # source directory
-      setwd('leaf')
+      setwd('system_models/leaf')
       source('leaf_object.R')
-      setwd('..')
+      setwd('../..')
       library(lattice)
       
       # clone the model object
@@ -1096,9 +1096,9 @@ wrapper_object <-
     .test_saltelli <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3,eval_strings=T) {
       
       # source directory
-      setwd('leaf')
+      setwd('system_models/leaf')
       source('leaf_object.R')
-      setwd('..')
+      setwd('../..')
       library(lattice)
       
       # clone the model object

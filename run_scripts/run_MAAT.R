@@ -167,24 +167,16 @@ sofname <- if(is.null(runid))     paste(of_main,'salt',sep='_') else paste(runid
 setwd(srcdir)
 source('wrapper_object.R')
 # load MAAT object(s) from source
-setwd(paste('./',mod_obj,sep=''))
+setwd(paste('system_models',mod_obj,sep='/'))
 source(paste(mod_obj,'object.R',sep='_'))
 # read default model setup
 init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
 # read model mimic setup
 if(!is.null(mod_mimic)) {
-  setwd('./mimic_xmls')
+  setwd('mimic_xmls')
   init_mimic   <- readXML(paste(mod_obj,'_',mod_mimic,'.xml',sep=''))
   init_default <- fuselists(init_default,init_mimic) 
 }
-
-
-
-##################################
-# Configure and initialise the MAAT model
-
-# build and clone the model object
-# model <- get(paste(mod_obj,'object',sep='_'))$.build()
 
 
 

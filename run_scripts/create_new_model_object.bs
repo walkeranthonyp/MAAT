@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # copy MAAT model object template to a new model object 
-# 1st argument- new model object name 
+# 1st argument - new model object name 
 # 2nd argument - path of MAAT source code directory 'src', can be left blank if this script is run from the top level maat source code directory
 
 NMOD=$1
-src=${2-$PWD/src}
+src=${2-$PWD/src}/system_models
 
 mkdir -p $src/$NMOD >/dev/null 2>&1
 cp       $src/template/*.R $src/$NMOD && chmod 755 $src/$NMOD/*
