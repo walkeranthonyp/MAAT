@@ -40,21 +40,18 @@ diag_m <- function(v,k=0) {
 ################################
 
 # recharge
-# power law (R1 in Heng etal 2017)
+# power law (R1 in Dai et al 2017)
 f_rechrg_power <- function(.) {
   (5.04*.$pars$a*(.$env$precip - 355.6)^0.5) * 1e-3 / 365
-  #(.$pars$a*(.$env$precip - 14)^0.5)    * 2.54e-2 / 365
 }
 
-# linear (R2 in Heng etal 2017)
+# linear (R2 in Dai et al 2017)
 f_rechrg_lin <- function(.) {
   (.$pars$b*(.$env$precip - 399.8)) * 1e-3 / 365
-  #(.$pars$b*(.$env$precip - 15.74))     * 2.54e-2 / 365
 }
 
 
 # transport over geological domain
-
 # single layer model
 f_geol_single <- function(.) {
   vapply(1:.$pars$nx, function(jj,.) sqrt(.$env$h1^2 - (.$env$h1^2-.$env$h2^2)*.$state_pars$x[jj]/.$pars$L + 
@@ -100,16 +97,4 @@ f_double_layer_model_h <- function(.) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+### END ###

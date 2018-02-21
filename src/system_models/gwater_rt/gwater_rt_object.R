@@ -1,14 +1,13 @@
 ################################
 #
 # gwater_rt for MAAT object functions
-# from Dai etal 2017 WRR 
+# from Dai et al 2017 WRR 
 #
 # AWalker November 2017
 #
 ################################
 
 library(proto)
-
 source('gwater_rt_functions.R')
 
 
@@ -81,8 +80,8 @@ gwater_rt_object <-
     # function names
     fnames <- list(
       gwatersys = 'f_gwatersys_daiye', # system model
-      rechrg    = 'f_rechrg_lin',     # recharge function
-      geol      = 'f_trans_single'    # geology/transport function
+      rechrg    = 'f_rechrg_lin',      # recharge function
+      geol      = 'f_trans_single'     # geology/transport function
     )
 
     # gwater_rt parameters
@@ -120,7 +119,7 @@ gwater_rt_object <-
     ###########################################################################
     # Run & configure functions
     
-    configure <- function(.,vlist,df,o=T){
+    configure <- function(.,vlist,df,o=T) {
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
       
@@ -146,7 +145,7 @@ gwater_rt_object <-
       }
     }
     
-    run_met <- function(.,l){
+    run_met <- function(.,l) {
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe
       # assumes that each row of the dataframe are sequential
       # allows the system state at t-1 to affect the system state at time t if necessary (therefore mclapply cannot be used)
@@ -168,19 +167,19 @@ gwater_rt_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test <- function(., verbose=F, gwater_rt.precip=1524, gwater_rt.recharge='f_rechrg_lin', gwater_rt.geology='f_trans_single' ){
+    .test <- function(., verbose=F, gwater_rt.precip=1524, gwater_rt.rechrg='f_rechrg_lin', gwater_rt.geol='f_geol_single' ) {
       
       if(verbose) {
         str(.)
         print(.$env)
       }
       
-      .$cpars$verbose   <- verbose
-      .$cpars$output    <-'run'
+      .$cpars$verbose <- verbose
+      .$cpars$output  <-'run'
       
-      .$env$precip      <- gwater_rt.precip
-      .$fnames$recharge <- gwater_rt.recharge
-      .$fnames$geology  <- gwater_rt.geology
+      .$env$precip    <- gwater_rt.precip
+      .$fnames$rechrg <- gwater_rt.rechrg
+      .$fnames$geol   <- gwater_rt.geol
       
       .$run()
     }
@@ -193,5 +192,4 @@ gwater_rt_object <-
 
 
 
-
-
+### END ###
