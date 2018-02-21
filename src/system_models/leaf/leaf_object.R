@@ -7,7 +7,6 @@
 ################################
 
 library(proto)
-library(stringr)
 
 source('leaf_system_functions.R')
 source('leaf_functions.R')
@@ -341,10 +340,10 @@ leaf_object <-
     configure <- function(.,vlist,df,o=T) {
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
-      
+     
       # process UQ variables
       uqvars <- names(df)
-      prefix <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
+      prefix <- vapply( strsplit(uqvars,'.', fixed=T), function(cv) cv[1], 'character' )
       modobj <- .$name
       dfss   <- which(prefix==modobj)
       vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
@@ -360,7 +359,7 @@ leaf_object <-
         print('Leaf configure:',quote=F)
         print(prefix,quote=F)
         print(df,quote=F)
-        print(.$fnames,quote=F)
+        print(.[vlist],quote=F)
       }
     }
     

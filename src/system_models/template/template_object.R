@@ -7,7 +7,6 @@
 ################################
 
 library(proto)
-library(stringr)
 
 source('template_functions.R')
 
@@ -127,11 +126,15 @@ template_object <-
       
       # name and assign the UQ variables
       uqvars <- names(df)
-      prefix <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
+      prefix <- vapply( strsplit(uqvars,'.', fixed=T), function(cv) cv[1], 'character' )
       modobj <- .$name
       dfss   <- which(prefix==modobj)
       vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
-      # could write a line to catch NAs in vlss
+      
+      # catch NAs in vlss
+      if(any(is.na(vlss))) stop(paste('names mismatch between model object variables and input list variable:', uqvars[which(is.na(vlss))] ))
+
+      # assign UQ variables
       .[[vlist]][vlss] <- df[dfss]
       
       if(.$cpars$cverbose&o) {
@@ -139,7 +142,7 @@ template_object <-
         print('template configure:',quote=F)
         print(prefix,quote=F)
         print(df,quote=F)
-        print(.$fnames,quote=F)
+        print(.[vlist],quote=F)
       }
     }
     

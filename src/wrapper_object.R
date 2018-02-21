@@ -30,7 +30,6 @@ wrapper_object <-
     
     # build function
     build <- function(.,model) {
-      # maat       <- as.proto(.$as.list(),parent=.GlobalEnv)
       .$model <- as.proto(get(model)$as.list())
       .$model$build()
     }
@@ -68,9 +67,9 @@ wrapper_object <-
 
       # initialise model with static variables
       ########################################
-      .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] )
-      .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   )
-      .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    )      
+      if(!(is.na(.$static$fnames)|is.null(.$static$fnames))) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] )
+      if(!(is.na(.$static$pars)|is.null(.$static$pars)))     .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   )
+      if(!(is.na(.$static$env)|is.null(.$static$env)))       .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    )      
       
       # create matrices of runtime variables  
       ######################################
@@ -671,40 +670,32 @@ wrapper_object <-
         # if at least one of fnames, pars, and env are varied
         if(is.null(.$dataf$env)+is.null(.$dataf$pars)+is.null(.$dataf$fnames) < 3) {
 
-          # run types if
+          # run types if - SA/UQ or not
+          # if SA/UQ this output function is not used 
+          # SA/UQ functionality is here to allow the user to call these to inspect SA/UQ output against inputs in a common dataframe 
           if(.$wpars$UQ) {
+            # if Ye (i.e. process) SA 
             if(.$wpars$UQtype=='ye') {
-              # if Ye (i.e. process) SA 
               
               # combine input into a single dataframe in order of output dataframe,
               #  - i.e. repeats lines in input dataframes/matrices to align with output
               #  - the number of rows in the resultant dataframe is lf*lfB*n^2*le
  
-              # print(Sys.time())
-              # print(paste('Rows df$fnames:', dim(.$dataf$fnames)[1], .$dataf$lfA),quote=F)
-              # print(paste('Rows df$fnamesB:',dim(.$dataf$fnamesB)[1],.$dataf$lfB),quote=F)
-              # print(paste('Rows df$pars:',   dim(.$dataf$pars)[1],   .$wpars$n),quote=F)
-              # print(paste('Rows df$parsB:',  dim(.$dataf$parsB)[1],  .$wpars$n^2*.$dataf$lfA*.$dataf$lfB),quote=F)
-              # print(paste('Rows df$env:',    dim(.$dataf$env)[1],    .$dataf$le),quote=F)
-              # 
-              # vardf    <- list(
-              #   # fnames of process A - length lf * lfB * le * n^2
-              #   fnames  = apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
-              #   # pars of process A
-              #   pars    = apply(.$dataf$pars,   2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lfA) ),
-              #   # fnames of process B
-              #   fnamesB = apply(.$dataf$fnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lfA*.$wpars$n) ),
-              #   # parsB
-              #   parsB   = apply(.$dataf$parsB,  2,function(v) rep(v,each=.$dataf$le) ),
-              #   # environment
-              #   env     = apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lfA*.$dataf$lfB*.$wpars$n^2) )
-              # )
+              vardf    <- list(
+                # fnames of process A - length lf * lfB * le * n^2
+                fnames  = apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
+                # pars of process A
+                pars    = apply(.$dataf$pars,   2,function(v) rep(rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n),.$dataf$lfA) ),
+                # fnames of process B
+                fnamesB = apply(.$dataf$fnamesB,2,function(v) rep(rep(v,each=.$dataf$le*.$wpars$n),.$dataf$lfA*.$wpars$n) ),
+                # parsB
+                parsB   = apply(.$dataf$parsB,  2,function(v) rep(v,each=.$dataf$le) ),
+                # environment
+                env     = apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lfA*.$dataf$lfB*.$wpars$n^2) )
+              )
               
+            # if Saltelli SA
             } else if(.$wpars$UQtype=='saltelli') { 
-              # if Saltelli SA
-              # this is not currently used by the run scripts as the Saltelli method expects a different organisation of output
-              # can be called by user to inspect Saltelli run output from matrix AB in a user readable format
-              # for example, to inspect relationship between parameters and output
 
               vardf <- cbind( 
                 # fnames
@@ -717,8 +708,9 @@ wrapper_object <-
               
               vardf <- as.data.frame(vardf)
             }   
+
+          # if factorial combination run
           } else { 
-            # if factorial combination run
             vpars    <- if(is.null(.$dataf$pars))    NULL else .$dynamic$pars
             venv     <- if(is.null(.$dataf$env))     NULL else .$dynamic$env
             vfnames  <- if(is.null(.$dataf$fnames))  NULL else .$dynamic$fnames
@@ -1177,11 +1169,4 @@ wrapper_object <-
 
 
 
-
-
-
-
-
-
-
-
+### END ###
