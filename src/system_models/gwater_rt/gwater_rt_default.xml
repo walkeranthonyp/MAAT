@@ -1,8 +1,9 @@
 <default>
   <gwater_rt>
     <fnames>
-      <recharge>'f_rechrg_lin'</recharge>
-      <geology>'f_trans_single'</geology>
+      <gwatersys>'f_gwatersys_daiye'</gwatersys>
+      <rechrg>'f_rechrg_lin'</rechrg>
+      <geol>'f_trans_single'</geol>
     </fnames>
     <pars>
       <nx>21</nx>
@@ -10,7 +11,7 @@
       <K1>20</K1>
       <K2>10</K2>
       <a>3.35</a>
-      <b>0.1</b>
+      <b>0.15</b>
       <L>10000</L>
       <out_hsub>13</out_hsub>
     </pars>

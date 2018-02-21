@@ -25,13 +25,12 @@ if(is.null(mod_obj)) {
 } 
 
 # load function to create XMLs from lists
-setwd('./src/')
+setwd('../src/')
 source('general_functions.R')
 
 # open the newly created model object
-setwd(paste('system_models','mod_obj',sep='/'))
-mo <- paste0(mod_obj,'_object')
-source(paste0(mo,'.R'))
+setwd(paste('system_models',mod_obj,sep='/'))
+mo <- paste0(mod_obj,'_object'); source(paste0(mo,'.R'))
 
 # create lists to convert to XML
 l1 <- list(list(fnames = get(mo)[['fnames']],
@@ -45,11 +44,24 @@ names(l2) <- mod_obj
 l2[[1]][[1]][] <- 'column name of variable in metdata file'
 
 # read all options
-l1names   <- l1
-l1names[] <- l1 
-l1opt     <- lapply(l1names, function(c1) ls()[grep(paste0('f_',c1))] )
+mf <- paste0(mod_obj,'_system_functions.R'); source(mf)
+mf <- paste0(mod_obj,'_functions.R');        source(mf)
+l1opt     <- l1
+l1names   <- l1[[mod_obj]][['fnames']]
+l1names[] <- names(l1names)
+l1opt[[mod_obj]] <- list( fnames = lapply(l1names, function(c1) { 
+                                                     print('', quote=F )
+                                                     print(paste('Searching for representations of process:',c1), quote=F ) 
+                                                     c2 <- ls(pos=1, pattern=paste0('f_',c1))
+                                                     print('Found:', quote=F ) 
+                                                     print(c2, quote=F ) 
+                                                     out <- do.call('paste', lapply(as.list(c2),  function(c3) paste0("'",c3,"'",',') ) )
+                                                     out <- substr(out, 1, nchar(out)-1)
+                                                     paste('c(',out,')')
+                        }))
 
 # convert list to XMLs
+print('', quote=F )
 listtoXML(paste(mod_obj,'default.xml',sep='_'), 'default',  sublist=l1 )
 listtoXML(paste(mod_obj,'options.xml',sep='_'), 'options',  sublist=l1opt )
 setwd('init_files')
@@ -57,6 +69,10 @@ listtoXML(paste(mod_obj,'user_static.xml',sep='_'),  'static',               sub
 listtoXML(paste(mod_obj,'user_dynamic.xml',sep='_'), 'dynamic',              sublist=l1 )
 listtoXML(paste(mod_obj,'user_met.xml',sep='_'),     'met_data_translator',  sublist=l2 )
 
-# open options XML to add labels and non-default options
+# open options XML to add labels by hand 
 setwd('..')
 file.edit(paste(mod_obj,'options.xml',sep='_'))
+
+
+
+### END ###

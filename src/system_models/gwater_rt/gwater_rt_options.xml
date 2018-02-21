@@ -1,23 +1,9 @@
 <options>
   <gwater_rt>
     <fnames>
-      <recharge>c('f_rechrg_lin','f_rechrg_power')</recharge>
-      <geology>c('f_trans_single','f_trans_double')</geology>
+      <gwatersys>'c( 'f_gwatersys_daiye' )'</gwatersys>
+      <rechrg>'c( 'f_rechrg_lin', 'f_rechrg_power' )'</rechrg>
+      <geol>'c( 'f_geol_double', 'f_geol_single' )'</geol>
     </fnames>
-    <pars>
-      <nx>21</nx>
-      <K>15</K>
-      <K1>20</K1>
-      <K2>10</K2>
-      <a>3.35</a>
-      <b>0.1</b>
-      <L>10000</L>
-      <out_hsub>13</out_hsub>
-    </pars>
-    <env>
-      <h1>180</h1>
-      <h2>100</h2>
-      <precip>1524</precip>
-    </env>
   </gwater_rt>
 </options>

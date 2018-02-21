@@ -1,9 +1,15 @@
 <met_data_translator>
   <leaf>
     <env>
-      <par>'PAR'</par>
-      <temp>'AT'</temp>
-      <vpd>'VPD'</vpd>
+      <ca_conc>'column name of variable in metdata file'</ca_conc>
+      <o2_conc>'column name of variable in metdata file'</o2_conc>
+      <par>'column name of variable in metdata file'</par>
+      <water_l>'column name of variable in metdata file'</water_l>
+      <sphag_l>'column name of variable in metdata file'</sphag_l>
+      <temp>'column name of variable in metdata file'</temp>
+      <vpd>'column name of variable in metdata file'</vpd>
+      <rh>'column name of variable in metdata file'</rh>
+      <atm_press>'column name of variable in metdata file'</atm_press>
     </env>
   </leaf>
 </met_data_translator>

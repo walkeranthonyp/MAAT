@@ -295,8 +295,9 @@ f_Apg_vonc2000 <- function(.,cc=.$state$cc){
   # alpha = 0, tpu = vcmax/6
   # and tpu temperature scaling is identical to vcmax
   
-  if( cc <= (1+3*.$pars$Apg_alpha)*.$state_pars$gstar) NA
-  else 3*.$state_pars$tpu / ( cc-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar )
+  ifelse( cc <= (1+3*.$pars$Apg_alpha)*.$state_pars$gstar, NA,
+          3*.$state_pars$tpu / ( cc-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar ) 
+          )
 }
 
 f_Apg_foley1996 <- function(.,cc=.$state$cc){
@@ -332,13 +333,13 @@ f_lim_collatz1991 <- function(.){
   
   sol1 <- quad_sol(a,b,c)
 
-  if(!is.na(.$state$Apg)) {
+  ifelse(!is.na(.$state$Apg), {
     a  <- .$pars$theta_col_cjp
     b  <- -1 * (.$state$Apg + sol1)
     c  <- .$state$Apg * sol1
-    
     quad_sol(a,b,c)
-  } else sol1
+
+  }, sol1)
 }
 
  

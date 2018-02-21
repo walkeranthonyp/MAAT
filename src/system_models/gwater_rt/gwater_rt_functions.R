@@ -56,18 +56,18 @@ f_rechrg_lin <- function(.) {
 # transport over geological domain
 
 # single layer model
-f_trans_single <- function(.) {
+f_geol_single <- function(.) {
   vapply(1:.$pars$nx, function(jj,.) sqrt(.$env$h1^2 - (.$env$h1^2-.$env$h2^2)*.$state_pars$x[jj]/.$pars$L + 
                                             .$state$recharge*(.$pars$L-.$state_pars$x[jj])*.$state_pars$x[jj]/.$pars$K), 1, .=. )
 }
 
 # double layer model
-f_trans_double <- function(.) {
-  h11 <-  Double_layer_model_h(.)
+f_geol_double <- function(.) {
+  h11 <-  f_double_layer_model_h(.)
   h11[seq(1,101,5)]
 }
 
-Double_layer_model_h <- function(.) {
+f_double_layer_model_h <- function(.) {
   # Domain information
   nx    <- 101 # for some reason the horizontal discretisation is finer for this model
   nx1   <- 70

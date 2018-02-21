@@ -8,7 +8,6 @@
 
 library(proto)
 library(parallel)
-#library(plyr)
 
 source('general_functions.R')
 source('calc_functions.R')

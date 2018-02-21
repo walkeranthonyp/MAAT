@@ -39,18 +39,9 @@ gwater_rt_object <-
     
     run   <- function(.) {
       
+      # call system model 
+      get(.$fnames$gwatersys)(.)
 
-      # calculate state parameters
-      .$state_pars$x <-  seq(0, .$pars$L, (.$pars$L-0)/(.$pars$nx-1) )
-      
-      # Dai & Ye model 
-      # recharge
-      .$state$recharge <- get(.$fnames$recharge)(.)
-      #print(get(.$fnames$recharge)(.))
-      
-      # geological transport
-      .$state$h        <- get(.$fnames$geology)(.)
-      
       # print to screen
       if(.$cpars$verbose) {
         print(.$state)
@@ -90,8 +81,9 @@ gwater_rt_object <-
     
     # function names
     fnames <- list(
-      recharge = 'f_rechrg_lin',  # recharge function
-      geology  = 'f_trans_single' # geology/transport function
+      gwatersys = 'f_gwatersys_daiye', # system model
+      rechrg    = 'f_rechrg_lin',     # recharge function
+      geol      = 'f_trans_single'    # geology/transport function
     )
 
     # gwater_rt parameters

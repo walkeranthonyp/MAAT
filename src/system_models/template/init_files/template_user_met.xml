@@ -1,6 +1,8 @@
 <met_data_translator>
   <template>
     <env>
+      <ca_conc>'column name of variable in metdata file'</ca_conc>
+      <atm_press>'column name of variable in metdata file'</atm_press>
     </env>
   </template>
 </met_data_translator>

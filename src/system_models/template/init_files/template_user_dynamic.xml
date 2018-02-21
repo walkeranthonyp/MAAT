@@ -1,7 +1,17 @@
 <dynamic>
   <template>
-    <fnames>NA</fnames>
-    <pars>NA</pars>
-    <env>NA</env>
+    <fnames>
+      <templatesys>'f_templatesys_1'</templatesys>
+      <gstar>'f_gstar_constref'</gstar>
+      <Alim>'f_lim_farquhar1980'</Alim>
+    </fnames>
+    <pars>
+      <a>0.8</a>
+      <R>8.31446</R>
+    </pars>
+    <env>
+      <ca_conc/>
+      <atm_press>101325</atm_press>
+    </env>
   </template>
 </dynamic>
