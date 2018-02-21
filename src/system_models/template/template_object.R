@@ -7,12 +7,12 @@
 ################################
 
 library(proto)
-
 source('template_functions.R')
+source('template_system_functions.R')
 
 
 
-# LEAF OBJECT
+# TEMPLATE OBJECT
 ###############################################################################
 
 template_object <- 
@@ -57,17 +57,11 @@ template_object <-
     #output processing function
     # -- returns a list of outputs
     output <- function(.) {
-      if(.$cpars$output=='slim') {
-        lout <- 
-          list(A=.$state$A,ci=.$state$ci,lim=.$state$lim)
-        
-      } else if(.$cpars$output=='run') {
-        lout <- 
-          list(A=.$state$A,cc=.$state$cc,ci=.$state$ci,
-               gi=1/.$state_pars$ri,gs=1/.$state_pars$rs,gb=1/.$state_pars$rb,
-               respiration=.$state$respiration,lim=.$state$lim)
-        
-      } else stop()
+      if(.$cpars$output=='full') {
+        print('done')
+      else if(.$cpars$output=='none') { 
+        print('')
+      } else stop('Output type not defined')
       
     }    
     
@@ -78,41 +72,41 @@ template_object <-
     
     # run control parameters
     cpars <- list(
-      verbose       = F,          # write diagnostic output during runtime 
-      output        = 'run'       # type of output from run function
+      verbose       = F,      # write diagnostic output during runtime 
+      output        = 'full'  # type of output from run function
     )
     
     # function names
     fnames <- list(
       templatesys = 'f_templatesys_1',
-      gstar       = 'f_gstar_constref',
-      Alim        = 'f_lim_farquhar1980'
+      text        = 'f_text_combine',
+      calcval     = 'f_calcval_product',
+      print       = 'f_print_textonly'
     )
 
     #template parameters
     pars   <- list(
-      a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - template scattering coefficient, there is potential here for improper combination of models
-      #physical constants
-      R   = 8.31446               # molar gas constant                                      (m2 kg s-2 K-1 mol-1  ==  Pa m3 mol-1K-1)
+      text1 = 'hello',    
+      text2 = 'world',    
+      text3 = 'The answer is:',    
+      val1  = 6,           
+      val2  = 7           
     )
 
     # template environment
     env <- list(
-      ca_conc   = numeric(0),          # (umol mol-1)
-      atm_press = 101325               # ( Pa)
+      ca_conc   = numeric(0)    
       )
 
     #template state parameters (i.e. calculated parameters)
     state_pars <- list(
-      vcmax    = numeric(0),   # umol m-2 s-1
-      cica_chi = numeric(0)    # Ci:Ca ratio 
+      vcmax    = numeric(0)   
     )
     
     # template state
     state <- list(
-      #environmental state
-      oi = numeric(0),                 # atmospheric & internal O2  (kPa)
-      transition   = numeric(0)        # cc at the transition point where wc = wj                        (Pa)
+      text    = character(0),     # text to print
+      calcval = numeric(0)        # value to print
     )
     
     
@@ -168,32 +162,59 @@ template_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test <- function(.,verbose=T,verbose_loop=T,template.par=1000,template.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci'){
+    .test <- function(.,verbose=T,verbose_loop=T) {
       
       if(verbose) {
         str.proto(.)
-        print(.$env)
       }
+
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
       .$cpars$output        <-'full'
       
-      .$fnames$ri          <- 'f_r_zero'
-      .$fnames$rs          <- rs
-      .$fnames$solver_func <- 'f_A_r_template'
-      .$fnames$gas_diff    <- gd
+      .$run()
+    }
+
+    .test_change_func <- function(.,verbose=T,verbose_loop=T,
+                                  template.text='f_text_combine',template.calcval='f_calcval_product',template.print='f_print_textonly') {
       
-      .$env$par     <- template.par
-      .$env$ca_conc <- template.ca_conc
+      if(verbose) {
+        str.proto(.)
+      }
+
+      .$cpars$verbose       <- verbose
+      .$cpars$verbose_loop  <- verbose_loop
+      .$cpars$output        <-'full'
+      
+      .$fnames$text         <- template.text
+      .$fnames$calcval      <- template.calcval
+      .$fnames$print        <- template.print
       
       .$run()
     }
 
+    .test_change_pars <- function(.,verbose=T,verbose_loop=T,
+                                  template.text1='hello',template.text2='world') {
+      
+      if(verbose) {
+        str.proto(.)
+      }
+
+      .$cpars$verbose       <- verbose
+      .$cpars$verbose_loop  <- verbose_loop
+      .$cpars$output        <-'full'
+      
+      .$pars$text1          <- template.text1
+      .$pars$text2          <- template.text2
+      
+      .$run()
+    }
+      
+      
     #######################################################################        
     # end object      
 })
 
 
 
-
-
+### END ###

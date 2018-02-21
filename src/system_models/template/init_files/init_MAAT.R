@@ -1,9 +1,9 @@
 ################################
 #
-# MAAT Leaf Model - initialisation script
+# MAAT template model - initialisation script
 # 
 # AWalker (walkerap@ornl.gov) 
-# December 2015
+# February 2018
 #
 ################################
 
@@ -12,7 +12,7 @@
 ### The MAAT model (Multi-Assumption Architecture & Testbed)
 ###################################################################
 
-# This script initialises the leaf photosynthesis version of MAAT
+# This script initialises the template version of MAAT
 # - by setting the values of the init_static and init_dynamic lists
 # - each of these lists elements are sublists named with the names of the model objects to which the variables in the sublists belong  
 # - each of these model object sublist elements are sublists named with the type of variable they comprise - fnames, pars, or env  

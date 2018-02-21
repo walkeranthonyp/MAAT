@@ -1,9 +1,9 @@
 ################################
 #
-# MAAT Leaf Model - initialisation script
+# MAAT gwater model - initialisation script
 # 
 # AWalker (walkerap@ornl.gov) 
-# December 2015
+# November 2017
 #
 ################################
 
@@ -12,13 +12,13 @@
 ### The MAAT model (Multi-Assumption Architecture & Testbed)
 ###################################################################
 
-# This script initialises the leaf photosynthesis version of MAAT
-# - by setting the values of the init_static and init_dynamic lists
+# This script initialises the gwater MAAT system model 
+# by setting the values of the init_static and init_dynamic lists
 # - each of these lists elements are sublists named with the names of the model objects to which the variables in the sublists belong  
 # - each of these model object sublist elements are sublists named with the type of variable they comprise - fnames, pars, or env  
 # - each of these variables sublist elements are sublists named with the variable to which they refer in the model object  
 
-# for example, to setup a leaf model object simulation:
+# for example, to setup a gwater model simulation:
 # set static variables during runtime (init_static) by setting:
 # - fnames.static
 # - pars.static     
