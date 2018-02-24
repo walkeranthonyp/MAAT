@@ -343,6 +343,7 @@ leaf_object <-
      
       # process UQ variables
       uqvars <- names(df)
+      # print(c(vlist,uqvars))
       prefix <- vapply( strsplit(uqvars,'.', fixed=T), function(cv) cv[1], 'character' )
       modobj <- .$name
       dfss   <- which(prefix==modobj)

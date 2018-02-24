@@ -47,36 +47,40 @@ wrapper_object <-
     run   <- function(.,verbose=T) {
       
       # Initialisation checks
-      # need to add a check for equal par vector lengths if this is a UQ run
-      # need to add a checking function that allows the names of fnames, pars, and env to be checked and if they don't match up to print an error message 
-      
-      # configure initialisation lists - not called if unit testing (need to develop unit testing specifically for the model object init functions)
-      if(.$wpars$UQtype=='ye')  .$wpars$eval_strings <- T
-      # if(!.$wpars$unit_testing) .$model$init()
-      if(!.$wpars$unit_testing) .$init()
-      
+      # need to add a check for equal par vector lengths if this is a UQ run and not eval_strings
+
       # for Ye et al SA method
       # due to different parameter sample numbers in process A and B loops,
       # parameters samples must be generated from code snippets as strings
-      if(.$wpars$eval_string&is.na(.$dynamic$pars_eval[[1]])) {
+      if(.$wpars$UQtype=='ye')  .$wpars$eval_strings <- T
+      if(.$wpars$eval_string&is.null(.$dynamic$pars_eval)) {
         stop(paste('wrapper: eval_strings = T but vars$pars_eval not set. \n
               vars$pars_eval:,\n',.$dynamic$pars_eval,'\n 
               NOTE: Ye method SA must draw parameter samples during runtime \n
               from code snippets written as strings in vars$pars_eval')) 
       }
 
-      # initialise model with static variables
+      # configure initialisation lists 
       ########################################
-      if(!(is.na(.$static$fnames)|is.null(.$static$fnames))) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] )
-      if(!(is.na(.$static$pars)|is.null(.$static$pars)))     .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   )
-      if(!(is.na(.$static$env)|is.null(.$static$env)))       .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    )      
+      if(!.$wpars$unit_testing) .$init()
+        
+      # initialise model with static variables
+      # if(!(is.na(.$static$fnames)|is.null(.$static$fnames))) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] )
+      # if(!(is.na(.$static$pars)|is.null(.$static$pars)))     .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   )
+      # if(!(is.na(.$static$env)|is.null(.$static$env)))       .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    )      
+      if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] ) else if(!.$wpars$unit_testing) stop('Static fnames not defined')
+      if(!is.null(.$static$pars))   .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   ) else if(!.$wpars$unit_testing) stop('Static pars not defined')
+      if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    ) else if(!.$wpars$unit_testing) stop('Static env not defined')      
       
+
       # create matrices of runtime variables  
       ######################################
-      # expand the fnames and driving variables  
-      .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[1])) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
-      .$dataf$env     <- if(!is.na(.$dynamic$env[1]))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
-          
+      # expand the fnames and driving variables lists into matrices 
+      # .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[1])) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
+      # .$dataf$env     <- if(!is.na(.$dynamic$env[1]))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
+      .$dataf$fnames  <- if(!is.null(.$dynamic$fnames)) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
+      .$dataf$env     <- if(!is.null(.$dynamic$env))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
+      
       if(.$wpars$UQ) {
         # if an SA/UQ run
           
@@ -91,7 +95,7 @@ wrapper_object <-
             n <- 2 * .$wpars$n
             .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
           }
-          if(is.na(.$dynamic$pars[1] )) stop('wrapper: pars list in vars list is empty')
+          if(is.null(.$dynamic$pars[1] )) stop('wrapper: pars list in vars list is empty')
          
           # create pars matrix
           .$dataf$pars  <- do.call(cbind, .$dynamic$pars )
@@ -122,7 +126,7 @@ wrapper_object <-
         
       } else {
         # not a formal SA/UQ run - factorial combination of variables specified in the vars lists  
-        .$dataf$pars <- if(!is.na(.$dynamic$pars[1])) as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F))   else NULL
+        .$dataf$pars <- if(!is.null(.$dynamic$pars)) as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F))   else NULL
       } 
       
       # calculate input matrix lengths 
@@ -539,7 +543,7 @@ wrapper_object <-
       # this function prefixes the names of a list with 'leaf.' 
       comb_init_list <- function(., v, modobj ) {
         
-        if(sum(is.na(v))==length(v)) NA
+        if(sum(is.na(v))==length(v)|is.null(v)) NULL
         else {
           names(v) <- paste(modobj, names(v), sep='.' ) 
           v
@@ -562,8 +566,9 @@ wrapper_object <-
       
       # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
       if(.$wpars$UQ) {
-        if(is.na(.$init_dynamic[[modobj]]$pars[1])&!is.na(.$init_dynamic[[modobj]]$pars_eval[1])) maat$wpars$eval_strings <- T
-
+        # if(is.na(.$init_dynamic[[modobj]]$pars[1])&!is.na(.$init_dynamic[[modobj]]$pars_eval[1])) maat$wpars$eval_strings <- T
+        if(is.null(.$init_dynamic[[modobj]]$pars)&!is.null(.$init_dynamic[[modobj]]$pars_eval)) maat$wpars$eval_strings <- T
+        
         if(.$wpars$eval_strings) {
           vars <- .[['init_dynamic']][[modobj]][['pars_eval']]
           .[['dynamic']][['pars_eval']] <- comb_init_list(v=vars, modobj=modobj )
@@ -585,16 +590,16 @@ wrapper_object <-
     # variables that are to be varied in the SA/UQ
     
     # initialisation lists
-    init_static  <- NA
-    init_dynamic <- NA
+    init_static  <- NULL
+    init_dynamic <- NULL
     
     # static variables
     # all expected to be of class 'list'
     # each list in the below list comprise a single string or numeric value for each variable, labelled by the variable name
     static <- list( 
-      fnames = NA,
-      pars   = NA,
-      env    = NA
+      fnames = NULL,
+      pars   = NULL,
+      env    = NULL
     )
     
     # dynamic variables
@@ -603,17 +608,17 @@ wrapper_object <-
     # each element of the list is labelled by the variable name prefixed by the name of the model object that the variable belongs to
     # each of these lists is expanded, often factorially by expand.grid, and placed into the below list of dataframes
     dynamic <- list( 
-      fnames    = NA,
-      fnamesB   = NA,
-      pars      = NA,
+      fnames    = NULL,
+      fnamesB   = NULL,
+      pars      = NULL,
       # list with same elements and names as pars but giving the fnames list name i.e. the process name to which each parameter belongs
-      pars_proc = NA,
+      pars_proc = NULL,
       # list with same elements and names as pars but each element is a code snippet as a string that once evaluated gives a vector or parameter values
       # allows different types of distributions to be specified for each parameter
       # this must be used for the Ye SA method
-      pars_eval = NA,
-      parsB     = NA,
-      env       = NA
+      pars_eval = NULL,
+      parsB     = NULL,
+      env       = NULL
     )
     
     # input/output matrices and dataframes
@@ -634,13 +639,14 @@ wrapper_object <-
       lpB     = NULL,
       le      = NULL,
       lm      = NULL,
-      # output dataframes
-      # - maintained as dataframes as model output can be character strings
+      # output matrices / arrays
+      mout         = NULL,    # example model output vector, for setting up vapply functions  
+      out          = NULL,    # output matrix
+      out_saltelli = NULL,    # saltelli output list
+      # observation matrices /dataframes
       obs     = NULL,         # a dataframe of observations against which to valiadate/ calculate likelihood of model
-      obsse   = NULL,         # a dataframe of observation errors for the obs data, must exactly match the above dataframe
-      mout    = NULL,         # example model output vector, for setting up vapply functions  
-      out     = NULL,         # output matrix
-      out_saltelli = NULL     # saltelli output list 
+      obsse   = NULL          # a dataframe of observation errors for the obs data, must exactly match the above dataframe
+      
     )
     
     # parameters specific to the wrapper object

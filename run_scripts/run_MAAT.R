@@ -1,6 +1,6 @@
 ################################
 #
-# MAAT Model - template run script
+# MAAT Model - run script
 # 
 # AWalker (walkerap@ornl.gov) 
 # December 2015
@@ -56,7 +56,7 @@ procs   <- 4
 
 # run an emsemble that combines variables in factorial
 # - if set to TRUE this will over-ride a UQ analysis  
-factorial  <- F
+factorial  <- T
 
 # run an SA/UQ style ensemble, or if -uq- is false a fully factorial ensemble 
 uq         <- T      
@@ -235,8 +235,13 @@ if(xml) {
 init_s <- if(exists('init_static')) fuselists(init_default,init_static) else init_default
 
 # check process representation functions specified in input exist 
-lapply(init_s,       function(v) for( c1 in v ) if(!sum(grepl(c1,ls()))) stop('The function: ',c1,' , specified in init static does not exist') )
-lapply(init_dynamic, function(v) for( c1 in v ) if(!sum(grepl(c1,ls()))) stop('The function: ',c1,' , specified in init dynamic does not exist') )
+lapply(init_s, function(l) lapply( l$fnames,        
+               function(c1) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init static does not exist') else 'exists'
+               ))
+
+lapply(init_dynamic, function(l) lapply( l$fnames,
+                     function(v) for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init dynamic does not exist') else return('exists') 
+                     ))
 
 # add init lists to wrapper
 maat$init_static  <- init_s

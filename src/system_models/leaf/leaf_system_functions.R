@@ -6,7 +6,7 @@
 #
 ################################
 
-source('../environmental_functions.R')
+source('../environment_functions.R')
 
 
 

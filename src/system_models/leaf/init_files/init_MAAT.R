@@ -85,11 +85,11 @@ fnames.var <- list(
   etrans = c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991')
 )
 
-pars.var <- NA
+pars.var <- NULL
 
-pars_proc.var <- NA
+pars_proc.var <- NULL
 
-pars_eval.var <- NA
+pars_eval.var <- NULL
 
 env.var <- list(
   ca_conc = seq(50,1500,50)
