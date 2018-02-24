@@ -39,6 +39,10 @@ l1 <- list(list(fnames = get(mo)[['fnames']],
               ))
 names(l1) <- mod_obj
 
+# add double quote to character strings in fnames - this allows proper parsing when the XMLs are read by MAAT
+#l1[[mod_obj]][['fnames']] <- lapply(l1[[mod_obj]][['fnames']],  function(c1) paste0("'",c1,"'")
+
+# create met data list
 l2 <- list(list(env    = get(mo)[['env']]))
 names(l2) <- mod_obj
 l2[[1]][[1]][] <- 'column name of variable in metdata file'
