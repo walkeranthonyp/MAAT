@@ -65,6 +65,7 @@ out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_constantCiCa')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_cox1998')
 
+out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011',leaf.rb=0.5)
 out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011',leaf.rb=0.1)
 out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995',leaf.rb=0.0001)
 

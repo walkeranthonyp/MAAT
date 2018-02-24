@@ -561,20 +561,25 @@ leaf_object <-
       
       if(!ana_only) {
         .$fnames$solver <- 'f_R_Brent_solver'
-        .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-        num_soln        <- cbind(.$dataf$met,.$dataf$out,sol='num')
+        .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
+        num_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver )
         # print(num_soln)
       }
 
       .$fnames$solver <- 'f_A_r_leaf_analytical'
-      .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-      ana_soln        <- cbind(.$dataf$met,.$dataf$out,sol='ana')
+      .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
+      ana_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver)
       # print(ana_soln)
-      
+      .$fnames$solver <- 'f_A_r_leaf_analytical_quad'
+      .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
+      print(.$dataf$out)
+      ana_soln        <- rbind(ana_soln,  cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver) )
+
+
       odf <- if(ana_only) ana_soln else rbind(num_soln,ana_soln)
       
       if(!ana_only) {
-        p1 <- xyplot(A~cc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
+        p1 <- xyplot(A~cc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,
                      ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[c]*' [Pa]'),
                      panel=function(subscripts=subscripts,...) {
                        if(diag) {
@@ -584,7 +589,7 @@ leaf_object <-
                        panel.xyplot(subscripts=subscripts,...)
                      })
         
-        p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,
+        p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,subset=sol!='f_A_r_leaf_analytical',
                      main=rs,auto.key=T,
                      ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
                      panel=function(subscripts=subscripts,...) {

@@ -6,51 +6,16 @@
 #
 ################################
 
+source('../generic_mathematical_functions.R')
+
+
 
 f_none <- function(.) {
   NA
 }
 
-
-# VPD
-################################
-f_rh_from_vpd <- function(.) {
-  rh <- (1 - .$env$vpd / f_sat_vp_allen(.))
-  max(rh,0)
-}
-
-f_sat_vp_allen <- function(.) {
-  # calculate saturation vapour pressure - Allen 1998
-  # in kPa
-  # t -- oC -- air temp
-  
-  0.6108 * exp( 17.27*.$state$leaf_temp /(.$state$leaf_temp+237.3) )
-}
-
-sat_vp_buck <- function(t){
-  # calculate saturation vapour pressure - Buck 1981 J. App. Met.
-  # in kPa
-  # t -- oC -- air temp
-  
-  0.61121 * exp( 17.502*t / (240.97 + t) )
-}
-
-
-
 ### ANALYTICAL SOLUTIONS
 ################################
-
-quad_sol <- function(a,b,c,out='lower') {
-  # robust numerical solution to the quadratic
-  # taken from Numerical Recipes
-
-  q     <- -0.5 * ( b + sign(b)*(b^2 - 4*a*c)^0.5 )
-  roots <- c( q/a , c/q )
-  
-  if(out=='lower')      min(roots,na.rm=T) 
-  else if(out=='upper') max(roots,na.rm=T)
-  else roots 
-}
 
 f_A_r_leaf_analytical <- function(.) {
   # combines A, rs, ci, cc eqs to a single f(), 
@@ -62,7 +27,7 @@ f_A_r_leaf_analytical <- function(.) {
   
   # calculate cb, ci & cc
   .$state$cb      <- .$state$ca
-  fe              <- get(paste(.$fnames$rs,'fe',sep='_') )(.) 
+  fe              <- get(paste0(.$fnames$rs,'_fe') )(.) 
   .$state$ci      <- .$state$ca * (1 - (1.6 / fe) )
   .$state$cc      <- .$state$ci 
   
@@ -72,6 +37,7 @@ f_A_r_leaf_analytical <- function(.) {
   .$state$Apg     <- get(.$fnames$Apg)(.)
   
   # calculate limiting cycle
+  # - if Alim is Collatz smoothing this will reduce A, decoupling A from cc. cc needs recalculating from updated Anet
   Amin            <- get(.$fnames$Alim)(.) 
   
   # calculate Ag (gross asimilation) for each limiting process
@@ -89,8 +55,65 @@ f_A_r_leaf_analytical <- function(.) {
   Anet
 }
 
+f_A_r_leaf_analytical_quad <- function(.) {
+  # combines A, rs, ci, cc eqs to a single f(), 
+  # combines all rate limiting processes
+  # solves A analytically by assuming g0 = 0 in the stomatal resistance function, and rb and ri are also assumed zero 
+
+  # set cb, rb & ri
+  .$state$cb      <- .$state$ca
+  .$state_pars$rb <- 0
+  .$state_pars$ri <- 0
+
+  # calculate coefficients of quadratic to solve A
+  assim_quad_soln <- function(.,V,K) {
+    gsd <- get(paste0(.$fnames$rs,'_fe'))(.) / .$state$ca
+    p   <- .$env$atm_press*1e-6
+    a   <- p*( 1.6 - gsd*(.$state$ca + K) )
+    b   <- p*gsd*( .$state$ca*(V - .$state$respiration) - .$state$respiration*K - V*.$state_pars$gstar ) - .$pars$g0*(.$state$ca + K) + 1.6*p*(.$state$respiration - V)
+    c   <- .$pars$g0*( V*(.$state$ca - .$state_pars$gstar) - .$state$respiration*(K + .$state$ca) )
+
+    A   <- quad_sol(a,b,c,'upper')
+    
+    # return cc
+    f_ficks_ci(., A=A, r=1.6*get(.$fnames$rs)(.,A=A) )
+  }
+
+  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
+  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4), K=(2*.$state_pars$gstar) )
+  Ap_cc  <- 0
+
+  # maximum cc corresponds to the minimum of the limiting rates  
+  cc     <- max(Ac_cc,Aj_cc,Ap_cc) 
+    
+  # calculate Ag / cc for each limiting process
+  .$state$Acg <- get(.$fnames$Acg)(., cc=cc )
+  .$state$Ajg <- get(.$fnames$Ajg)(., cc=cc )
+  .$state$Apg <- get(.$fnames$Apg)(., cc=cc )
+
+  # calculate limiting cycle
+  Amin            <- get(.$fnames$Alim)(.)
+
+  # calculate Ag (gross asimilation) for each limiting process
+  .$state$Acg     <- .$state$Acg * cc
+  .$state$Ajg     <- .$state$Ajg * cc
+  .$state$Apg     <- .$state$Apg * cc
+  
+  # calculate net A
+  Anet <- Amin*cc - Amin*.$state_pars$gstar - .$state$respiration
+
+  # calculate rs
+  .$state_pars$rs <- get(.$fnames$rs)(.,A=Anet)
+  
+  # set ci & cc
+  .$state$cc <-.$state$ci <- f_ficks_ci(.,A=Anet, r=1.6*.$state_pars$rs )
+
+  # return net A
+  Anet
+}
+
 f_A_r_leaf_noR <- function(.,...) {
-  # same as above function but with no resistance to CO2 diffusion from the atmosphere to the site of carboxylation
+  # Calculate assimilation assuming zero resistance to CO2 diffusion from the atmosphere to the site of carboxylation
   # These functions can be used to calculate the stomatal limitation to photosynthesis when rb and ri are assumed zero 
   # (when ri and rb are non-zero, use below function 'f_A_r_leaf_noRs' )
   
@@ -108,7 +131,7 @@ f_A_r_leaf_noR <- function(.,...) {
   # calculate limiting cycle
   Amin <- get(.$fnames$Alim)(.) 
   
-  # calculate actual w
+  # calculate actual A
   .$state$Acg <- .$state$Acg * cc
   .$state$Ajg <- .$state$Ajg * cc
   .$state$Apg <- .$state$Apg * cc
@@ -140,11 +163,7 @@ f_A_r_leaf <- function(A,.,...) {
   # total resistance of a set of resistors in series is simply their sum 
   # assumes boundary layer and stomatal resistance terms are in h2o units
   # assumes mesophyll resistance is in co2 units
-  # print(.$fnames$gas_diff)
-  # print(.$fnames$rs)
-  # print(.$state_pars$rb)
-  # print(1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)))
-  # print(.$state_pars$ri)
+  
   .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)) + .$state_pars$ri ) )
   
   # calculate Ag/cc
@@ -156,7 +175,7 @@ f_A_r_leaf <- function(A,.,...) {
   # calculate limiting cycle
   Amin <- get(.$fnames$Alim)(.) 
   
-  # calculate actual w
+  # calculate actual Ag
   .$state$Acg <- .$state$Acg * .$state$cc
   .$state$Ajg <- .$state$Ajg * .$state$cc
   .$state$Apg <- .$state$Apg * .$state$cc
@@ -202,7 +221,7 @@ f_A_r_leaf_noRs <- function(A,.,...) {
 ### PHOTOSYNTHESIS FUNCTIONS
 ################################
 
-# Transition point function, calculates the cc at which Acg = Ajg, i.e. the transition cc
+# Transition point function, calculates cc at which Acg = Ajg, i.e. the transition cc
 transition_cc <- function(.) {
   
   vcm_et_ratio <- .$state_pars$vcmaxlt/.$state$J 
@@ -381,7 +400,8 @@ f_rd_tcor_dependent <- function(.) {
   .$state_pars$vcmaxlt / .$state_pars$vcmax
 }
 
-# light supression
+# light supression of respiration
+# - return scalars of respiration in light : respiration in dark
 f_rl_rd_fixed <- function(.) {
   .$pars$rl_rd_ratio
 }
@@ -679,7 +699,7 @@ f_temp_scalar_Arrhenius <- function(.,parlist,...){
   exp( parlist$Ha*(Tsk-Trk) / (.$pars$R*Tsk*Trk) )
 }
 
-f_temp_scalar_Q10 <- function(.,parlist,...){
+f_temp_scalar_Q10 <- function(.,parlist,...) {
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   
   # input parameters  
@@ -700,7 +720,7 @@ f_temp_scalar_Q10 <- function(.,parlist,...){
 
 
 # Descending components of the temperature response function 
-f_temp_scalar_modArrhenius_des <- function(.,parlist,...){
+f_temp_scalar_modArrhenius_des <- function(.,parlist,...) {
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   # descending component of modified Arrhenius temperature response function, Medlyn et al 2002
   
@@ -730,7 +750,7 @@ f_temp_scalar_modArrhenius_des <- function(.,parlist,...){
   
 }
 
-f_temp_scalar_collatz1991_des <- function(.,parlist,...){
+f_temp_scalar_collatz1991_des <- function(.,parlist,...) {
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   # descending component of temperature scaling from Collatz etal 1991
   
@@ -747,7 +767,7 @@ f_temp_scalar_collatz1991_des <- function(.,parlist,...){
   1 / ( 1 + exp((Tsk*deltaS-parlist$Hd) / (Tsk*.$pars$R)) )
 }
 
-f_temp_scalar_cox2001_des <- function(.,parlist,...){
+f_temp_scalar_cox2001_des <- function(.,parlist,...) {
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   # descending component of temperature scaling from Cox etal 2001
   
@@ -801,7 +821,7 @@ f_q10_lin_t <- function(.,parlist,...) {
 
 
 ### Gamma star - CO2 compensation point in the absence of dark respiration
-f_gstar_constant <- function(.,...){
+f_gstar_constant <- function(.,...) {
   .$pars$atref.gstar
 }
 
