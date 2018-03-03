@@ -48,6 +48,7 @@ leaf_object <-
       }
       
       # output
+      print(.$output())
       .$output()
     } 
     
@@ -222,7 +223,7 @@ leaf_object <-
       e_ajv_25      = 1.01,       # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
       e_bjv_25      = 0.89,       # slope of log-log jmax25 to vcmax25 relationship        (unitless)
       atv_25        = 0,          # intercept of linear tpu25 to vcmax25 relationship      (umolm-2s-1)
-      btv_25        = 1/8.2,      # slope of linear tpu25 to vcmax25 relationship          (unitless)
+      btv_25        = 1/6,        # slope of linear tpu25 to vcmax25 relationship          (unitless)
       flnr          = 0.09,       # fraction of leafN in RuBisCO -- PFT specific           (unitless)
       fnr           = 7.16,       # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
       Rsa           = 60,         # specific activity of RuBisCO                           ()
@@ -564,16 +565,14 @@ leaf_object <-
         .$fnames$solver <- 'f_R_Brent_solver'
         .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
         num_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver )
-        # print(num_soln)
       }
 
       .$fnames$solver <- 'f_A_r_leaf_analytical'
       .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
       ana_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver)
-      # print(ana_soln)
+
       .$fnames$solver <- 'f_A_r_leaf_analytical_quad'
       .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
-      print(.$dataf$out)
       ana_soln        <- rbind(ana_soln,  cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver) )
 
 
@@ -590,7 +589,7 @@ leaf_object <-
                        panel.xyplot(subscripts=subscripts,...)
                      })
         
-        p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,subset=sol!='f_A_r_leaf_analytical',
+        p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,
                      main=rs,auto.key=T,
                      ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
                      panel=function(subscripts=subscripts,...) {
@@ -601,12 +600,8 @@ leaf_object <-
                        panel.xyplot(subscripts=subscripts,...)
                      })
         
-        p3 <- xyplot(rs~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(sol),abline=0,
-                     main=rs,
-                     ylab=expression(g[s]*' ['*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']')
-                     )
+        ol <- list(odf,p2,p1)        
 
-        ol <- list(odf,p2,p1,p3)        
       } else {
         p1 <- NULL
         p2 <- xyplot(A~leaf.ca_conc,odf,groups=as.factor(odf$leaf.par),abline=0,
@@ -623,7 +618,6 @@ leaf_object <-
         ol <- list(odf,p2,p1)        
       }
 
-      # print(p1)
       print(p2)
       ol
     }

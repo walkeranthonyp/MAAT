@@ -14,8 +14,16 @@ f_none <- function(.) {
   NA
 }
 
-### ANALYTICAL SOLUTIONS
+### SOLVERS & RESIDUAL FUNCTIONS
 ################################
+
+# Solver to find root of .$fnames$solver_func
+f_R_Brent_solver <- function(.) {
+
+  if(.$cpars$verbose_loop) print(.$env)  
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no')
+  .$solver_out$root
+}
 
 # Calculate assimilation for a given cc (.$state$cc)
 # - code block common to all assimilation solvers
@@ -34,6 +42,40 @@ f_assimilation <- function(.) {
   Amin*.$state$cc - Amin*.$state_pars$gstar - .$state$respiration
 }
   
+# Residual function for solver to calculate assimilation
+f_A_r_leaf <- function(A,.) {
+  # combines A, rs, ri, ci & cc eqs to a single f(A), 
+  # combines all rate limiting processes
+  #  -- for use with uniroot solver
+  #  -- A is pased to this equation by the uniroot solver and is solved to find the root of this equation
+
+  # calculate cc from ca, rb, rs, and ri
+  # total resistance of a set of resistors in series is simply their sum 
+  # assumes boundary layer and stomatal resistance terms are in h2o units
+  # assumes mesophyll resistance is in co2 units
+  .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)) + .$state_pars$ri ) )
+  
+  # calculate residual of net A
+  f_assimilation(.) - A
+} 
+
+# same as above function but with no stomatal resistance 
+f_A_r_leaf_noRs <- function(A,.) {
+  
+  # calculate cc from ca, rb, and ri
+  # assumes boundary layer resistance is in h2o units
+  # assumes mesophyll resistance is in co2 units
+  .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + .$state_pars$ri ) )
+  
+  # calculate residual of net A
+  f_assimilation(.) - A
+}
+
+
+
+### ANALYTICAL SOLUTIONS
+################################
+
 # solves A analytically by assuming g0 = 0 in the stomatal resistance function, and rb and ri also = zero 
 f_A_r_leaf_analytical <- function(.) {
   # combines A, rs, ci, cc eqs to a single f(), 
@@ -49,7 +91,7 @@ f_A_r_leaf_analytical <- function(.) {
   .$state$cc      <- .$state$ci 
   
   # calculate net A
-  f_assimilation(.)
+  Anet <- f_assimilation(.)
   
   # calculate rs
   .$state_pars$rs <- .$state$ca / (fe * Anet) 
@@ -87,10 +129,10 @@ f_A_r_leaf_analytical_quad <- function(.) {
   Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
 
   # maximum cc corresponds to the minimum of the limiting rates  
-  .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc) 
+  .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
     
   # calculate net A
-  f_assimilation(.)
+  Anet <- f_assimilation(.)
 
   # calculate rs
   .$state_pars$rs <- get(.$fnames$rs)(.,A=Anet)
@@ -120,48 +162,6 @@ f_A_r_leaf_noR <- function(.,...) {
   
   # calculate net A
   f_assimilation(.)
-}
-
-
-
-### SOLVERS & RESIDUAL FUNCTIONS
-################################
-
-# Solver to find root of .$fnames$solver_func
-f_R_Brent_solver <- function(.) {
-
-  if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no')
-  .$solver_out$root
-}
-
-# Residual function for solver to calculate assimilation
-f_A_r_leaf <- function(A,.) {
-  # combines A, rs, ri, ci & cc eqs to a single f(A), 
-  # combines all rate limiting processes
-  #  -- for use with uniroot solver
-  #  -- A is pased to this equation by the uniroot solver and is solved to find the root of this equation
-
-  # calculate cc from ca, rb, rs, and ri
-  # total resistance of a set of resistors in series is simply their sum 
-  # assumes boundary layer and stomatal resistance terms are in h2o units
-  # assumes mesophyll resistance is in co2 units
-  .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)) + .$state_pars$ri ) )
-  
-  # calculate residual of net A
-  f_assimilation(.) - A
-} 
-
-# same as above function but with no stomatal resistance 
-f_A_r_leaf_noRs <- function(A,.) {
-  
-  # calculate cc from ca, rb, and ri
-  # assumes boundary layer resistance is in h2o units
-  # assumes mesophyll resistance is in co2 units
-  .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + .$state_pars$ri ) )
-  
-  # calculate residual of net A
-  f_assimilation(.) - A
 }
 
 
@@ -196,19 +196,19 @@ f_Acg_farquhar1980 <- function(.,cc=.$state$cc){
   # Ko and O must be in same units
   # Kc, Ci and Gamma must be in same units
   
-  #gross of rd and G*
+  # calculate gross CO2 limited carboxylation rate / cc 
   .$state_pars$vcmaxlt /
     (cc + .$state_pars$Km)
 }
 
 # electron transport limitation
 f_Ajg_generic <- function(.,cc=.$state$cc){
-  # generic eq to calculate light limited photosynthetic rate from user selected electron transport and etoc function
+  # generic eq to calculate light limited photosynthetic rate 
+  # currently no other formulation exists (other than slighly different parameters in the denominator)
   # umol m-2 s-1
   
-  # calculate gross electron transport limited carboxylation 
-  # i.e. rd and G* not included
-  .$state$J / (4*(cc+2*.$state_pars$gstar))        # currently no other formulation exists (other than slighly different parameters in the denominator)
+  # calculate gross electron transport limited carboxylation rate / cc 
+  .$state$J / (4*(cc+2*.$state_pars$gstar))     
 }
 
 # Farquhar 1980 and others
@@ -261,12 +261,13 @@ f_Apg_vonc2000 <- function(.,cc=.$state$cc){
   # alpha = 0, tpu = vcmax/6
   # and tpu temperature scaling is identical to vcmax
   
+  # calculate gross TPU limited carboxylation rate / cc 
   ifelse( cc <= (1+3*.$pars$Apg_alpha)*.$state_pars$gstar, NA,
           3*.$state_pars$tpu / ( cc-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar ) 
           )
 }
 
-# triose phosphate limitation from Foley 1996, citing Harlkey & Sharkey 1991
+# triose phosphate limitation from Foley 1996, citing Harley & Sharkey 1991
 f_Apg_foley1996 <- function(.,cc=.$state$cc){
   # its not clear to me how they derive this from Harley and Sharkey
   # Eq 5 from Foley 1996: Js = 3 * tpu * (1 - gstar/cc) + Jp * gstar / cc

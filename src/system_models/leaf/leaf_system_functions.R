@@ -34,7 +34,7 @@ f_leafsys_enzymek <- function(.) {
   .$state_pars$alpha   <- 0.5 * (1-.$pars$f)
   
   # kinetic pars & temperature dependence
-  # - if the solver involves the energy balance all of this crap needs to go in the solver!
+  # - if the solver involves the energy balance all of this needs to go in the solver
   temparglist          <- list(Tr=.$pars$reftemp.Kc,Ha=.$pars$Ha.Kc,q10=.$pars$q10.Kc,q10_func='f_q10_constant')
   .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=temparglist)
   temparglist          <- list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko,q10=.$pars$q10.Ko,q10_func='f_q10_constant')
