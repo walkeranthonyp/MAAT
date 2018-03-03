@@ -17,7 +17,7 @@ f_none <- function(.) {
 ### ANALYTICAL SOLUTIONS
 ################################
 
-# Calculate assimilation for a given cc
+# Calculate assimilation for a given cc (.$state$cc)
 # - code block common to all assimilation solvers
 # - calculates Ag/cc, determines limiting rate, calculates and returns net A
 f_assimilation <- function(.) {
@@ -331,19 +331,20 @@ f_rd_lin_N <- function(.) {
   .$pars$a_rdn_25 + .$state$leafN_area * .$pars$b_rdn_25    
 }
 
-# TPU temperature scaling is identical to that of Vcmax
+# Rd temperature scaling is identical to that of Vcmax
 f_rd_tcor_dependent <- function(.) {
   .$state_pars$vcmaxlt / .$state_pars$vcmax
 }
 
-# TPU temperature scaling is independent
+# Rd temperature scaling is independent
 f_rd_tcor_independent <- function(.) {
 
-  get(.$fnames$rd_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.rd,Ha=.$pars$Ha.rd,q10_func=.$fnames$q10_func.rd,
-                                           q10=.$pars$q10.rd,a_q10_t=.$pars$a_q10_t.rd,b_q10_t=.$pars$b_q10_t.rd)) *
-  get(.$fnames$rd_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.rd,Hd=.$pars$Hd.rd,Topt=.$pars$Topt.rd,
-                                           tupp=.$pars$tupp_cox.rd,tlow=.$pars$tlow_cox.rd,exp=.$pars$exp_cox.rd,
-                                           a_deltaS_t=.$pars$a_deltaS_t.rd,b_deltaS_t=.$pars$b_deltaS_t.rd,deltaS=.$pars$deltaS.rd))
+  temparglist <- list(Tr=.$pars$reftemp.rd, q10_func=.$fnames$q10_func.rd, q10=.$pars$q10.rd, a_q10_t=.$pars$a_q10_t.rd, b_q10_t=.$pars$b_q10_t.rd,
+                      Hd=.$pars$Hd.rd, Topt=.$pars$Topt.rd,
+                      tupp=.$pars$tupp_cox.rd, tlow=.$pars$tlow_cox.rd, exp=.$pars$exp_cox.rd,
+                      a_deltaS_t=.$pars$a_deltaS_t.rd, b_deltaS_t=.$pars$b_deltaS_t.rd, deltaS=.$pars$deltaS.rd)
+  
+  get(.$fnames$rd_tcor_asc)(.,parlist=temparglist) * get(.$fnames$rd_tcor_des)(.,parlist=temparglist)
 }
 
 # light supression of respiration
@@ -415,9 +416,10 @@ f_tpu_tcor_dependent <- function(.) {
 # TPU temperature scaling is independent
 f_tpu_tcor_independent <- function(.) {
   
-  get(.$fnames$tpu_tcor_asc)(.,parlist=list(Tr=.$pars$reftemp.tpu,Ha=.$pars$Ha.tpu,q10=.$pars$q10.tpu)) *
-  get(.$fnames$tpu_tcor_des)(.,parlist=list(Tr=.$pars$reftemp.tpu,Hd=.$pars$Hd.tpu,Topt=.$pars$Topt.tpu,
-                                            a_deltaS_t=.$pars$a_deltaS_t.tpu,b_deltaS_t=.$pars$b_deltaS_t.tpu,deltaS=.$pars$deltaS.tpu))
+  temparglist <- list(Tr=.$pars$reftemp.tpu, q10=.$pars$q10.tpu, Hd=.$pars$Hd.tpu, Topt=.$pars$Topt.tpu,
+                      a_deltaS_t=.$pars$a_deltaS_t.tpu, b_deltaS_t=.$pars$b_deltaS_t.tpu, deltaS=.$pars$deltaS.tpu)
+  
+  get(.$fnames$tpu_tcor_asc)(.,parlist=temparglist) * get(.$fnames$tpu_tcor_des)(.,parlist=temparglist)
 }
 
 
@@ -434,10 +436,9 @@ f_ficks_ci <- function(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca) {
   # r units  m2 s mol-1
   
   c-A*r*.$env$atm_press*1e-6
-  #   c-A*r*.$env$atm_press*1e-6
 }
 
-f_ficks_ci_bound0 <- function(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca) {
+f_ficks_ci_bound0 <- function(.,...) {
   # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
   # by default calculates cb from ca and rb
   # c units in Pa
@@ -447,7 +448,7 @@ f_ficks_ci_bound0 <- function(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca) 
   # there is a catch 22 here, make this max of the function result or zero and it screws up the solver boundaries
   # remove the max term and this screws up at very low ca
   #   max( c-A*r*.$env$atm_press*1e-6 , 1e-6)
-  c2 <- c-A*r*.$env$atm_press*1e-6
+  c2 <- f_ficks_ci(.,...) 
   if(c2>0) c2 else 0
 }
 
