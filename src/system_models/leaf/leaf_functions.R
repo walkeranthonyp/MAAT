@@ -128,16 +128,15 @@ f_A_r_leaf_noR <- function(.,...) {
 ################################
 
 # Solver to find root of .$fnames$solver_func
-f_R_Brent_solver <- function(.,...) {
-  # ... could be used to pass through different functions 'func(.$env$atm_press * 1.6e-6)' to the solver function, not currently necessary
+f_R_Brent_solver <- function(.) {
 
   if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no',...)
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no')
   .$solver_out$root
 }
 
 # Residual function for solver to calculate assimilation
-f_A_r_leaf <- function(A,.,...) {
+f_A_r_leaf <- function(A,.) {
   # combines A, rs, ri, ci & cc eqs to a single f(A), 
   # combines all rate limiting processes
   #  -- for use with uniroot solver
@@ -154,7 +153,7 @@ f_A_r_leaf <- function(A,.,...) {
 } 
 
 # same as above function but with no stomatal resistance 
-f_A_r_leaf_noRs <- function(A,.,...) {
+f_A_r_leaf_noRs <- function(A,.) {
   
   # calculate cc from ca, rb, and ri
   # assumes boundary layer resistance is in h2o units
