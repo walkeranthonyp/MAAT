@@ -68,27 +68,34 @@ f_leafsys_enzymek <- function(.) {
   
   # if PAR > 0
   if(.$env$par > 0) {
+    # run photosynthesis
+    # account for decreased respiration in the light
+    .$state$respiration  <- get(.$fnames$rl_rd_scalar)(.) * .$state$respiration
+    .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
     # diagnostic calculations
     if(.$pars$diag) {
       .$state$A_noR      <- f_A_r_leaf_noR(.)
       .$state$transition <- transition_cc(.)
     }
-    # run photosynthesis
-    # account for decreased respiration in the light
-    .$state$respiration  <- get(.$fnames$rl_rd_scalar)(.) * .$state$respiration
-    .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
-    # determine rate limiting step - this is done based on carboxylation, not net assimilation (Gu etal 2010).
+    # calculate assimilation 
     .$state$A       <- get(.$fnames$solver)(.)      
     # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
     .$state$lim     <- c(2,3,7)[which(c(.$state$Acg,.$state$Ajg,.$state$Apg)==min(c(.$state$Acg,.$state$Ajg,.$state$Apg),na.rm=T))]       
+ 
     # after the fact calculations
     if(!grepl('analytical',.$fnames$solver)) {
       .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca)
       .$state_pars$rs <- get(.$fnames$rs)(.) 
       .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=1.6*.$state_pars$rs,c=.$state$cb)
-      .$state$cc      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$ri,c=.$state$ci)        
+      #.$state$cc      <- f_ficks_ci(.,A=.$state$A,r=.$state_pars$ri,c=.$state$ci)        
+ 
+      # calculate Ag for each limiting process
+      .$state$Acg     <- .$state$Acg * .$state$cc 
+      .$state$Ajg     <- .$state$Ajg * .$state$cc 
+      .$state$Apg     <- .$state$Apg * .$state$cc
     }
   }
+ 
   # if PAR < 0
   else {
     # assume infinite conductances when concentration gradient is small
