@@ -17,6 +17,23 @@ f_none <- function(.) {
 ### ANALYTICAL SOLUTIONS
 ################################
 
+# Calculate assimilation for a given cc
+# - code block common to all assimilation solvers
+# - calculates Ag/cc, determines limiting rate, calculates and returns net A
+f_assimilation <- function(.) {
+ 
+  # calculate Ag / cc for each limiting process
+  .$state$Acg     <- get(.$fnames$Acg)(.)
+  .$state$Ajg     <- get(.$fnames$Ajg)(.)
+  .$state$Apg     <- get(.$fnames$Apg)(.)
+  
+  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
+  Amin            <- get(.$fnames$Alim)(.) 
+  
+  # calculate & return net A
+  Amin*.$state$cc - Amin*.$state_pars$gstar - .$state$respiration
+}
+  
 # solves A analytically by assuming g0 = 0 in the stomatal resistance function, and rb and ri also = zero 
 f_A_r_leaf_analytical <- function(.) {
   # combines A, rs, ci, cc eqs to a single f(), 
@@ -58,7 +75,7 @@ f_A_r_leaf_analytical_quad <- function(.) {
     a   <- p*( 1.6 - gsd*(.$state$ca + K) )
     b   <- p*gsd*( .$state$ca*(V - .$state$respiration) - .$state$respiration*K - V*.$state_pars$gstar ) - .$pars$g0*(.$state$ca + K) + 1.6*p*(.$state$respiration - V)
     c   <- .$pars$g0*( V*(.$state$ca - .$state_pars$gstar) - .$state$respiration*(K + .$state$ca) )
-
+ 
     A   <- quad_sol(a,b,c,'upper')
     
     # return cc
@@ -66,8 +83,8 @@ f_A_r_leaf_analytical_quad <- function(.) {
   }
 
   Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
-  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4), K=(2*.$state_pars$gstar) )
-  Ap_cc  <- 0
+  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
+  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
 
   # maximum cc corresponds to the minimum of the limiting rates  
   .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc) 
@@ -105,24 +122,6 @@ f_A_r_leaf_noR <- function(.,...) {
   f_assimilation(.)
 }
 
-# Calculate assimilation
-# - code block common to all assimilation solvers
-# - calculates Ag/cc, determines limiting rate, calculates and returns net A
-f_assimilation <- function(.) {
- 
-  # calculate Ag / cc for each limiting process
-  .$state$Acg     <- get(.$fnames$Acg)(.)
-  .$state$Ajg     <- get(.$fnames$Ajg)(.)
-  .$state$Apg     <- get(.$fnames$Apg)(.)
-  
-  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin            <- get(.$fnames$Alim)(.) 
-  
-  # calculate & return net A
-  Amin*.$state$cc - Amin*.$state_pars$gstar - .$state$respiration
-  
-}
-  
 
 
 ### SOLVERS & RESIDUAL FUNCTIONS
@@ -157,13 +156,7 @@ f_A_r_leaf <- function(A,.,...) {
 # same as above function but with no stomatal resistance 
 f_A_r_leaf_noRs <- function(A,.,...) {
   
-  # combines A, ri, ci & cc eqs to a single f(A), 
-  # combines all rate limiting processes
-  #  -- for use with uniroot solver
-  #  -- A is pased to this equation by the uniroot solver and is solved to find the root of this equation
-  
   # calculate cc from ca, rb, and ri
-  # total resistance of a set of resistors in series is simply their sum 
   # assumes boundary layer resistance is in h2o units
   # assumes mesophyll resistance is in co2 units
   .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + .$state_pars$ri ) )
