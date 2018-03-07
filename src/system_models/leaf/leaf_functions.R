@@ -751,17 +751,17 @@ f_scalar_none <- function(...){
 }
 
 # temperature dependence functions that cannot be separtaed into ascending and decending components
-f_temp_scalar_bethy <- function(.,parlist,...) { 
+f_temp_scalar_bethy <- function(.,var,...) { 
   
-  exp(-(.$state$leaf_temp-parlist$Tr)/10) * 
-    ( (parlist$a_q10_t + parlist$b_q10_t*.$state$leaf_temp) ^ ((parlist$a_q10_t + parlist$b_q10_t*.$state$leaf_temp)/(10*parlist$b_q10_t))    /  
-        ( (parlist$a_q10_t + parlist$b_q10_t*parlist$Tr) ^ ((parlist$a_q10_t + parlist$b_q10_t*parlist$Tr)/(10*parlist$b_q10_t)) ) )
+  exp(-(.$state$leaf_temp-.$pars$Tr[[var]])/10) * 
+    ( (.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$state$leaf_temp) ^ ((.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$state$leaf_temp)/(10*.$pars$b_q10_t[[var]]))    /  
+        ( (.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$pars$Tr[[var]]) ^ ((.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$pars$Tr[[var]])/(10*.$pars$b_q10_t[[var]])) ) )
   
 }
 
 
 # Ascending components of the temperature response function - can be run alone for an increasing repsonse only
-f_temp_scalar_Arrhenius <- function(.,parlist,...){
+f_temp_scalar_Arrhenius <- function(.,var,...){
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   # Arrhenius equation
   
@@ -774,32 +774,21 @@ f_temp_scalar_Arrhenius <- function(.,parlist,...){
   # Tsk    -- temperature to adjust parameter to (K) 
   
   #convert to Kelvin
-  Trk <- parlist$Tr + 273.15
+  Trk <- .$pars$Tr[[var]]  + 273.15
   Tsk <- .$state$leaf_temp + 273.15
   
-  if(.$cpars$verbose) {
-    print('Arrhenius_tcorr_function')
-    print(parlist)
-  }
-  
-  exp( parlist$Ha*(Tsk-Trk) / (.$pars$R*Tsk*Trk) )
+  exp( .$pars$Ha[[var]]*(Tsk-Trk) / (.$pars$R*Tsk*Trk) )
 }
 
 # Q10 temperature scaling
-f_temp_scalar_Q10 <- function(.,parlist,...) {
+f_temp_scalar_Q10 <- function(.,var,...) {
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   
   # input parameters  
   # Q10    -- factor by which rate increases for every 10 oC of temp increase  
   # Tr     -- reference temperature (oC) 
   
-  if(.$cpars$verbose) {
-    print('Q10_tcorr_function')
-    print(.$state$leaf_temp)
-    print(parlist)
-  }
-  
-  q10 <- get(parlist$q10_func)(.,parlist)
+  q10 <- get(.$fnaes$q10_func)(.,parlist)
   
   parlist$q10 ^ ((.$state$leaf_temp-parlist$Tr)/10)
   
