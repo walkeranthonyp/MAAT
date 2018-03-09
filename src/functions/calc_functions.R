@@ -76,7 +76,4 @@ runif1 <- function(n,pars=c(1,0.1),norm=F) {
 
 
 
-
-
-
-
+### END ###

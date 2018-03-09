@@ -9,8 +9,8 @@
 library(proto)
 library(parallel)
 
-source('general_functions.R')
-source('calc_functions.R')
+source('functions/general_functions.R')
+source('functions/calc_functions.R')
 
 
 

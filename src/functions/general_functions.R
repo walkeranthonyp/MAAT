@@ -167,7 +167,7 @@ write_Latex <- function(obj,fname,func=write_list_Latex,call=F,...) {
 #   write("\\usepackage[section]{placeins}",fname,append=T)
   write("\\begin{document}",fnamec,append=T)
 
-  func(obj,fname,...)
+  func(obj, fnamec, ... )
   
   write("\\end{document}",fnamec,append=T)  
   if(call) {
@@ -251,3 +251,4 @@ print.xtable.apw <- function(x,cap=NULL,...){
 
 
 
+### END ###
