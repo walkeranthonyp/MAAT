@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PDIR="#PROJECTDIR#"
+RUNID="gwGMDms"
+NP=32
+
+YMD=`date +%Y-%m-%d`
+
+cd $PDIR
+Rscript run_MAAT.R "runid<-'${RUNID}' multic<-T procs<-${NP} factorial<-F uq<-T mod_out<-'slim' procSA<-T salt<-F psa_n<-1000 eval_strings<-T" > "./logs/${YMD}_MAAT_${RUNID}_PSA.txt"

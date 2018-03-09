@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# bash script to copy MAAT runfiles to a project directory
+# 1st argument - name of the model object 
+# 2nd argument - full path of the project directory
+# 3rd argument - path of MAAT source code directory 'src', can be left blank if this script is run from the top level maat source code directory
+
+MODOBJ=$1
+PDIR=$2
+src=${3-$PWD/src}
+srcm=${src}/system_models
+
+if [ ! -d "$PDIR" ]; then
+  echo "$PDIR does not exist, did you run setup_MAAT_project.bs?"
+  exit 1 
+fi
+
+cp $srcm/$MODOBJ/examples/* $PDIR 
+chmod 775 $PDIR call*
+chmod 775 $PDIR qsub*
+chmod 775 $PDIR analysis*
+
+# if else
+if [[ $OSTYPE == darwin* ]]; then
+  sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsub*.pbs
+  sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call*.bs
+  sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/analysis*.R
+  sed -i '' "s@#SOURCEDIR#@$src@"    ${PDIR}/analysis.R
+else
+  sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsub*.pbs
+  sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call*.bs
+  sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/analysis*.R
+  sed -i    "s@#SOURCEDIR#@$src@"    ${PDIR}/analysis*.R
+fi
+
+
+
+
+
+
+

@@ -30,6 +30,12 @@
 
 rm(list=ls())
 
+# any one of the below objects to line 116 can be specified as a single string command line argument to this script 
+# the sub-arguments in the string (separated by a space) are interpreted individually as R code.
+
+#       Rscript run_MAAT.R "object1<-value1 object2<-value2"
+#  e.g. Rscript run_MAAT.R "dir<-'/home/alp/' multic<-T"
+
 ##################################
 # command line options and set default arguments
 
@@ -118,10 +124,6 @@ of_format    <- 'csv'
 
 ##################################
 # parse command line arguments   
-# - any one of the above objects can be specified as a command line argument using the syntax:
-# - Rscript <nameofthisscript> "<object1><-<value1>" "<object2><-<value2>"
-# - e.g. Rscript example_MAAT.R "dir<-'/home/alp/'" "multic<-T"
-
 print('',quote=F)
 print('Read command line arguments',quote=F)
 if(length(commandArgs(T))>=1) {
