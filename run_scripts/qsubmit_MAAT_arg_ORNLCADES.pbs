@@ -1,9 +1,4 @@
-#!/bin/csh -f
-#===============================================================================
-# GENERIC_USER
-# This is where the batch submission is set.  The above code computes
-# the total number of tasks, nodes, and other things that can be useful
-# here.  Use PBS, BSUB, or whatever the local environment supports.
+#!/bin/bash
 #===============================================================================
 
 #PBS -W group_list=cades-ccsi
@@ -21,11 +16,13 @@
 #limit stacksize unlimited
 
 
-#-----------------------------------------------------------------------
+#===============================================================================
 # Set necessary environment variables
-#-----------------------------------------------------------------------
 
 export R_LIBS_USER="~/bin/Rlibs"
+
+#===============================================================================
+# Run script
 
 cd "#PROJECTDIR#"
 
