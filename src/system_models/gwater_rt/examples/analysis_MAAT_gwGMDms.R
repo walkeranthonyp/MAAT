@@ -34,9 +34,9 @@ runid      <- 'SA'
 odate      <- #OUTPUTDATE#
   
 # routine switches
-salt       <- F    # post-process and calculate Saltelli parameter sensitivity index 
-proc       <- F    # post-process and calculate Ye process sensitivity index
-boot       <- F    # boot strap the above that are TRUE
+salt       <- T    # post-process and calculate Saltelli parameter sensitivity index 
+proc       <- T    # post-process and calculate Ye process sensitivity index
+boot       <- T    # boot strap the above that are TRUE
 plot_SA    <- T    # plot sensitvity indices 
 plot_mout  <- F    # plot model output
 plot_pars  <- F    # plot model out vs parameter values - only implemented if plot_mout is TRUE
