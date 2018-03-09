@@ -15,22 +15,22 @@ srcm=${src}/system_models
 mkdir -p $PDIR >/dev/null 2>&1
 mkdir -p $PDIR/logs >/dev/null 2>&1
 
-cp    $run_scripts/qsubmit_MAAT_ORNLCADES.pbs $PDIR && chmod 755 ${PDIR}/qsubmit_MAAT_ORNLCADES.pbs
-cp    $run_scripts/call_run_MAAT.bs           $PDIR && chmod 755 ${PDIR}/call_run_MAAT.bs
-cp    $run_scripts/run_MAAT.R                 $PDIR && chmod 755 ${PDIR}/run_MAAT.R
-cp    $srcm/$MODOBJ/init_files/init_MAAT.R    $PDIR && chmod 755 ${PDIR}/init_MAAT.R
-cp    $srcm/$MODOBJ/init_files/*.xml          $PDIR && chmod 755 ${PDIR}/*.xml
+cp    $run_scripts/qsubmit_MAAT_arg_ORNLCADES.pbs $PDIR && chmod 755 ${PDIR}/qsubmit_MAAT_arg_ORNLCADES.pbs
+cp    $run_scripts/call_run_MAAT*.bs              $PDIR && chmod 755 ${PDIR}/call_run_MAAT*.bs
+cp    $run_scripts/run_MAAT.R                     $PDIR && chmod 755 ${PDIR}/run_MAAT.R
+cp    $srcm/$MODOBJ/init_files/init_MAAT.R        $PDIR && chmod 755 ${PDIR}/init_MAAT.R
+cp    $srcm/$MODOBJ/init_files/*.xml              $PDIR && chmod 755 ${PDIR}/*.xml
 
 # if else
 if [[ $OSTYPE == darwin* ]]; then
    sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT*.pbs
-   sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs
+   sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT*.bs
    sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
    sed -i '' "s@#SOURCEDIR#@$src@"    ${PDIR}/run_MAAT.R
    sed -i '' "s@#MODELOBJ#@$MODOBJ@"  ${PDIR}/run_MAAT.R
 else
    sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT*.pbs
-   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT.bs
+   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT*.bs
    sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
    sed -i    "s@#SOURCEDIR#@$src@"    ${PDIR}/run_MAAT.R
    sed -i    "s@#MODELOBJ#@$MODOBJ@"  ${PDIR}/run_MAAT.R

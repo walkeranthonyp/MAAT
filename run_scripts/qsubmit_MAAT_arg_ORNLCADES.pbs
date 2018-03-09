@@ -6,10 +6,9 @@
 # here.  Use PBS, BSUB, or whatever the local environment supports.
 #===============================================================================
 
-#PBS -N MAAT
-#PBS -q esd13q
+#PBS -W group_list=cades-ccsi
 #PBS -l nodes=1:ppn=32
-#PBS -l walltime=30:00:00
+#PBS -l walltime=03:00:00
 #PBS -r n
 #PBS -j oe
 #PBS -S /bin/csh -V
@@ -30,8 +29,11 @@ export R_LIBS_USER="~/bin/Rlibs"
 
 cd "#PROJECTDIR#"
 
-setenv OMP_NUM_THREADS 1
+echo
+echo $ARGS
+echo
 
-./call_run_MAAT.bs
+Rscript ./run_MAAT.R $ARGS 
 
+echo
 echo "`date` -- MAAT EXECUTION HAS FINISHED" 

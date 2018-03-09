@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# bash script to excute MAAT 
+# this script excutes a factorial MAAT run on a single core 
+# this script is copied to $PDIR and can be edited there to customise the runs 
+
+# 1st argument - the MAAT runid
+
 PDIR="#PROJECTDIR#"
-RUNID="#USERDEFINED#"
+RUNID=$1
 
 YMD=`date +%Y-%m-%d`
 
