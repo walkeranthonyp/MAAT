@@ -37,21 +37,24 @@ rm(list=ls())
 #  e.g. Rscript run_MAAT.R "dir<-'/home/alp/' multic<-T"
 
 ##################################
-# command line options and set default arguments
+# command line options and defaults
 
 # directory paths - set these on the command line or modify these here
 # source directory (full path) 
 # - must be added (here or as a commandline option to this script) before model will run
 # - can be modified to target source copied to a static directory rather that a reposiotory with version control 
-srcdir  <- "#SOURCEDIR#" 
+srcdir  <- NULL 
 # project directory (full path)
-pdir    <- "#PROJECTDIR#"
+pdir    <- NULL
 # meteorological data directory (full path)
 mdir    <- NULL 
 # evalutaion data directory (full path)
 edir    <- NULL 
 # output data directory (full path)
 odir    <- NULL 
+
+# model object to use, currently leaf or gwater_rt
+mod_obj <- NULL
 
 # wrapper object options
 # multicore the ensemble
@@ -82,9 +85,6 @@ coef_var   <- 0.1
 salt_nmult <- 100      
 
 # run options
-# model object to use, currently leaf or gwater_rt
-mod_obj    <- "#MODELOBJ#"
-
 # meteorological data file name
 metdata    <- NULL 
 
@@ -115,17 +115,11 @@ of_format    <- 'csv'
 
 
 
-#############################################################################################
-### If users want to edit default options, 
-### the above object assignments can be modified once this script has been copied to the project directory
-### DO NOT EDIT BELOW THIS LINE 
-
-#############################################################################################
-
 ##################################
 # parse command line arguments   
 print('',quote=F)
 print('Read command line arguments',quote=F)
+print(commandArgs(T),quote=F)
 if(length(commandArgs(T))>=1) {
   for( ca in 1:length(commandArgs(T)) ) {
     eval(parse(text=commandArgs(T)[ca]))
@@ -133,18 +127,20 @@ if(length(commandArgs(T))>=1) {
 }
 
 print('',quote=F)
+if(is.null(srcdir))  stop('srcdir argument not specified but required, check command line arguments to run_MAAT.R') 
+print(paste('Source directory:',srcdir) ,quote=F)
+if(is.null(pdir))    stop('pdir argument not specified but required, check command line arguments to run_MAAT.R') 
+print(paste('Project directory:',pdir) ,quote=F)
+if(is.null(mod_obj)) stop('srcdir argument not specified but required, check command line arguments to run_MAAT.R') 
+print(paste('Model:',mod_obj) ,quote=F)
 print(paste('Run ID:',runid) ,quote=F)
-if(uq&of_format!='rds') {
-  of_format <- 'rds'
-  print('',quote=F)
-  print(paste('of_format changed to rds due to high output volume with SA/UQ ensembles'), quote=F)
-}
 
 # set default values if not specified on command line
 # - these are set after parsing command line arguments as they depend on other arguments that could be set on the command line
 if(is.null(of_main)) of_main <- proj
 
 # create output directory
+setwd(pdir)
 if(is.null(odir)) {
   date   <- Sys.Date()
   odir1  <- paste(pdir,'results',sep='/')
@@ -196,6 +192,12 @@ if(factorial&uq) {
  uq <- F
  print('',quote=F)
  print(paste('Both factorial and UQ run specified: Factorial ensemble will be run') ,quote=F)
+}
+
+if(uq&of_format!='rds') {
+  of_format <- 'rds'
+  print('',quote=F)
+  print(paste('of_format changed to rds due to high output volume with SA/UQ ensembles'), quote=F)
 }
 
 # define run parameters

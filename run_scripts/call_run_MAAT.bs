@@ -5,12 +5,24 @@
 # this script is copied to $PDIR and can be edited there to customise the runs 
 
 # 1st argument - the MAAT runid
-
-PDIR="#PROJECTDIR#"
 RUNID=$1
+
+SDIR="##SDIR##"
+PDIR="##PDIR##"
+MOBJ="##MOBJ##"
 
 YMD=`date +%Y-%m-%d`
 
-cd $PDIR
-Rscript run_MAAT.R "runid<-'${RUNID}'" "multic<-F" "uq<-F" "factorial<-T" > "./logs/${YMD}_${RUNID}_runlog.txt"
+ARGS="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' multic<-F uq<-F factorial<-T"
+LOGF="${PDIR}/logs/${YMD}_runlog.txt"
+if [[ ! -z $RUNID ]]; then
+  ARGS="${ARGS} runid<-'${RUNID}'" 
+  LOGF="${PDIR}/logs/${YMD}_${RUNID}_runlog.txt"
+fi
 
+cd $SDIR
+Rscript run_MAAT.R ${ARGS} > $LOGF
+
+
+
+### END ###

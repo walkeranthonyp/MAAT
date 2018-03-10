@@ -12,11 +12,11 @@ library(lattice)
 library(latticeExtra)
 library(stringr)
 library(grid)
-library('viridis')
+library(viridis)
 
 
-wd    <- '#PROJECTDIR#'
-ddate <- '#OUTPUTDATE#' 
+wd    <- '##PDIR##'
+ddate <- '##OUTPUTDATE##' 
 wdd   <- paste0(wd,'/results/',ddate)
 
 ifile <- 'out.csv'
@@ -236,9 +236,4 @@ dev.off()
 
 
 
-
-
-
-
-
-
+### END ###

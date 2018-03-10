@@ -6,39 +6,35 @@
 # 3rd argument - path of MAAT source code directory 'run_scripts', can be left blank if this script is run from the top level maat source code directory
 # 4th argument - path of MAAT source code directory 'src'        , can be left blank if this script is run from the top level maat source code directory
 
-MODOBJ=$1
+MOBJ=$1
 PDIR=$2
-run_scripts=${3-$PWD/run_scripts}
-src=${4-$PWD/src}
-srcm=${src}/system_models
+RSDIR=${3-$PWD/run_scripts}
+SDIR=${4-$PWD/src}
+SDIRM=${SDIR}/system_models
 
 mkdir -p $PDIR >/dev/null 2>&1
 mkdir -p $PDIR/logs >/dev/null 2>&1
 
-cp    $run_scripts/qsubmit_MAAT_arg_ORNLCADES.pbs $PDIR && chmod 755 ${PDIR}/qsubmit_MAAT_arg_ORNLCADES.pbs
-cp    $run_scripts/call_run_MAAT*.bs              $PDIR && chmod 755 ${PDIR}/call_run_MAAT*.bs
-cp    $run_scripts/run_MAAT.R                     $PDIR && chmod 755 ${PDIR}/run_MAAT.R
-cp    $srcm/$MODOBJ/init_files/init_MAAT.R        $PDIR && chmod 755 ${PDIR}/init_MAAT.R
-cp    $srcm/$MODOBJ/init_files/*.xml              $PDIR && chmod 755 ${PDIR}/*.xml
+cp    $RSDIR/qsubmit_MAAT_arg_ORNLCADES.pbs $PDIR && chmod 755 $PDIR/qsubmit_MAAT_arg_ORNLCADES.pbs
+cp    $RSDIR/call_run_MAAT*.bs              $PDIR && chmod 755 $PDIR/call_run_MAAT*.bs
+cp    $SDIRM/$MOBJ/init_files/init_MAAT.R   $PDIR && chmod 755 $PDIR/init_MAAT.R
+cp    $SDIRM/$MOBJ/init_files/*.xml         $PDIR && chmod 755 $PDIR/*.xml
 
 # if else
 if [[ $OSTYPE == darwin* ]]; then
-   sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT*.pbs
-   sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT*.bs
-   sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
-   sed -i '' "s@#SOURCEDIR#@$src@"    ${PDIR}/run_MAAT.R
-   sed -i '' "s@#MODELOBJ#@$MODOBJ@"  ${PDIR}/run_MAAT.R
+   sed -i '' "s@##SDIR##@$SDIR@"  $PDIR/qsubmit_MAAT*.pbs
+   sed -i '' "s@##PDIR##@$PDIR@"  $PDIR/qsubmit_MAAT*.pbs
+   sed -i '' "s@##SDIR##@$SDIR@"  $PDIR/call_run_MAAT*.bs
+   sed -i '' "s@##PDIR##@$PDIR@"  $PDIR/call_run_MAAT*.bs
+   sed -i '' "s@##MOBJ##@$MOBJ@"  $PDIR/call_run_MAAT*.bs
 else
-   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsubmit_MAAT*.pbs
-   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call_run_MAAT*.bs
-   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/run_MAAT.R
-   sed -i    "s@#SOURCEDIR#@$src@"    ${PDIR}/run_MAAT.R
-   sed -i    "s@#MODELOBJ#@$MODOBJ@"  ${PDIR}/run_MAAT.R
+   sed -i    "s@##SDIR##@$SDIR@"  $PDIR/qsubmit_MAAT*.pbs
+   sed -i    "s@##PDIR##@$PDIR@"  $PDIR/qsubmit_MAAT*.pbs
+   sed -i    "s@##SDIR##@$SDIR@"  $PDIR/call_run_MAAT*.bs
+   sed -i    "s@##PDIR##@$PDIR@"  $PDIR/call_run_MAAT*.bs
+   sed -i    "s@##MOBJ##@$MOBJ@"  $PDIR/call_run_MAAT*.bs
 fi
 
 
 
-
-
-
-
+### END ###

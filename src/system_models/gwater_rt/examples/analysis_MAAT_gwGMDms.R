@@ -22,8 +22,8 @@
 
 rm(list=ls())
 
-srcdir <- #SRCDIR# 
-wd     <- #PROJECTDIR#
+srcdir <- '##SRCDIR##' 
+wd     <- '##PDIR##'
 
 
 
@@ -31,7 +31,7 @@ wd     <- #PROJECTDIR#
 ###################################################################
 
 runid      <- 'SA'
-odate      <- #OUTPUTDATE#
+odate      <- '##OUTPUTDATE##'
   
 # routine switches
 salt       <- T    # post-process and calculate Saltelli parameter sensitivity index 

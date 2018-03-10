@@ -9,7 +9,7 @@
 #PBS -S /bin/csh -V
 #PBS -M walkerap@ornl.gov
 #PBS -m ea
-#PBS -o #PROJECTDIR#/logs/${PBS_JOBNAME}.o${PBS_JOBID}
+#PBS -o ##PDIR##/logs/${PBS_JOBNAME}.o${PBS_JOBID}
 
 
 #limit coredumpsize 1000000
@@ -24,13 +24,17 @@ export R_LIBS_USER="~/bin/Rlibs"
 #===============================================================================
 # Run script
 
-cd "#PROJECTDIR#"
+cd "##SDIR##"
 
 echo
 echo $ARGS
 echo
 
-Rscript ./run_MAAT.R $ARGS 
+Rscript run_MAAT.R $ARGS 
 
 echo
 echo "`date` -- MAAT EXECUTION HAS FINISHED" 
+
+
+
+### END ###

@@ -36,7 +36,7 @@ Rscript install_dependencies.R
 
 * Run unit tests (not necessary but will help confirm code is running on your system). 
 Change directory to the system model source directory and open unit\_testing.R in RStudio or similar.
-Make sure RStudio is closed before openning the unit testing script as this will allow the R to be opened in the correct working directory. 
+Make sure RStudio is closed before opening the unit testing script as this will allow the script to be opened in the correct working directory. 
 ```bash 
 cd ./src/system_models/<modelobject>/
 rstudio unit_testing.R
@@ -65,25 +65,35 @@ Run the above command with `leaf` as `<modelobject>` and your prefered path to s
 Change directory to the project directory and a simple instance of MAAT can be run:  
 ```bash
 cd <projectpath>
-Rscript run_MAAT.R
+./call_run_MAAT.bs
 ```  
 This should provide a simple simulation of Aci curves with three different electron transport functions. 
+The variables of the run are defined in `init_MAAT.R` in the project directory.
 
 
 * Initialisation files. 
 Once the above steps have been completed and MAAT is working without error, the next step is to customise the run. 
-Fundamentally a MAAT ensemble is defined by the process representations, parameter values, and environmental variables. 
-These can be defined as static variables, i.e. variables that are invariant across the whole ensemble, or dynamic variables, i.e. variables that are varied across the ensemble. 
+A MAAT ensemble is defined by the process representations, the parameter values, and the environmental variables that a user defines. 
+These values can be defined as static, i.e. values that are invariant across the whole ensemble, or dynamic values i.e. values that are varied across the ensemble. 
 The values of the static variables and dynamic variables are defined by the user as either lists in an R script `init_MAAT.R` or as separate XML files `init_user_static.xml` and `init_user_dynamic.xml`. 
 These are expected to be found in the highest level project directory. So that multiple simulations can be run from within the same project, these initialisation file names and be appended with `_<runid>` where `<runid>` is a character string that identifies the particular ensemble. 
+For example, you can create a new init file, edit it, and then rerun MAAT with the runid as the first argument to the call script.
+Assuming you are still in the project directory:
+```bash
+cp init_MAAT.R init_MAAT_yourrun.R
+vim init_MAAT_yourrun.R   # change some of the values of the dynamic variables
+./call_run_MAAT.bs yourrun
+```  
+  
 
 
 * Options.
-MAAT can be configured in many different ways. 
+MAAT can be configured in many different ways.
+The names of the variables and their various options can be found in `<model_object>_options.xml` in the source directory.  
 Alternative command line options, their names, and how to specify them on the command line can be found on lines 33 - 110 of `run_MAAT.R`.
 
  
-* Meteorological data files. 
+* Meteorological data files. Coming soon ... 
 
 
 
@@ -102,3 +112,7 @@ Before making a pull request please ensure that your development branch code is 
 ### Please direct questions to ###
 
 Anthony Walker (walkerap@ornl.gov)
+
+
+
+<!-- END -->

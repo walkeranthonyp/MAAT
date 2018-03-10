@@ -48,7 +48,7 @@ On a queued system this will run each SA ensemble on a separate node (if availab
 
 * Post-process MAAT output and calculate sensitvity indices.
 From the project directory open `analysis_MAAT_gwGMDms.R` using your favorite text editor (e.g. vim) or IDE (e.g. RStudio).
-There are a number of configurable options but the only one needed is to set the date on which the ensemble was run replace `#OUTPUTDATE#` in `odate <- #OUTPUTDATE#` on line 34 with the ensemble run date in YYY-MM-DD format.
+There are a number of configurable options but the only one needed is to set the date on which the ensemble was run replace `##OUTPUTDATE##` in `odate <- '##OUTPUTDATE##'` on line 34 with the ensemble run date in YYYY-MM-DD format.
 The analysis can then be run from the command line with:
 ```bash
 Rscript analysis_MAAT_gwGMDms.R
@@ -56,3 +56,6 @@ Rscript analysis_MAAT_gwGMDms.R
 This will calculate the sensitivity indices, resample and bootstrap the sensitvity indices to test for convergence, write a pdf table of the process sensitivity indices, and plot the parameter sensitivity indices.
 These will be placed in the `tables` and `plots` subdirectories of the results directory: `<projectpath>/results/#OUTPUTDATE#`.
 
+
+
+<!-- END -->

@@ -34,7 +34,7 @@ cd <projectpath>
 ```  
 and execute the job by running locally:  
 ```bash
-./call_run_MAAT_example.bs
+./call_run_MAAT_leafeg.bs
 ```  
 This will run the ensemble for the the leaf model in MAAT. 
 Options that have been hard coded into the the above `call_*.bs` script is the request to run these ensembles over multiple cores, 4 cores (the MAAT default), for each ensemble. 
@@ -42,11 +42,15 @@ Options that have been hard coded into the the above `call_*.bs` script is the r
 
 * Generate figures from MAAT output.
 From the project directory open `plot_figures.R` using your favorite text editor (e.g. vim) or IDE (e.g. RStudio).
-There are a number of configurable options but the only one needed is to set the date on which the ensemble was run replace `#OUTPUTDATE#` in `odate <- '#OUTPUTDATE#'` on line 19 with the ensemble run date in YYY-MM-DD format.
+There are a number of configurable options but the only one needed is to set the date on which the ensemble was run replace `##OUTPUTDATE##` in `odate <- '##OUTPUTDATE##'` on line 19 with the ensemble run date in YYYY-MM-DD format.
 The figures can then be run from the command line with:
 ```bash
 Rscript plot_figures.R
 ```  
 This will generate the photosynthesis figures in Walker et al. manuscript submitted to GMD.
 These will be placed in the `tables` and `plots` subdirectories of the results directory: `<projectpath>/results/#OUTPUTDATE#`.
-Note that thsi plotting script depends on the R packages `latticeExtra`, `stringr`, `grid`, and `viridis` to function.
+Note that this plotting script depends on the R packages `latticeExtra`, `stringr`, `grid`, and `viridis` to function.
+
+
+
+<!-- END -->

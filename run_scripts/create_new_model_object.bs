@@ -4,22 +4,26 @@
 # 1st argument - new model object name 
 # 2nd argument - path of MAAT source code directory 'src', can be left blank if this script is run from the top level maat source code directory
 
-NMOD=$1
-src=${2-$PWD/src}/system_models
+MOBJ=$1
+SDIRM=${2-$PWD/src}/system_models
 
-mkdir -p $src/$NMOD >/dev/null 2>&1
-cp       $src/template/*.R $src/$NMOD && chmod 755 $src/$NMOD/*
-rename   "s/template/${NMOD}/g" $src/$NMOD/*
+mkdir -p $SDIRM/$MOBJ >/dev/null 2>&1
+cp       $SDIRM/template/*.R $SDIRM/$MOBJ && chmod 755 $SDIRM/$MOBJ/*
+rename   "s/template/${MOBJ}/g" $SDIRM/$MOBJ/*
 
-mkdir -p $src/$NMOD/init_files >/dev/null 2>&1
-cp       $src/template/init_files/*.R $src/$NMOD/init_files && chmod 755 $src/$NMOD/init_files*
-rename   "s/template/${NMOD}/g" $src/$NMOD/init_files/*
+mkdir -p $SDIRM/$MOBJ/init_files >/dev/null 2>&1
+cp       $SDIRM/template/init_files/*.R $SDIRM/$MOBJ/init_files && chmod 755 $SDIRM/$MOBJ/init_files*
+rename   "s/template/${MOBJ}/g" $SDIRM/$MOBJ/init_files/*
 
 # if mac else linux 
 if [[ $OSTYPE == darwin* ]]; then
-  sed -i '' "s@template@$NMOD@g"  $src/$NMOD/*
-  sed -i '' "s@template@$NMOD@g"  $src/$NMOD/init_files/*
+  sed -i '' "s@template@$MOBJ@g"  $SDIRM/$MOBJ/*
+  sed -i '' "s@template@$MOBJ@g"  $SDIRM/$MOBJ/init_files/*
 else
-  sed -i    "s@template@$NMOD@g"  $src/$NMOD/*
-  sed -i    "s@template@$NMOD@g"  $src/$NMOD/init_files/*
+  sed -i    "s@template@$MOBJ@g"  $SDIRM/$MOBJ/*
+  sed -i    "s@template@$MOBJ@g"  $SDIRM/$MOBJ/init_files/*
 fi
+
+
+
+### END ###
