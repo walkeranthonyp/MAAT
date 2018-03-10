@@ -26,12 +26,12 @@ The lowest level directory in the path will be created if it does not already ex
 Expects the path to exist.
 
 
-* Run the process and parameter SA example:
+* Run the process and parameter SA example.
 Change directory to the project directory: 
 ```bash
 cd <projectpath>
 ```  
-and execute the job by either, 1) submitting to a que:  
+and execute the job by either, 1) submitting to a queue (note that this will require you to open the pbs script `qsubmit_MAAT_arg.pbs` and edit for your machine):  
 ```bash
 ./call_qsub_MAAT_SA.bs
 ```  

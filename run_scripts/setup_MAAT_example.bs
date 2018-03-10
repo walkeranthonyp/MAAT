@@ -19,16 +19,19 @@ cp $srcm/$MODOBJ/examples/* $PDIR
 chmod 775 $PDIR call*
 chmod 775 $PDIR qsub*
 chmod 775 $PDIR analysis*
+chmod 775 $PDIR plot*
 
 # if else
 if [[ $OSTYPE == darwin* ]]; then
   sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsub*.pbs
   sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call*.bs
+  sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/plot*.R
   sed -i '' "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/analysis*.R
-  sed -i '' "s@#SOURCEDIR#@$src@"    ${PDIR}/analysis.R
+  sed -i '' "s@#SOURCEDIR#@$src@"    ${PDIR}/analysis*.R
 else
   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/qsub*.pbs
   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/call*.bs
+  sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/plot*.R
   sed -i    "s@#PROJECTDIR#@$PDIR@"  ${PDIR}/analysis*.R
   sed -i    "s@#SOURCEDIR#@$src@"    ${PDIR}/analysis*.R
 fi

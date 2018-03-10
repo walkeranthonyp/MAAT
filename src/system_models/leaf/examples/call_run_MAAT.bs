@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PDIR="#PROJECTDIR#"
+
+YMD=`date +%Y-%m-%d`
+
+cd $PDIR
+Rscript run_MAAT.R "runid<-'AnvNum'"  "mod_out<-'full'" "multic<-T" "uq<-F" "factorial<-T" > "./logs/${YMD}_AnvNum_runlog.txt"  &
+Rscript run_MAAT.R "runid<-'Tcurves'" "mod_out<-'full'" "multic<-T" "uq<-F" "factorial<-T" > "./logs/${YMD}_Tcurves_runlog.txt" &
+
