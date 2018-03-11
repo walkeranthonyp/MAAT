@@ -8,7 +8,8 @@
 
 source('canopy_functions.R')
 source('canopy_system_functions.R')
-source('leaf_object.R')
+source('../leaf/leaf_object.R')
+
 
 
 # CANOPY OBJECT
@@ -27,10 +28,8 @@ canopy_object <-
     leaf <- NULL
     
     # build function
-    .build <- function(.) {
-      model      <- as.proto(.$as.list())
-      model$leaf <- as.proto(leaf_object$as.list(),parent=model)
-      model
+    build <- function(.,model) {
+      .$leaf <- as.proto( leaf_object$as.list() )
     }
     
     
@@ -91,7 +90,7 @@ canopy_object <-
     
     # function names
     fnames <- list(
-      cansys          = 'f_multilayer',
+      cansys          = 'f_cansys_multilayer',
       can_pars        = 'f_canlight_pars',
       can_scale_light = 'f_canlight_beerslaw',
       can_scale_N     = 'f_leafN_CLMuniform',
