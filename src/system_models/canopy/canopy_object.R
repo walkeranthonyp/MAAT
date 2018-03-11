@@ -25,6 +25,7 @@ canopy_object <-
     
     # expected child objects
     # the 'leaf_object' object named 'leaf'
+    child_list <- list('leaf') 
     leaf <- NULL
     
     # build function
@@ -215,11 +216,10 @@ canopy_object <-
       # assign UQ variables
       .[[vlist]][vlss] <- df[dfss]
 
-      # call leaf configure
-      # - if/when system structure becomes more complicated this can be modifies to run through all child objects
-      # - by calling the configure function of the child object, any child objects of the child will also be configured by calling that function
-      if(any(prefix=='leaf')) .$leaf$configure(.,vlist,df,F) 
-      
+      # call child (leaf) configure
+      child_configure <- function(., child ) if(any(prefix==child)) .[[child]]$configure(.,vlist,df,F) 
+      vapply( .$child_list, .$child_configure , NULL )     
+ 
       if(.$cpars$cverbose&o) {
         print('',quote=F)
         print('Canopy configure:',quote=F)
