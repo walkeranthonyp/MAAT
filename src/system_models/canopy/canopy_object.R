@@ -6,8 +6,9 @@
 #
 ################################
 
-source('leaf_object.R')
 source('canopy_functions.R')
+source('canopy_system_functions.R')
+source('leaf_object.R')
 
 
 # CANOPY OBJECT
@@ -37,101 +38,16 @@ canopy_object <-
     ###########################################################################
     # main run functions
     
+    # Alternate run function    
     run <- function(.){
       if(.$pars$verbose) print('canopy_run')
-      
-      # initialise canopy
-      .$state$lai <- get(.$fnames$lai)(.) # this also could point to a higher level plant object  
-      layers      <- ceiling(.$state$lai) # this could be a function specifying either no. of layers or the below lai assignment   
-      .$init_vert(l=layers)
-      get(.$fnames$can_pars)(.)
-      
-      # canopy layer 
-      # - need to generalise this to allow direct light only, both direrct and diffuse (and sunlit and shade leaves)
-      # populate layer dataframe      
-      .$state$vert$leaf.ca_conc    <- get(.$fnames$can_scale_Ca)(.,l=1:layers,layers=layers)
-      .$state$vert$leaf.par        <- get(.$fnames$can_scale_light)(.,l=1:layers,layers=layers)
-      .$state$vert$leaf.leafN_area <- get(.$fnames$can_scale_N)(.,l=1:layers,layers=layers)
-      
-      # run leaf
-      lout   <- as.data.frame(do.call(rbind,lapply(1:layers,.$run_leaf)))
-#       lout   <- mclapply(1:layers,.$leaf$wrapper,df=leafdf,mc.cores=.$pars$leaf_cores) # this can be used to run each canopy layer in parallel, in practise this was found to be slower
-      
-      # assign data
-      .$state$A           <- unlist(lout$A)
-      .$state$cc          <- unlist(lout$cc)
-      .$state$ci          <- unlist(lout$ci)
-#       .$state$gi          <- unlist(lout$gi)
-#       .$state$gs          <- unlist(lout$gs)
-      .$state$ri          <- unlist(lout$ri)
-      .$state$rs          <- unlist(lout$rs)
-      .$state$lim         <- unlist(lout$lim)
-      .$state$respiration <- unlist(lout$respiration)      
-      
-      #scale bottom layer fluxes/pars to leaf area in that layer
-      # - need to generalise this to a multilayer canopy
-      if(ceiling(.$state$lai)-floor(.$state$lai)==1){
-        scale <- .$state$lai %% 1
-        .$state$A[layers]           <- .$state$A[layers]           * scale        
-#         .$state$gi[layers]          <- .$state$gi[layers]          * scale        
-#         .$state$gs[layers]          <- .$state$gs[layers]          * scale        
-        .$state$ri[layers]          <- .$state$ri[layers]          * scale        
-        .$state$rs[layers]          <- .$state$rs[layers]          * scale        
-        .$state$respiration[layers] <- .$state$respiration[layers] * scale      
-        .$state$cc[layers]          <- .$state$cc[layers]          * scale        
-        .$state$ci[layers]          <- .$state$ci[layers]          * scale        
-      }      
-      
-      #integrate canopy layers
-      # - need to generalise this to allow direct light only, both direrct and diffuse (and sunlit and shade leaves)
-      # canopy sum values
-      .$state$integrated$A             <- sum(.$state$A)
-      .$state$integrated$respiration   <- sum(.$state$respiration)
-      .$state$integrated$wc_lim        <- sum(.$state$A * (.$state$lim=='wc')) 
-      .$state$integrated$wj_lim        <- sum(.$state$A * (.$state$lim=='wj'))
-      .$state$integrated$wp_lim        <- sum(.$state$A * (.$state$lim=='wp'))
-      .$state$integrated$layers_wc_lim <- sum(.$state$lim=='wc')
-      .$state$integrated$layers_wj_lim <- sum(.$state$lim=='wj')
-      .$state$integrated$layers_wp_lim <- sum(.$state$lim=='wp')
-#       .$state$integrated$gi            <- sum(.$state$gi)
-#       .$state$integrated$gs            <- sum(.$state$gs)
-      .$state$integrated$ri            <- 1 / sum(1/.$state$ri)
-      .$state$integrated$rs            <- 1 / sum(1/.$state$rs)
-      # canopy mean values
-      .$state$integrated$cc            <- sum(.$state$cc) / .$state$lai
-      .$state$integrated$ci            <- sum(.$state$ci) / .$state$lai
-      
-      #output
-      .$output()      
-    }
-
-    
-    # Alternate run function    
-    run_alt   <- function(.){
       
       # initialise canopy
       .$state$lai <- get(.$fnames$lai)(.) # this also could point to a higher level plant object  
       get(.$fnames$can_pars)(.)
       
       # run canopy model
-      get(.$fnames$canopy)(.)
-      
-#       #integrate canopy layers
-#       # - need to generalise this to allow direct light only, both direrct and diffuse (and sunlit and shade leaves)
-#       # canopy sum values
-#       .$state$integrated$A             <- sum(.$state$A)
-#       .$state$integrated$respiration   <- sum(.$state$respiration)
-#       .$state$integrated$Ac_lim        <- sum(.$state$A * (.$state$lim=='ac')) 
-#       .$state$integrated$Aj_lim        <- sum(.$state$A * (.$state$lim=='aj'))
-#       .$state$integrated$Ap_lim        <- sum(.$state$A * (.$state$lim=='ap'))
-#       .$state$integrated$layers_ac_lim <- sum(.$state$lim=='ac')
-#       .$state$integrated$layers_aj_lim <- sum(.$state$lim=='aj')
-#       .$state$integrated$layers_ap_lim <- sum(.$state$lim=='ap')
-#       .$state$integrated$gi            <- sum(.$state$gi)
-#       .$state$integrated$gs            <- sum(.$state$gs)
-#       # canopy mean values
-#       .$state$integrated$cc            <- sum(.$state$cc) / .$state$lai
-#       .$state$integrated$ci            <- sum(.$state$ci) / .$state$lai
+      get(.$fnames$cansys)(.)
       
       #output
       .$output()      
@@ -175,8 +91,8 @@ canopy_object <-
     
     # function names
     fnames <- list(
+      cansys          = 'f_multilayer',
       can_pars        = 'f_canlight_pars',
-      canopy          = 'f_multilayer',
       can_scale_light = 'f_canlight_beerslaw',
       can_scale_N     = 'f_leafN_CLMuniform',
       can_scale_Ca    = 'f_Ca_uniform',
