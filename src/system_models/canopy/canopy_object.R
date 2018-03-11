@@ -194,58 +194,41 @@ canopy_object <-
     )
       
     
+    
     ###########################################################################
     # Run & configure functions
     
-    # initialisation function
-    init <- function(.,init_ls) {
-      # expects to have the wrapper object named 'maat' as parent
-      
-      comb_init_list <- function(.,lls,cls) {
-        nas <- sum(is.na(lls))
-        if(nas>1) stop else if(nas==0) names(lls) <- paste('leaf',names(lls),sep='.') # need to write error message in here
-        comb_ls <- if(nas==0) lls else NA
-
-        nas <- sum(is.na(cls))
-        if(nas>1) stop else if(nas==0) names(cls) <- paste('canopy',names(cls),sep='.') # need to write error message in here
-        if(nas==0&is.na(comb_ls)) cls else c(comb_ls,cls) 
-        
-      }
-      
-      maat$static$fnames <- comb_init_list(lls=.$init_static$leaf$fnames,
-                                           cls=.$init_static$canopy$fnames)
-      maat$static$pars   <- comb_init_list(lls=.$init_static$leaf$pars,
-                                           cls=.$init_static$canopy$pars)
-      maat$static$env    <- comb_init_list(lls=.$init_static$leaf$env,
-                                           cls=.$init_static$canopy$env)
-      
-      maat$vars$fnames   <- comb_init_list(lls=.$init_dynamic$leaf$fnames,
-                                           cls=.$init_dynamic$canopy$fnames)
-      maat$vars$pars     <- comb_init_list(lls=.$init_dynamic$leaf$pars,
-                                           cls=.$init_dynamic$canopy$pars)
-      maat$vars$env      <- comb_init_list(lls=.$init_dynamic$leaf$env,
-                                           cls=.$init_dynamic$canopy$env)
-      
-    }
-    
-    configure <- function(.,func,df,o=T) {
+    configure <- function(.,vlist,df,o=T) {
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
-      # - df is a single row dataframe
+     
+      # process UQ variables
+      uqvars <- names(df)
+      prefix <- vapply( strsplit(uqvars,'.', fixed=T), function(cv) cv[1], 'character' )
+      modobj <- .$name
+      dfss   <- which(prefix==modobj)
+      vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
+
+      # catch NAs in vlss
+      if(any(is.na(vlss))) stop(paste('names mismatch between model object variables and input list variable:', uqvars[which(is.na(vlss))] ))
+
+      # assign UQ variables
+      .[[vlist]][vlss] <- df[dfss]
+
+      # call leaf configure
+      # - if/when system structure becomes more complicated this can be modifies to run through all child objects
+      # - by calling the configure function of the child object, any child objects of the child will also be configured by calling that function
+      if(any(prefix=='leaf')) .$leaf$configure(.,vlist,df,F) 
       
-      # name and assign the UQ variables
-      uqvars     <- names(df)
-      prefix     <- substr(uqvars,1,str_locate(uqvars,'\\.')[,2]-1)
-      lapply(uqvars[which(prefix=='canopy')], func, .=., df=df)
-      lapply(uqvars[which(prefix=='leaf')],   get(func,envir=.$leaf), .=.$leaf, df=df)
-      
-      if(.$pars$verbose&o) {
+      if(.$cpars$cverbose&o) {
         print('',quote=F)
         print('Canopy configure:',quote=F)
         print(prefix,quote=F)
         print(df,quote=F)
+        print(.[vlist],quote=F)
       }
     }
+    
     
     run_met <- function(.,l){
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe
@@ -263,11 +246,6 @@ canopy_object <-
       .$run()              
     }
     
-    # variable assignment functions - called from the above configuration functions
-    write_fnames <- function(.,var,df) .$fnames[which(names(.$fnames)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))] <- df[which(names(df)==var)]
-    write_pars   <- function(.,var,df) .$pars[which(names(.$pars)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]     <- df[which(names(df)==var)]
-    write_env    <- function(.,var,df) .$env[which(names(.$env)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]       <- df[which(names(df)==var)]
-    write_state  <- function(.,var,df) .$state[which(names(.$state)==substr(var,str_locate(var,'\\.')[,2]+1,nchar(var)))]   <- df[which(names(df)==var)]
 
     # initialise the number of layers in the canopy
     init_vert <- function(.,l) {
@@ -284,6 +262,7 @@ canopy_object <-
         leaf.leafN_area = numeric(l)
       )
     }
+    
     
     # function to run the leaves within the canopy
     run_leaf <- function(.,ii){
