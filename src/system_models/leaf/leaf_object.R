@@ -350,7 +350,9 @@ leaf_object <-
       vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
 
       # catch NAs in vlss
-      if(any(is.na(vlss))) stop(paste('names mismatch between model object variables and input list variable:', uqvars[which(is.na(vlss))] ))
+      #if(any(is.na(vlss))) stop(paste('names mismatch between model object variables and input list variable:', uqvars[which(is.na(vlss))] ))
+      dfss <- dfss[-which(is.na(vlss))]
+      vlss <- vlss[-which(is.na(vlss))]
 
       # assign UQ variables
       .[[vlist]][vlss] <- df[dfss]
