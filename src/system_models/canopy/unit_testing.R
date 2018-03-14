@@ -22,6 +22,7 @@ source('canopy_object.R')
 # canopy
 canopy_object$.test()
 canopy_object$state
+canopy_object$pars
 
 canopy_object$.test_aca()
 

@@ -6,9 +6,11 @@
 #
 ################################
 
+setwd('../leaf')
+source('leaf_object.R')
+setwd('../canopy')
 source('canopy_functions.R')
 source('canopy_system_functions.R')
-source('../leaf/leaf_object.R')
 
 
 
@@ -62,25 +64,25 @@ canopy_object <-
     # -- returns a vector of outputs
     output <- function(.){
       if(.$pars$output=='run') {
-        list(A=.$state$integrated$A,gs=.$state$integrated$gs,respiration=.$state$integrated$respiration)
+        list(A=.$state$integrated$A, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration)
         
       } else if(.$pars$output=='leaf') {
-        list(A=.$state$integrated$A,cc=.$state$integrated$cc,ci=.$state$integrated$ci,
-             gi=.$state$integrated$gi,gs=.$state$integrated$gs,respiration=.$state$integrated$respiration,lim=NA)
+        list(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
+             gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA)
         
       } else if(.$pars$output=='all_lim') {
-        list(A=.$state$integrated$A,cc=.$state$integrated$cc,ci=.$state$integrated$ci,
-             gi=.$state$integrated$gi,gs=.$state$integrated$gs,respiration=.$state$integrated$respiration,lim=NA,
-             wc_lim=.$state$integrated$wc_lim,
-             wj_lim=.$state$integrated$wj_lim,
-             wp_lim=.$state$integrated$wp_lim,
-             layers_wc_lim=.$state$integrated$layers_wc_lim,
-             layers_wj_lim=.$state$integrated$layers_wj_lim,
-             layers_wp_lim=.$state$integrated$layers_wp_lim
+        list(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
+             gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA, 
+             Acg_lim=.$state$integrated$Acg_lim, 
+             Ajg_lim=.$state$integrated$Ajg_lim, 
+             Apg_lim=.$state$integrated$Apg_lim, 
+             layers_Acg_lim=.$state$integrated$layers_Acg_lim, 
+             layers_Ajg_lim=.$state$integrated$layers_Ajg_lim, 
+             layers_Apg_lim=.$state$integrated$layers_Apg_lim
         )
         
       } else if(.$pars$output=='full') {
-        c(.$state$integrated,.$state_pars)
+        c(.$state$integrated, .$state_pars)
       }
     }    
 
@@ -102,81 +104,82 @@ canopy_object <-
     
     # Environment
     env <- list(
-      par      = numeric(0),      
-      par_dir  = numeric(0),      
-      par_diff = numeric(0),      
-      ca_conc  = numeric(0),
-      vpd      = numeric(0),
+      par      = numeric(1),      
+      par_dir  = numeric(1),      
+      par_diff = numeric(1),      
+      ca_conc  = numeric(1),
+      vpd      = numeric(1),
       zenith   = 0
     )
     
     # state
     state <- list(
       # External
-      lai     = numeric(0),      # 1.5 for Sphagnum Williams & Flannagan, 1998
+      lai     = numeric(1),      # 1.5 for Sphagnum Williams & Flannagan, 1998
       mass_a  = 10,
       C_to_N  = 40,
-      totalN  = numeric(0),
+      totalN  = numeric(1),
       
       # Calculated state
       # canopy layer vectors
-      # variable canopy environment etc
       vert    = data.frame(
-        par_dir         = numeric(0),
-        par_diff        = numeric(0),
-        apar_sun        = numeric(0),
-        apar_shade      = numeric(0),
-        f_sun           = numeric(0),
-        f_shade         = numeric(0),
-        leaf.ca_conc    = numeric(0),
-        leaf.vpd        = numeric(0),
-        leaf.par        = numeric(0),
-        leaf.leafN_area = numeric(0)
-        ),
-      # canopy state - logically these should be in the above vert dataframe 
-      A           = numeric(0),
-      respiration = numeric(0),
-      ci          = numeric(0),
-      cc          = numeric(0),
-      gs          = numeric(0),
-      gi          = numeric(0),
-      lim         = character(0),
+        # variable canopy environment etc
+        par_dir         = numeric(1),
+        par_diff        = numeric(1),
+        apar_sun        = numeric(1),
+        apar_shade      = numeric(1),
+        f_sun           = numeric(1),
+        f_shade         = numeric(1),
+        leaf.ca_conc    = numeric(1),
+        leaf.vpd        = numeric(1),
+        leaf.par        = numeric(1),
+        leaf.leafN_area = numeric(1)
+      ),
+      
+      # variable canopy physiology
+      A               = numeric(1),
+      respiration     = numeric(1),
+      ci              = numeric(1),
+      cc              = numeric(1),
+      gs              = numeric(1),
+      gi              = numeric(1),
+      lim             = numeric(1),
       
       # integrated canopy values
       integrated = list(
-        A             = numeric(0),        # canopy assimilation rate                         (umol m-2s-1)
-        wc_lim        = numeric(0),        # assimilation rate of canopy layers wc limited    (umol m-2s-1)
-        wj_lim        = numeric(0),        # assimilation rate of canopy layers wj limited    (umol m-2s-1)        
-        wp_lim        = numeric(0),        # assimilation rate of canopy layers wp limited    (umol m-2s-1)        
-        layers_wc_lim = numeric(0),        # number of canopy layers wc limited        
-        layers_wj_lim = numeric(0),        # number of canopy layers wj limited        
-        layers_wp_lim = numeric(0),        # number of canopy layers wp limited
-        cb            = numeric(0),        # canopy mean boundary layer CO2                   (Pa)
-        ci            = numeric(0),        # canopy mean leaf internal CO2                    (Pa) 
-        cc            = numeric(0),        # canopy mean chloroplast CO2                      (Pa)
-        gb            = numeric(0),        # canopy boundary conductance                      (mol m-2s-1)
-        gs            = numeric(0),        # canopy stomatal conductance                      (mol m-2s-1) 
-        gi            = numeric(0),        # canopy leaf internal conductance                 (mol m-2s-1)
-        rb            = numeric(0),        # canopy boundary resistance                       (m2s mol-1)
-        rs            = numeric(0),        # canopy stomatal resistance                       (m2s mol-1) 
-        ri            = numeric(0),        # canopy leaf internal resistance                  (m2s mol-1)
-        respiration   = numeric(0)         # canopy respiration rate                          (umol m-2s-1)        
+        A              = numeric(1),        # canopy assimilation rate                         (umol m-2s-1)
+        Acp_lim        = numeric(1),        # assimilation rate of canopy layers Ac limited    (umol m-2s-1)
+        Ajp_lim        = numeric(1),        # assimilation rate of canopy layers Aj limited    (umol m-2s-1)        
+        App_lim        = numeric(1),        # assimilation rate of canopy layers Ap limited    (umol m-2s-1)        
+        layers_Acg_lim = numeric(1),        # number of canopy layers Ac limited        
+        layers_Ajg_lim = numeric(1),        # number of canopy layers Aj limited        
+        layers_Apg_lim = numeric(1),        # number of canopy layers Ap limited
+        cb             = numeric(1),        # canopy mean boundary layer CO2                   (Pa)
+        ci             = numeric(1),        # canopy mean leaf internal CO2                    (Pa) 
+        cc             = numeric(1),        # canopy mean chloroplast CO2                      (Pa)
+        gb             = numeric(1),        # canopy boundary conductance                      (mol m-2s-1)
+        gs             = numeric(1),        # canopy stomatal conductance                      (mol m-2s-1) 
+        gi             = numeric(1),        # canopy leaf internal conductance                 (mol m-2s-1)
+        rb             = numeric(1),        # canopy boundary resistance                       (m2s mol-1)
+        rs             = numeric(1),        # canopy stomatal resistance                       (m2s mol-1) 
+        ri             = numeric(1),        # canopy leaf internal resistance                  (m2s mol-1)
+        respiration    = numeric(1)         # canopy respiration rate                          (umol m-2s-1)        
       )
     )
     
     # state parameters
     state_pars <- list(
-      m            = numeric(0),    
-      G_dir        = numeric(0),
-      k_dir        = numeric(0),
-      k_diff       = numeric(0),
-      k_dirprime   = numeric(0),
-      k_diffprime  = numeric(0),
-      lscattering  = numeric(0),
-      alb_dir      = numeric(0),
-      alb_diff     = numeric(0),
-      alb_dir_can  = numeric(0),
-      alb_diff_can = numeric(0)
+      m            = numeric(1),    
+      G_dir        = numeric(1),
+      k_dir        = numeric(1),
+      k_diff       = numeric(1),
+      k_dirprime   = numeric(1),
+      k_diffprime  = numeric(1),
+      lscattering  = numeric(1),
+      alb_dir      = numeric(1),
+      alb_diff     = numeric(1),
+      alb_dir_can  = numeric(1),
+      alb_diff_can = numeric(1)
     )
     
     # parameters
@@ -240,7 +243,7 @@ canopy_object <-
       # any "env" variables specified in the "drv$env" dataframe and specified here will be overwritten by the values specified here 
       
       # met data assignment
-      .$configure(func='write_env',df=.$dataf$met[l,],F)
+      .$configure(vlist='env',df=.$dataf$met[l,],F)
       
       # run model
       .$run()              
@@ -270,8 +273,9 @@ canopy_object <-
       # assumes that each row of the dataframe are independent and non-sequential
       
       # expects .$state$vert to exist in this object
-      .$leaf$configure(func='write_env',  df=data.frame(.$state$vert[ii,]),F)
-      .$leaf$configure(func='write_state',df=data.frame(.$state$vert[ii,]),F)
+      cols <- which(grepl('leaf', names(.$state$vert) ))
+      .$leaf$configure(vlist='env',   df=data.frame(.$state$vert[ii,cols]), F )
+      .$leaf$configure(vlist='state', df=data.frame(.$state$vert[ii,cols]), F )
       
       # run leaf
       .$leaf$run()        
@@ -334,3 +338,4 @@ canopy_object <-
 
 
 
+### END ###

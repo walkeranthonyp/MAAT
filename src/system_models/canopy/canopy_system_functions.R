@@ -30,18 +30,18 @@ f_cansys_bigleaf_s1992 <- function(.,k=.$state_pars$k_dirprime,...) {
   .$leaf$state$leafN_area <- .$state$totalN * k / fpar
   
   # calculate A0
-  # leaf model will calculate Vcmax0 and Jmax0 according to N0, temp, etc 
+  # leaf model will calculate Vcmax0 and Jmax0 according to leaf process specifications, e.g. from N0, temp, etc 
   .$leaf$run()
   
   # scale
   .$state$integrated$A             <- .$leaf$state$A * fpar/k
   .$state$integrated$respiration   <- .$leaf$state$respiration * fpar/k
-  .$state$integrated$wc_lim        <- if(.$leaf$state$lim=='wc') .$state$integrated$A else 0
-  .$state$integrated$wj_lim        <- if(.$leaf$state$lim=='wj') .$state$integrated$A else 0 
-  .$state$integrated$wp_lim        <- if(.$leaf$state$lim=='wp') .$state$integrated$A else 0
-  .$state$integrated$layers_wc_lim <- if(.$leaf$state$lim=='wc') .$state$lai
-  .$state$integrated$layers_wj_lim <- if(.$leaf$state$lim=='wj') .$state$lai
-  .$state$integrated$layers_wp_lim <- if(.$leaf$state$lim=='wp') .$state$lai
+  .$state$integrated$Acg_lim        <- if(.$leaf$state$lim=='Acg') .$state$integrated$A else 0
+  .$state$integrated$Ajg_lim        <- if(.$leaf$state$lim=='Ajg') .$state$integrated$A else 0 
+  .$state$integrated$Apg_lim        <- if(.$leaf$state$lim=='Apg') .$state$integrated$A else 0
+  .$state$integrated$layers_Acg_lim <- if(.$leaf$state$lim=='Acg') .$state$lai
+  .$state$integrated$layers_Ajg_lim <- if(.$leaf$state$lim=='Ajg') .$state$lai
+  .$state$integrated$layers_Apg_lim <- if(.$leaf$state$lim=='Apg') .$state$lai
   # resistance - convert to conductance, minus minimum conductance, scale, add min conductance multiplied by LAI, convert back to resistance
   # - a somewhat complicated version of eq 37f & 35 from Sellers 1992 and a conductance to resistance conversion
   .$state$integrated$rs            <- 1 / ( (1/.$leaf$state$rs - .$leaf$pars$g0) * fpar/k + .$leaf$pars$g0*.$state$lai )
@@ -55,7 +55,7 @@ f_cansys_bigleaf_s1992 <- function(.,k=.$state_pars$k_dirprime,...) {
 
 # Two Big Leaf canopy scaling 
 ###############################
-# - accounts for direct and diffuse light separately but only calculates A once for each stream
+# - accounts for direct and diffuse light separately but only calculates A once for each radiation type 
 f_cansys_2bigleaf <- function(.) {
   # Thornton calculates the mean of all these canopy values, what does Dai do? 
   
@@ -67,7 +67,6 @@ f_cansys_2bigleaf <- function(.) {
   # APARshade is the scattered part of the direct beam plus diffuse radiation
   
   # APARsun is the direct beam plus the scattered part of the direct beam plus diffuse radiation
-  
   
   # calculate Nsun and Nshade 
   
@@ -90,13 +89,13 @@ f_cansys_multilayer <- function(.) {
   
   # initialise layers
   layers      <- ceiling(.$state$lai) # this could be a function specifying either no. of layers or the below lai assignment   
-  #?.$init_vert(l=layers)
+  .$init_vert(l=layers)
   
   # canopy layer 
   # - need to generalise this to allow direct light only, both direrct and diffuse (and sunlit and shade leaves)
   # populate layer dataframe      
-  .$state$vert$leaf.ca_conc    <- get(.$fnames$can_scale_Ca)(.,1:layers)
-  .$state$vert$leaf.vpd        <- get(.$fnames$can_scale_vpd)(.,1:layers)
+  .$state$vert$leaf.ca_conc    <- get(.$fnames$can_scale_Ca)(.,  layers )
+  .$state$vert$leaf.vpd        <- get(.$fnames$can_scale_vpd)(., layers )
   .$state$vert$leaf.par        <- get(.$fnames$can_scale_light)(.,1:layers)
   .$state$vert$leaf.leafN_area <- get(.$fnames$can_scale_N)(.,l=1:layers,layers=layers)
   
@@ -127,19 +126,19 @@ f_cansys_multilayer <- function(.) {
   #integrate canopy layers
   # - need to generalise this to allow direct light only, both direct and diffuse (and sunlit and shade leaves)
   # canopy sum values
-  .$state$integrated$A             <- sum(.$state$A)
-  .$state$integrated$respiration   <- sum(.$state$respiration)
-  .$state$integrated$wc_lim        <- sum(.$state$A * (.$state$lim=='wc')) 
-  .$state$integrated$wj_lim        <- sum(.$state$A * (.$state$lim=='wj'))
-  .$state$integrated$wp_lim        <- sum(.$state$A * (.$state$lim=='wp'))
-  .$state$integrated$layers_wc_lim <- sum(.$state$lim=='wc')
-  .$state$integrated$layers_wj_lim <- sum(.$state$lim=='wj')
-  .$state$integrated$layers_wp_lim <- sum(.$state$lim=='wp')
-  .$state$integrated$ri            <- 1 / sum(1/.$state$ri)
-  .$state$integrated$rs            <- 1 / sum(1/.$state$rs)
+  .$state$integrated$A              <- sum(.$state$A)
+  .$state$integrated$respiration    <- sum(.$state$respiration)
+  .$state$integrated$Acg_lim        <- sum(.$state$A * (.$state$lim=='Acg')) 
+  .$state$integrated$Ajg_lim        <- sum(.$state$A * (.$state$lim=='Ajg'))
+  .$state$integrated$Apg_lim        <- sum(.$state$A * (.$state$lim=='Apg'))
+  .$state$integrated$layers_Acg_lim <- sum(.$state$lim=='Acg')
+  .$state$integrated$layers_Ajg_lim <- sum(.$state$lim=='Ajg')
+  .$state$integrated$layers_Apg_lim <- sum(.$state$lim=='Apg')
+  .$state$integrated$ri             <- 1 / sum(1/.$state$ri)
+  .$state$integrated$rs             <- 1 / sum(1/.$state$rs)
   # canopy mean values
-  .$state$integrated$cc            <- sum(.$state$cc) / .$state$lai
-  .$state$integrated$ci            <- sum(.$state$ci) / .$state$lai
+  .$state$integrated$cc             <- sum(.$state$cc) / .$state$lai
+  .$state$integrated$ci             <- sum(.$state$ci) / .$state$lai
   
 }
 
