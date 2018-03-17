@@ -48,7 +48,6 @@ leaf_object <-
       }
       
       # output
-      print(.$output())
       .$output()
     } 
     

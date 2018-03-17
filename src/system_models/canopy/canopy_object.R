@@ -1,4 +1,4 @@
-################################
+###############################
 #
 # Canopy object 
 # 
@@ -38,9 +38,8 @@ canopy_object <-
     
     
     ###########################################################################
-    # main run functions
+    # main run function
     
-    # Alternate run function    
     run <- function(.){
       if(.$pars$verbose) print('canopy_run')
       
@@ -95,11 +94,27 @@ canopy_object <-
     fnames <- list(
       cansys          = 'f_cansys_multilayer',
       can_pars        = 'f_canlight_pars',
-      can_scale_light = 'f_canlight_beerslaw',
+      can_scale_light = 'f_canlight_beerslaw_goudriaan',
       can_scale_N     = 'f_leafN_CLMuniform',
       can_scale_Ca    = 'f_Ca_uniform',
       can_scale_vpd   = 'f_vpd_uniform',
       lai             = 'f_constant'
+    )
+    
+    # parameters
+    pars <- list(
+      verbose    = F,
+      output     = 'run',
+      layers     = 10,
+      lai        = 10,
+      lai_max    = 4,
+      lai_curve  = 0.5,
+      leaf_cores = 1,
+      G          = 0.5,        # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
+      can_clump  = 1,          # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
+      k_layer    = 0,          # used by some to determine light scaling, not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
+      alb_soil   = 0.15,       # soil albedo
+      leaf_reflectance = 0.075 # leaf reflectance
     )
     
     # Environment
@@ -110,6 +125,21 @@ canopy_object <-
       ca_conc  = numeric(1),
       vpd      = numeric(1),
       zenith   = 0
+    )
+    
+    # state parameters
+    state_pars <- list(
+      m            = numeric(1),    
+      G_dir        = numeric(1),
+      k_dir        = numeric(1),
+      k_diff       = numeric(1),
+      k_dirprime   = numeric(1),
+      k_diffprime  = numeric(1),
+      lscattering  = numeric(1),
+      alb_dir      = numeric(1),
+      alb_diff     = numeric(1),
+      alb_dir_can  = numeric(1),
+      alb_diff_can = numeric(1)
     )
     
     # state
@@ -133,33 +163,33 @@ canopy_object <-
         leaf.ca_conc    = numeric(1),
         leaf.vpd        = numeric(1),
         leaf.par        = numeric(1),
-        leaf.leafN_area = numeric(1)
+        leaf.leafN_area = numeric(1),
+        # variable canopy physiology
+        A               = numeric(1),
+        respiration     = numeric(1),
+        ci              = numeric(1),
+        cc              = numeric(1),
+        rb              = numeric(1),
+        rs              = numeric(1),
+        ri              = numeric(1),
+        lim             = numeric(1)
       ),
-      
-      # variable canopy physiology
-      A               = numeric(1),
-      respiration     = numeric(1),
-      ci              = numeric(1),
-      cc              = numeric(1),
-      gs              = numeric(1),
-      gi              = numeric(1),
-      lim             = numeric(1),
       
       # integrated canopy values
       integrated = list(
         A              = numeric(1),        # canopy assimilation rate                         (umol m-2s-1)
-        Acp_lim        = numeric(1),        # assimilation rate of canopy layers Ac limited    (umol m-2s-1)
-        Ajp_lim        = numeric(1),        # assimilation rate of canopy layers Aj limited    (umol m-2s-1)        
-        App_lim        = numeric(1),        # assimilation rate of canopy layers Ap limited    (umol m-2s-1)        
+        Acg_lim        = numeric(1),        # assimilation rate of canopy layers Ac limited    (umol m-2s-1)
+        Ajg_lim        = numeric(1),        # assimilation rate of canopy layers Aj limited    (umol m-2s-1)        
+        Apg_lim        = numeric(1),        # assimilation rate of canopy layers Ap limited    (umol m-2s-1)        
         layers_Acg_lim = numeric(1),        # number of canopy layers Ac limited        
         layers_Ajg_lim = numeric(1),        # number of canopy layers Aj limited        
         layers_Apg_lim = numeric(1),        # number of canopy layers Ap limited
         cb             = numeric(1),        # canopy mean boundary layer CO2                   (Pa)
         ci             = numeric(1),        # canopy mean leaf internal CO2                    (Pa) 
         cc             = numeric(1),        # canopy mean chloroplast CO2                      (Pa)
-        gb             = numeric(1),        # canopy boundary conductance                      (mol m-2s-1)
-        gs             = numeric(1),        # canopy stomatal conductance                      (mol m-2s-1) 
-        gi             = numeric(1),        # canopy leaf internal conductance                 (mol m-2s-1)
+        #gb             = numeric(1),        # canopy boundary conductance                      (mol m-2s-1)
+        #gs             = numeric(1),        # canopy stomatal conductance                      (mol m-2s-1) 
+        #gi             = numeric(1),        # canopy leaf internal conductance                 (mol m-2s-1)
         rb             = numeric(1),        # canopy boundary resistance                       (m2s mol-1)
         rs             = numeric(1),        # canopy stomatal resistance                       (m2s mol-1) 
         ri             = numeric(1),        # canopy leaf internal resistance                  (m2s mol-1)
@@ -167,37 +197,7 @@ canopy_object <-
       )
     )
     
-    # state parameters
-    state_pars <- list(
-      m            = numeric(1),    
-      G_dir        = numeric(1),
-      k_dir        = numeric(1),
-      k_diff       = numeric(1),
-      k_dirprime   = numeric(1),
-      k_diffprime  = numeric(1),
-      lscattering  = numeric(1),
-      alb_dir      = numeric(1),
-      alb_diff     = numeric(1),
-      alb_dir_can  = numeric(1),
-      alb_diff_can = numeric(1)
-    )
-    
-    # parameters
-    pars <- list(
-      verbose    = F,
-      output     = 'run',
-      lai        = 10,
-      lai_max    = 4,
-      lai_curve  = 0.5,
-      leaf_cores = 1,
-      G          = 0.5,        # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
-      can_clump  = 1,          # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-      k_layer    = 0,          # used by some to determine light scaling, not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
-      alb_soil   = 0.15,       # soil albedo
-      leaf_reflectance = 0.075 # leaf reflectance
-    )
       
-    
     
     ###########################################################################
     # Run & configure functions
@@ -243,7 +243,7 @@ canopy_object <-
       # any "env" variables specified in the "drv$env" dataframe and specified here will be overwritten by the values specified here 
       
       # met data assignment
-      .$configure(vlist='env',df=.$dataf$met[l,],F)
+      .$configure(vlist='env', df=.$dataf$met[l,], F )
       
       # run model
       .$run()              
@@ -252,30 +252,17 @@ canopy_object <-
 
     # initialise the number of layers in the canopy
     init_vert <- function(.,l) {
-      .$state$vert <- data.frame(
-        par_dir         = numeric(l),
-        par_diff        = numeric(l),
-        apar_sun        = numeric(l),
-        apar_shade      = numeric(l),
-        f_sun           = numeric(l),
-        f_shade         = numeric(l),
-        leaf.ca_conc    = numeric(l),
-        leaf.vpd        = numeric(l),
-        leaf.par        = numeric(l),
-        leaf.leafN_area = numeric(l)
-      )
+      .$state$vert <- lapply(.$state$vert, function(v,leng) numeric(leng), leng=l )
     }
     
     
     # function to run the leaves within the canopy
-    run_leaf <- function(.,ii){
+    run_leaf <- function(.,ii,df){
       # This wrapper function is called from an lapply or mclapply function to run over each leaf in the canopy
       # assumes that each row of the dataframe are independent and non-sequential
       
-      # expects .$state$vert to exist in this object
-      cols <- which(grepl('leaf', names(.$state$vert) ))
-      .$leaf$configure(vlist='env',   df=data.frame(.$state$vert[ii,cols]), F )
-      .$leaf$configure(vlist='state', df=data.frame(.$state$vert[ii,cols]), F )
+      .$leaf$configure(vlist='env',   df=df[ii,], F )
+      .$leaf$configure(vlist='state', df=df[ii,], F )
       
       # run leaf
       .$leaf$run()        
@@ -290,6 +277,7 @@ canopy_object <-
       
       # Child Objects
       .$leaf <- as.proto(leaf_object$as.list(),all.names=T)
+      .$leaf$cpars$output <- 'all_lim'
 
       # parameter settings
       .$pars$verbose       <- verbose

@@ -36,12 +36,12 @@ f_cansys_bigleaf_s1992 <- function(.,k=.$state_pars$k_dirprime,...) {
   # scale
   .$state$integrated$A             <- .$leaf$state$A * fpar/k
   .$state$integrated$respiration   <- .$leaf$state$respiration * fpar/k
-  .$state$integrated$Acg_lim        <- if(.$leaf$state$lim=='Acg') .$state$integrated$A else 0
-  .$state$integrated$Ajg_lim        <- if(.$leaf$state$lim=='Ajg') .$state$integrated$A else 0 
-  .$state$integrated$Apg_lim        <- if(.$leaf$state$lim=='Apg') .$state$integrated$A else 0
-  .$state$integrated$layers_Acg_lim <- if(.$leaf$state$lim=='Acg') .$state$lai
-  .$state$integrated$layers_Ajg_lim <- if(.$leaf$state$lim=='Ajg') .$state$lai
-  .$state$integrated$layers_Apg_lim <- if(.$leaf$state$lim=='Apg') .$state$lai
+  .$state$integrated$Acg_lim        <- if(.$leaf$state$lim==2) .$state$integrated$A else 0
+  .$state$integrated$Ajg_lim        <- if(.$leaf$state$lim==3) .$state$integrated$A else 0 
+  .$state$integrated$Apg_lim        <- if(.$leaf$state$lim==7) .$state$integrated$A else 0
+  .$state$integrated$layers_Acg_lim <- if(.$leaf$state$lim==2) .$state$lai
+  .$state$integrated$layers_Ajg_lim <- if(.$leaf$state$lim==3) .$state$lai
+  .$state$integrated$layers_Apg_lim <- if(.$leaf$state$lim==7) .$state$lai
   # resistance - convert to conductance, minus minimum conductance, scale, add min conductance multiplied by LAI, convert back to resistance
   # - a somewhat complicated version of eq 37f & 35 from Sellers 1992 and a conductance to resistance conversion
   .$state$integrated$rs            <- 1 / ( (1/.$leaf$state$rs - .$leaf$pars$g0) * fpar/k + .$leaf$pars$g0*.$state$lai )
@@ -68,7 +68,7 @@ f_cansys_2bigleaf <- function(.) {
   
   # APARsun is the direct beam plus the scattered part of the direct beam plus diffuse radiation
   
-  # calculate Nsun and Nshade 
+  # calculate Nsun and Nshade - this doesn't really make sense as leaf N is not able to vary on the time scales that on which sun and shade leaves vary  
   
   # calculate Asun and Ashade
   
@@ -81,64 +81,61 @@ f_cansys_2bigleaf <- function(.) {
 ###############################
 f_cansys_multilayer <- function(.) {
   
-  # initialise number of layers
-  # explicitely scale canopy N
-  # explicitely scale PARsun and PARshade
-  # explicitely calculate Asun and Ashade in each layer
-  # scale
-  
   # initialise layers
-  layers      <- ceiling(.$state$lai) # this could be a function specifying either no. of layers or the below lai assignment   
-  .$init_vert(l=layers)
+  linc           <- .$state$lai / .$pars$layers
+  ca_calc_points <- seq(linc, .$state$lai, linc ) 
+  layers         <- .$pars$layers
+  #layers         <- ceiling(.$state$lai) # this could be a function specifying either no. of layers or the below lai assignment   
+  .$init_vert(l=layers) # reallocating this memory is unnecessary in cases where layers is a fixed parameter. 
   
-  # canopy layer 
+  # canopy leaf layer properties 
+  .$state$vert$leaf.leafN_area[] <- get(.$fnames$can_scale_N)(., ca_calc_points )
+  .$state$vert$leaf.ca_conc[]    <- get(.$fnames$can_scale_Ca)(., ca_calc_points )
+  .$state$vert$leaf.vpd[]        <- get(.$fnames$can_scale_vpd)(., ca_calc_points )
+
+  # Light scaling  
   # - need to generalise this to allow direct light only, both direrct and diffuse (and sunlit and shade leaves)
-  # populate layer dataframe      
-  .$state$vert$leaf.ca_conc    <- get(.$fnames$can_scale_Ca)(.,  layers )
-  .$state$vert$leaf.vpd        <- get(.$fnames$can_scale_vpd)(., layers )
-  .$state$vert$leaf.par        <- get(.$fnames$can_scale_light)(.,1:layers)
-  .$state$vert$leaf.leafN_area <- get(.$fnames$can_scale_N)(.,l=1:layers,layers=layers)
-  
+  get(.$fnames$can_scale_light)(.,ca_calc_points )
+
+  # direct light
+  #.$state$vert$leaf.par        <- get(.$fnames$can_scale_light)(.,ca_calc_points )
+  .$state$vert$leaf.par[] <- .$state$vert$apar_sun 
+
+  # create leaf environment  matrix
+  lmatrix <- vapply(.$state$vert[c('leaf.leafN_area','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )  
+  print(lmatrix)
+
   # run leaf
-  lout   <- as.data.frame(do.call(rbind,lapply(1:layers,.$run_leaf)))
-  
+  leaf_out <- vapply(1:layers, .$run_leaf, .$leaf$output(), df=lmatrix )
+  print(leaf_out)
+ 
   # assign data
-  .$state$A           <- unlist(lout$A)
-  .$state$cc          <- unlist(lout$cc)
-  .$state$ci          <- unlist(lout$ci)
-  .$state$ri          <- unlist(lout$ri)
-  .$state$rs          <- unlist(lout$rs)
-  .$state$lim         <- unlist(lout$lim)
-  .$state$respiration <- unlist(lout$respiration)      
-  
-  #scale bottom layer fluxes/pars to leaf area in that layer
-  # - need to generalise this to a multilayer canopy
-  if(ceiling(.$state$lai)-floor(.$state$lai)==1){
-    scale <- .$state$lai %% 1
-    .$state$A[layers]           <- .$state$A[layers]           * scale        
-    .$state$ri[layers]          <- .$state$ri[layers]          * scale        
-    .$state$rs[layers]          <- .$state$rs[layers]          * scale        
-    .$state$respiration[layers] <- .$state$respiration[layers] * scale      
-    .$state$cc[layers]          <- .$state$cc[layers]          * scale        
-    .$state$ci[layers]          <- .$state$ci[layers]          * scale        
-  }      
+  .$state$vert$A[]           <- leaf_out['A',]
+  .$state$vert$cc[]          <- leaf_out['cc',]
+  .$state$vert$ci[]          <- leaf_out['ci',]
+  .$state$vert$lim[]         <- leaf_out['lim',]
+  .$state$vert$respiration[] <- leaf_out['respiration',]      
+  .$state$vert$rb[]          <- leaf_out['rb',]
+  .$state$vert$rs[]          <- leaf_out['rs',]
+  .$state$vert$ri[]          <- leaf_out['ri',]
   
   #integrate canopy layers
   # - need to generalise this to allow direct light only, both direct and diffuse (and sunlit and shade leaves)
   # canopy sum values
-  .$state$integrated$A              <- sum(.$state$A)
-  .$state$integrated$respiration    <- sum(.$state$respiration)
-  .$state$integrated$Acg_lim        <- sum(.$state$A * (.$state$lim=='Acg')) 
-  .$state$integrated$Ajg_lim        <- sum(.$state$A * (.$state$lim=='Ajg'))
-  .$state$integrated$Apg_lim        <- sum(.$state$A * (.$state$lim=='Apg'))
-  .$state$integrated$layers_Acg_lim <- sum(.$state$lim=='Acg')
-  .$state$integrated$layers_Ajg_lim <- sum(.$state$lim=='Ajg')
-  .$state$integrated$layers_Apg_lim <- sum(.$state$lim=='Apg')
-  .$state$integrated$ri             <- 1 / sum(1/.$state$ri)
-  .$state$integrated$rs             <- 1 / sum(1/.$state$rs)
+  .$state$integrated$A[]              <- sum(.$state$vert$A) * linc
+  .$state$integrated$respiration[]    <- sum(.$state$vert$respiration) * linc
+  .$state$integrated$Acg_lim[]        <- sum(.$state$vert$A * (.$state$lim==2)) * linc 
+  .$state$integrated$Ajg_lim[]        <- sum(.$state$vert$A * (.$state$lim==3)) * linc
+  .$state$integrated$Apg_lim[]        <- sum(.$state$vert$A * (.$state$lim==7)) * linc
+  .$state$integrated$layers_Acg_lim[] <- sum(.$state$vert$lim==2)
+  .$state$integrated$layers_Ajg_lim[] <- sum(.$state$vert$lim==3)
+  .$state$integrated$layers_Apg_lim[] <- sum(.$state$vert$lim==7)
+  .$state$integrated$rb[]             <- 1 / sum(1/.$state$vert$rb * linc )
+  .$state$integrated$rs[]             <- 1 / sum(1/.$state$vert$rs * linc )
+  .$state$integrated$ri[]             <- 1 / sum(1/.$state$vert$ri * linc )
   # canopy mean values
-  .$state$integrated$cc             <- sum(.$state$cc) / .$state$lai
-  .$state$integrated$ci             <- sum(.$state$ci) / .$state$lai
+  .$state$integrated$cc[]             <- sum(.$state$vert$cc) / .$state$lai * linc
+  .$state$integrated$ci[]             <- sum(.$state$vert$ci) / .$state$lai * linc
   
 }
 
