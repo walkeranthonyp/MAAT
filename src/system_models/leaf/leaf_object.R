@@ -73,7 +73,8 @@ leaf_object <-
         
       } else if(.$cpars$output=='all_lim') {
         
-        lout <- .$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','ri','rs','rb','respiration','lim')) 
+        #lout <- .$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','ri','rs','rb','respiration','lim')) 
+        lout <- c( .$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','respiration','lim')), unlist(.$state_pars[c('ri','rs','rb')]) ) 
         
       } else if(.$cpars$output=='full') {
         

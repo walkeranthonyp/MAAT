@@ -20,13 +20,24 @@ library(lattice)
 source('canopy_object.R')
 
 # canopy
+canopy_object$fnames$can_scale_light <- 'f_canlight_beerslaw_goudriaan'
 canopy_object$.test()
 canopy_object$state$integrated$A
 
 canopy_object$pars$layers <- 40
 
+canopy_object$state$vert
+canopy_object$state_pars
+
+canopy_object$fnames$can_scale_light <- 'f_canlight_goudriaan'
+canopy_object$.test()
+canopy_object$state$integrated$A
+
+
+
 canopy_object$pars
 canopy_object$fnames
+canopy_object$env
 
 canopy_object$leaf$cpars
 canopy_object$leaf$output

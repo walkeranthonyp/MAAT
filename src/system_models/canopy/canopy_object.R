@@ -46,6 +46,9 @@ canopy_object <-
       # initialise canopy
       .$state$lai <- get(.$fnames$lai)(.) # this also could point to a higher level plant object  
       get(.$fnames$can_pars)(.)
+
+      # calculate diffuse and direct radiation
+      get(.$fnames$par_partition)(.)      
       
       # run canopy model
       get(.$fnames$cansys)(.)
@@ -98,7 +101,8 @@ canopy_object <-
       can_scale_N     = 'f_leafN_CLMuniform',
       can_scale_Ca    = 'f_Ca_uniform',
       can_scale_vpd   = 'f_vpd_uniform',
-      lai             = 'f_constant'
+      lai             = 'f_lai_constant',
+      par_partition   = 'f_par_partition_spitters'
     )
     
     # parameters
@@ -119,12 +123,13 @@ canopy_object <-
     
     # Environment
     env <- list(
-      par      = numeric(1),      
-      par_dir  = numeric(1),      
-      par_diff = numeric(1),      
-      ca_conc  = numeric(1),
-      vpd      = numeric(1),
-      zenith   = 0
+      par       = numeric(1),      
+      par_dir   = numeric(1),      
+      par_diff  = numeric(1),      
+      ca_conc   = numeric(1),
+      vpd       = numeric(1),
+      clearness = 1,
+      zenith    = 0
     )
     
     # state parameters
@@ -152,27 +157,50 @@ canopy_object <-
       
       # Calculated state
       # canopy layer vectors
-      vert    = data.frame(
+      vert    = list(
         # variable canopy environment etc
-        par_dir         = numeric(1),
-        par_diff        = numeric(1),
-        apar_sun        = numeric(1),
-        apar_shade      = numeric(1),
-        f_sun           = numeric(1),
-        f_shade         = numeric(1),
-        leaf.ca_conc    = numeric(1),
-        leaf.vpd        = numeric(1),
-        leaf.par        = numeric(1),
-        leaf.leafN_area = numeric(1),
-        # variable canopy physiology
-        A               = numeric(1),
-        respiration     = numeric(1),
-        ci              = numeric(1),
-        cc              = numeric(1),
-        rb              = numeric(1),
-        rs              = numeric(1),
-        ri              = numeric(1),
-        lim             = numeric(1)
+        leaf = list( 
+          leaf.ca_conc    = numeric(1),
+          leaf.vpd        = numeric(1),
+          leaf.par        = numeric(1),
+          leaf.leafN_area = numeric(1)
+        ),
+        # variable canopy light & physiology by sun and shade leaves
+        sun = list( 
+          apar        = numeric(1),
+          fraction    = numeric(1),
+          A           = numeric(1),
+          respiration = numeric(1),
+          ci          = numeric(1),
+          cc          = numeric(1),
+          rb          = numeric(1),
+          rs          = numeric(1),
+          ri          = numeric(1),
+          lim         = numeric(1)
+        ),
+        shade = list( 
+          apar        = numeric(1),
+          fraction    = numeric(1),
+          A           = numeric(1),
+          respiration = numeric(1),
+          ci          = numeric(1),
+          cc          = numeric(1),
+          rb          = numeric(1),
+          rs          = numeric(1),
+          ri          = numeric(1),
+          lim         = numeric(1)
+        ),
+        layer = list( 
+          apar        = numeric(1),
+          A           = numeric(1),
+          respiration = numeric(1),
+          ci          = numeric(1),
+          cc          = numeric(1),
+          rb          = numeric(1),
+          rs          = numeric(1),
+          ri          = numeric(1),
+          lim         = numeric(1)
+        )
       ),
       
       # integrated canopy values
@@ -252,7 +280,10 @@ canopy_object <-
 
     # initialise the number of layers in the canopy
     init_vert <- function(.,l) {
-      .$state$vert <- lapply(.$state$vert, function(v,leng) numeric(leng), leng=l )
+      .$state$vert$leaf  <- lapply(.$state$vert$leaf,  function(v,leng) numeric(leng), leng=l )
+      .$state$vert$sun   <- lapply(.$state$vert$sun,   function(v,leng) numeric(leng), leng=l )
+      .$state$vert$shade <- lapply(.$state$vert$shade, function(v,leng) numeric(leng), leng=l )
+      .$state$vert$layer <- lapply(.$state$vert$layer, function(v,leng) numeric(leng), leng=l )
     }
     
     
@@ -284,7 +315,7 @@ canopy_object <-
       .$leaf$pars$verbose  <- F
       .$pars$outfull       <- T
       
-      .$env$par_dir    <- 2000
+      .$env$par        <- 2000
       .$env$ca_conc    <- 200
       .$pars$lai       <- 10
       .$state$mass_a   <- 175
@@ -302,7 +333,7 @@ canopy_object <-
       .$leaf$pars$verbose  <- F
       .$pars$outfull       <- F
       
-      .$env$par_dir    <- 2000
+      .$env$par        <- 2000
       .$env$ca_conc    <- 200
       .$pars$lai       <- 10
       .$state$mass_a   <- 175
