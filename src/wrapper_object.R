@@ -46,28 +46,28 @@ wrapper_object <-
 
     run   <- function(.,verbose=T) {
       
+      # Initialise 
+      if(!.$wpars$unit_testing) {
+        if(.$wpars$UQtype=='ye')  .$wpars$eval_strings <- T
+        .$init()
+      }
+
       # Initialisation checks
       # need to add a check for equal par vector lengths if this is a UQ run and not eval_strings
-
       # for Ye et al SA method
-      # due to different parameter sample numbers in process A and B loops,
-      # parameters samples must be generated from code snippets as strings
-      if(.$wpars$UQtype=='ye')  .$wpars$eval_strings <- T
+      # - due to different parameter sample numbers in process A and B loops,
+      # - parameters samples must be generated from code snippets as strings
       if(.$wpars$eval_string&is.null(.$dynamic$pars_eval)) {
-        stop(paste('wrapper: eval_strings = T but vars$pars_eval not set. \n
+        stop(paste('wrapper: eval_strings = T but dynamic$pars_eval not set. \n
               vars$pars_eval:,\n',.$dynamic$pars_eval,'\n 
               NOTE: Ye method SA must draw parameter samples during runtime \n
-              from code snippets written as strings in vars$pars_eval')) 
+              from code snippets written as strings in dynamic$pars_eval')) 
       }
 
       # configure initialisation lists 
       ########################################
-      if(!.$wpars$unit_testing) .$init()
-        
+
       # initialise model with static variables
-      # if(!(is.na(.$static$fnames)|is.null(.$static$fnames))) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] )
-      # if(!(is.na(.$static$pars)|is.null(.$static$pars)))     .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   )
-      # if(!(is.na(.$static$env)|is.null(.$static$env)))       .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    )      
       if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] ) else if(!.$wpars$unit_testing) stop('Static fnames not defined')
       if(!is.null(.$static$pars))   .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   ) else if(!.$wpars$unit_testing) stop('Static pars not defined')
       if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    ) else if(!.$wpars$unit_testing) stop('Static env not defined')      
@@ -76,44 +76,42 @@ wrapper_object <-
       # create matrices of runtime variables  
       ######################################
       # expand the fnames and driving variables lists into matrices 
-      # .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[1])) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
-      # .$dataf$env     <- if(!is.na(.$dynamic$env[1]))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
       .$dataf$fnames  <- if(!is.null(.$dynamic$fnames)) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
       .$dataf$env     <- if(!is.null(.$dynamic$env))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
       
+      # if an SA/UQ run
       if(.$wpars$UQ) {
-        # if an SA/UQ run
           
+        # if Saltelli style Sobol
         if(.$wpars$UQtype=='saltelli') {
-          # if Saltelli style Sobol
           
-          # increase parameter sample number
-          .$wpars$n <- .$wpars$n * .$wpars$nmult
-          
-          if(.$wpars$eval_strings) {
-            # sample parameters from character string code snippets to generate matrices A and B
-            n <- 2 * .$wpars$n
-            .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
-          }
-          if(is.null(.$dynamic$pars[1] )) stop('wrapper: pars list in vars list is empty')
-         
+          if(is.null(.$dynamic$pars)) { 
+            if(!is.null(.$dynamic$pars_eval)) { 
+              # increase parameter sample number
+              .$wpars$n <- .$wpars$n * .$wpars$nmult
+              # sample parameters from character string code snippets to generate matrices A and B
+              n <- 2 * .$wpars$n
+              .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
+            } else  stop('wrapper: pars (or pars_eval) list in vars list is empty')
+          }         
+
           # create pars matrix
           .$dataf$pars  <- do.call(cbind, .$dynamic$pars )
           
           # remove potentially large pars list 
-          .$dynamic$pars   <- lapply(.$dynamic$parsl, function(e) numeric(1) )        
+          .$dynamic$pars   <- lapply(.$dynamic$pars, function(e) numeric(1) )        
 
-        } else if(.$wpars$UQtype=='ye') {
           # Ye et al process SA method 
+        } else if(.$wpars$UQtype=='ye') {
           
           # need a minimum of >1 processes
           if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sesitivity analysis')
           
-          # check input vars$pars* are same length
+          # check input dynamic$pars* are same length
           test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
           if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
           
-          # assign same list structure as vars$pars_eval to vars$pars 
+          # assign same list structure as dynamic$pars_eval to vars$pars 
           .$dynamic$pars   <- lapply(.$dynamic$pars_eval,function(e) numeric(1) )
           
           # check input vars$pars* elements have same names
@@ -537,6 +535,7 @@ wrapper_object <-
     
     ###########################################################################
     # initialisation function
+    # - this function is not sufficiently generic
 
     init <- function(.) {
 
@@ -567,7 +566,7 @@ wrapper_object <-
       # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
       if(.$wpars$UQ) {
         # if(is.na(.$init_dynamic[[modobj]]$pars[1])&!is.na(.$init_dynamic[[modobj]]$pars_eval[1])) maat$wpars$eval_strings <- T
-        if(is.null(.$init_dynamic[[modobj]]$pars)&!is.null(.$init_dynamic[[modobj]]$pars_eval)) maat$wpars$eval_strings <- T
+        if(is.null(.$init_dynamic[[modobj]]$pars)&!is.null(.$init_dynamic[[modobj]]$pars_eval)) .$wpars$eval_strings <- T
         
         if(.$wpars$eval_strings) {
           vars <- .[['init_dynamic']][[modobj]][['pars_eval']]

@@ -43,12 +43,9 @@ leaf_object <-
       get(.$fnames$leafsys)(.)
 
       # print to screen
-      if(.$cpars$verbose) {
-        print(.$state)
-      }
-      
+      if(.$cpars$verbose) print(.$state)
+
       # output
-      print(.$output())
       .$output()
     } 
     

@@ -15,7 +15,7 @@
       <!-- calculate Vcmax at <reftemp.vcmax> -->
       <vcmax>c('f_vcmax_constant','f_vcmax_lin','f_vcmax_clm')</vcmax>
       <!-- calculate Jmax at <reftemp.jmax>, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
-      <jmax>c('f_jmax_constant','f_jmax_walker2014','f_jmax_lin','f_jmax_lin_t)</jmax>
+      <jmax>c('f_jmax_constant','f_jmax_walker2014','f_jmax_lin','f_jmax_lin_t')</jmax>
       <!-- calculate TPU at <reftemp.tpu>, f(Vcmax) -->
       <tpu>c('f_tpu_constant','f_tpu_lin')</tpu>
       <!-- increasing component of temperature scaling of Vcmax and Jmax -->
@@ -99,7 +99,7 @@
       <bjv_25>1.63</bjv_25>
       <!-- intercept & slope of Jmax25:Vcmax25 ratio to leaf temperature linear relationship -->
       <a_jvt_25>2.59</a_jvt_25>      
-      <b_jvt_25>0.035</b_jvt_25>      
+      <b_jvt_25>-0.035</b_jvt_25>      
       <!-- normalisation constant & exponent of Jmax25 to Vcmax25 area power law relationship -->
       <e_ajv_25>1.01</e_ajv_25>
       <e_bjv_25>0.89</e_bjv_25>

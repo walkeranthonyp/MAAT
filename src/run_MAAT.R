@@ -131,7 +131,7 @@ if(is.null(srcdir))  stop('srcdir argument not specified but required, check com
 print(paste('Source directory:',srcdir) ,quote=F)
 if(is.null(pdir))    stop('pdir argument not specified but required, check command line arguments to run_MAAT.R') 
 print(paste('Project directory:',pdir) ,quote=F)
-if(is.null(mod_obj)) stop('srcdir argument not specified but required, check command line arguments to run_MAAT.R') 
+if(is.null(mod_obj)) stop('mod_obj argument not specified but required, check command line arguments to run_MAAT.R') 
 print(paste('Model:',mod_obj) ,quote=F)
 print(paste('Run ID:',runid) ,quote=F)
 
@@ -355,7 +355,7 @@ if(factorial) {
   rm(df_out)
   maat$clean()
   print('',quote=F)
-  print('MAAT system memory used for process SA:',quote=F)
+  print('MAAT system memory used for factorial run:',quote=F)
   gc()
 }
 
@@ -402,7 +402,7 @@ if(salt&uq) {
 
   maat$clean()
   print('',quote=F)
-  print('MAAT system memory used for process SA:',quote=F)
+  print('MAAT system memory used for Saltelli SA:',quote=F)
   gc()
 }
 
