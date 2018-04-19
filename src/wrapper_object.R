@@ -539,10 +539,10 @@ wrapper_object <-
 
     init <- function(.) {
 
-      # this function prefixes the names of a list with 'leaf.' 
+      # this function prefixes the names of a list with 'modobj.' 
       comb_init_list <- function(., v, modobj ) {
-        
-        if(sum(is.na(v))==length(v)|is.null(v)) NULL
+        # if(sum(is.na(v))==length(v)|is.null(v)) NULL
+        if(sum(is.null(v))==length(v)|is.null(v)) NULL
         else {
           names(v) <- paste(modobj, names(v), sep='.' ) 
           v
