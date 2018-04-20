@@ -36,6 +36,35 @@ xyplot(cc~leaf.par|leaf.etrans*leaf.rs,out,groups=leaf.temp,type='l',panel=funct
 xyplot(gs~leaf.par|leaf.etrans*leaf.rs,out,groups=leaf.temp,type='l',panel=function(...) { panel.abline(h=seq(0,1,0.02));panel.xyplot(...)})
 xyplot(A~leaf.par |leaf.etrans*leaf.rs,out,type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
 
+# test model mimic
+source('wrapper_object.R')
+out <- wrapper_object$.test_mimic()
+out <- wrapper_object$.test_mimic(metd=T)
+wrapper_object$model$output()
+
+wrapper_object$model$env
+wrapper_object$model$pars
+wrapper_object$model$state_pars
+wrapper_object$model$state
+wrapper_object$model$fnames
+
+
+wrapper_object$init_static
+wrapper_object$init_dynamic
+
+
+wrapper_object$dataf
+wrapper_object$dataf$met
+
+f_tpu_lin(wrapper_object$model)
+f_tpu_tcor_independent(wrapper_object$model)
+f_rs_ball1987(wrapper_object$model)
+f_rs_ball1987_fe(wrapper_object$model)
+f_rs_ball1987(wrapper_object$model,10,50)
+f_R_Brent_solver(wrapper_object$model)
+f_A_r_leaf(100,wrapper_object$model)
+f_rd_lin_vcmax(wrapper_object$model)
+
 
 # Leaf, Ye SA
 source('wrapper_object.R')

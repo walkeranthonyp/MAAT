@@ -1018,6 +1018,76 @@ wrapper_object <-
       # list(df,p1)
     }    
 
+
+    # simple test of init_function & model mimic set up 
+    .test_mimic <- function(., mod_mimic='clm45_non_Tacclimation', mod_obj='leaf', metd=F, mc=F, pr=4, oconf=F ) {
+      
+      # load MAAT object(s) from source
+      setwd(paste('system_models',mod_obj,sep='/'))
+      source(paste(mod_obj,'object.R',sep='_'))
+      init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
+      # read model mimic setup
+      if(!is.null(mod_mimic)) {
+        setwd('mimic_xmls')
+        init_mimic   <- readXML(paste(mod_obj,'_',mod_mimic,'.xml',sep=''))
+        init_default <- fuselists(init_default,init_mimic) 
+        setwd('../../..')
+      } else setwd('../..')
+      
+      library(lattice)
+      
+      # clone the model object
+      .$build(model=paste(mod_obj,'object',sep='_'))
+      .$model$cpars$verbose  <- F      
+      .$model$cpars$cverbose <- oconf      
+ 
+      # define parameters for the wrapper
+      .$wpars$multic       <- mc  # multicore the ensemble
+      .$wpars$procs        <- pr  # number of cores to use if above is true
+      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
+      .$wpars$unit_testing <- F   # tell the wrapper to run init function 
+      
+      ### Define the static parameters and model functions  
+      ###############################
+      init_default$leaf$env$ca_conc <- 400
+      init_default$leaf$env$par     <- 2000
+      init_default$leaf$env$vpd     <- 50 
+      init_default$leaf$env$temp    <- 25
+      .$init_static <- init_default
+            
+      ### Define the parameters and model functions that are to be varied 
+      ###############################
+      # if this is a UQ analysis, the "pars" list must contain parameter vectors that are of equal length,
+      # if not a UQ analysis the parameter vectors in the "pars" list can be of different lengths
+      #maat$init_dynamic <- init_dynamic
+      .$init_dynamic <- NULL 
+      
+      ### Define meteorological and environment dataset
+      ###############################
+      # can load a met dataset here
+      # below a trivial met dataset is created to be used as an example
+
+      metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))      
+      metdata <- as.matrix(expand.grid(list(leaf.par = 2000),leaf.ca_conc = seq(50,1500,5000)))      
+      if(metd) .$dataf$met <- metdata
+
+      # Run model
+      st <- system.time(
+        .$run()
+      )
+      print('',quote=F)
+      print('Run time:',quote=F)
+      print(st)
+      print('',quote=F)
+      
+      # # process & record output
+      # df <- .$output()
+      .$output()
+      # p1 <- xyplot(A~leaf.ca_conc|leaf.etrans*leaf.rs,df,groups=leaf.temp,type='l',auto.key=T,
+      #              panel=function(...) { panel.abline(h=seq(0,20,2.5)) ; panel.xyplot(...) })
+      # list(df,p1)
+    }    
+
     # test function for Ye method Sobol process sensitivity analysis
     .test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
       
