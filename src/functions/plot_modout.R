@@ -46,22 +46,42 @@ if(!is.null(condvar1)) pdf(paste0(paste(runid_out,delta_var,condvar1,sep='_'),'.
 setwd(wdp)
 if(plot_pars) {
   
-  pdf(paste(paste(runid,delta_var,'vs','pars',sep='_'),'.pdf',sep=''),width=10,height=10)
-  for( pp in 1:dim(l1$pars)[2] ) {
+  # subscripts for which parameters to plot
+  pp_subs <- if(is.null(pp_subs)) 1:dim(l1$pars)[2] else pp_subs
+
+  pdf(paste(paste(runid,delta_var,'vs','pars',paste(pp_subs,collapse='-'),sep='_'),'.pdf',sep=''),width=10,height=10)
+  for( pp in pp_subs ) {
     print(pp)
     
-    cond1 <- rep(rep(l1$env[,1], each=dim(AB)[1]), dim(AB)[3] )
-    cond2 <- rep(rep(l1$env[,2], each=dim(AB)[1]), dim(AB)[3] )
-    
-    ppp <- 
-    plot_parDens(AB[,,,1], rep(l1$pars[,pp], each=prod(dim(AB)[1:2]) ),
-                 cond1, cond2,
-                 ylim=ylim, ylab=ylab, xlab=par_names[which(colnames(l1$pars)[pp]==names(par_names))],
-                 gls=gls)
-    print(ppp)
+    if(is.null(pm_subs)) {
+      
+      cond1 <- rep(rep(l1$env[,1], each=dim(AB)[1]), dim(AB)[3] )
+      cond2 <- rep(rep(l1$env[,2], each=dim(AB)[1]), dim(AB)[3] )
+      ppp <- 
+        plot_parDens(AB[,,,1], rep(l1$pars[,pp], each=prod(dim(AB)[1:2]) ),
+                     cond1, cond2,
+                     ylim=ylim, ylab=ylab, xlab=par_names[which(colnames(l1$pars)[pp]==names(par_names))],
+                     gls=gls)
+      print(ppp, newpage = T)
+      
+    } else {
+      
+      for( pm in pm_subs ) {
+        cond1 <- rep(l1$env[,1], dim(AB)[3] )
+        cond2 <- rep(l1$env[,2], dim(AB)[3] )
+        
+        ppp <- 
+          plot_parDens(AB[pm,,,1], rep(l1$pars[,pp], each=dim(AB)[2] ),
+                       cond1, cond2,
+                       ylim=ylim, ylab=ylab, xlab=par_names[which(colnames(l1$pars)[pp]==names(par_names))],
+                       gls=gls)
+        
+        print(ppp, newpage = T)
+      }
+    }
   }
   dev.off()
-  
+
 }
 
 # remove large datasets
@@ -70,14 +90,4 @@ gc()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+### END ###

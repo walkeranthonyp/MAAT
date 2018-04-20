@@ -149,17 +149,23 @@ plot_env_array <- function(a1, yvar='A', condvar1='lim', ..., esubs=NULL, lout=c
   ex_fnames <- function(fnames) vapply(seq(1,2*np,2), sub_fnames, character(1) , fnames=fnames )
   fo <- t(vapply(dimnames(a1)[[1]], ex_fnames, character(np) ))
   
+  # create xaxis labels
+  labs <- c(paste(evar1name,evar2name,sep='\n'), paste(evar1,evar2,sep='\n') )
+  
   # function names conditioning vector
   f1  <- rep(fo[,1], prod(dim(a1)[2:3]) )
   f2  <- rep(fo[,2], prod(dim(a1)[2:3]) )
 
   # environment vector
-  e   <- rep(rep(1:dim(a1)[2], each=dim(a1)[1] ), dim(a1)[3] )
+  envint <- 1:dim(a1)[2]
+  e      <- rep(rep(envint, each=dim(a1)[1] ), dim(a1)[3] )
 
   # make plots
+  # variability against environmental conditions
   p1 <-
     xyplot( a1[,,,yvar_col] ~ e,
             ...,
+            scales=list(tck=c(0.5,0),x=list(at=c(0,envint),labels=labs)),xlab='',
             strip=strip.custom(bg='grey90',par.strip.text=list(cex=0.8)),
             panel=function(...,box.width=bxw){
               panel.abline(h=gls,col='gray90')
@@ -170,9 +176,11 @@ plot_env_array <- function(a1, yvar='A', condvar1='lim', ..., esubs=NULL, lout=c
                                 plot.symbol = list(pch='.', cex = 0.1))
     )
 
+  # variability against environmental conditions broken out by model?
   if(dim(fo)[1]>5) {
     p2 <- 
       xyplot( a1[,,,yvar_col] ~ e | f2 ,
+              scales=list(tck=c(0.5,0),x=list(at=c(0,envint),labels=labs)),xlab='',
               ...,
               panel=function(...,box.width=bxw){
                 panel.abline(h=gls,col='gray90')
@@ -186,6 +194,7 @@ plot_env_array <- function(a1, yvar='A', condvar1='lim', ..., esubs=NULL, lout=c
   } else {
     p2 <- 
       xyplot( a1[,,,yvar_col] ~ e | f1 * f2 ,
+              scales=list(tck=c(0.5,0),x=list(at=c(0,envint),labels=labs)),xlab='',
               ...,
               panel=function(...,box.width=bxw){
                 panel.abline(h=gls,col='gray90')
@@ -202,9 +211,11 @@ plot_env_array <- function(a1, yvar='A', condvar1='lim', ..., esubs=NULL, lout=c
                      strip.left=strip.custom(bg='grey90',par.strip.text=list(cex=0.8)))
   }
   
+  # variability against environmental conditions broken out by first process in SA and condvar 
   if(!is.null(condvar1)) {
     p3 <-
       xyplot( a1[,,,yvar_col] ~ e | as.factor(a1[,,,cond1_col]) * f1, 
+              scales=list(tck=c(0.5,0),x=list(at=c(0,envint),labels=labs)),xlab='',
               ...,
               strip=strip.custom(bg='grey90',par.strip.text=list(cex=0.8)),
               panel=function(...,box.width=bxw){
