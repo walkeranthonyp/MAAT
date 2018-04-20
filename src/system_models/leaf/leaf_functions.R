@@ -55,6 +55,9 @@ f_A_r_leaf <- function(A,.) {
   # assumes mesophyll resistance is in co2 units
   .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)) + .$state_pars$ri ) )
   
+  print(.$state$cc)
+  print(f_assimilation(.))
+  
   # calculate residual of net A
   f_assimilation(.) - A
 } 
@@ -341,7 +344,7 @@ f_rd_tcor_dependent <- function(.) {
 f_rd_tcor_independent <- function(.) {
 
   temparglist <- list(Tr=.$pars$reftemp.rd, q10_func=.$fnames$q10_func.rd, q10=.$pars$q10.rd, a_q10_t=.$pars$a_q10_t.rd, b_q10_t=.$pars$b_q10_t.rd,
-                      Hd=.$pars$Hd.rd, Topt=.$pars$Topt.rd,
+                      Ha=.$pars$Ha.rd, Hd=.$pars$Hd.rd, Topt=.$pars$Topt.rd,
                       tupp=.$pars$tupp_cox.rd, tlow=.$pars$tlow_cox.rd, exp=.$pars$exp_cox.rd,
                       a_deltaS_t=.$pars$a_deltaS_t.rd, b_deltaS_t=.$pars$b_deltaS_t.rd, deltaS=.$pars$deltaS.rd)
   
@@ -417,9 +420,8 @@ f_tpu_tcor_dependent <- function(.) {
 # TPU temperature scaling is independent
 f_tpu_tcor_independent <- function(.) {
   
-  temparglist <- list(Tr=.$pars$reftemp.tpu, q10=.$pars$q10.tpu, Hd=.$pars$Hd.tpu, Topt=.$pars$Topt.tpu,
+  temparglist <- list(Tr=.$pars$reftemp.tpu, q10=.$pars$q10.tpu, Ha=.$pars$Ha.tpu, Hd=.$pars$Hd.tpu, Topt=.$pars$Topt.tpu,
                       a_deltaS_t=.$pars$a_deltaS_t.tpu, b_deltaS_t=.$pars$b_deltaS_t.tpu, deltaS=.$pars$deltaS.tpu)
-  
   get(.$fnames$tpu_tcor_asc)(.,parlist=temparglist) * get(.$fnames$tpu_tcor_des)(.,parlist=temparglist)
 }
 
