@@ -204,8 +204,7 @@ leaf_object <-
     pars   <- list(
       diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
       # photosynthetic parameters
-      # deprecated    alpha    = 0.24,         # harley 1992 alpha - Williams & Flannagan 1998 use 0.21 but calculate 0.25 
-      a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
+      a             = 0.80,       # fraction of PAR absorbed by leaf                       (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
       f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
       ko_kc_ratio   = 0.21,       # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)
       theta_j       = 0.90,       # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
@@ -231,6 +230,8 @@ leaf_object <-
       g1_leuning    = 10,         # Leuning 1995 gs slope                                  (unitless - likely higher than medlyn and ball g1)
       d0            = 1,          # Leuning 1995 D0                                        (kPa)
       g1_ball       = 6,          # Ball 1987 gs slope                                     (unitless - multiplier on RH as a proportion)
+      g_a1_yin      = 0.85,       # Yin and Struik 2009 VPD response intercept             (unitless)
+      g_b1_yin      = 0.14,       # Yin and Struik 2009 VPD response slope                 (kPa-1)
       rs            = 1/0.15,     # stomatal resistance                                    (m2s mol-1 h2o)
       cica_chi      = 0.7,        # constant Ci:Ca ratio                                   (unitless)
       rb            = 1/10,       # leaf boundary layer resistance                         (m2s mol-1 h2o)

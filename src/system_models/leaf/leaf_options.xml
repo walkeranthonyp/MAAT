@@ -39,7 +39,7 @@
       <!-- RuBP limited gross carboxylation rate -->
       <Ajg>'f_Ajg_generic'</Ajg>
       <!-- TPU limited gross carboxylation rate, mostly all variants of this are special cases of that presented in von Caemmerer 2000 -->
-      <Apg>c('f_Apg_vonc2000','f_Apg_foley1996')</Apg>
+      <Apg>c('f_Apg_vonc2000','f_Apg_foley1996','f_Apg_none')</Apg>
       <!-- gas diffusion function, Fick's law; can apply a zero bound as gs solution can be negative at low ci -->
       <gas_diff>c('f_ficks_ci','f_ficks_ci_bound0')</gas_diff>
       <!-- calculate Rd at <reftemp.rd>, f(Vcmax), f(N), -->
@@ -65,7 +65,7 @@
       <!-- internal resistance to CO2 transport -->
       <ri>c('f_r_zero','f_ri_constant')</ri>
       <!-- stomatal resistance to H2O & CO2 transport, constant CiCa is implicit in LPJ and Cox 1998 does something similar for JULES -->
-      <rs>c('f_r_zero','f_rs_ball1987','f_rs_leuning1995','f_rs_medlyn2011','f_rs_constantCiCa','f_rs_cox1998')</rs>
+      <rs>c('f_r_zero','f_rs_ball1987','f_rs_leuning1995','f_rs_medlyn2011','f_rs_constantCiCa','f_rs_cox1998','f_rs_yin2009')</rs>
       <!-- leaf boundary layer resistance to H2O & CO2 transport -->
       <rb>c('f_r_zero','f_rb_constant')</rb>
       <!-- solver, numerical or analytical -->
@@ -124,6 +124,10 @@
       <d0>2</d0>
       <!-- stomatal conductance to environment slope parameter -->
       <g1_ball>5</g1_ball>
+      <!-- stomatal conductance to vpd intercept parameter, Yin and Struik 2009 -->
+      <g_a1_yin>0.85</g_a1_yin>
+      <!-- stomatal conductance to vpd slope parameter, Yin and Struik 2009 -->
+      <g_b1_yin>0.14</g_b1_yin>
       <!-- constant stomatal resistance -->
       <rs>6.667</rs>
       <!-- constant Ci:Ca ratio -->

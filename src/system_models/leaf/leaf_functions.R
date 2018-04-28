@@ -21,7 +21,7 @@ f_none <- function(.) {
 f_R_Brent_solver <- function(.) {
 
   if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no')
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='yes')
   .$solver_out$root
 }
 
@@ -284,6 +284,13 @@ f_Apg_foley1996 <- function(.,cc=.$state$cc){
 
     (3*.$state_pars$tpult + wmin) / cc
   }
+}
+
+# no triose phosphate limitation
+f_Apg_none <- function(.){
+  # returns a high value so that TPU is never limiting
+  
+  9e3
 }
 
 
@@ -573,6 +580,18 @@ f_rs_cox1998_fe <- function(.,c=.$state$cb) {
   CmCP  <- (1 - .$state_pars$gamma/c)
 
   1.6 / ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar))
+}
+
+
+# ORCHIDEE assumption for stomatal resistance, from Yin & Struik 2009
+f_rs_yin2009 <- function(.,A=.$state$A,c=.$state$cb) {
+  # This will not work with the either analyitical solution (as they are currently coded) due to the A + Rd in the denominator
+  # this also prevents negative values when A is negative 
+  
+  # expects c in Pa
+  # output in m2s mol-1 h2o
+  
+  1 / ( .$pars$g0 + (A + .$state$respiration) * .$env$atm_press*1e-6 / ((c-.$state_pars$gstar) * (1/(.$pars$g_a1_yin - .$pars$g_b1_yin*.$env$vpd) - 1)) )
 }
 
 
