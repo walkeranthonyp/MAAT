@@ -611,11 +611,11 @@ f_rb_constant <- function(., ... ) {
   .$pars$rb
 }
 
-# f_rb_leafdim <- function(., ... ) {
-#   # output in s m-1 h2o
-#   
-#   ( .$env$lwind / .$pars$leaf_width )^-0.5 / .$pars$can_ttc
-# }
+f_rb_leafdim <- function(., ... ) {
+  # output in s mol-1m-2 h2o
+  cf <- (.$pars$R * (.$state$leaf_temp+273.15) ) / .$env$atm_press
+  .$pars$can_ttc^-1 * ( .$env$wind / .$pars$leaf_width )^-0.5 * cf  
+}
 
 
 

@@ -55,11 +55,16 @@ leaf_object <-
     # Output functions
 
     # -- returns a vector of outputs
-    state_retrive <- function(.,snames) {
-      lsubs <- match(snames,names(.$state))
-      unlist(.$state[lsubs])
+    # state_retrive <- function(.,snames) {
+    #   lsubs <- match(snames,names(.$state))
+    #   unlist(.$state[lsubs])
+    # }
+    
+    state_retrive <- function(.,snames,state='state') {
+      lsubs <- match(snames,names(.[[state]]))
+      unlist(.[[state]][lsubs])
     }
-
+    
     output <- function(.){
       if(.$cpars$output=='slim') {
         
@@ -67,7 +72,9 @@ leaf_object <-
         
       } else if(.$cpars$output=='run') {
         
-        lout <- .$state_retrive(snames=c('A','cc','ci','ri','rs','rb','respiration','lim')) 
+        # lout <- .$state_retrive(snames=c('A','cc','ci','ri','rs','rb','respiration','lim')) 
+        lout <- c(.$state_retrive(snames=c('A','cc','ci','respiration','lim')),
+                  .$state_retrive(snames=c('ri','rs','rb'),state='state_pars') )
         
       } else if(.$cpars$output=='all_lim') {
         
@@ -144,7 +151,8 @@ leaf_object <-
       temp      = 25,                  # (oC)
       vpd       = 1,                   # (kPa)
       rh        = numeric(1),          # (unitless - proportion)
-      atm_press = 101325               # ( Pa)
+      atm_press = 101325,              # ( Pa)
+      wind      = 1                    # (m s-1)
     )
 
     # leaf state
@@ -235,6 +243,8 @@ leaf_object <-
       rs            = 1/0.15,     # stomatal resistance                                    (m2s mol-1 h2o)
       cica_chi      = 0.7,        # constant Ci:Ca ratio                                   (unitless)
       rb            = 1/10,       # leaf boundary layer resistance                         (m2s mol-1 h2o)
+      can_ttc       = 0.01,       # turbulent transfer coefficient between canopy surface and canopy air (m s-0.5)
+      leaf_width    = 0.1,        # leaf dimension perpendicular to wind direction         (m)
       ri            = 1/0.15,     # mesophyll resistance                                   (m2s mol-1 - expressed in these units for consistency with other resistance terms, often expressed in the literature multiplied by Pa)
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
       hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
