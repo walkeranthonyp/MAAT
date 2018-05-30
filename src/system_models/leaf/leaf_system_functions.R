@@ -103,7 +103,7 @@ f_leafsys_enzymek <- function(.) {
     }
   }
  
-  # if PAR < 0
+  # if PAR <= 0
   else {
     # assume infinite conductances when concentration gradient is small
     # - this ignores the build up of CO2 within the leaf due to respiration and high rs 

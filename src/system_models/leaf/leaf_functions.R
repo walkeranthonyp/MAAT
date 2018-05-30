@@ -21,7 +21,7 @@ f_none <- function(.) {
 f_R_Brent_solver <- function(.) {
 
   if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='yes')
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,10),.=.,extendInt='yes')
   .$solver_out$root
 }
 
@@ -43,7 +43,7 @@ f_assimilation <- function(.) {
 }
   
 # Residual function for solver to calculate assimilation
-f_A_r_leaf <- function(A,.) {
+f_A_r_leaf <- function(.,A) {
   # combines A, rs, ri, ci & cc eqs to a single f(A), 
   # combines all rate limiting processes
   #  -- for use with uniroot solver
@@ -55,15 +55,15 @@ f_A_r_leaf <- function(A,.) {
   # assumes mesophyll resistance is in co2 units
   .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)) + .$state_pars$ri ) )
   
-  print(.$state$cc)
-  print(f_assimilation(.))
+  #print(.$state$cc)
+  #print(f_assimilation(.))
   
   # calculate residual of net A
   f_assimilation(.) - A
 } 
 
 # same as above function but with no stomatal resistance 
-f_A_r_leaf_noRs <- function(A,.) {
+f_A_r_leaf_noRs <- function(.,A) {
   
   # calculate cc from ca, rb, and ri
   # assumes boundary layer resistance is in h2o units
@@ -438,8 +438,8 @@ f_tpu_tcor_independent <- function(.) {
 ################################
 
 # CO2 diffusion
-f_ficks_ci <- function(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca) {
-  # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
+f_ficks_ci <- function(., A=.$state$A, r=1.4*.$state_pars$rb, c=.$state$ca ) {
+  # can be used to calculate cc, ci or cb (boundary CO2 conc) from either ri, rs or rb respectively
   # by default calculates cb from ca and rb
   # c units in Pa
   # A units umol m-2 s-1
@@ -448,7 +448,7 @@ f_ficks_ci <- function(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca) {
   c-A*r*.$env$atm_press*1e-6
 }
 
-f_ficks_ci_bound0 <- function(.,...) {
+f_ficks_ci_bound0 <- function(., ... ) {
   # can be used to calculate cc, ci or cs (boundary CO2 conc) from either ri, rs or rb respectively
   # by default calculates cb from ca and rb
   # c units in Pa
@@ -495,9 +495,7 @@ f_rs_medlyn2011 <- function(.,A=.$state$A,c=.$state$cb){
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  # if( A < 0 ) 1/.$pars$g0
-  # else 
-  1 / (.$pars$g0 + f_rs_medlyn2011_fe(.) * A * .$env$atm_press*1e-6 / c )
+  1 / max(.$pars$g0, (.$pars$g0 + f_rs_medlyn2011_fe(.) * A * .$env$atm_press*1e-6 / c) )
 }
 
 f_rs_medlyn2011_fe <- function(.) {
@@ -511,9 +509,7 @@ f_rs_leuning1995 <- function(.,A=.$state$A,c=.$state$cb){
   # expects c in Pa
   # output in m2s mol-1  h2o
 
-  # if( A < 0 ) 1/.$pars$g0
-  # else 
-  1 / ( .$pars$g0 + f_rs_leuning1995_fe(.,c=c) * A * .$env$atm_press*1e-6 / c ) 
+  1 / max(.$pars$g0, (.$pars$g0 + f_rs_leuning1995_fe(.,c=c) * A * .$env$atm_press*1e-6 / c) ) 
 }
 
 f_rs_leuning1995_fe <- function(.,c=.$state$cb) {
@@ -527,9 +523,7 @@ f_rs_ball1987 <- function(.,A=.$state$A,c=.$state$cb){
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  # if( A < 0 ) 1/.$pars$g0
-  # else
-  1 / ( .$pars$g0 + f_rs_ball1987_fe(.) * A * .$env$atm_press*1e-6 / c )
+  1 / max(.$pars$g0, (.$pars$g0 + f_rs_ball1987_fe(.) * A * .$env$atm_press*1e-6 / c) )
 }
 
 f_rs_ball1987_fe <- function(.) {
@@ -546,9 +540,7 @@ f_rs_constantCiCa <- function(.,A=.$state$A,c=.$state$cb) {
   # set Ci:Ca ratio
   .$state_pars$cica_chi <- get(.$fnames$cica_ratio)(.)
   
-  # if( A < 0 ) 1/1e-9
-  # else
-  1 / (f_rs_constantCiCa_fe(.) * A * .$env$atm_press*1e-6 / c )
+  1 / max(1e-6, (f_rs_constantCiCa_fe(.) * A * .$env$atm_press*1e-6 / c) )
 }
 
 f_rs_constantCiCa_fe <- function(.) {
@@ -567,9 +559,7 @@ f_rs_cox1998 <- function(.,A=.$state$A,c=.$state$cb) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  # if( A < 0 ) 1/1e-9
-  # else
-  1 / ( f_rs_cox1998_fe(.,c=c) * A * .$env$atm_press*1e-6 / c )
+  1 / max(1e-6, (f_rs_cox1998_fe(.,c=c) * A * .$env$atm_press*1e-6 / c) )
 }
 
 f_rs_cox1998_fe <- function(.,c=.$state$cb) {
@@ -613,10 +603,10 @@ f_rb_constant <- function(., ... ) {
 
 f_rb_leafdim <- function(., ... ) {
   # output in s mol-1m-2 h2o
+  
   cf <- (.$pars$R * (.$state$leaf_temp+273.15) ) / .$env$atm_press
   .$pars$can_ttc^-1 * ( .$env$wind / .$pars$leaf_width )^-0.5 * cf  
 }
-
 
 
 

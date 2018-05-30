@@ -9,11 +9,6 @@
 
 
 
-### Load model scripts 
-###############################
-
-
-
 # Leaf MAAT
 rm(list=ls())
 library(lattice)
@@ -76,8 +71,31 @@ leaf_object$fnames$Alim <- 'f_lim_collatz1991'
 leaf_object$.test_solverFunc(verbose=F,verbose_loop=F)
 leaf_object$fnames$jmax <- 'f_jmax_lin'
 leaf_object$.test_solverFunc(verbose=F,verbose_loop=F)
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_ball1987')
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_ball1987',leaf.ca_conc=50)
 
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000)
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=-30:200) 
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(-30,200) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=-10:1 )
 
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,1) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,10) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,100) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(1,-10) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(10,-10) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(100,-10) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=-10:100 )
+
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,10) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,100) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_medlyn2011',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,10) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_medlyn2011',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,100) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_medlyn2011',leaf.ca_conc=1,leaf.par=1000 )
+
+source('leaf_object.R')
+leaf_object$.test_solverFunc(verbose=T,verbose_loop=T,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,100) )
+leaf_object$.test_solverFunc(verbose=T,verbose_loop=T,rs='f_rs_medlyn2011',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,100) )
 
 
 

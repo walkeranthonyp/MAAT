@@ -398,7 +398,7 @@ leaf_object <-
     .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci') {
       
       if(verbose) {
-        str.proto(.)
+        str(.)
         print(.$env)
       }
       .$cpars$verbose       <- verbose
@@ -417,28 +417,57 @@ leaf_object <-
     }
 
 
-    .test_solverFunc <- function(.,verbose=T,verbose_loop=T,leaf.par=200,leaf.ca_conc=300,rs='f_rs_medlyn2011') {
+    .test_solverFunc <- function(.,verbose=T,verbose_loop=T,
+                                 sinput=-10:100,leaf.par=200,leaf.ca_conc=300,rs='f_rs_medlyn2011') {
       
-      if(verbose) {
-        str.proto(.)
-        print(.$env)
-      }
+      if(verbose) str(.)
+      
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
 
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
+      .$fnames$rb          <- 'f_rb_leafdim'
+      #.$fnames$rb          <- 'f_r_zero'
       .$fnames$solver_func <- 'f_A_r_leaf'
       .$fnames$gas_diff    <- 'f_ficks_ci'
+      #.$pars$g0            <- 1e-6 
+      .$pars$g0            <- 0.01 
       
+#      atref.vcmax  <- 50
+#      g1_medlyn    <- 3        
+#      g1_leuning   <- 6       
+#      d0           <- 1      
+#      g1_ball      <- 5     
+#      cica_chi     <- 0.7         
+     
+      # initialise the model without running the solution by setting PAR to zero  
       .$env$ca_conc        <- leaf.ca_conc
-      .$env$par            <- leaf.par
+      .$env$par            <- 0 
       .$run()
 
-      # proper calc of electron transport rate
+      if(verbose) {
+        print(.$fnames)
+        print(.$state_pars)
+        print(.$env)
+      }
+
+      # calculate electron transport rate
       .$env$par            <- leaf.par
       .$state$J <- get(.$fnames$etrans)(.)
-      f_A_r_leaf(.,A=-10:100)
+
+      # run the solution as a vectorised function
+      #out <- f_A_r_leaf(., A=sinput )
+
+      # run the solution as a looped function
+      out <- numeric(length(sinput))
+      for( i in 1:length(sinput) ) {
+        out[i] <- f_A_r_leaf(., A=sinput[i] )
+      }
+
+      # output
+      print(xyplot(out~sinput,type='b',abline=0))
+      out
     }
     
         
@@ -450,7 +479,7 @@ leaf_object <-
       .$cpars$verbose_loop  <- verbose_loop
       .$cpars$output        <- 'full'
       
-      if(verbose) str.proto(.)
+      if(verbose) str(.)
       
       .$fnames$vcmax_tcor_asc  <- tcor_asc
       .$fnames$vcmax_tcor_des  <- tcor_des
@@ -479,7 +508,7 @@ leaf_object <-
       # .$cpars$output        <- 'all_lim'
       .$cpars$output        <- 'full'
       
-      if(verbose) str.proto(.)
+      if(verbose) str(.)
       
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
@@ -512,7 +541,7 @@ leaf_object <-
       .$pars$diag           <- diag
       .$cpars$output        <- 'all_lim'
       
-      if(verbose) str.proto(.)
+      if(verbose) str(.)
       
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
@@ -558,7 +587,7 @@ leaf_object <-
       .$pars$diag           <- diag
       .$cpars$output        <- 'all_lim'
       
-      if(verbose) str.proto(.)
+      if(verbose) str(.)
       
       .$fnames$rs           <- rs
       .$fnames$ri           <- 'f_r_zero'
@@ -638,7 +667,7 @@ leaf_object <-
       .$pars$diag           <- diag
       .$cpars$output        <- 'all_lim'
       
-      if(verbose) str.proto(.)
+      if(verbose) str(.)
       
       .$fnames$rs           <- rs
       .$fnames$ri           <- 'f_r_zero'
