@@ -21,7 +21,7 @@ f_none <- function(.) {
 f_R_Brent_solver <- function(.) {
 
   if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,10),.=.,extendInt='yes')
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no')
   .$solver_out$root
 }
 
@@ -43,7 +43,7 @@ f_assimilation <- function(.) {
 }
   
 # Residual function for solver to calculate assimilation
-f_A_r_leaf <- function(.,A) {
+f_A_r_leaf <- function(., A ) {
   # combines A, rs, ri, ci & cc eqs to a single f(A), 
   # combines all rate limiting processes
   #  -- for use with uniroot solver
@@ -97,7 +97,7 @@ f_A_r_leaf_analytical <- function(.) {
   Anet <- f_assimilation(.)
   
   # calculate rs
-  .$state_pars$rs <- .$state$ca / (fe * Anet) 
+  .$state_pars$rs <- .$state$ca / (fe * Anet * .$env$atm_press*1e-6) 
   
   # return net A
   Anet
@@ -142,6 +142,54 @@ f_A_r_leaf_analytical_quad <- function(.) {
   
   # set ci & cc
   .$state$cc <-.$state$ci <- f_ficks_ci(.,A=Anet, r=1.6*.$state_pars$rs )
+
+  # recalculate Ag for each limiting process
+  # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
+  .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
+  .$state$Ajg <- get(.$fnames$Ajg)(.) * .$state$cc
+  .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
+
+  # return net A
+  Anet
+}
+
+# solves A analytically by assuming rs is equal to 1/g0 
+f_A_r0_leaf_analytical_quad <- function(.) {
+  # combines A, rs, ci, cc eqs to a single f(), 
+  # combines all rate limiting processes
+
+  r0 <- get(paste0(.$fnames$rs,'_r0'))(.) 
+
+  # calculate coefficients of quadratic to solve A
+  assim_quad_soln <- function(.,V,K) {
+    r   <- 1.4*.$state_pars$rb + 1.6*r0 + .$state_pars$ri
+    p   <- .$env$atm_press*1e-6
+    a   <- -p*r
+    b   <- .$state$ca + K - .$state$respiration*p*r + V*p*r
+    c   <- .$state$ca*(.$state$respiration-V) + .$state$respiration*K + V*.$state_pars$gstar 
+ 
+    A   <- quad_sol(a,b,c,'lower')
+    
+    # return cc
+    f_ficks_ci(., A=A, r=1.6*r0 )
+  }
+
+  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
+  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
+  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
+
+  # maximum cc corresponds to the minimum of the limiting rates  
+  .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
+    
+  # calculate net A
+  Anet <- f_assimilation(.)
+
+  # calculate rs
+  .$state_pars$rs <- r0 
+  
+  # set ci & cb
+  .$state$cb <- f_ficks_ci(., A=Anet )
+  .$state$ci <- f_ficks_ci(., A=Anet, c=.$state$cb, r=1.6*.$state_pars$rs )
 
   # recalculate Ag for each limiting process
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
@@ -464,22 +512,22 @@ f_ficks_ci_bound0 <- function(., ... ) {
 
 
 # general
-f_conv_ms_molm2s1 <- function(.){
+f_conv_ms_molm2s1 <- function(.) {
   .$env$atm_press / ((.$state$leaf_temp + 273.15)*.$pars$R)
 }
 
-f_r_zero <- function(.,...){
+f_r_zero <- function(., ... ) {
   0
 }
 
-f_r_zero_fe <- function(.,...){
+f_r_zero_fe <- function(., ... ) {
   0
 }
 
 
 # stomata
 # stomatal resistances are all assumed to be in h2o units 
-f_rs_constant <- function(.,...) {
+f_rs_constant <- function(., ... ) {
   # output in m2s mol-1 h2o
 
   # this currently doesn't work with the solver.
@@ -491,11 +539,11 @@ f_rs_constant <- function(.,...) {
 
 
 # Medlyn et al 2011 eq for stomatal resistance
-f_rs_medlyn2011 <- function(.,A=.$state$A,c=.$state$cb){
+f_rs_medlyn2011 <- function(., A=.$state$A, c=.$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / max(.$pars$g0, (.$pars$g0 + f_rs_medlyn2011_fe(.) * A * .$env$atm_press*1e-6 / c) )
+  1 / (.$pars$g0 + f_rs_medlyn2011_fe(.) * A * .$env$atm_press*1e-6 / c) 
 }
 
 f_rs_medlyn2011_fe <- function(.) {
@@ -503,27 +551,37 @@ f_rs_medlyn2011_fe <- function(.) {
   ( 1 + .$pars$g1_medlyn / .$env$vpd^0.5 )
 }
 
+f_rs_medlyn2011_r0 <- function(.) {
+  # g0 component of rs from Medlyn 2011   
+  1 / .$pars$g0
+}
+
 
 # Leuning et al 1995 eq for stomatal resistance
-f_rs_leuning1995 <- function(.,A=.$state$A,c=.$state$cb){
+f_rs_leuning1995 <- function(., A=.$state$A, c=.$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1  h2o
 
-  1 / max(.$pars$g0, (.$pars$g0 + f_rs_leuning1995_fe(.,c=c) * A * .$env$atm_press*1e-6 / c) ) 
+  1 / (.$pars$g0 + f_rs_leuning1995_fe(.,c=c) * A * .$env$atm_press*1e-6 / c)  
 }
 
-f_rs_leuning1995_fe <- function(.,c=.$state$cb) {
+f_rs_leuning1995_fe <- function(., c=.$state$cb ) {
   # f(e) component of rs from Leuning 1995   
   .$pars$g1_leuning / ( (1 - .$state_pars$gamma/c) * (1 + .$env$vpd/.$pars$d0) )  
 }
 
+f_rs_leuning1995_r0 <- function(.) {
+  # g0 component of rs from Leuning 1995   
+  1 / .$pars$g0
+}
+
 
 # Ball et al 1987 eq for stomatal resistance
-f_rs_ball1987 <- function(.,A=.$state$A,c=.$state$cb){
+f_rs_ball1987 <- function(., A=.$state$A, c=.$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / max(.$pars$g0, (.$pars$g0 + f_rs_ball1987_fe(.) * A * .$env$atm_press*1e-6 / c) )
+  1 / (.$pars$g0 + f_rs_ball1987_fe(.) * A * .$env$atm_press*1e-6 / c) 
 }
 
 f_rs_ball1987_fe <- function(.) {
@@ -531,22 +589,33 @@ f_rs_ball1987_fe <- function(.) {
   .$pars$g1_ball * .$env$rh
 }
 
+f_rs_ball1987_r0 <- function(.) {
+  # g0 component of rs from Ball 1987   
+  1 / .$pars$g0
+}
+
 
 # implied LPJ etc assumption for stomatal resistance that keeps Ci:Ca constant
-f_rs_constantCiCa <- function(.,A=.$state$A,c=.$state$cb) {
+f_rs_constantCiCa <- function(., A=.$state$A, c=.$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
 
   # set Ci:Ca ratio
   .$state_pars$cica_chi <- get(.$fnames$cica_ratio)(.)
   
-  1 / max(1e-6, (f_rs_constantCiCa_fe(.) * A * .$env$atm_press*1e-6 / c) )
+  1 / (f_rs_constantCiCa_fe(.) * A * .$env$atm_press*1e-6 / c) 
 }
 
 f_rs_constantCiCa_fe <- function(.) {
   # f(e) component of rs for constant Ci:Ca   
   .$state_pars$cica_chi <- get(.$fnames$cica_ratio)(.)
   1.6 / (1 - .$state_pars$cica_chi)
+}
+
+f_rs_constantCiCa_r0 <- function(.) {
+  # g0 component of rs for constant Ci:Ca
+  # there is no g0 so an arbitrarily low number is used to avoid / 0   
+  1 / 1e-6 
 }
 
 f_cica_constant <- function(.) {
@@ -559,7 +628,7 @@ f_rs_cox1998 <- function(.,A=.$state$A,c=.$state$cb) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / max(1e-6, (f_rs_cox1998_fe(.,c=c) * A * .$env$atm_press*1e-6 / c) )
+  1 / (f_rs_cox1998_fe(.,c=c) * A * .$env$atm_press*1e-6 / c)
 }
 
 f_rs_cox1998_fe <- function(.,c=.$state$cb) {
@@ -572,16 +641,32 @@ f_rs_cox1998_fe <- function(.,c=.$state$cb) {
   1.6 / ( CmCP - f0*CmCP * (1 - .$env$vpd/dstar))
 }
 
+f_rs_cox1998_r0 <- function(.) {
+  # g0 component of rs for cox1998
+  # there is no g0 so an arbitrarily low number is used to avoid / 0   
+  1 / 1e-6 
+}
+
 
 # ORCHIDEE assumption for stomatal resistance, from Yin & Struik 2009
 f_rs_yin2009 <- function(.,A=.$state$A,c=.$state$cb) {
-  # This will not work with the either analyitical solution (as they are currently coded) due to the A + Rd in the denominator
+  # This will not work with the either analytical solution (as they are currently coded) due to the A + Rd in the denominator
   # this also prevents negative values when A is negative 
   
   # expects c in Pa
   # output in m2s mol-1 h2o
   
   1 / ( .$pars$g0 + (A + .$state$respiration) * .$env$atm_press*1e-6 / ((c-.$state_pars$gstar) * (1/(.$pars$g_a1_yin - .$pars$g_b1_yin*.$env$vpd) - 1)) )
+}
+
+f_rs_yin2009_fe <- function(.) {
+  # This will not work with the either analytical solution (as they are currently coded) due to the A + Rd in the denominator
+  stop('Yin & Struik 2009 rs function not compatible with analytical solution')
+}
+
+f_rs_yin2009_r0 <- function(.) {
+  # This function is designed to avoid the problem of negative rs when A is negative, could just call the native function
+  1 / .$pars$g0 
 }
 
 

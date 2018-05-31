@@ -100,7 +100,41 @@ f_leafsys_enzymek <- function(.) {
       .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca)
       .$state_pars$rs <- get(.$fnames$rs)(.) 
       .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=1.6*.$state_pars$rs,c=.$state$cb)
-    }
+    
+ 
+      # if rs is negative (occurs when A is negative) recalculate with fixed rs at 1/g0 
+      if( .$state$A<0 | .$state$cc<0 | .$state_pars$rs<0 ) {
+ 
+        #solver <- .$fnames$solver_func
+        #.$fnames$solver_func <- 'f_A_r0_leaf' 
+ 
+        solver <- .$fnames$solver
+        .$fnames$solver <- 'f_A_r0_leaf_analytical_quad'
+ 
+        print(paste('negative values loop',.$fnames$solver_func))
+      
+        # calculate assimilation 
+        .$state$A       <- get(.$fnames$solver)(.)      
+        # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
+        .$state$lim     <- c(2,3,7)[which(c(.$state$Acg,.$state$Ajg,.$state$Apg)==min(c(.$state$Acg,.$state$Ajg,.$state$Apg),na.rm=T))]       
+   
+        # after the fact calculations
+        #if(!grepl('analytical',.$fnames$solver)) {
+        # calculate Ag for each limiting process
+        .$state$Acg     <- .$state$Acg * .$state$cc 
+        .$state$Ajg     <- .$state$Ajg * .$state$cc 
+        .$state$Apg     <- .$state$Apg * .$state$cc
+   
+        # calculate intermediate state variables 
+        .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca)
+        .$state_pars$rs <- get(paste0(.$fnames$rs,'_r0'))(.) 
+        .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=1.6*.$state_pars$rs,c=.$state$cb)
+        #}
+
+        #.$fnames$solver_func <- solver 
+        .$fnames$solver <- solver 
+    }}
+ 
   }
  
   # if PAR <= 0

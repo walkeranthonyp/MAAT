@@ -430,16 +430,17 @@ leaf_object <-
       .$fnames$rb          <- 'f_rb_leafdim'
       #.$fnames$rb          <- 'f_r_zero'
       .$fnames$solver_func <- 'f_A_r_leaf'
+      #.$fnames$solver_func <- 'f_A_r0_leaf'
       .$fnames$gas_diff    <- 'f_ficks_ci'
       #.$pars$g0            <- 1e-6 
       .$pars$g0            <- 0.01 
       
-#      atref.vcmax  <- 50
-#      g1_medlyn    <- 3        
-#      g1_leuning   <- 6       
-#      d0           <- 1      
-#      g1_ball      <- 5     
-#      cica_chi     <- 0.7         
+      .$pars$atref.vcmax  <- 50
+      .$pars$g1_medlyn    <- 3        
+      .$pars$g1_leuning   <- 6       
+      .$pars$d0           <- 1      
+      .$pars$g1_ball      <- 5     
+      .$pars$cica_chi     <- 0.7         
      
       # initialise the model without running the solution by setting PAR to zero  
       .$env$ca_conc        <- leaf.ca_conc

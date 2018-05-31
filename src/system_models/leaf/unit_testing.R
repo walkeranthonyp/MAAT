@@ -95,8 +95,19 @@ leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_medlyn2011',leaf.
 
 source('leaf_object.R')
 leaf_object$.test_solverFunc(verbose=T,verbose_loop=T,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,100) )
+
 leaf_object$.test_solverFunc(verbose=T,verbose_loop=T,rs='f_rs_medlyn2011',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,100) )
+leaf_object$.test_solverFunc(verbose=T,verbose_loop=T,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000 )
+leaf_object$.test_solverFunc(verbose=T,verbose_loop=T,rs='f_rs_medlyn2011',leaf.ca_conc=1,leaf.par=1000 )
+leaf_object$.test_solverFunc(verbose=T,verbose_loop=T,rs='f_rs_leuning1995',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,10) )
+leaf_object$.test_solverFunc(verbose=T,verbose_loop=T,rs='f_rs_medlyn2011',leaf.ca_conc=1,leaf.par=1000, sinput=c(-10,10) )
 
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_yin2009',leaf.ca_conc=1,leaf.par=1000)
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_yin2009',leaf.ca_conc=50,leaf.par=1000)
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_yin2009',leaf.ca_conc=500,leaf.par=1000)
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_yin2009',leaf.ca_conc=1500,leaf.par=1000)
 
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_yin2009',leaf.ca_conc=500,leaf.par=1000, sinput=c(-10,20) )
+leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_yin2009',leaf.ca_conc=500,leaf.par=100, sinput=c(-10,20) )
 
 
