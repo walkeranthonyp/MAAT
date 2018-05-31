@@ -395,7 +395,7 @@ leaf_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci') {
+    .test_leaf <- function(., verbose=T, verbose_loop=T, leaf.par=1000, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
       
       if(verbose) {
         str(.)
@@ -405,10 +405,10 @@ leaf_object <-
       .$cpars$verbose_loop  <- verbose_loop
       .$cpars$output        <-'full'
       
+      .$fnames$rb          <- 'f_r_zero'
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
-      .$fnames$gas_diff    <- gd
       
       .$env$par     <- leaf.par
       .$env$ca_conc <- leaf.ca_conc
@@ -580,8 +580,9 @@ leaf_object <-
       .$fnames$rs           <- rs
       .$fnames$ri           <- 'f_r_zero'
       .$fnames$rb           <- 'f_rb_constant'
+      #.$fnames$rb           <- 'f_rb_leafdim'
+      #.$fnames$rb           <- 'f_r_zero'
       .$pars$rb             <- leaf.rb
-      #.$fnames$gas_diff     <- 'f_ficks_ci'
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      

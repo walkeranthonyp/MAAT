@@ -46,18 +46,17 @@ leaf_object$.test_tscalar(tcor_asc='f_temp_scalar_Q10',tcor_des='f_temp_scalar_c
 
 source('leaf_object.R')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011')
-out <- leaf_object$.test_aci_analytical(rs='f_rs_ball1987')
+out <- leaf_object$.test_aci_analytical(rs='f_rs_ball1987', leaf.rb=0.115293015)
+leaf_object$.test_leaf(verbose=F, leaf.par=100, leaf.ca_conc=300, rs='f_rs_ball1987' )
 out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_constantCiCa')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_cox1998')
-out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011',leaf.rb=0.5)
-out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011',leaf.rb=0.1)
-out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995',leaf.rb=0.0001)
+out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011', leaf.rb=0.5)
+out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011', leaf.rb=0.1)
+out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995', leaf.rb=0.0001)
 
 # leaf solver function
 source('leaf_object.R')
-leaf_object$.test_solverFunc(verbose=F,verbose_loop=F)
-leaf_object$.test_solverFunc(verbose=F,verbose_loop=F)
 leaf_object$.test_solverFunc(verbose=F,verbose_loop=F)
 leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_ball1987')
 leaf_object$.test_solverFunc(verbose=F,verbose_loop=F,rs='f_rs_ball1987',leaf.ca_conc=50)

@@ -19,9 +19,8 @@ f_none <- function(.) {
 
 # Solver to find root of .$fnames$solver_func
 f_R_Brent_solver <- function(.) {
-
   if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-1.23454548923,50.1234),.=.,extendInt='yes')
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c((-.$state$respiration-0.00765326),50.1234),.=.,extendInt='yes')
   .$solver_out$root
 }
 
@@ -121,9 +120,8 @@ f_A_r_leaf_analytical_quad <- function(.) {
     b   <- p*gsd*( .$state$ca*(V - .$state$respiration) - .$state$respiration*K - V*.$state_pars$gstar ) - .$pars$g0*(.$state$ca + K) + 1.6*p*(.$state$respiration - V)
     c   <- .$pars$g0*( V*(.$state$ca - .$state_pars$gstar) - .$state$respiration*(K + .$state$ca) )
  
-    A   <- quad_sol(a,b,c,'upper')
-    
     # return cc
+    A   <- quad_sol(a,b,c,'upper')
     f_ficks_ci(., A=A, r=1.6*get(.$fnames$rs)(.,A=A) )
   }
 
@@ -167,12 +165,9 @@ f_A_r0_leaf_analytical_quad <- function(.) {
     a   <- -p*r
     b   <- .$state$ca + K - .$state$respiration*p*r + V*p*r
     c   <- .$state$ca*(.$state$respiration-V) + .$state$respiration*K + V*.$state_pars$gstar 
- 
-    A   <- quad_sol(a,b,c,'lower')
-    
-    print(paste(A,f_ficks_ci(., A=A, r=r )))
     
     # return cc
+    A   <- quad_sol(a,b,c,'lower')
     f_ficks_ci(., A=A, r=r )
   }
 
@@ -182,11 +177,9 @@ f_A_r0_leaf_analytical_quad <- function(.) {
 
   # maximum cc corresponds to the minimum of the limiting rates  
   .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
-  print(.$state$cc)  
   
   # calculate net A
   Anet <- f_assimilation(.)
-  print(Anet)
 
   # calculate rs
   .$state_pars$rs <- r0 
@@ -200,7 +193,6 @@ f_A_r0_leaf_analytical_quad <- function(.) {
   .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
   .$state$Ajg <- get(.$fnames$Ajg)(.) * .$state$cc
   .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
-  print(.$state$Acg)
 
   # return net A
   Anet

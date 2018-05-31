@@ -105,7 +105,8 @@ f_leafsys_enzymek <- function(.) {
       # if rs is negative (occurs when A is negative) recalculate with fixed rs at 1/g0 
       if( .$state$A<0 | .$state$cc<0 | .$state_pars$rs<0 ) {
 
-        print(paste('negative values loop'))
+        # perhaps write this flag into the leaf object
+        #print(paste('negative values loop'))
 
         # temporarily rename solver function 
         solver <- .$fnames$solver
