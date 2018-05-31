@@ -170,8 +170,10 @@ f_A_r0_leaf_analytical_quad <- function(.) {
  
     A   <- quad_sol(a,b,c,'lower')
     
+    print(paste(A,f_ficks_ci(., A=A, r=r )))
+    
     # return cc
-    f_ficks_ci(., A=A, r=1.6*r0 )
+    f_ficks_ci(., A=A, r=r )
   }
 
   Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
@@ -180,9 +182,11 @@ f_A_r0_leaf_analytical_quad <- function(.) {
 
   # maximum cc corresponds to the minimum of the limiting rates  
   .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
-    
+  print(.$state$cc)  
+  
   # calculate net A
   Anet <- f_assimilation(.)
+  print(Anet)
 
   # calculate rs
   .$state_pars$rs <- r0 
@@ -196,6 +200,7 @@ f_A_r0_leaf_analytical_quad <- function(.) {
   .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
   .$state$Ajg <- get(.$fnames$Ajg)(.) * .$state$cc
   .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
+  print(.$state$Acg)
 
   # return net A
   Anet
