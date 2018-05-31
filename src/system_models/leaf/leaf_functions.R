@@ -21,7 +21,7 @@ f_none <- function(.) {
 f_R_Brent_solver <- function(.) {
 
   if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-10,100),.=.,extendInt='no')
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-1.23454548923,50.1234),.=.,extendInt='yes')
   .$solver_out$root
 }
 

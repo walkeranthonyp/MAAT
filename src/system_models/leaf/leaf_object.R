@@ -417,8 +417,8 @@ leaf_object <-
     }
 
 
-    .test_solverFunc <- function(.,verbose=T,verbose_loop=T,
-                                 sinput=-10:100,leaf.par=200,leaf.ca_conc=300,rs='f_rs_medlyn2011') {
+    .test_solverFunc <- function(., verbose=T, verbose_loop=T,
+                                 sinput=c(-1,50), leaf.par=200, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
       
       if(verbose) str(.)
       
@@ -427,25 +427,18 @@ leaf_object <-
 
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
-      .$fnames$rb          <- 'f_rb_leafdim'
-      #.$fnames$rb          <- 'f_r_zero'
+      .$fnames$rb          <- 'f_r_zero'
       .$fnames$solver_func <- 'f_A_r_leaf'
-      #.$fnames$solver_func <- 'f_A_r0_leaf'
-      .$fnames$gas_diff    <- 'f_ficks_ci'
-      #.$pars$g0            <- 1e-6 
       .$pars$g0            <- 0.01 
       
-      .$pars$atref.vcmax  <- 50
-      .$pars$g1_medlyn    <- 3        
-      .$pars$g1_leuning   <- 6       
-      .$pars$d0           <- 1      
-      .$pars$g1_ball      <- 5     
-      .$pars$cica_chi     <- 0.7         
-     
       # initialise the model without running the solution by setting PAR to zero  
       .$env$ca_conc        <- leaf.ca_conc
       .$env$par            <- 0 
       .$run()
+
+      # calculate electron transport rate
+      .$env$par            <- leaf.par
+      .$state$J <- get(.$fnames$etrans)(.)
 
       if(verbose) {
         print(.$fnames)
@@ -453,14 +446,7 @@ leaf_object <-
         print(.$env)
       }
 
-      # calculate electron transport rate
-      .$env$par            <- leaf.par
-      .$state$J <- get(.$fnames$etrans)(.)
-
-      # run the solution as a vectorised function
-      #out <- f_A_r_leaf(., A=sinput )
-
-      # run the solution as a looped function
+      # run the residual function iwithin a loop
       out <- numeric(length(sinput))
       for( i in 1:length(sinput) ) {
         out[i] <- f_A_r_leaf(., A=sinput[i] )
@@ -500,21 +486,22 @@ leaf_object <-
     }
     
     
-    .test_aci <- function(.,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1500,50),rs='f_rs_medlyn2011', 
-                          verbose=F,verbose_loop=F,diag=F) {
+    .test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,1500,50), rs='f_rs_medlyn2011', rb='f_r_zero', 
+                          verbose=F, verbose_loop=F, diag=F, output='all_lim' ) {
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
       .$pars$diag           <- diag
-      # .$cpars$output        <- 'all_lim'
-      .$cpars$output        <- 'full'
+      .$cpars$output        <- output
       
       if(verbose) str(.)
       
-      .$fnames$ri          <- 'f_r_zero'
-      .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
       .$fnames$solver      <- 'f_R_Brent_solver'
+      .$fnames$ri          <- 'f_r_zero'
+      
+      .$fnames$rb          <- rb
+      .$fnames$rs          <- rs
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
@@ -580,8 +567,8 @@ leaf_object <-
       if(output) .$dataf$out_full
     }
 
-    .test_aci_analytical <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50),leaf.rb=0, 
-                                     ana_only=F,verbose=F,verbose_loop=F,diag=F) {
+    .test_aci_analytical <- function(., rs='f_rs_medlyn2011', leaf.par=c(100,1000), leaf.ca_conc=seq(100,1200,50), leaf.rb=0, 
+                                     ana_only=F, verbose=F, verbose_loop=F, diag=F ) {
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
@@ -594,7 +581,7 @@ leaf_object <-
       .$fnames$ri           <- 'f_r_zero'
       .$fnames$rb           <- 'f_rb_constant'
       .$pars$rb             <- leaf.rb
-      .$fnames$gas_diff     <- 'f_ficks_ci'
+      #.$fnames$gas_diff     <- 'f_ficks_ci'
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
