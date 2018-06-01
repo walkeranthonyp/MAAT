@@ -6,9 +6,8 @@
 #
 ################################
 
-setwd('../leaf')
-source('leaf_object.R')
-setwd('../canopy')
+library(proto)
+
 source('canopy_functions.R')
 source('canopy_system_functions.R')
 
@@ -21,7 +20,7 @@ canopy_object <-
   proto(expr={
     
     ###########################################################################
-    # Object name, expected child objects & build function
+    # Object name, expected child objects, & build function
     
     name <- 'canopy'
     
@@ -31,9 +30,29 @@ canopy_object <-
     leaf <- NULL
     
     # build function
-    build <- function(., model ) {
-      .$leaf <- as.proto( leaf_object$as.list() )
+    build <- function(., mod_mimic=NULL ) {
+    
+      # read default model setup for highest level model
+      init_default <- readXML(paste(.$name,'default.xml',sep='_'))
+     
+      # read model mimic setup
+      if(!is.null(mod_mimic)) {
+        setwd('mimic_xmls')
+        init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
+        init_default <- fuselists(init_default,init_mimic)
+        setwd('..')
+      }
+
+      # build child objects
+      setwd('../leaf')
+      source('leaf_object.R')
+      .$leaf     <- as.proto( leaf_object$as.list() )
+      rm(leaf_object, pos=1 )
+      init_child <- .$leaf$build()
       .$leaf$cpars$output <- 'all_lim'
+
+      # build full init list
+      c(init_default, init_child )
     }
     
     

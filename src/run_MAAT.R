@@ -166,15 +166,8 @@ setwd(srcdir)
 source('wrapper_object.R')
 # load MAAT object(s) from source
 setwd(paste('system_models',mod_obj,sep='/'))
-source(paste(mod_obj,'object.R',sep='_'))
-# read default model setup
-init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
-# read model mimic setup
-if(!is.null(mod_mimic)) {
-  setwd('mimic_xmls')
-  init_mimic   <- readXML(paste(mod_obj,'_',mod_mimic,'.xml',sep=''))
-  init_default <- fuselists(init_default,init_mimic) 
-}
+mod_object <- paste(mod_obj,'object',sep='_')
+source(paste0(mod_object,'.R'))
 
 
 
@@ -182,9 +175,11 @@ if(!is.null(mod_mimic)) {
 # Configure the MAAT wrapper
 
 # clone and build the maat wrapper and model object
-maat <- as.proto(wrapper_object$as.list()) 
-maat$build(model=paste(mod_obj,'object',sep='_'))
+maat         <- as.proto(wrapper_object$as.list()) 
+init_default <- maat$build(model=mod_object)
+#print(init_default)
 rm(wrapper_object)
+rm(mod_object)
 
 # factorial analysis over-rides UQ analysis
 if(!uq) factorial <- T
@@ -214,6 +209,21 @@ maat$model$cpars$output  <- mod_out
 
 
 ##################################
+# Read object(s)'s defaults 
+
+## read default model setup for highest level model
+#init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
+#
+## read model mimic setup
+#if(!is.null(mod_mimic)) {
+#  setwd('mimic_xmls')
+#  init_mimic   <- readXML(paste(mod_obj,'_',mod_mimic,'.xml',sep=''))
+#  init_default <- fuselists(init_default,init_mimic) 
+#}
+
+
+
+##################################
 # Initialise the MAAT wrapper
 
 # load init xml's or list from init R script 
@@ -225,12 +235,12 @@ if(xml) {
   # read user defined XMLs of static variables
   staticxml   <- paste(mod_obj,'user','static.xml',sep='_')
   if(file.exists(staticxml)) init_static <- readXML(staticxml)
-  else                       {lis <- list(list(fnames=NA,pars=NA,env=NA)); names(lis) <- mod_obj; init_static <- lis } 
+  else                       {lis <- list(list(fnames=NULL,pars=NULL,env=NULL)); names(lis) <- mod_obj; init_static <- lis } 
   
   # read user defined XMLs of dynamic variables
   dynamicxml   <- paste(mod_obj,'user','dynamic.xml',sep='_')
   if(file.exists(dynamicxml)) init_dynamic <- readXML(dynamicxml)
-  else                       {lid <- list(list(fnames=NA,pars=NA,env=NA)); names(lid) <- mod_obj; init_dynamic <- lid } 
+  else                       {lid <- list(list(fnames=NULL,pars=NULL,env=NLL)); names(lid) <- mod_obj; init_dynamic <- lid } 
   
   # otherwise read init list R script
 } else source(initf)
@@ -239,13 +249,17 @@ if(xml) {
 init_s <- if(exists('init_static')) fuselists(init_default,init_static) else init_default
 
 # check process representation functions specified in input exist 
-lapply(init_s, function(l) lapply( l$fnames,        
-               function(c1) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init static does not exist') else 'exists'
-               ))
+print('',quote=F)
+print('Check static fnames requested exist:',quote=F)
+out <- lapply(init_s, function(l) lapply( l$fnames,        
+                      function(c1) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init static does not exist') else 'exists' ))
+print('  all static fnames requested exist',quote=F)
 
-lapply(init_dynamic, function(l) lapply( l$fnames,
-                     function(v) for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init dynamic does not exist') else return('exists') 
-                     ))
+print('',quote=F)
+print('Check dynamic fnames requested exist:',quote=F)
+out <- lapply(init_dynamic, function(l) lapply( l$fnames,
+                            function(v) for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init dynamic does not exist') else return('exists') ))
+print('  all dynamic fnames requested exist',quote=F)
 
 # add init lists to wrapper
 maat$init_static  <- init_s

@@ -27,10 +27,22 @@ leaf_object <-
     # child objects - none expected 
     child_list <- NULL 
     
-    # build function - no expected child objects so returns null
-    build <- function(.) {
-      # as.proto(.$as.list())
-      NULL
+    # build function 
+    build <- function(., mod_mimic=NULL ) {
+      # no expected child objects
+
+      # read default model setup for highest level model
+      init_default <- readXML(paste(.$name,'default.xml',sep='_'))
+     
+      # read model mimic setup
+      if(!is.null(mod_mimic)) {
+        setwd('mimic_xmls')
+        init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
+        init_default <- fuselists(init_default,init_mimic)
+        setwd('..')
+      }
+
+      init_default
     }
     
     

@@ -29,7 +29,7 @@ wrapper_object <-
     model <- NULL    
     
     # build function
-    build <- function(.,model) {
+    build <- function(., model ) {
       .$model <- as.proto(get(model)$as.list())
       .$model$build()
     }

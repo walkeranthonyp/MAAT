@@ -133,14 +133,14 @@ fuselists <- function(mainlist,sublist) {
   n <- 0
   
   # loop over sublist
- # if(!is.null(names(sublist))) { 
   for(i in 1:l) {
     mlsub <- which(names(mainlist)==names(sublist)[i])
     if(length(mlsub)==1) {
       n <- n + 1
       mainlist[[mlsub]] <- 
-        if(typeof(sublist[[i]]) == "list")  fuselists(mainlist[[mlsub]],sublist[[i]]) 
-        else                                sublist[[i]]
+        if(typeof(sublist[[i]]) == "list") fuselists(mainlist[[mlsub]],sublist[[i]]) 
+          else if(is.null(sublist[[i]]))  mainlist[[mlsub]] 
+          else                            sublist[[i]]
     } else {
       error_i <- if(exists('error_i')) c(error_i,i) else i
     }
@@ -156,7 +156,7 @@ fuselists <- function(mainlist,sublist) {
     # stop(paste("\n names mismatch when fusing initialisation lists:",names(mainlist)[mlsub],names(sublist)[i]))
     stop(paste('\n names mismatch when fusing initialisation lists, sublist element:', names(sublist)[error_i],
                '; not found in mainlist \n This is likely a mis-spelling of a variable name in the input file'))
-  }#}
+  }
   mainlist
 }
 
