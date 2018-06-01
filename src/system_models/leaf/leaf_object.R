@@ -43,10 +43,8 @@ leaf_object <-
       get(.$fnames$leafsys)(.)
 
       # print to screen
-      if(.$cpars$verbose) {
-        print(.$state)
-      }
-      
+      if(.$cpars$verbose) print(.$state)
+
       # output
       .$output()
     } 
@@ -57,11 +55,16 @@ leaf_object <-
     # Output functions
 
     # -- returns a vector of outputs
-    state_retrive <- function(.,snames) {
-      lsubs <- match(snames,names(.$state))
-      unlist(.$state[lsubs])
+    # state_retrive <- function(.,snames) {
+    #   lsubs <- match(snames,names(.$state))
+    #   unlist(.$state[lsubs])
+    # }
+    
+    state_retrive <- function(.,snames,state='state') {
+      lsubs <- match(snames,names(.[[state]]))
+      unlist(.[[state]][lsubs])
     }
-
+    
     output <- function(.){
       if(.$cpars$output=='slim') {
         
@@ -69,7 +72,9 @@ leaf_object <-
         
       } else if(.$cpars$output=='run') {
         
-        lout <- .$state_retrive(snames=c('A','cc','ci','ri','rs','rb','respiration','lim')) 
+        # lout <- .$state_retrive(snames=c('A','cc','ci','ri','rs','rb','respiration','lim')) 
+        lout <- c(.$state_retrive(snames=c('A','cc','ci','respiration','lim')),
+                  .$state_retrive(snames=c('ri','rs','rb'),state='state_pars') )
         
       } else if(.$cpars$output=='all_lim') {
         
@@ -147,7 +152,8 @@ leaf_object <-
       temp      = 25,                  # (oC)
       vpd       = 1,                   # (kPa)
       rh        = numeric(1),          # (unitless - proportion)
-      atm_press = 101325               # ( Pa)
+      atm_press = 101325,              # ( Pa)
+      wind      = 1                    # (m s-1)
     )
 
     # leaf state
@@ -207,8 +213,7 @@ leaf_object <-
     pars   <- list(
       diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
       # photosynthetic parameters
-      # deprecated    alpha    = 0.24,         # harley 1992 alpha - Williams & Flannagan 1998 use 0.21 but calculate 0.25 
-      a             = 0.80,       # fraction of PAR absorbed                               (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
+      a             = 0.80,       # fraction of PAR absorbed by leaf                       (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
       f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
       ko_kc_ratio   = 0.21,       # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)
       theta_j       = 0.90,       # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
@@ -234,9 +239,13 @@ leaf_object <-
       g1_leuning    = 10,         # Leuning 1995 gs slope                                  (unitless - likely higher than medlyn and ball g1)
       d0            = 1,          # Leuning 1995 D0                                        (kPa)
       g1_ball       = 6,          # Ball 1987 gs slope                                     (unitless - multiplier on RH as a proportion)
+      g_a1_yin      = 0.85,       # Yin and Struik 2009 VPD response intercept             (unitless)
+      g_b1_yin      = 0.14,       # Yin and Struik 2009 VPD response slope                 (kPa-1)
       rs            = 1/0.15,     # stomatal resistance                                    (m2s mol-1 h2o)
       cica_chi      = 0.7,        # constant Ci:Ca ratio                                   (unitless)
       rb            = 1/10,       # leaf boundary layer resistance                         (m2s mol-1 h2o)
+      can_ttc       = 0.01,       # turbulent transfer coefficient between canopy surface and canopy air (m s-0.5)
+      leaf_width    = 0.1,        # leaf dimension perpendicular to wind direction         (m)
       ri            = 1/0.15,     # mesophyll resistance                                   (m2s mol-1 - expressed in these units for consistency with other resistance terms, often expressed in the literature multiplied by Pa)
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
       hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
@@ -389,20 +398,20 @@ leaf_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test_leaf <- function(.,verbose=T,verbose_loop=T,leaf.par=1000,leaf.ca_conc=300,rs='f_rs_medlyn2011',gd='f_ficks_ci') {
+    .test_leaf <- function(., verbose=T, verbose_loop=T, leaf.par=1000, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
       
       if(verbose) {
-        str.proto(.)
+        str(.)
         print(.$env)
       }
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
       .$cpars$output        <-'full'
       
+      .$fnames$rb          <- 'f_r_zero'
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
-      .$fnames$gas_diff    <- gd
       
       .$env$par     <- leaf.par
       .$env$ca_conc <- leaf.ca_conc
@@ -411,28 +420,44 @@ leaf_object <-
     }
 
 
-    .test_solverFunc <- function(.,verbose=T,verbose_loop=T,leaf.par=200,leaf.ca_conc=300,rs='f_rs_medlyn2011') {
+    .test_solverFunc <- function(., verbose=T, verbose_loop=T,
+                                 sinput=c(-1,50), leaf.par=200, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
       
-      if(verbose) {
-        str.proto(.)
-        print(.$env)
-      }
+      if(verbose) str(.)
+      
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
 
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
+      .$fnames$rb          <- 'f_r_zero'
       .$fnames$solver_func <- 'f_A_r_leaf'
-      .$fnames$gas_diff    <- 'f_ficks_ci'
+      .$pars$g0            <- 0.01 
       
+      # initialise the model without running the solution by setting PAR to zero  
       .$env$ca_conc        <- leaf.ca_conc
-      .$env$par            <- leaf.par
+      .$env$par            <- 0 
       .$run()
 
-      # proper calc of electron transport rate
+      # calculate electron transport rate
       .$env$par            <- leaf.par
       .$state$J <- get(.$fnames$etrans)(.)
-      f_A_r_leaf(.,A=-10:100)
+
+      if(verbose) {
+        print(.$fnames)
+        print(.$state_pars)
+        print(.$env)
+      }
+
+      # run the residual function iwithin a loop
+      out <- numeric(length(sinput))
+      for( i in 1:length(sinput) ) {
+        out[i] <- f_A_r_leaf(., A=sinput[i] )
+      }
+
+      # output
+      print(xyplot(out~sinput,type='b',abline=0))
+      out
     }
     
         
@@ -444,7 +469,7 @@ leaf_object <-
       .$cpars$verbose_loop  <- verbose_loop
       .$cpars$output        <- 'full'
       
-      if(verbose) str.proto(.)
+      if(verbose) str(.)
       
       .$fnames$vcmax_tcor_asc  <- tcor_asc
       .$fnames$vcmax_tcor_des  <- tcor_des
@@ -464,21 +489,22 @@ leaf_object <-
     }
     
     
-    .test_aci <- function(.,leaf.par=c(100,1000),leaf.ca_conc=seq(0.1,1500,50),rs='f_rs_medlyn2011', 
-                          verbose=F,verbose_loop=F,diag=F) {
+    .test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,1500,50), rs='f_rs_medlyn2011', rb='f_r_zero', 
+                          verbose=F, verbose_loop=F, diag=F, output='all_lim' ) {
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
       .$pars$diag           <- diag
-      # .$cpars$output        <- 'all_lim'
-      .$cpars$output        <- 'full'
+      .$cpars$output        <- output
       
-      if(verbose) str.proto(.)
+      if(verbose) str(.)
       
-      .$fnames$ri          <- 'f_r_zero'
-      .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
       .$fnames$solver      <- 'f_R_Brent_solver'
+      .$fnames$ri          <- 'f_r_zero'
+      
+      .$fnames$rb          <- rb
+      .$fnames$rs          <- rs
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
@@ -506,7 +532,7 @@ leaf_object <-
       .$pars$diag           <- diag
       .$cpars$output        <- 'all_lim'
       
-      if(verbose) str.proto(.)
+      if(verbose) str(.)
       
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
@@ -544,21 +570,22 @@ leaf_object <-
       if(output) .$dataf$out_full
     }
 
-    .test_aci_analytical <- function(.,rs='f_rs_medlyn2011',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1200,50),leaf.rb=0, 
-                                     ana_only=F,verbose=F,verbose_loop=F,diag=F) {
+    .test_aci_analytical <- function(., rs='f_rs_medlyn2011', leaf.par=c(100,1000), leaf.ca_conc=seq(100,1200,50), leaf.rb=0, 
+                                     ana_only=F, verbose=F, verbose_loop=F, diag=F ) {
       
       .$cpars$verbose       <- verbose
       .$cpars$verbose_loop  <- verbose_loop
       .$pars$diag           <- diag
       .$cpars$output        <- 'all_lim'
       
-      if(verbose) str.proto(.)
+      if(verbose) str(.)
       
       .$fnames$rs           <- rs
       .$fnames$ri           <- 'f_r_zero'
       .$fnames$rb           <- 'f_rb_constant'
+      #.$fnames$rb           <- 'f_rb_leafdim'
+      #.$fnames$rb           <- 'f_r_zero'
       .$pars$rb             <- leaf.rb
-      .$fnames$gas_diff     <- 'f_ficks_ci'
       
       .$dataf     <- list()
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
@@ -632,7 +659,7 @@ leaf_object <-
       .$pars$diag           <- diag
       .$cpars$output        <- 'all_lim'
       
-      if(verbose) str.proto(.)
+      if(verbose) str(.)
       
       .$fnames$rs           <- rs
       .$fnames$ri           <- 'f_r_zero'

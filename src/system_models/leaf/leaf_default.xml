@@ -67,9 +67,13 @@
       <g1_leuning>10</g1_leuning>
       <d0>1</d0>
       <g1_ball>6</g1_ball>
+      <g_a1_yin>0.85</g_a1_yin>
+      <g_b1_yin>0.14</g_b1_yin>
       <rs>6.66666666666667</rs>
       <cica_chi>0.7</cica_chi>
       <rb>0.1</rb>
+      <can_ttc>0.01</can_ttc>
+      <leaf_width>0.1</leaf_width>
       <ri>6.66666666666667</ri>
       <co2_diff>1.7e-09</co2_diff>
       <hco_co2_ratio>0</hco_co2_ratio>

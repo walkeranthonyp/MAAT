@@ -56,14 +56,14 @@ runif1 <- function(n,pars=c(1,0.1),norm=F) {
   # this function generates a sequence for either 
   # a normal distribution norm=T   or  a uniform distribution norm=F
   # the pars argument is a two element vector,
-  # for normal distributions the first element is the mean, the second the coefficient of variation
+  # for normal distributions the first element is the mean, the second the coefficient of variation as a proportion
   # for uniform distributions the first element is the lower value of the range, the second the upper value of the range
  
   return( 
     if(norm) {
       pars[1] * rnorm(n,1,pars[2]) 
     } else {
-      runif(n,pars[1],pars[2])
+      runif(n,min(pars),max(pars))
     }
   )
   

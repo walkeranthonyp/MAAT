@@ -100,10 +100,30 @@ f_leafsys_enzymek <- function(.) {
       .$state$cb      <- f_ficks_ci(.,A=.$state$A,r=1.4*.$state_pars$rb,c=.$state$ca)
       .$state_pars$rs <- get(.$fnames$rs)(.) 
       .$state$ci      <- f_ficks_ci(.,A=.$state$A,r=1.6*.$state_pars$rs,c=.$state$cb)
-    }
+    
+ 
+      # if rs is negative (occurs when A is negative) recalculate with fixed rs at 1/g0 
+      if( .$state$A<0 | .$state$cc<0 | .$state_pars$rs<0 ) {
+
+        # perhaps write this flag into the leaf object
+        #print(paste('negative values loop'))
+
+        # temporarily rename solver function 
+        solver <- .$fnames$solver
+        .$fnames$solver <- 'f_A_r0_leaf_analytical_quad'
+      
+        # calculate assimilation 
+        .$state$A       <- get(.$fnames$solver)(.)      
+        # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
+        .$state$lim     <- c(2,3,7)[which(c(.$state$Acg,.$state$Ajg,.$state$Apg)==min(c(.$state$Acg,.$state$Ajg,.$state$Apg),na.rm=T))]       
+   
+        #.$fnames$solver_func <- solver 
+        .$fnames$solver <- solver 
+    }}
+ 
   }
  
-  # if PAR < 0
+  # if PAR <= 0
   else {
     # assume infinite conductances when concentration gradient is small
     # - this ignores the build up of CO2 within the leaf due to respiration and high rs 

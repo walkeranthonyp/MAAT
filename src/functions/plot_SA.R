@@ -12,6 +12,18 @@ source('general_functions.R')
 
 
 
+# environment labels
+elabs <- 
+  if(!is.null(evar1)&!is.null(evar2)) {
+    paste(paste0(evar1name,'_',evar1),paste0(evar2name,'_',evar2))
+  } else if(!is.null(evar1)) {
+    paste0(evar1name,'_',evar1)
+  } else {
+    NULL
+  }
+
+
+
 # plot process SA indices
 ############################################
 
@@ -23,6 +35,7 @@ l1      <- readRDS(paste0(paste(runid_out,delta_var,'psa_list',sep='_'),'.RDS'))
 ex_sens <- function(l) vapply(l, function(l) l$sensitivity, numeric(1) )
 df1     <- vapply(l1, ex_sens, array(0, dim=c(1, length(l1[[1]]))) )
 if(class(df1)=='numeric') df1 <- array(df1,c(1,length(df1)),dimnames=list(NULL,names(df1)))
+matpsi <- apply(df1,3,function(m) m )
 
 # extract process SA summary stats
 ex_mean <- function(l) vapply(l, function(l) l$Tvar, numeric(3) )
@@ -31,20 +44,37 @@ apply(df2,1:2,function(m) m )
 
 # generate sensitivity output matrix
 if(!is.null(evar1)&!is.null(evar2)) {
-  t1                <- cbind( evar1, evar2, t(round(df2[,,1],2)), round(df1,2) )
+  # t1                <- cbind( evar1, evar2, t(round(df2[,,1],2)), round(df1,2) )
+  t1                <- cbind( evar1, evar2, t(round(df2[,,1],2)), round( matpsi , 2 ) )
   colnames(t1)[1:2] <- c(evar1name, evar2name )
 } else if(!is.null(evar1)) {
-  t1                <- cbind( evar1, t(round(df2[,,1],2)), round(df1,2) )
+  # t1                <- cbind( evar1, t(round(df2[,,1],2)), round(df1,2) )
+  t1                <- cbind( evar1, t(round(df2[,,1],2)), round( matpsi , 2 ) )
   colnames(t1)[1]   <- evar1name
 } else {
   t1                <- cbind( t(round(df2[,,1],2)), round(df1,2) )
 }
 
-# write latex table, & creat pdf (if call=TRUE)
+# write latex table, & create pdf (if call=TRUE)
 write_Latex(t1, paste(runid_out,'procSAtables',sep='_'), write_table_Latex, call=T )
 
 # plotting dataframe - make columnwise 
+dfpsi <- stack(as.data.frame(matpsi))
+dfpsi$par  <- dfpsi$ind
+dfpsi$ind  <- paste0('S',1:dim(matpsi)[1])
+dfpsi$type <- 'By Environment' 
+
+# for less than 5 processes
 dfp     <- data.frame(si=as.numeric(df1), proc=rep(colnames(df1),each=length(l1[[1]])) ) 
+
+# # legend labels
+lnames <- list( elabs )
+
+# plot
+setwd(wdp)
+pdf(paste(paste(runid_out,'PSAplots','radincs',sep='_'),'.pdf',sep=''), width=3.5, height=7)
+radar_plot(dfpsi, vnames=NULL, lnames=lnames, max_si=1.0 )
+dev.off()
 
 
 
@@ -61,9 +91,6 @@ l1    <- readRDS(paste(fname,'.RDS',sep=''))
 setwd(wdt)
 l3 <- readRDS(paste(runid_out,delta_var,'salt_list.RDS',sep='_'))
 
-# out directory
-setwd(wdp)
-
 
 # generate Latex tables of metrics 
 # - do this from a called script, that way the script can be used without calling all the data processing routines again
@@ -71,7 +98,7 @@ setwd(wdp)
 # integrated over models and scenarios
 dfp1a      <- data.frame(values=l3$incmodelscenario[[sens]])
 dfp1a$ind  <- 'MS1'
-dfp1a$type <- 'Across Models & Environment'
+dfp1a$type <- 'Combined'
 dfp1a$par  <- row.names(dfp1a)
 dfms       <- dfp1a
 
@@ -79,7 +106,7 @@ dfms       <- dfp1a
 dfp1  <- sapply(l3$incmodel, function(sl) sl[[sens]])
 colnames(dfp1) <- paste('S',1:dim(dfp1)[2], sep='')
 dfp1a <- stack(data.frame(dfp1))
-dfp1a$type <- 'Across Models' 
+dfp1a$type <- 'By Environment' 
 dfp1a$par  <- row.names(dfp1)
 dfm        <- dfp1a
 
@@ -87,34 +114,26 @@ dfm        <- dfp1a
 dfp1  <- sapply(l3$incscenario, function(sl) sl[[sens]])
 colnames(dfp1) <- paste('M',1:dim(dfp1)[2], sep='')
 dfp1a <- stack(data.frame(dfp1))
-dfp1a$type <- 'Across Environment' 
+dfp1a$type <- 'By Model' 
 dfp1a$par  <- row.names(dfp1)
 dfs        <- dfp1a
 
 # plotting dataframe
-df1    <- rbind(dfms,dfs,dfm)
+dfsi    <- rbind(dfms,dfs,dfm)
 
 # model labels
 full_mod_names <- apply(l1$fnames,1,paste,collapse='.')
-ss_names       <- match(full_mod_names,names(mod_names))
+ss_names       <- if(!is.null(mod_names)) match(full_mod_names,names(mod_names)) else NULL
 labs           <- if(!is.null(mod_names)) mod_names[ss_names] else full_mod_names
-
-# environment labels
-elabs <- 
-  if(!is.null(evar1)&!is.null(evar2)) {
-    paste(paste0(evar1name,'_',evar1),paste0(evar2name,'_',evar2))
-  } else if(!is.null(evar1)) {
-    paste0(evar1name,'_',evar1)
-  } else {
-    NULL
-  }
+labs           <- if(length(labs)>12) paste0('M',1:length(labs)) else labs  
 
 # legend labels
-lnames <- list('combined', labs, elabs )
+lnames <- list('weighted mean', labs, elabs )
 
 # plot
+setwd(wdp)
 pdf(paste(paste(runid_out,'SAplots','radincs',sep='_'),'.pdf',sep=''), width=10, height=7)
-radar_plot(df1, lnames=lnames, max_si=1.0 )
+radar_plot(dfsi, lnames=lnames, max_si=1.0 )
 dev.off()
 
 

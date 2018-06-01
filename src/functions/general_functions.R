@@ -89,7 +89,11 @@ listtoXML <- function(fname,name,...) {
       child <- newXMLNode(names(sublist)[i], parent=node)
       
       if (typeof(sublist[[i]]) == "list") {
-        if(is.null(names(sublist[[i]]))) stop('list or sublist defined with no named elements, likely an empty list')
+        if(is.null(names(sublist[[i]]))) {
+          #warning(paste(fname,names(sublist)[i],'list or sublist defined with no named elements, likely an empty list'))
+          sublist[[i]] <- NA
+          names(sublist[[i]]) <- 'nada'
+        }
         rec(child, sublist[[i]]) 
       }
       else {
@@ -121,14 +125,15 @@ listtoXML <- function(fname,name,...) {
 #####################################################
 # This function recursively fuses two lists
 # by overwriting any named entries in mainlist with the same names as those in the sublist
-# the overwriting occurs within the equivalent dimension/hierarchy of each list
-# i.e. a named element in the mainlist will not be overwritten by the same named element in the sublist if the elements are in different dimensions of the lists   
+# the overwriting occurs within the equivalent hierarchy of each list
+# i.e. a named element in the mainlist will not be overwritten by the same named element in the sublist if the elements are in different levels of the lists   
 fuselists <- function(mainlist,sublist) {
-  # length of first dimension of sublist
+  # length of sublist
   l <- length(sublist)
   n <- 0
   
   # loop over sublist
+ # if(!is.null(names(sublist))) { 
   for(i in 1:l) {
     mlsub <- which(names(mainlist)==names(sublist)[i])
     if(length(mlsub)==1) {
@@ -151,7 +156,7 @@ fuselists <- function(mainlist,sublist) {
     # stop(paste("\n names mismatch when fusing initialisation lists:",names(mainlist)[mlsub],names(sublist)[i]))
     stop(paste('\n names mismatch when fusing initialisation lists, sublist element:', names(sublist)[error_i],
                '; not found in mainlist \n This is likely a mis-spelling of a variable name in the input file'))
-  }
+  }#}
   mainlist
 }
 

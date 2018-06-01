@@ -46,28 +46,28 @@ wrapper_object <-
 
     run   <- function(.,verbose=T) {
       
+      # Initialise 
+      if(!.$wpars$unit_testing) {
+        if(.$wpars$UQtype=='ye')  .$wpars$eval_strings <- T
+        .$init()
+      }
+
       # Initialisation checks
       # need to add a check for equal par vector lengths if this is a UQ run and not eval_strings
-
       # for Ye et al SA method
-      # due to different parameter sample numbers in process A and B loops,
-      # parameters samples must be generated from code snippets as strings
-      if(.$wpars$UQtype=='ye')  .$wpars$eval_strings <- T
+      # - due to different parameter sample numbers in process A and B loops,
+      # - parameters samples must be generated from code snippets as strings
       if(.$wpars$eval_string&is.null(.$dynamic$pars_eval)) {
-        stop(paste('wrapper: eval_strings = T but vars$pars_eval not set. \n
+        stop(paste('wrapper: eval_strings = T but dynamic$pars_eval not set. \n
               vars$pars_eval:,\n',.$dynamic$pars_eval,'\n 
               NOTE: Ye method SA must draw parameter samples during runtime \n
-              from code snippets written as strings in vars$pars_eval')) 
+              from code snippets written as strings in dynamic$pars_eval')) 
       }
 
       # configure initialisation lists 
       ########################################
-      if(!.$wpars$unit_testing) .$init()
-        
+
       # initialise model with static variables
-      # if(!(is.na(.$static$fnames)|is.null(.$static$fnames))) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] )
-      # if(!(is.na(.$static$pars)|is.null(.$static$pars)))     .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   )
-      # if(!(is.na(.$static$env)|is.null(.$static$env)))       .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    )      
       if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] ) else if(!.$wpars$unit_testing) stop('Static fnames not defined')
       if(!is.null(.$static$pars))   .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   ) else if(!.$wpars$unit_testing) stop('Static pars not defined')
       if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    ) else if(!.$wpars$unit_testing) stop('Static env not defined')      
@@ -76,44 +76,42 @@ wrapper_object <-
       # create matrices of runtime variables  
       ######################################
       # expand the fnames and driving variables lists into matrices 
-      # .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[1])) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
-      # .$dataf$env     <- if(!is.na(.$dynamic$env[1]))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
       .$dataf$fnames  <- if(!is.null(.$dynamic$fnames)) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
       .$dataf$env     <- if(!is.null(.$dynamic$env))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
       
+      # if an SA/UQ run
       if(.$wpars$UQ) {
-        # if an SA/UQ run
           
+        # if Saltelli style Sobol
         if(.$wpars$UQtype=='saltelli') {
-          # if Saltelli style Sobol
           
-          # increase parameter sample number
-          .$wpars$n <- .$wpars$n * .$wpars$nmult
-          
-          if(.$wpars$eval_strings) {
-            # sample parameters from character string code snippets to generate matrices A and B
-            n <- 2 * .$wpars$n
-            .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
-          }
-          if(is.null(.$dynamic$pars[1] )) stop('wrapper: pars list in vars list is empty')
-         
+          if(is.null(.$dynamic$pars)) { 
+            if(!is.null(.$dynamic$pars_eval)) { 
+              # increase parameter sample number
+              .$wpars$n <- .$wpars$n * .$wpars$nmult
+              # sample parameters from character string code snippets to generate matrices A and B
+              n <- 2 * .$wpars$n
+              .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
+            } else  stop('wrapper: pars (or pars_eval) list in vars list is empty')
+          }         
+
           # create pars matrix
           .$dataf$pars  <- do.call(cbind, .$dynamic$pars )
           
           # remove potentially large pars list 
-          .$dynamic$pars   <- lapply(.$dynamic$parsl, function(e) numeric(1) )        
+          .$dynamic$pars   <- lapply(.$dynamic$pars, function(e) numeric(1) )        
 
-        } else if(.$wpars$UQtype=='ye') {
           # Ye et al process SA method 
+        } else if(.$wpars$UQtype=='ye') {
           
           # need a minimum of >1 processes
           if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sesitivity analysis')
           
-          # check input vars$pars* are same length
+          # check input dynamic$pars* are same length
           test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
           if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
           
-          # assign same list structure as vars$pars_eval to vars$pars 
+          # assign same list structure as dynamic$pars_eval to vars$pars 
           .$dynamic$pars   <- lapply(.$dynamic$pars_eval,function(e) numeric(1) )
           
           # check input vars$pars* elements have same names
@@ -537,13 +535,14 @@ wrapper_object <-
     
     ###########################################################################
     # initialisation function
+    # - this function is not sufficiently generic
 
     init <- function(.) {
 
-      # this function prefixes the names of a list with 'leaf.' 
+      # this function prefixes the names of a list with 'modobj.' 
       comb_init_list <- function(., v, modobj ) {
-        
-        if(sum(is.na(v))==length(v)|is.null(v)) NULL
+        # if(sum(is.na(v))==length(v)|is.null(v)) NULL
+        if(sum(is.null(v))==length(v)|is.null(v)) NULL
         else {
           names(v) <- paste(modobj, names(v), sep='.' ) 
           v
@@ -567,7 +566,7 @@ wrapper_object <-
       # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
       if(.$wpars$UQ) {
         # if(is.na(.$init_dynamic[[modobj]]$pars[1])&!is.na(.$init_dynamic[[modobj]]$pars_eval[1])) maat$wpars$eval_strings <- T
-        if(is.null(.$init_dynamic[[modobj]]$pars)&!is.null(.$init_dynamic[[modobj]]$pars_eval)) maat$wpars$eval_strings <- T
+        if(is.null(.$init_dynamic[[modobj]]$pars)&!is.null(.$init_dynamic[[modobj]]$pars_eval)) .$wpars$eval_strings <- T
         
         if(.$wpars$eval_strings) {
           vars <- .[['init_dynamic']][[modobj]][['pars_eval']]
@@ -1019,6 +1018,7 @@ wrapper_object <-
       # list(df,p1)
     }    
 
+
     # general factorial test with canopy object, with or without metdata
     .test_can <- function(.,metd=T,mc=T,pr=4,verbose=F) {
       
@@ -1082,6 +1082,76 @@ wrapper_object <-
       list(df,p1)
     }
       
+
+    # simple test of init_function & model mimic set up 
+    .test_mimic <- function(., mod_mimic='clm45_non_Tacclimation', mod_obj='leaf', metd=F, mc=F, pr=4, oconf=F ) {
+      
+      # load MAAT object(s) from source
+      setwd(paste('system_models',mod_obj,sep='/'))
+      source(paste(mod_obj,'object.R',sep='_'))
+      init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
+      # read model mimic setup
+      if(!is.null(mod_mimic)) {
+        setwd('mimic_xmls')
+        init_mimic   <- readXML(paste(mod_obj,'_',mod_mimic,'.xml',sep=''))
+        init_default <- fuselists(init_default,init_mimic) 
+        setwd('../../..')
+      } else setwd('../..')
+      
+      library(lattice)
+      
+      # clone the model object
+      .$build(model=paste(mod_obj,'object',sep='_'))
+      .$model$cpars$verbose  <- F      
+      .$model$cpars$cverbose <- oconf      
+ 
+      # define parameters for the wrapper
+      .$wpars$multic       <- mc  # multicore the ensemble
+      .$wpars$procs        <- pr  # number of cores to use if above is true
+      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
+      .$wpars$unit_testing <- F   # tell the wrapper to run init function 
+      
+      ### Define the static parameters and model functions  
+      ###############################
+      init_default$leaf$env$ca_conc <- 400
+      init_default$leaf$env$par     <- 2000
+      init_default$leaf$env$vpd     <- 50 
+      init_default$leaf$env$temp    <- 25
+      .$init_static <- init_default
+            
+      ### Define the parameters and model functions that are to be varied 
+      ###############################
+      # if this is a UQ analysis, the "pars" list must contain parameter vectors that are of equal length,
+      # if not a UQ analysis the parameter vectors in the "pars" list can be of different lengths
+      #maat$init_dynamic <- init_dynamic
+      .$init_dynamic <- NULL 
+      
+      ### Define meteorological and environment dataset
+      ###############################
+      # can load a met dataset here
+      # below a trivial met dataset is created to be used as an example
+
+      metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))      
+      metdata <- as.matrix(expand.grid(list(leaf.par = 2000),leaf.ca_conc = seq(50,1500,5000)))      
+      if(metd) .$dataf$met <- metdata
+
+      # Run model
+      st <- system.time(
+        .$run()
+      )
+      print('',quote=F)
+      print('Run time:',quote=F)
+      print(st)
+      print('',quote=F)
+      
+      # # process & record output
+      .$output()
+      # p1 <- xyplot(A~leaf.ca_conc|leaf.etrans*leaf.rs,df,groups=leaf.temp,type='l',auto.key=T,
+      #              panel=function(...) { panel.abline(h=seq(0,20,2.5)) ; panel.xyplot(...) })
+      # list(df,p1)
+    }    
+
+
     # test function for Ye method Sobol process sensitivity analysis
     .test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
       

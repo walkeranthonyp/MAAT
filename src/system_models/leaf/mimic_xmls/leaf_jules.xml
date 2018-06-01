@@ -20,7 +20,7 @@
       <rd_tcor_dependence>'f_rd_tcor_dependent'</rd_tcor_dependence> 
       <q10_func.vcmax>'f_q10_constant'</q10_func.vcmax>          
       <ri>'f_r_zero'</ri>
-      <rs>'f_rs_cox1999'</rs>
+      <rs>'f_rs_cox1998'</rs>
       <rb>'f_r_zero'</rb>
       <solver>'f_A_r_leaf_analytical'</solver>
       <solver_func>'f_A_r_leaf'</solver_func>
