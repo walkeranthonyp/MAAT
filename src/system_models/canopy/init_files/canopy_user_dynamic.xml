@@ -1,0 +1,35 @@
+<dynamic>
+  <canopy>
+    <fnames>
+      <cansys>'f_cansys_multilayer'</cansys>
+      <pars_init>'f_pars_init'</pars_init>
+      <rt>'f_rt_beerslaw_goudriaan'</rt>
+      <scale_n>'f_scale_n_CLMuniform'</scale_n>
+      <scale_ca>'f_scale_ca_uniform'</scale_ca>
+      <scale_vpd>'f_scale_vpd_uniform'</scale_vpd>
+      <lai>'f_lai_constant'</lai>
+      <par_partition>'f_par_partition_spitters'</par_partition>
+    </fnames>
+    <pars>
+      <layers>10</layers>
+      <lai>10</lai>
+      <lai_max>4</lai_max>
+      <lai_curve>0.5</lai_curve>
+      <leaf_cores>1</leaf_cores>
+      <G>0.5</G>
+      <can_clump>1</can_clump>
+      <k_layer>0</k_layer>
+      <alb_soil>0.15</alb_soil>
+      <leaf_reflectance>0.075</leaf_reflectance>
+    </pars>
+    <env>
+      <par>0</par>
+      <par_dir>0</par_dir>
+      <par_diff>0</par_diff>
+      <ca_conc>0</ca_conc>
+      <vpd>0</vpd>
+      <clearness>1</clearness>
+      <zenith>0</zenith>
+    </env>
+  </canopy>
+</dynamic>

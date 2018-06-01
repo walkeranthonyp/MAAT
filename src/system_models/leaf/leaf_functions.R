@@ -521,6 +521,10 @@ f_r_zero_fe <- function(., ... ) {
   0
 }
 
+f_r_zero_r0 <- function(., ... ) {
+  0
+}
+
 
 # stomata
 # stomatal resistances are all assumed to be in h2o units 

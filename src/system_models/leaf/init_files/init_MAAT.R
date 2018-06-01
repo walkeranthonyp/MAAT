@@ -36,7 +36,7 @@
 
 
 # This script must set the values of the above 6(8) lists, 
-# if you do not want to set any values using these lists they must be specified as NA
+# if you do not want to set any values using these lists they must be specified as NULL
 
 ###################################################################
 
@@ -78,20 +78,20 @@ env.static  <- list(
 ###############################
 # if this is a UQ analysis, the "pars" list must contain parameter vectors that are of equal length - need to put a check for this in the wrapper 
 # if not a UQ analysis the parameter vectors in the "pars" list can be of different lengths
-# set to NA where variation is not required  
+# set to NULL where variation is not required  
 
 # define lists
-fnames.var <- list(
+fnames.var    <- list(
   etrans = c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991')
 )
 
-pars.var <- NULL
+pars.var      <- NULL
 
 pars_proc.var <- NULL
 
 pars_eval.var <- NULL
 
-env.var <- list(
+env.var       <- list(
   ca_conc = seq(50,1500,50)
 )
 
@@ -118,6 +118,4 @@ init_dynamic <- list(
 
 
 
-
-
-
+### END ####

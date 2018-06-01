@@ -65,7 +65,7 @@ f_cansys_2bigleaf <- function(.) {
   
   # calculate APARsun and APARshade  
   # APARshade is the scattered part of the direct beam plus diffuse radiation
-  get(.$fnames$can_scale_light)(., 1:.$state$lai )
+  get(.$fnames$rt)(., 1:.$state$lai )
   #take the mean of these? - need to check, is there an analytical method?
   
   # Leaf environment 
@@ -94,35 +94,41 @@ f_cansys_multilayer <- function(.) {
   .$init_vert(l=layers) # reallocating this memory is unnecessary in cases where layers is a fixed parameter. 
   
   # canopy leaf layer properties 
-  .$state$vert$leaf$leaf.leafN_area[] <- get(.$fnames$can_scale_N)(., ca_calc_points )
-  .$state$vert$leaf$leaf.ca_conc[]    <- get(.$fnames$can_scale_Ca)(., ca_calc_points )
-  .$state$vert$leaf$leaf.vpd[]        <- get(.$fnames$can_scale_vpd)(., ca_calc_points )
+  .$state$vert$leaf$leaf.leafN_area[] <- get(.$fnames$scale_n)(.,   ca_calc_points )
+  .$state$vert$leaf$leaf.ca_conc[]    <- get(.$fnames$scale_ca)(.,  ca_calc_points )
+  .$state$vert$leaf$leaf.vpd[]        <- get(.$fnames$scale_vpd)(., ca_calc_points )
 
   # Light scaling  
-  get(.$fnames$can_scale_light)(., ca_calc_points )
+  get(.$fnames$rt)(., ca_calc_points )
 
   # sunlit leaves / direct light
   .$state$vert$leaf$leaf.par[] <- .$state$vert$sun$apar 
   # create leaf environment  matrix
-  lmatrix <- vapply(.$state$vert$leaf[c('leaf.leafN_area','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
+  lmatrix  <- vapply(.$state$vert$leaf[c('leaf.leafN_area','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
   # run leaf
   leaf_out <- vapply(1:layers, .$run_leaf, .$leaf$output(), df=lmatrix )
   # assign data to canopy object data structure
   for(vname in row.names(leaf_out)) .$state$vert$sun[[vname]][] <- leaf_out[vname,]
-  print(lmatrix)
-  print(leaf_out)
+  if(.$cpars$verbose) {
+    print('Sun leaves:', quote=F )
+    print(lmatrix)
+    print(leaf_out)
+  }
 
   # shade leaves
   if(any(.$state$vert$sun$fraction < 1) ) { 
     .$state$vert$leaf$leaf.par[] <- .$state$vert$shade$apar 
     # create leaf environment  matrix
-    lmatrix <- vapply(.$state$vert$leaf[c('leaf.leafN_area','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
+    lmatrix  <- vapply(.$state$vert$leaf[c('leaf.leafN_area','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
     # run leaf
     leaf_out <- vapply(1:layers, .$run_leaf, .$leaf$output(), df=lmatrix )
     # assign data to canopy object data structure
     for(vname in row.names(leaf_out)) .$state$vert$shade[[vname]][] <- leaf_out[vname,]
-    print(lmatrix)
-    print(leaf_out)
+    if(.$cpars$verbose) {
+      print('Shade leaves:', quote=F )
+      print(lmatrix)
+      print(leaf_out)
+    }
   }
 
   # combine sun and shade leaves  

@@ -31,8 +31,9 @@ canopy_object <-
     leaf <- NULL
     
     # build function
-    build <- function(.,model) {
+    build <- function(., model ) {
       .$leaf <- as.proto( leaf_object$as.list() )
+      .$leaf$cpars$output <- 'all_lim'
     }
     
     
@@ -40,12 +41,12 @@ canopy_object <-
     ###########################################################################
     # main run function
     
-    run <- function(.){
-      if(.$pars$verbose) print('canopy_run')
+    run <- function(.) {
+      if(.$cpars$verbose) print('canopy_run')
       
       # initialise canopy
       .$state$lai <- get(.$fnames$lai)(.) # this also could point to a higher level plant object  
-      get(.$fnames$can_pars)(.)
+      get(.$fnames$pars_init)(.)
 
       # calculate diffuse and direct radiation
       get(.$fnames$par_partition)(.)      
@@ -65,16 +66,16 @@ canopy_object <-
     # output processing function
     # -- returns a vector of outputs
     output <- function(.){
-      if(.$pars$output=='run') {
-        list(A=.$state$integrated$A, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration)
+      if(.$cpars$output=='run') {
+        list(A=.$state$integrated$A, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration)
         
-      } else if(.$pars$output=='leaf') {
+      } else if(.$cpars$output=='leaf') {
         list(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-             gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA)
+             ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA)
         
-      } else if(.$pars$output=='all_lim') {
+      } else if(.$cpars$output=='all_lim') {
         list(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-             gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA, 
+             ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA, 
              Acg_lim=.$state$integrated$Acg_lim, 
              Ajg_lim=.$state$integrated$Ajg_lim, 
              Apg_lim=.$state$integrated$Apg_lim, 
@@ -83,7 +84,7 @@ canopy_object <-
              layers_Apg_lim=.$state$integrated$layers_Apg_lim
         )
         
-      } else if(.$pars$output=='full') {
+      } else if(.$cpars$output=='full') {
         c(.$state$integrated, .$state_pars)
       }
     }    
@@ -95,20 +96,18 @@ canopy_object <-
     
     # function names
     fnames <- list(
-      cansys          = 'f_cansys_multilayer',
-      can_pars        = 'f_canlight_pars',
-      can_scale_light = 'f_canlight_beerslaw_goudriaan',
-      can_scale_N     = 'f_leafN_CLMuniform',
-      can_scale_Ca    = 'f_Ca_uniform',
-      can_scale_vpd   = 'f_vpd_uniform',
-      lai             = 'f_lai_constant',
-      par_partition   = 'f_par_partition_spitters'
+      cansys        = 'f_cansys_multilayer',
+      pars_init     = 'f_pars_init',
+      rt            = 'f_rt_beerslaw_goudriaan',
+      scale_n       = 'f_scale_n_CLMuniform',
+      scale_ca      = 'f_scale_ca_uniform',
+      scale_vpd     = 'f_scale_vpd_uniform',
+      lai           = 'f_lai_constant',
+      par_partition = 'f_par_partition_spitters'
     )
     
     # parameters
     pars <- list(
-      verbose    = F,
-      output     = 'run',
       layers     = 10,
       lai        = 10,
       lai_max    = 4,
@@ -215,14 +214,18 @@ canopy_object <-
         cb             = numeric(1),        # canopy mean boundary layer CO2                   (Pa)
         ci             = numeric(1),        # canopy mean leaf internal CO2                    (Pa) 
         cc             = numeric(1),        # canopy mean chloroplast CO2                      (Pa)
-        #gb             = numeric(1),        # canopy boundary conductance                      (mol m-2s-1)
-        #gs             = numeric(1),        # canopy stomatal conductance                      (mol m-2s-1) 
-        #gi             = numeric(1),        # canopy leaf internal conductance                 (mol m-2s-1)
         rb             = numeric(1),        # canopy boundary resistance                       (m2s mol-1)
         rs             = numeric(1),        # canopy stomatal resistance                       (m2s mol-1) 
         ri             = numeric(1),        # canopy leaf internal resistance                  (m2s mol-1)
         respiration    = numeric(1)         # canopy respiration rate                          (umol m-2s-1)        
       )
+    )
+
+    # run control parameters
+    cpars <- list(
+      verbose       = F,          # write diagnostic output during runtime 
+      cverbose      = F,          # write configuration output during runtime 
+      output        = 'run'       # type of output from run function
     )
     
       
@@ -248,10 +251,9 @@ canopy_object <-
       .[[vlist]][vlss] <- df[dfss]
 
       # call child (leaf) configure
-      child_configure <- function(., child ) if(any(prefix==child)) .[[child]]$configure(.,vlist,df,F) 
-      vapply( .$child_list, .$child_configure , NULL )     
+      vapply( .$child_list, .$child_configure , 1, prefix=prefix, vlist=vlist, df=df )     
  
-      if(.$cpars$cverbose&o) {
+      if(.$cpars$verbose) {
         print('',quote=F)
         print('Canopy configure:',quote=F)
         print(prefix,quote=F)
@@ -259,7 +261,8 @@ canopy_object <-
         print(.[vlist],quote=F)
       }
     }
-    
+   
+    child_configure <- function(., child, prefix, vlist, df ) { if(any(prefix==child)) .[[child]]$configure(.,vlist,df,F) ; return(1) }
     
     run_met <- function(.,l){
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe
@@ -311,9 +314,8 @@ canopy_object <-
       .$leaf$cpars$output <- 'all_lim'
 
       # parameter settings
-      .$pars$verbose       <- verbose
-      .$leaf$pars$verbose  <- F
-      .$pars$outfull       <- T
+      .$cpars$verbose       <- verbose
+      .$leaf$cpars$verbose  <- F
       
       .$env$par        <- 2000
       .$env$ca_conc    <- 200
@@ -324,14 +326,16 @@ canopy_object <-
       .$run()
     }
     
-    .test_aca <- function(.,verbose=F,verbose_loop=F,canopy.par_dir=c(100,1000),canopy.ca_conc=seq(50,1200,50)){
+    .test_aca <- function(., verbose=F, verbose_loop=F, canopy.par=c(100,1000), canopy.ca_conc=seq(50,1200,50),
+                          rs = 'f_r_zero' ) {
       
       # Child Objects
       .$leaf <- as.proto(leaf_object$as.list(),all.names=T)
+      .$leaf$cpars$output <- 'all_lim'
+      .$leaf$fnames$rs    <- rs
 
-      .$pars$verbose      <- verbose
-      .$leaf$pars$verbose  <- F
-      .$pars$outfull       <- F
+      .$cpars$verbose       <- verbose
+      .$leaf$cpars$verbose  <- F
       
       .$env$par        <- 2000
       .$env$ca_conc    <- 200
@@ -342,11 +346,11 @@ canopy_object <-
       if(verbose) str.proto(canopy_object)
       
       .$dataf       <- list()
-      .$dataf$met   <- expand.grid(mget(c('canopy.ca_conc','canopy.par_dir')))
+      .$dataf$met   <- expand.grid(mget(c('canopy.ca_conc','canopy.par')))
       
       .$dataf$out  <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
       print(cbind(.$dataf$met,.$dataf$out))
-      p1 <- xyplot(A~.$dataf$met$canopy.ca_conc|as.factor(.$dataf$met$canopy.par_dir),.$dataf$out,abline=0,
+      p1 <- xyplot(A~.$dataf$met$canopy.ca_conc|as.factor(.$dataf$met$canopy.par),.$dataf$out,abline=0,
                    ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'))
       print(p1)
     }

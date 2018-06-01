@@ -1,0 +1,14 @@
+<options>
+  <canopy>
+    <fnames>
+      <cansys>'c( 'f_cansys_2bigleaf', 'f_cansys_bigleaf_s1992', 'f_cansys_multilayer' )'</cansys>
+      <pars_init>'c( 'f_pars_init' )'</pars_init>
+      <rt>'c( 'f_rt_beerslaw', 'f_rt_beerslaw_goudriaan', 'f_rt_goudriaan' )'</rt>
+      <scale_n>'c( 'f_scale_n_beerslaw', 'f_scale_n_CLMuniform' )'</scale_n>
+      <scale_ca>'c( 'f_scale_ca_uniform' )'</scale_ca>
+      <scale_vpd>'c( 'f_scale_vpd_uniform' )'</scale_vpd>
+      <lai>'c( 'f_lai_constant', 'f_lai_sphagnum' )'</lai>
+      <par_partition>'c( 'f_par_partition_spitters' )'</par_partition>
+    </fnames>
+  </canopy>
+</options>

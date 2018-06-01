@@ -37,7 +37,8 @@
 #   - OBJ.pars_eval.var is a string that once evaluated gives a vector of parameter samples  
 
 
-# This script must set the values of the above 2 * 8 lists, even if their value is NA
+# This script must set the values of the above 6(8) lists per model object, 
+# if you do not want to set any values using these lists they must be specified as NULL
 
 ###################################################################
 
@@ -71,11 +72,11 @@ leaf.env.static  <- list(
   temp    = 25
   )
 
-canopy.fnames.static <- NA   
+canopy.fnames.static <- NULL   
 
-canopy.pars.static   <- NA
+canopy.pars.static   <- NULL
 
-canopy.env.static    <- NA
+canopy.env.static    <- NULL
 
 
 
@@ -83,34 +84,33 @@ canopy.env.static    <- NA
 ###############################
 # if this is a UQ analysis, the "pars" list must contain parameter vectors that are of equal length - need to put a check for this in the wrapper 
 # if not a UQ analysis the parameter vectors in the "pars" list can be of different lengths
-# set to NA where variation is not required  
+# set to NULL where variation is not required  
 
 # define lists
-leaf.fnames.var    <- list(
-  etrans = c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991')
-)
-canopy.fnames.var <- NA
+leaf.fnames.var    <- NULL 
 
-leaf.pars.var      <- NA
+leaf.pars.var      <- NULL
 
-leaf.pars_proc.var <- NA
+leaf.pars_proc.var <- NULL
 
-leaf.pars_eval.var <- NA
+leaf.pars_eval.var <- NULL
 
 leaf.env.var       <- list(
   ca_conc = seq(50,1500,50)
 )
-canopy.env.var <- NA
 
-canopy.fnames.var    <- NA
 
-canopy.pars.var      <- NA
+canopy.fnames.var    <- NULL
 
-canopy.pars_proc.var <- NA
+canopy.pars.var      <- list(
+  lai_curve = c(0.1,0.3,0.5,1)
+)
 
-canopy.pars_eval.var <- NA
+canopy.pars_proc.var <- NULL
 
-canopy.env.var       <- NA
+canopy.pars_eval.var <- NULL
+
+canopy.env.var       <- NULL
 
 
 
@@ -146,3 +146,5 @@ init_dynamic <- list(
   ))
 
 
+
+### END ####

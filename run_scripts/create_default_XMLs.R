@@ -25,11 +25,11 @@ if(is.null(mod_obj)) {
 } 
 
 # load function to create XMLs from lists
-setwd('../src/')
+setwd('../src/functions/')
 source('general_functions.R')
 
 # open the newly created model object
-setwd(paste('system_models',mod_obj,sep='/'))
+setwd(paste('..','system_models',mod_obj,sep='/'))
 mo <- paste0(mod_obj,'_object'); source(paste0(mo,'.R'))
 
 # create lists to convert to XML

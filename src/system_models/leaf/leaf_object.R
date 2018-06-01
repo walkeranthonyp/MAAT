@@ -24,7 +24,8 @@ leaf_object <-
     
     name <- 'leaf'
     
-    # no expected child objects
+    # child objects - none expected 
+    child_list <- NULL 
     
     # build function - no expected child objects so returns null
     build <- function(.) {
@@ -72,14 +73,13 @@ leaf_object <-
         
       } else if(.$cpars$output=='run') {
         
-        # lout <- .$state_retrive(snames=c('A','cc','ci','ri','rs','rb','respiration','lim')) 
         lout <- c(.$state_retrive(snames=c('A','cc','ci','respiration','lim')),
-                  .$state_retrive(snames=c('ri','rs','rb'),state='state_pars') )
+                  .$state_retrive(snames=c('ri','rs','rb'), state='state_pars') )
         
       } else if(.$cpars$output=='all_lim') {
         
-        #lout <- .$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','ri','rs','rb','respiration','lim')) 
-        lout <- c( .$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','respiration','lim')), unlist(.$state_pars[c('ri','rs','rb')]) ) 
+        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','respiration','lim')), 
+                  .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
         
       } else if(.$cpars$output=='full') {
         
@@ -87,7 +87,8 @@ leaf_object <-
         
       } else if(.$cpars$output=='sphagnum') {
         
-        lout <- .$state_retrive(snames=c('A','cc','ci','ri','rs','rb','respiration','lim','fwdw_ratio')) 
+        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','respiration','lim','fwdw_ratio')), 
+                  .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
         
       }
       

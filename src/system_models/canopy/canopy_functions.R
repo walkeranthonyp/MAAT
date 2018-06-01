@@ -61,7 +61,7 @@ f_par_partition_spitters <- function(.) {
 
 
 # calculate parameters for light interception
-f_canlight_pars <- function(.) {
+f_pars_init <- function(.) {
   # calculate parameters for canopy light scaling
   
   # extinction coefficents of direct diffuse radiation, assuming leaves are optically black   
@@ -87,7 +87,7 @@ f_canlight_pars <- function(.) {
 # - e.g. accounting for diffuse light, adjusting k by m or not, etc.
 
 # Beer's law direct light
-f_canlight_beerslaw_goudriaan <- function(.,l) {
+f_rt_beerslaw_goudriaan <- function(.,l) {
   # calculates direct beam light attenuation through the canopy
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
@@ -98,7 +98,7 @@ f_canlight_beerslaw_goudriaan <- function(.,l) {
 
 
 # misconstrued Beer's Law - ignores conversion of incident light per unit ground area to incident light per unit leaf area
-f_canlight_beerslaw <- function(.,l) {
+f_rt_beerslaw <- function(.,l) {
   # calculates direct beam light attenuation through the canopy
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
@@ -109,7 +109,7 @@ f_canlight_beerslaw <- function(.,l) {
 
 
 # Goudriaan's Law
-f_canlight_goudriaan <- function(.,l) {
+f_rt_goudriaan <- function(.,l) {
   # as described in Walker et al. (2017) New Phyt, supplement; from Spitters 1986 and Wang 2003 Func.Plant Biol.     
   # all below values are for visible wavelengths 
 
@@ -147,12 +147,12 @@ f_canlight_goudriaan <- function(.,l) {
 # Nitrogen Scaling
 ################################
 
-f_leafN_CLMuniform <- function(.,l) {
+f_scale_n_CLMuniform <- function(.,l) {
   rep( (.$state$mass_a/ceiling(.$state$lai)) / .$state$C_to_N, length(l) ) 
 }
 
 # Use Beer's Law to scale leaf N through the canopy
-f_leafN_beerslaw <- function(.,l) {
+f_scale_n_beerslaw <- function(.,l) {
   # for use with a multilayer phototsynthesis scheme
   
   .$state$totalN * exp(-.$state_pars$k_dir*l) /  sum(exp(-.$state_pars$k_dir*1:.$state$lai))  
@@ -164,12 +164,12 @@ f_leafN_beerslaw <- function(.,l) {
 ################################
 
 # Ca
-f_Ca_uniform <- function(., layers ) {
+f_scale_ca_uniform <- function(., layers ) {
   rep(.$env$ca_conc, length(layers) ) 
 }
 
 # VPD
-f_vpd_uniform <- function(., layers ) {
+f_scale_vpd_uniform <- function(., layers ) {
   rep(.$env$vpd, length(layers) ) 
 }
 
