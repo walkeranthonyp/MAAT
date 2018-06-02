@@ -535,13 +535,16 @@ wrapper_object <-
     
     ###########################################################################
     # initialisation function
-    # - this function is not sufficiently generic
 
+    # prefix name of model object to variable names
+    # this flattens the object|variable hierarchy in the list structure
+    # allowing single run matrices that contain variables for multiple model objects
+    # each line of the matrix is passed to the configure function in the model object
+    # the model object name in the variable name allows the configure function to correctly parse the variable.        
     init <- function(.) {
 
-      # this function prefixes the names of a list with 'modobj.' 
+      # prefixes the names of a list with 'modobj.' 
       comb_init_list <- function(., v, modobj ) {
-        # if(sum(is.na(v))==length(v)|is.null(v)) NULL
         if(sum(is.null(v))==length(v)|is.null(v)) NULL
         else {
           names(v) <- paste(modobj, names(v), sep='.' ) 
@@ -549,37 +552,38 @@ wrapper_object <-
         }
       }
       
-      # prepend model object to variable names      
-      modobj <- .$model$name
+      mos    <- c(.$model$name, unlist(.$model$child_list) )
       type   <- c('static', 'dynamic')
       vlists <- c('fnames', 'pars', 'env' )
-      for( t in type ) {
-        for( vl in vlists ) {
-          # input variables
-          vars <- .[[paste0('init_',t)]][[modobj]][[vl]]
-          
-          # assign variables to wrapper, prefix variable names with the name of the model object that they belong to 
-          .[[t]][[vl]] <- comb_init_list(v=vars, modobj=modobj )
-        }
-      }
       
-      # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
-      if(.$wpars$UQ) {
-        # if(is.na(.$init_dynamic[[modobj]]$pars[1])&!is.na(.$init_dynamic[[modobj]]$pars_eval[1])) maat$wpars$eval_strings <- T
-        if(is.null(.$init_dynamic[[modobj]]$pars)&!is.null(.$init_dynamic[[modobj]]$pars_eval)) .$wpars$eval_strings <- T
-        
-        if(.$wpars$eval_strings) {
-          vars <- .[['init_dynamic']][[modobj]][['pars_eval']]
-          .[['dynamic']][['pars_eval']] <- comb_init_list(v=vars, modobj=modobj )
+      for( mo in mos ) {
+        for( t in type ) {
+          for( vl in vlists ) {
+            # input variables
+            vars <- .[[paste0('init_',t)]][[mo]][[vl]]
+            
+            # assign variables to wrapper, prefix variable names with the name of the model object that they belong to 
+            .[[t]][[vl]] <- comb_init_list(v=vars, modobj=mo )
+          }
         }
-
-        if(.$wpars$UQtype=='ye') {
-          vars <- .[['init_dynamic']][[modobj]][['pars_proc']]
-          maat[['dynamic']][['pars_proc']] <- comb_init_list(v=vars, modobj=modobj )
-          for( vn in names(vars) ) if( !any(vn==names(.[['init_dynamic']][[modobj]][['pars_eval']])) )
-            stop(paste('\n Input variable:', vn, 'in pars_proc, not found in: pars_eval list.',
-                       '\n The proc_pars input list must contain exactly the same parameter names as pars_eval input list.',
-                       '\n The proc_pars is required to assign a parameter to a process as part of a process sensitivity analysis.'))
+      
+        # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
+        if(.$wpars$UQ) {
+          if(is.null(.$init_dynamic[[mo]]$pars)&!is.null(.$init_dynamic[[mo]]$pars_eval)) .$wpars$eval_strings <- T
+          
+          if(.$wpars$eval_strings) {
+            vars <- .[['init_dynamic']][[mo]][['pars_eval']]
+            .[['dynamic']][['pars_eval']] <- comb_init_list(v=vars, modobj=mo )
+          }
+  
+          if(.$wpars$UQtype=='ye') {
+            vars <- .[['init_dynamic']][[mo]][['pars_proc']]
+            maat[['dynamic']][['pars_proc']] <- comb_init_list(v=vars, modobj=mo )
+            for( vn in names(vars) ) if( !any(vn==names(.[['init_dynamic']][[mo]][['pars_eval']])) )
+              stop(paste('\n Input variable:', vn, 'in pars_proc, not found in: pars_eval list.',
+                         '\n The proc_pars input list must contain exactly the same parameter names as pars_eval input list.',
+                         '\n The proc_pars is required to assign a parameter to a process as part of a process sensitivity analysis.'))
+          }
         }
       }
     }
