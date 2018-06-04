@@ -86,21 +86,21 @@ canopy_object <-
     # -- returns a vector of outputs
     output <- function(.){
       if(.$cpars$output=='run') {
-        list(A=.$state$integrated$A, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration)
+        c(A=.$state$integrated$A, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration)
         
       } else if(.$cpars$output=='leaf') {
-        list(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-             ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA)
+        c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
+          ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA)
         
       } else if(.$cpars$output=='all_lim') {
-        list(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-             ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA, 
-             Acg_lim=.$state$integrated$Acg_lim, 
-             Ajg_lim=.$state$integrated$Ajg_lim, 
-             Apg_lim=.$state$integrated$Apg_lim, 
-             layers_Acg_lim=.$state$integrated$layers_Acg_lim, 
-             layers_Ajg_lim=.$state$integrated$layers_Ajg_lim, 
-             layers_Apg_lim=.$state$integrated$layers_Apg_lim
+        c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
+          ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA, 
+          Acg_lim=.$state$integrated$Acg_lim, 
+          Ajg_lim=.$state$integrated$Ajg_lim, 
+          Apg_lim=.$state$integrated$Apg_lim, 
+          layers_Acg_lim=.$state$integrated$layers_Acg_lim, 
+          layers_Ajg_lim=.$state$integrated$layers_Ajg_lim, 
+          layers_Apg_lim=.$state$integrated$layers_Apg_lim
         )
         
       } else if(.$cpars$output=='full') {
@@ -252,36 +252,44 @@ canopy_object <-
     ###########################################################################
     # Run & configure functions
     
-    configure <- function(.,vlist,df,o=T) {
+    configure <- function(., vlist, df, o=T ) {
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
-     
-      # process UQ variables
-      uqvars <- names(df)
-      prefix <- vapply( strsplit(uqvars,'.', fixed=T), function(cv) cv[1], 'character' )
-      modobj <- .$name
-      dfss   <- which(prefix==modobj)
-      vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
 
-      # catch NAs in vlss
-      if(any(is.na(vlss))) stop(paste('names mismatch between model object variables and input list variable:', uqvars[which(is.na(vlss))] ))
+      # split model from variable name in df names 
+      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
 
       # assign UQ variables
-      .[[vlist]][vlss] <- df[dfss]
+      .$assign(prefix=prefix, vlist=vlist, df=df ) 
 
-      # call child (leaf) configure
-      vapply( .$child_list, .$child_configure , 1, prefix=prefix, vlist=vlist, df=df )     
- 
       if(.$cpars$verbose) {
         print('',quote=F)
         print('Canopy configure:',quote=F)
         print(prefix,quote=F)
         print(df,quote=F)
-        print(.[vlist],quote=F)
+        print(.[[vlist]],quote=F)
       }
     }
-   
-    child_configure <- function(., child, prefix, vlist, df ) { if(any(prefix==child)) .[[child]]$configure(.,vlist,df,F) ; return(1) }
+
+    assign <- function(., vlist, df, prefix) { 
+      modobj <- .$name
+      dfss   <- which(prefix==modobj)
+      vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
+
+      # catch NAs in vlss
+      if(any(is.na(vlss))) {
+        dfss <- dfss[-which(is.na(vlss))]
+        vlss <- vlss[-which(is.na(vlss))]
+      }
+
+      # assign UQ variables
+      if(any(prefix==modobj)) .[[vlist]][vlss] <- df[dfss]
+
+      # call child (leaf) assign 
+      if(any(prefix!=modobj)) vapply( .$child_list, .$child_assign , 1, prefix=prefix, vlist=vlist, df=df )     
+    }   
+
+    child_assign <- function(., child, prefix, vlist, df ) { .[[child]]$assign(vlist=vlist, df=df, prefix=prefix ) ; return(1) }
     
     run_met <- function(.,l){
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe

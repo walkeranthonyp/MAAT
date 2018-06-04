@@ -360,34 +360,41 @@ leaf_object <-
     ###########################################################################
     # configure & run_met functions
 
-    configure <- function(.,vlist,df,o=T) {
+    configure <- function(., vlist, df, o=T ) {
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
      
-      # process UQ variables
-      uqvars <- names(df)
-      prefix <- vapply( strsplit(uqvars,'.', fixed=T), function(cv) cv[1], 'character' )
-      modobj <- .$name
-      dfss   <- which(prefix==modobj)
-      vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
-
-      # catch NAs in vlss
-      #if(any(is.na(vlss))) stop(paste('names mismatch between model object variables and input list variable:', uqvars[which(is.na(vlss))] ))
-      dfss <- dfss[-which(is.na(vlss))]
-      vlss <- vlss[-which(is.na(vlss))]
+      # split model from variable name in UQ variables
+      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
 
       # assign UQ variables
-      .[[vlist]][vlss] <- df[dfss]
-      
+      .$assign(prefix=prefix, vlist=vlist, df=df )
+
       if(.$cpars$cverbose&o) {
         print('',quote=F)
         print('Leaf configure:',quote=F)
         print(prefix,quote=F)
-        print(df,quote=F)
-        print(.[vlist],quote=F)
+        print(t(df),quote=F)
+        print(.[[vlist]],quote=F)
       }
     }
-    
+
+    assign <- function(., vlist, df, prefix ) { 
+      modobj <- .$name
+      dfss   <- which(prefix==modobj)
+      vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
+
+      # catch NAs in vlss 
+      if(any(is.na(vlss))) {
+        dfss <- dfss[-which(is.na(vlss))]
+        vlss <- vlss[-which(is.na(vlss))]
+      }
+
+      # assign UQ variables
+      .[[vlist]][vlss] <- df[dfss]
+
+    }
+ 
     
     run_met <- function(.,l) {
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe
