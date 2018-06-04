@@ -252,26 +252,26 @@ canopy_object <-
     ###########################################################################
     # Run & configure functions
     
-    configure <- function(., vlist, df, o=T ) {
-      # This function is called from any of the run functions, or during model initialisation
-      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
+#    configure <- function(., vlist, df, o=T ) {
+#      # This function is called from any of the run functions, or during model initialisation
+#      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
+#
+#      # split model from variable name in df names 
+#      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
+#
+#      # assign UQ variables
+#      .$assign(prefix=prefix, vlist=vlist, df=df ) 
+#
+#      if(.$cpars$verbose) {
+#        print('',quote=F)
+#        print('Canopy configure:',quote=F)
+#        print(prefix,quote=F)
+#        print(df,quote=F)
+#        print(.[[vlist]],quote=F)
+#      }
+#    }
 
-      # split model from variable name in df names 
-      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
-
-      # assign UQ variables
-      .$assign(prefix=prefix, vlist=vlist, df=df ) 
-
-      if(.$cpars$verbose) {
-        print('',quote=F)
-        print('Canopy configure:',quote=F)
-        print(prefix,quote=F)
-        print(df,quote=F)
-        print(.[[vlist]],quote=F)
-      }
-    }
-
-    assign <- function(., vlist, df, prefix) { 
+    configure <- function(., vlist, df, prefix) { 
       modobj <- .$name
       dfss   <- which(prefix==modobj)
       vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
@@ -286,10 +286,10 @@ canopy_object <-
       if(any(prefix==modobj)) .[[vlist]][vlss] <- df[dfss]
 
       # call child (leaf) assign 
-      if(any(prefix!=modobj)) vapply( .$child_list, .$child_assign , 1, prefix=prefix, vlist=vlist, df=df )     
+      if(any(prefix!=modobj)) vapply( .$child_list, .$child_configure , 1, prefix=prefix, vlist=vlist, df=df )     
     }   
 
-    child_assign <- function(., child, prefix, vlist, df ) { .[[child]]$assign(vlist=vlist, df=df, prefix=prefix ) ; return(1) }
+    child_configure <- function(., child, prefix, vlist, df ) { .[[child]]$configure(vlist=vlist, df=df, prefix=prefix ) ; return(1) }
     
     run_met <- function(.,l){
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe

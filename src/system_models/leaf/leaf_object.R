@@ -360,26 +360,26 @@ leaf_object <-
     ###########################################################################
     # configure & run_met functions
 
-    configure <- function(., vlist, df, o=T ) {
-      # This function is called from any of the run functions, or during model initialisation
-      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
-     
-      # split model from variable name in UQ variables
-      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
+#    configure <- function(., vlist, df, o=T ) {
+#      # This function is called from any of the run functions, or during model initialisation
+#      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
+#     
+#      # split model from variable name in df names  
+#      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
+#
+#      # assign UQ variables
+#      .$assign(prefix=prefix, vlist=vlist, df=df )
+#
+#      if(.$cpars$cverbose&o) {
+#        print('',quote=F)
+#        print('Leaf configure:',quote=F)
+#        print(prefix,quote=F)
+#        print(t(df),quote=F)
+#        print(.[[vlist]],quote=F)
+#      }
+#    }
 
-      # assign UQ variables
-      .$assign(prefix=prefix, vlist=vlist, df=df )
-
-      if(.$cpars$cverbose&o) {
-        print('',quote=F)
-        print('Leaf configure:',quote=F)
-        print(prefix,quote=F)
-        print(t(df),quote=F)
-        print(.[[vlist]],quote=F)
-      }
-    }
-
-    assign <- function(., vlist, df, prefix ) { 
+    configure <- function(., vlist, df, prefix ) { 
       modobj <- .$name
       dfss   <- which(prefix==modobj)
       vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
