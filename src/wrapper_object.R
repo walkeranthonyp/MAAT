@@ -71,7 +71,6 @@ wrapper_object <-
       if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] ) else if(!.$wpars$unit_testing) stop('Static fnames not defined')
       if(!is.null(.$static$pars))   .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   ) else if(!.$wpars$unit_testing) stop('Static pars not defined')
       if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    ) else if(!.$wpars$unit_testing) stop('Static env not defined')      
-      
 
       # create matrices of runtime variables  
       ######################################
@@ -137,16 +136,12 @@ wrapper_object <-
         
       } else {
         # any type of run other than Ye process sensitivity analysis 
-        #.$dataf$lf <- if(is.null(.$dataf$fnames)|(sum(dim(.$dataf$fnames)==0)==2)) 1 else length(.$dataf$fnames[,1]) 
-        #.$dataf$lp <- if(is.null(.$dataf$pars)|(sum(dim(.$dataf$pars)==0)==2) )    1 else length(.$dataf$pars[,1])
         .$dataf$lf <- if(is.null(.$dataf$fnames)) 1 else length(.$dataf$fnames[,1]) 
         .$dataf$lp <- if(is.null(.$dataf$pars))   1 else length(.$dataf$pars[,1])
         
       }
       
       # enviroment matrix and met matrix
-      #.$dataf$le <- if(is.null(.$dataf$env)|(sum(dim(.$dataf$env)==0)==2)      ) 1 else length(.$dataf$env[,1])    
-      #.$dataf$lm <- if(is.null(.$dataf$met)|(sum(dim(.$dataf$met)==0)==2)      ) 1 else length(.$dataf$met[,1])    
       .$dataf$le <- if(is.null(.$dataf$env)) 1 else length(.$dataf$env[,1])    
       .$dataf$lm <- if(is.null(.$dataf$met)) 1 else length(.$dataf$met[,1])    
       
@@ -184,7 +179,7 @@ wrapper_object <-
               if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf, mc.cores=min(.$dataf$lf,.$wpars$procs), mc.preschedule=F )
               else                 lapply( 1:.$dataf$lf, .$runf )
           })
-        
+       
         # print summary of results
         .$print_output()
       }
@@ -248,6 +243,13 @@ wrapper_object <-
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
       # assumes that each row of the fnames matrix are independent and non-sequential
       # call runp
+
+      if(i == 1) {
+        print('runf',quote=F)
+        print(.$dataf$fnames,quote=F)
+        print(.$dataf$pars,quote=F)
+        print(.$dataf$env,quote=F)
+      }
       
       # configure function names in the model
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
@@ -398,8 +400,6 @@ wrapper_object <-
       .$dataf$fnamesB <- if(!any(is.na(.$dynamic$fnames[-f]))) as.matrix(expand.grid(.$dynamic$fnames[-f],stringsAsFactors=F)) else stop()
       
       # determine the number of the rows in the fnames process matrices
-      #.$dataf$lfA     <- if(is.null(.$dataf$fnames )|(sum(dim(.$dataf$fnames )==0)==2)) 1 else length(.$dataf$fnames[,1]) 
-      #.$dataf$lfB     <- if(is.null(.$dataf$fnamesB)|(sum(dim(.$dataf$fnamesB)==0)==2)) 1 else length(.$dataf$fnamesB[,1]) 
       .$dataf$lfA     <- if(is.null(.$dataf$fnames )) 1 else length(.$dataf$fnames[,1]) 
       .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)) 1 else length(.$dataf$fnamesB[,1]) 
       
@@ -551,7 +551,8 @@ wrapper_object <-
           v
         }
       }
-      
+     
+      # setup list names for assignment 
       mos    <- c(.$model$name, unlist(.$model$child_list) )
       type   <- c('static', 'dynamic')
       vlists <- c('fnames', 'pars', 'env' )
@@ -563,22 +564,28 @@ wrapper_object <-
             vars <- .[[paste0('init_',t)]][[mo]][[vl]]
             
             # assign variables to wrapper, prefix variable names with the name of the model object that they belong to 
-            .[[t]][[vl]] <- comb_init_list(v=vars, modobj=mo )
+            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(v=vars, modobj=mo ) 
+                            else                     c(.[[t]][[vl]], comb_init_list(v=vars, modobj=mo ) )
           }
         }
       
         # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
         if(.$wpars$UQ) {
           if(is.null(.$init_dynamic[[mo]]$pars)&!is.null(.$init_dynamic[[mo]]$pars_eval)) .$wpars$eval_strings <- T
-          
+          t <- 'dynamic'
+
           if(.$wpars$eval_strings) {
-            vars <- .[['init_dynamic']][[mo]][['pars_eval']]
-            .[['dynamic']][['pars_eval']] <- comb_init_list(v=vars, modobj=mo )
+            vl   <- 'pars_eval'
+            vars <- .[[paste0('init_',t)]][[mo]][[vl]]
+            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(v=vars, modobj=mo ) 
+                            else                     c(.[[t]][[vl]], comb_init_list(v=vars, modobj=mo ) )
           }
   
           if(.$wpars$UQtype=='ye') {
-            vars <- .[['init_dynamic']][[mo]][['pars_proc']]
-            maat[['dynamic']][['pars_proc']] <- comb_init_list(v=vars, modobj=mo )
+            vl   <- 'pars_proc'
+            vars <- .[[paste0('init_',t)]][[mo]][[vl]]
+            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(v=vars, modobj=mo ) 
+                            else                     c(.[[t]][[vl]], comb_init_list(v=vars, modobj=mo ) )
             for( vn in names(vars) ) if( !any(vn==names(.[['init_dynamic']][[mo]][['pars_eval']])) )
               stop(paste('\n Input variable:', vn, 'in pars_proc, not found in: pars_eval list.',
                          '\n The proc_pars input list must contain exactly the same parameter names as pars_eval input list.',
@@ -634,7 +641,7 @@ wrapper_object <-
       parsB   = NULL,
       env     = NULL,
       met     = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example 
-      # row length of matrices
+      # row length of above matrices
       lf      = NULL,
       lfA     = NULL,
       lfB     = NULL,
@@ -772,7 +779,6 @@ wrapper_object <-
       # - dim 4          output variable (character variables are coerced to NAs)
 
       # create AB output matrix array
-      # - suppressWarnings on the as.numeric call as there can be character strings in .$dataf$out which cause warnings when converted to NAs
       AB  <- array(.$dataf$out, c(.$dataf$le, 2*.$wpars$n, .$dataf$lf, length(.$dataf$mout) ))
       dimnames(AB) <- list( NULL, NULL, apply(.$dataf$fnames, 1, toString), names(.$dataf$mout)  )
       
