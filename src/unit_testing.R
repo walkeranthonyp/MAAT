@@ -30,11 +30,10 @@ class(out)
 head(out)
 
 library(lattice)
-xyplot(A~leaf.par |leaf.etrans*leaf.rs,out,groups=leaf.temp,type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
-xyplot(A~leaf.par |leaf.etrans*leaf.rs,out,groups=leaf.vpd, type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
-xyplot(cc~leaf.par|leaf.etrans*leaf.rs,out,groups=leaf.temp,type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
-xyplot(gs~leaf.par|leaf.etrans*leaf.rs,out,groups=leaf.temp,type='l',panel=function(...) { panel.abline(h=seq(0,1,0.02));panel.xyplot(...)})
-xyplot(A~leaf.par |leaf.etrans*leaf.rs,out,type='l',panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
+xyplot(A~leaf.par |leaf.etrans*leaf.rs, out, groups=leaf.temp,type='l', panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
+xyplot(A~leaf.par |leaf.etrans*leaf.rs, out, groups=leaf.vpd, type='l', panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
+xyplot(A~leaf.par |leaf.etrans*leaf.rs, out, type='l', panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
+xyplot(ci~leaf.par |leaf.etrans*leaf.rs, out, type='l', panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
 
 # test model mimic
 source('wrapper_object.R')
@@ -62,7 +61,7 @@ f_rs_ball1987(wrapper_object$model)
 f_rs_ball1987_fe(wrapper_object$model)
 f_rs_ball1987(wrapper_object$model,10,50)
 f_R_Brent_solver(wrapper_object$model)
-f_A_r_leaf(100,wrapper_object$model)
+f_A_r_leaf(wrapper_object$model,100)
 f_rd_lin_vcmax(wrapper_object$model)
 
 
@@ -73,10 +72,11 @@ out <- wrapper_object$.test_ye(mc=T,pr=6,oconf=F,n=10)
 
 
 # Leaf, Saltelli SA
-rm(list=ls())
 source('wrapper_object.R')
-out <- wrapper_object$.test_saltelli(mc=F,pr=6,oconf=F,n=10)
-out <- wrapper_object$.test_saltelli(mc=T,pr=6,oconf=F,n=10)
+out <- wrapper_object$.test_saltelli(mc=F, pr=6, oconf=F, n=10 )
+
+source('wrapper_object.R')
+out <- wrapper_object$.test_saltelli(mc=T, pr=6, oconf=F, n=10 )
 wrapper_object$dataf$env
 wrapper_object$dataf$fnames
 wrapper_object$dataf$pars

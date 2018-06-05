@@ -85,12 +85,11 @@ f_cansys_2bigleaf <- function(.) {
 # Multilayer canopy scaling
 ###############################
 f_cansys_multilayer <- function(.) {
-  
+ 
   # initialise layers
   linc           <- .$state$lai / .$pars$layers
   ca_calc_points <- seq(linc, .$state$lai, linc ) 
-  layers         <- .$pars$layers
-  #layers         <- ceiling(.$state$lai) # this could be a function specifying either no. of layers or the below lai assignment   
+  layers         <- .$pars$layers # this could be a function to dynamically specify the no. of layers 
   .$init_vert(l=layers) # reallocating this memory is unnecessary in cases where layers is a fixed parameter. 
   
   # canopy leaf layer properties 
@@ -118,7 +117,7 @@ f_cansys_multilayer <- function(.) {
   # shade leaves
   if(any(.$state$vert$sun$fraction < 1) ) { 
     .$state$vert$leaf$leaf.par[] <- .$state$vert$shade$apar 
-    # create leaf environment  matrix
+    # create leaf environment matrix
     lmatrix  <- vapply(.$state$vert$leaf[c('leaf.leafN_area','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
     # run leaf
     leaf_out <- vapply(1:layers, .$run_leaf, .$leaf$output(), df=lmatrix )

@@ -28,15 +28,17 @@ leaf_object <-
     child_list <- NULL 
     
     # build function 
-    build <- function(., mod_mimic=NULL ) {
+    build <- function(., mod_mimic=NULL, ... ) {
       # no expected child objects
 
       # read default model setup for highest level model
+      source('../../functions/general_functions.R')
       init_default <- readXML(paste(.$name,'default.xml',sep='_'))
      
       # read model mimic setup
       if(!is.null(mod_mimic)) {
         setwd('mimic_xmls')
+        print(mod_mimic)
         init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
         init_default <- fuselists(init_default,init_mimic)
         setwd('..')
@@ -360,25 +362,6 @@ leaf_object <-
     ###########################################################################
     # configure & run_met functions
 
-#    configure <- function(., vlist, df, o=T ) {
-#      # This function is called from any of the run functions, or during model initialisation
-#      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
-#     
-#      # split model from variable name in df names  
-#      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
-#
-#      # assign UQ variables
-#      .$assign(prefix=prefix, vlist=vlist, df=df )
-#
-#      if(.$cpars$cverbose&o) {
-#        print('',quote=F)
-#        print('Leaf configure:',quote=F)
-#        print(prefix,quote=F)
-#        print(t(df),quote=F)
-#        print(.[[vlist]],quote=F)
-#      }
-#    }
-
     configure <- function(., vlist, df, prefix ) { 
       modobj <- .$name
       dfss   <- which(prefix==modobj)
@@ -392,7 +375,6 @@ leaf_object <-
 
       # assign UQ variables
       .[[vlist]][vlss] <- df[dfss]
-
     }
  
     
@@ -404,10 +386,10 @@ leaf_object <-
       
       # expects .$dataf$met to exist in the object, usually in a parent "wrapper" object
       # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
-      
+     
       # met data assignment
-      .$configure(vlist='env',df=.$dataf$met[l,],F)
-
+      .$configure(vlist='env', df=.$dataf$met[l,],
+                  prefix=vapply( strsplit(names(.$dataf$met[l,]), '.', fixed=T ), function(cv) cv[1], 'character' ))
       # run model
       .$run()              
     }

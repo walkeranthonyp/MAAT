@@ -50,7 +50,6 @@ canopy_object$state
 
 canopy_object$fnames$rt <- 'f_rt_goudriaan'
 canopy_object$.test_aca()
-
 canopy_object$.test_aca(rs='f_rs_medlyn2011')
 
 

@@ -29,9 +29,9 @@ wrapper_object <-
     model <- NULL    
     
     # build function
-    build <- function(., model ) {
+    build <- function(., model, ... ) {
       .$model <- as.proto(get(model)$as.list())
-      .$model$build()
+      .$model$build(...)
     }
     
     # clean function to reset object
@@ -241,11 +241,9 @@ wrapper_object <-
 
       # split model from variable name in df names  
       prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
-      print('call_config')
 
       # assign UQ variables
       .$model$configure(vlist=vlist, df=df, prefix=prefix )
-      print('config called')
 
       if(.$wpars$cverbose&o) {
         print('',quote=F)
@@ -1121,23 +1119,13 @@ wrapper_object <-
       # load MAAT object(s) from source
       setwd(paste('system_models',mod_obj,sep='/'))
       source(paste(mod_obj,'object.R',sep='_'))
-      init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
-      # read model mimic setup
-      if(!is.null(mod_mimic)) {
-        setwd('mimic_xmls')
-        init_mimic   <- readXML(paste(mod_obj,'_',mod_mimic,'.xml',sep=''))
-        init_default <- fuselists(init_default,init_mimic) 
-        setwd('../../..')
-      } else setwd('../..')
+      # clone & build the model object
+      init_default <- .$build(model=paste(mod_obj,'object',sep='_'), mod_mimic=mod_mimic )
+      setwd('../..')      
       
-      library(lattice)
-      
-      # clone the model object
-      .$build(model=paste(mod_obj,'object',sep='_'))
+      # define control parameters 
       .$model$cpars$verbose  <- F      
       .$model$cpars$cverbose <- oconf      
- 
-      # define parameters for the wrapper
       .$wpars$multic       <- mc  # multicore the ensemble
       .$wpars$procs        <- pr  # number of cores to use if above is true
       .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
@@ -1150,7 +1138,7 @@ wrapper_object <-
       init_default$leaf$env$vpd     <- 50 
       init_default$leaf$env$temp    <- 25
       .$init_static <- init_default
-            
+      
       ### Define the parameters and model functions that are to be varied 
       ###############################
       # if this is a UQ analysis, the "pars" list must contain parameter vectors that are of equal length,
@@ -1163,8 +1151,8 @@ wrapper_object <-
       # can load a met dataset here
       # below a trivial met dataset is created to be used as an example
 
-      metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))      
-      metdata <- as.matrix(expand.grid(list(leaf.par = 2000),leaf.ca_conc = seq(50,1500,5000)))      
+      metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100), leaf.ca_conc = 400))  )      
+      metdata <- as.matrix(expand.grid(list(leaf.par = 2000, leaf.ca_conc = seq(50,1500,50))) )      
       if(metd) .$dataf$met <- metdata
 
       # Run model
@@ -1178,6 +1166,7 @@ wrapper_object <-
       
       # # process & record output
       .$output()
+      #library(lattice)
       # p1 <- xyplot(A~leaf.ca_conc|leaf.etrans*leaf.rs,df,groups=leaf.temp,type='l',auto.key=T,
       #              panel=function(...) { panel.abline(h=seq(0,20,2.5)) ; panel.xyplot(...) })
       # list(df,p1)
@@ -1190,22 +1179,20 @@ wrapper_object <-
       # source directory
       setwd('system_models/leaf')
       source('leaf_object.R')
+      # clone & build the model object
+      init_default <- .$build(model='leaf_object')
       setwd('../..')
+      
       library(lattice)
       
-      # clone the model object
-      .$model <- as.proto(leaf_object$as.list(),parent=.)
+      # define control parameters
       .$model$pars$verbose  <- F      
       .$model$pars$cverbose <- oconf      
-      
-      # define parameters for the wrapper
       .$wpars$multic       <- mc   # multicore the ensemble
       .$wpars$procs        <- pr   # number of cores to use if above is true
       .$wpars$UQ           <- T    # run a UQ/SA style ensemble 
       .$wpars$UQtype       <- 'ye' # Ye style SA ensemble 
       .$wpars$unit_testing <- T    # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
-      .$wpars$n            <- n    # number of parameter samples in each loop 
-      .$wpars$coef_var     <- 0.1
       
       ### Define static variables 
       ###############################
@@ -1217,6 +1204,10 @@ wrapper_object <-
 
       # add the SA/UQ variables to the maat wrapper object
       # - the wrapper object takes care of combining these lists into the full ensemble      
+      .$wpars$n            <- n    # number of parameter samples in each loop 
+      .$wpars$coef_var     <- 0.1  # coefficient of variation for prior parameter distribution 
+      .$wpars$eval_strings <- T    # use evaluation strings to set parameter values
+
       .$static$fnames <- list(vcmax='f_vcmax_lin')
       .$dynamic$fnames <- list(
         leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
@@ -1260,41 +1251,40 @@ wrapper_object <-
     }    
     
     # test function for Saltelli method Sobol parametric sensitivity analysis
-    .test_saltelli <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3,eval_strings=T) {
+    .test_saltelli <- function(., metd=F, mc=T, pr=4, oconf=F, n=3, eval_strings=T ) {
       
       # source directory
       setwd('system_models/leaf')
       source('leaf_object.R')
+      # clone & build the model object
+      init_default <- .$build(model='leaf_object')
       setwd('../..')
       library(lattice)
       
-      # clone the model object
-      .$model <- as.proto(leaf_object$as.list(),parent=.)
+      # define control parameters
       .$model$pars$verbose  <- F      
       .$model$pars$cverbose <- oconf      
-      
-      # define parameters for the wrapper
       .$wpars$multic       <- mc           # multicore the ensemble
       .$wpars$procs        <- pr           # number of cores to use if above is true
       .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
       .$wpars$UQtype       <- 'saltelli'   # Saltelli style SA ensemble 
       .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
-      .$wpars$n            <- n            # number of parameter samples in each loop 
-      .$wpars$eval_strings <- eval_strings # parameters are passed as strings to be evaluated to allow for different sample numbers 
-      .$wpars$coef_var     <- 0.1
       
       ### Define static variables 
       ###############################
       .$static$env    <- list(leaf.par=1000)
       .$static$fnames <- list(leaf.vcmax='f_vcmax_lin')
       
-      ### Define the parameters and model functions that are to be varied out <- wrapper_object$.test(mc=F,metd=F,oconf=F)
-
+      ### Define the parameters and model functions that are to be varied 
       ###############################
       # "pars" lists must contain parameter vectors that are of equal length,
       
       # add the SA/UQ variables to the maat wrapper object
       # - the wrapper object takes care of combining these lists into the full ensemble      
+      .$wpars$n            <- n            # number of parameter samples in each loop 
+      .$wpars$eval_strings <- eval_strings # parameters are passed as strings to be evaluated to allow for different sample numbers 
+      .$wpars$coef_var     <- 0.1
+      
       .$dynamic$fnames <- list(
         leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
         leaf.etrans = c('f_j_farquharwong1984','f_j_collatz1991','f_j_harley1992')

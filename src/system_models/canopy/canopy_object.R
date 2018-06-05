@@ -30,9 +30,10 @@ canopy_object <-
     leaf <- NULL
     
     # build function
-    build <- function(., mod_mimic=NULL ) {
+    build <- function(., mod_mimic=NULL, ... ) {
     
       # read default model setup for highest level model
+      source('../../functions/general_functions.R')
       init_default <- readXML(paste(.$name,'default.xml',sep='_'))
      
       # read model mimic setup
@@ -50,6 +51,7 @@ canopy_object <-
       rm(leaf_object, pos=1 )
       init_child <- .$leaf$build()
       .$leaf$cpars$output <- 'all_lim'
+      setwd(paste0('../',.$name))
 
       # build full init list
       c(init_default, init_child )
@@ -252,25 +254,6 @@ canopy_object <-
     ###########################################################################
     # Run & configure functions
     
-#    configure <- function(., vlist, df, o=T ) {
-#      # This function is called from any of the run functions, or during model initialisation
-#      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
-#
-#      # split model from variable name in df names 
-#      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
-#
-#      # assign UQ variables
-#      .$assign(prefix=prefix, vlist=vlist, df=df ) 
-#
-#      if(.$cpars$verbose) {
-#        print('',quote=F)
-#        print('Canopy configure:',quote=F)
-#        print(prefix,quote=F)
-#        print(df,quote=F)
-#        print(.[[vlist]],quote=F)
-#      }
-#    }
-
     configure <- function(., vlist, df, prefix) { 
       modobj <- .$name
       dfss   <- which(prefix==modobj)
@@ -289,7 +272,9 @@ canopy_object <-
       if(any(prefix!=modobj)) vapply( .$child_list, .$child_configure , 1, prefix=prefix, vlist=vlist, df=df )     
     }   
 
+
     child_configure <- function(., child, prefix, vlist, df ) { .[[child]]$configure(vlist=vlist, df=df, prefix=prefix ) ; return(1) }
+    
     
     run_met <- function(.,l){
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe
@@ -301,7 +286,8 @@ canopy_object <-
       # any "env" variables specified in the "drv$env" dataframe and specified here will be overwritten by the values specified here 
       
       # met data assignment
-      .$configure(vlist='env', df=.$dataf$met[l,], F )
+      .$configure(vlist='env', df=.$dataf$met[l,],
+                  prefix=vapply( strsplit(names(.$dataf$met[l,]), '.', fixed=T ), function(cv) cv[1], 'character' )) 
       
       # run model
       .$run()              
@@ -319,11 +305,12 @@ canopy_object <-
     
     # function to run the leaves within the canopy
     run_leaf <- function(.,ii,df){
-      # This wrapper function is called from an lapply or mclapply function to run over each leaf in the canopy
+      # This wrapper function is called from an (v/l)apply function to run over each leaf in the canopy
       # assumes that each row of the dataframe are independent and non-sequential
       
-      .$leaf$configure(vlist='env',   df=df[ii,], F )
-      .$leaf$configure(vlist='state', df=df[ii,], F )
+      prefix <- vapply( strsplit(names(df[ii,]), '.', fixed=T ), function(cv) cv[1], 'character' ) 
+      .$leaf$configure(vlist='env',   df=df[ii,], prefix=prefix )
+      .$leaf$configure(vlist='state', df=df[ii,], prefix=prefix )
       
       # run leaf
       .$leaf$run()        
@@ -337,8 +324,9 @@ canopy_object <-
     .test <- function(.,verbose=T){
       
       # Child Objects
-      .$leaf <- as.proto(leaf_object$as.list(),all.names=T)
-      .$leaf$cpars$output <- 'all_lim'
+      #.$leaf <- as.proto(leaf_object$as.list(),all.names=T)
+      #.$leaf$cpars$output <- 'all_lim'
+      .$build()
 
       # parameter settings
       .$cpars$verbose       <- verbose
@@ -357,8 +345,9 @@ canopy_object <-
                           rs = 'f_r_zero' ) {
       
       # Child Objects
-      .$leaf <- as.proto(leaf_object$as.list(),all.names=T)
-      .$leaf$cpars$output <- 'all_lim'
+      #.$leaf <- as.proto(leaf_object$as.list(),all.names=T)
+      #.$leaf$cpars$output <- 'all_lim'
+      .$build()
       .$leaf$fnames$rs    <- rs
 
       .$cpars$verbose       <- verbose
