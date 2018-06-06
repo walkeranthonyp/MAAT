@@ -679,7 +679,7 @@ f_ri_constant <- function(., ... ) {
   .$pars$ri
 }
 
-f_ri_sphag_wf1998 <- function(.,W=.$state$fwdw_ratio){
+f_ri_sphag_wf1998 <- function(., W=.$state$fwdw_ratio ) {
   # Flannagan & Williams 1998 internal resistance of Sphagnum
   # W is water content ratio (fresh weight / dry weight)
   # output in  m2s mol-1 
@@ -715,7 +715,7 @@ f_rb_water_e2009 <- function(.){
   rb <- ((.$env$water_l-.$env$sphag_l)/1000) / (.$pars$co2_diff * (1 + .$pars$hco_co2_ratio * .$pars$hco_co2_diff_ratio) )   # both of these parameters are temp dependent    
   if((.$env$water_l-.$env$sphag_l)>0) {
     # convert to resistance m2s mol-1 h2o
-    #  (not sure h2o is correct for this diffusion through, but it converts to an atmospheric h2o transport equivalent relative to co2 so that it will work in the solver) 
+    #  (not sure h2o is correct for this diffusion though, but it converts to an atmospheric h2o transport equivalent relative to co2 so that it will work in the solver) 
     rb / f_conv_ms_molm2s1(.) / 1.4
   } else f_r_zero(.)  
 }
@@ -725,15 +725,15 @@ f_rb_water_e2009 <- function(.){
 ### SPHAGNUM SPECIFIC FUNCTIONS
 ################################
 
-f_fwdw_wl_lin <- function(.){
-  # Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
+# Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
+f_fwdw_wl_lin <- function(.) {
   
   if((.$env$water_l - .$env$sphag_l) > 0) .$pars$fwdw_wl_sat 
   else .$pars$fwdw_wl_sat + .$pars$fwdw_wl_slope * -(.$env$water_l - .$env$sphag_l) 
 }
 
-f_fwdw_wl_exp <- function(.){
-  # Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
+# Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
+f_fwdw_wl_exp <- function(.) {
   # Strack & Price 2009
   
   if((.$env$water_l - .$env$sphag_l) > 0) exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a*0 )

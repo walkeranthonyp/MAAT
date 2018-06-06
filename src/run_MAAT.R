@@ -306,8 +306,12 @@ if(!is.null(metdata)) {
   }
 
   # read metdata file
+  print('', quote=F )
+  print('Met data directory & filename:' , quote=F )
+  print(mdir, quote=F )
   setwd(mdir)
   if(file.exists(metdata)&!kill) {
+    print(metdata, quote=F )
     metdf <- read.csv(metdata,strip.white=T)  
     
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML 

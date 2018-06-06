@@ -21,10 +21,10 @@ f_cansys_bigleaf_s1992 <- function(.,k=.$state_pars$k_dirprime,...) {
   # set leaf environment
   # I0 is incident light
   .$leaf$env$par     <- .$k_dir * (1-.$leafscattering) * .$env$par
-  # assume no variation in CO2 concentration
+  # assume no variation in CO2 concentration, VPD, and T
   .$leaf$env$ca_conc <- .$env$ca_conc
-  # VPD
   .$leaf$env$vpd     <- .$env$vpd
+  #.$leaf$env$temp    <- .$env$temp
   
   # set leaf N0 
   .$leaf$state$leafN_area <- .$state$totalN * k / fpar

@@ -69,6 +69,12 @@ canopy_object <-
       .$state$lai <- get(.$fnames$lai)(.) # this also could point to a higher level plant object  
       get(.$fnames$pars_init)(.)
 
+      # assign canopy environment to leaf environment (any canopy scaling of these variables will overwrite this step)
+      envss     <- which(names(.$env) %in% names(.$leaf$env) )
+      df        <- as.data.frame(.$env[envss])
+      names(df) <- paste0('leaf.',names(df))
+      .$leaf$configure(vlist='env', df=df, prefix=rep('leaf',length(envss)) ) 
+
       # calculate diffuse and direct radiation
       get(.$fnames$par_partition)(.)      
       
@@ -143,6 +149,7 @@ canopy_object <-
     
     # Environment
     env <- list(
+      temp      = numeric(1),      
       par       = numeric(1),      
       par_dir   = numeric(1),      
       par_diff  = numeric(1),      
