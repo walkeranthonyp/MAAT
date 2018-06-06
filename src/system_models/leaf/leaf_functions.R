@@ -722,26 +722,26 @@ f_rb_water_e2009 <- function(.){
 
 
 
-### SPHAGNUM SPECIFIC FUNCTIONS
-################################
-
-# Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
-f_fwdw_wl_lin <- function(.) {
-  
-  if((.$env$water_l - .$env$sphag_l) > 0) .$pars$fwdw_wl_sat 
-  else .$pars$fwdw_wl_sat + .$pars$fwdw_wl_slope * -(.$env$water_l - .$env$sphag_l) 
-}
-
-# Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
-f_fwdw_wl_exp <- function(.) {
-  # Strack & Price 2009
-  
-  if((.$env$water_l - .$env$sphag_l) > 0) exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a*0 )
-  else exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a * (-(.$env$water_l - .$env$sphag_l)/10) ) 
-}
-
-
-
+#### SPHAGNUM SPECIFIC FUNCTIONS
+#################################
+#
+## Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
+#f_fwdw_wl_lin <- function(.) {
+#  
+#  if((.$env$water_l - .$env$sphag_l) > 0) .$pars$fwdw_wl_sat 
+#  else .$pars$fwdw_wl_sat + .$pars$fwdw_wl_slope * -(.$env$water_l - .$env$sphag_l) 
+#}
+#
+## Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
+#f_fwdw_wl_exp <- function(.) {
+#  # Strack & Price 2009
+#  
+#  if((.$env$water_l - .$env$sphag_l) > 0) exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a*0 )
+#  else exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a * (-(.$env$water_l - .$env$sphag_l)/10) ) 
+#}
+#
+#
+#
 ### TEMPERATURE DEPENDENCE FUNCTIONS
 ################################
 # - all these functions should be scalars such that the current temperature and reference temperature can be specified and the correction scalar is returned

@@ -10,6 +10,7 @@
       <vpd>'column name of variable in metdata file'</vpd>
       <rh>'column name of variable in metdata file'</rh>
       <atm_press>'column name of variable in metdata file'</atm_press>
+      <wind>'column name of variable in metdata file'</wind>
     </env>
   </leaf>
 </met_data_translator>

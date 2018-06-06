@@ -31,7 +31,6 @@
       <q10_func.rd>'f_q10_constant'</q10_func.rd>
       <q10_func.vcmax>'f_q10_constant'</q10_func.vcmax>
       <q10_func.jmax>'f_q10_constant'</q10_func.jmax>
-      <fwdw_ratio>'f_none'</fwdw_ratio>
       <cica_ratio>'f_cica_constant'</cica_ratio>
       <ri>'f_r_zero'</ri>
       <rs>'f_r_zero'</rs>
@@ -57,7 +56,7 @@
       <e_ajv_25>1.01</e_ajv_25>
       <e_bjv_25>0.89</e_bjv_25>
       <atv_25>0</atv_25>
-      <btv_25>0.121951219512195</btv_25>
+      <btv_25>0.166666666666667</btv_25>
       <flnr>0.09</flnr>
       <fnr>7.16</fnr>
       <Rsa>60</Rsa>
@@ -67,17 +66,17 @@
       <g1_leuning>10</g1_leuning>
       <d0>1</d0>
       <g1_ball>6</g1_ball>
+      <g_a1_yin>0.85</g_a1_yin>
+      <g_b1_yin>0.14</g_b1_yin>
       <rs>6.66666666666667</rs>
       <cica_chi>0.7</cica_chi>
       <rb>0.1</rb>
+      <can_ttc>0.01</can_ttc>
+      <leaf_width>0.1</leaf_width>
       <ri>6.66666666666667</ri>
       <co2_diff>1.7e-09</co2_diff>
       <hco_co2_ratio>0</hco_co2_ratio>
       <hco_co2_diff_ratio>0.56</hco_co2_diff_ratio>
-      <fwdw_wl_slope>-0.022</fwdw_wl_slope>
-      <fwdw_wl_sat>16</fwdw_wl_sat>
-      <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>
-      <fwdw_wl_exp_b>3.254</fwdw_wl_exp_b>
       <a_rdv_25>0</a_rdv_25>
       <b_rdv_25>0.015</b_rdv_25>
       <a_rdn_25>0.5</a_rdn_25>
@@ -163,6 +162,7 @@
       <vpd>1</vpd>
       <rh>0</rh>
       <atm_press>101325</atm_press>
+      <wind>1</wind>
     </env>
   </leaf>
 </dynamic>

@@ -147,7 +147,7 @@ leaf_object <-
       q10_func.rd         = 'f_q10_constant',
       q10_func.vcmax      = 'f_q10_constant',
       q10_func.jmax       = 'f_q10_constant',
-      fwdw_ratio          = 'f_none',                   
+#      fwdw_ratio          = 'f_none',                   
       cica_ratio          = 'f_cica_constant',             
       ri                  = 'f_r_zero',
       rs                  = 'f_r_zero',
@@ -265,10 +265,10 @@ leaf_object <-
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
       hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
       hco_co2_diff_ratio = 0.56,  # ratio of HCO and CO2 diffusivity in water  
-      fwdw_wl_slope = -0.022,     # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
-      fwdw_wl_sat   = 16,         # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
-      fwdw_wl_exp_a = -0.037,     # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
-      fwdw_wl_exp_b = 3.254,      # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
+#      fwdw_wl_slope = -0.022,     # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
+#      fwdw_wl_sat   = 16,         # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
+#      fwdw_wl_exp_a = -0.037,     # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
+#      fwdw_wl_exp_b = 3.254,      # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
       # respiration parameters
       a_rdv_25      = 0,          # intercept of linear rd25 to vcmax25 relationship        (umolm-2s-1)
       b_rdv_25      = 0.015,      # slope of linear rd25 to vcmax25 relationship            (unitless)

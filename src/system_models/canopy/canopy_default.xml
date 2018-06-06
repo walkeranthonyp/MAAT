@@ -9,6 +9,8 @@
       <scale_vpd>'f_scale_vpd_uniform'</scale_vpd>
       <lai>'f_lai_constant'</lai>
       <par_partition>'f_par_partition_spitters'</par_partition>
+      <water_status>'f_water_status_none'</water_status>
+      <fwdw>'f_fwdw_wtd_lin'</fwdw>
     </fnames>
     <pars>
       <layers>10</layers>
@@ -21,8 +23,13 @@
       <k_layer>0</k_layer>
       <alb_soil>0.15</alb_soil>
       <leaf_reflectance>0.075</leaf_reflectance>
+      <fwdw_wl_slope>-0.022</fwdw_wl_slope>
+      <fwdw_wl_sat>16</fwdw_wl_sat>
+      <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>
+      <fwdw_wl_exp_b>3.254</fwdw_wl_exp_b>
     </pars>
     <env>
+      <temp>0</temp>
       <par>0</par>
       <par_dir>0</par_dir>
       <par_diff>0</par_diff>
@@ -30,6 +37,8 @@
       <vpd>0</vpd>
       <clearness>1</clearness>
       <zenith>0</zenith>
+      <water_td>0</water_td>
+      <sphag_h>0</sphag_h>
     </env>
   </canopy>
 </default>

@@ -58,8 +58,6 @@
       <q10_func.rd>c('f_q10_constant','f_q10_lin_t')</q10_func.rd>          
       <q10_func.vcmax>'f_q10_constant'</q10_func.vcmax>          
       <q10_func.jmax>'f_q10_constant'</q10_func.jmax> 
-      <!-- fresh weight dry weight ratio of Sphagnum -->
-      <fwdw_ratio>'f_none'</fwdw_ratio>
       <!-- Ci:Ca ratio, only used if <rs> is 'f_rs_constantCiCa' -->
       <cica_ratio>'f_cica_constant'</cica_ratio>  
       <!-- internal resistance to CO2 transport -->
@@ -146,12 +144,6 @@
       <hco_co2_ratio>0</hco_co2_ratio>
       <!-- ratio of HCO to CO2 diffusivity in water -->
       <hco_co2_diff_ratio>0.56</hco_co2_diff_ratio>
-      <!-- intercept & slope of Sphagnum fresh weight dry weight ratio to water table depth -->
-      <fwdw_wl_slope>-0.022</fwdw_wl_slope>
-      <fwdw_wl_sat>16</fwdw_wl_sat>
-      <!-- normalisation constant & exponent of Sphagnum fresh weight dry weight ratio to water table depth -->
-      <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>
-      <fwdw_wl_exp_b>3.254</fwdw_wl_exp_b>
       <!-- intercept & slope of Rd25 to Vcmax25 area linear relationship -->
       <a_rdv_25>0.0</a_rdv_25>
       <b_rdv_25>0.015</b_rdv_25>
@@ -259,10 +251,6 @@
       <rh>0.8</rh>
       <!-- atmospheric pressure -->
       <atm_press>101325</atm_press>
-      <!-- (mm) water level relative to hollow surface -->
-      <water_l>0</water_l>    
-      <!-- (mm) Sphagnum surface relative to hollow surface --> 
-      <sphag_l>0</sphag_l>       
     </env>
   </leaf>
 </options>

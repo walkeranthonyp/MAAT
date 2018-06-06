@@ -22,8 +22,8 @@ f_cansys_bigleaf_s1992 <- function(.,k=.$state_pars$k_dirprime,...) {
   # I0 is incident light
   .$leaf$env$par     <- .$k_dir * (1-.$leafscattering) * .$env$par
   # assume no variation in CO2 concentration, VPD, and T
-  .$leaf$env$ca_conc <- .$env$ca_conc
-  .$leaf$env$vpd     <- .$env$vpd
+  #.$leaf$env$ca_conc <- .$env$ca_conc
+  #.$leaf$env$vpd     <- .$env$vpd
   #.$leaf$env$temp    <- .$env$temp
   
   # set leaf N0 
@@ -69,8 +69,8 @@ f_cansys_2bigleaf <- function(.) {
   #take the mean of these? - need to check, is there an analytical method?
   
   # Leaf environment 
-  .$leaf$env$ca_conc <- .$env$ca_conc
-  .$leaf$env$vpd     <- .$env$vpd
+  #.$leaf$env$ca_conc <- .$env$ca_conc
+  #.$leaf$env$vpd     <- .$env$vpd
   
   # calculate Nsun and Nshade - this doesn't really make sense as leaf N is not able to vary on the time scales that on which sun and shade leaves vary  
   .$leaf$state$leafN_area <- .$state$totalN * k / fpar

@@ -9,6 +9,8 @@
       <scale_vpd>'c( 'f_scale_vpd_uniform' )'</scale_vpd>
       <lai>'c( 'f_lai_constant', 'f_lai_sphagnum' )'</lai>
       <par_partition>'c( 'f_par_partition_spitters' )'</par_partition>
+      <water_status>'c( 'f_water_status_none', 'f_water_status_sphagnum' )'</water_status>
+      <fwdw>'c( 'f_fwdw_wtd_exp', 'f_fwdw_wtd_lin' )'</fwdw>
     </fnames>
   </canopy>
 </options>

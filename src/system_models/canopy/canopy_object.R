@@ -75,6 +75,9 @@ canopy_object <-
       names(df) <- paste0('leaf.',names(df))
       .$leaf$configure(vlist='env', df=df, prefix=rep('leaf',length(envss)) ) 
 
+      # calculate water status
+      get(.$fnames$water_status)(.)
+
       # calculate diffuse and direct radiation
       get(.$fnames$par_partition)(.)      
       
@@ -130,21 +133,27 @@ canopy_object <-
       scale_ca      = 'f_scale_ca_uniform',
       scale_vpd     = 'f_scale_vpd_uniform',
       lai           = 'f_lai_constant',
-      par_partition = 'f_par_partition_spitters'
+      par_partition = 'f_par_partition_spitters',
+      water_status  = 'f_water_status_none',
+      fwdw          = 'f_fwdw_wth_lin'
     )
     
     # parameters
     pars <- list(
-      layers     = 10,
-      lai        = 10,
-      lai_max    = 4,
-      lai_curve  = 0.5,
-      leaf_cores = 1,
-      G          = 0.5,        # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
-      can_clump  = 1,          # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-      k_layer    = 0,          # used by some to determine light scaling, not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
-      alb_soil   = 0.15,       # soil albedo
-      leaf_reflectance = 0.075 # leaf reflectance
+      layers           = 10,
+      lai              = 10,
+      lai_max          = 4,
+      lai_curve        = 0.5,
+      leaf_cores       = 1,
+      G                = 0.5,    # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
+      can_clump        = 1,      # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
+      k_layer          = 0,      # used by some to determine light scaling, not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
+      alb_soil         = 0.15,   # soil albedo
+      leaf_reflectance = 0.075,  # leaf reflectance
+      fwdw_wl_slope    = -0.022, # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
+      fwdw_wl_sat      = 16,     # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
+      fwdw_wl_exp_a    = -0.037, # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
+      fwdw_wl_exp_b    = 3.254   # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
     )
     
     # Environment
@@ -156,7 +165,9 @@ canopy_object <-
       ca_conc   = numeric(1),
       vpd       = numeric(1),
       clearness = 1,
-      zenith    = 0
+      zenith    = 0,
+      water_td  = numeric(1),
+      sphag_h   = numeric(1)
     )
     
     # state parameters

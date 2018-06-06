@@ -14,10 +14,10 @@
 f_lai_constant <- function(.) .$pars$lai
 
 f_lai_sphagnum <- function(.) {
-  # calculate sphagnum 'lai' as a logistic function of water table height
+  # calculate sphagnum 'lai' as a logistic function of water table depth
   b <- 0.1
     
-  .$pars$lai_max*b / (b + exp(.$pars$lai_curve*(.$leaf$env$water_l-.$leaf$env$sphag_l)/10) )
+  .$pars$lai_max*b / (b + exp(.$pars$lai_curve*(.$env$water_td-.$env$sphag_h)/10) )
 }
 
 
@@ -171,6 +171,36 @@ f_scale_ca_uniform <- function(., layers ) {
 # VPD
 f_scale_vpd_uniform <- function(., layers ) {
   rep(.$env$vpd, length(layers) ) 
+}
+
+
+# Canopy/Leaf water status  
+################################
+
+f_water_status_none <- function(.) .$leaf$state$fwdw_ratio <- NA
+
+# set sphagnum water status
+f_water_status_sphagnum <- function(.) {
+  .$leaf$state$fwdw_ratio <- get(.$fnames$fwdw)(.) 
+}
+
+
+# Sphagnum functions
+################################
+
+# Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
+f_fwdw_wtd_lin <- function(.) {
+  
+  if((.$env$water_td - .$env$sphag_h) > 0) .$pars$fwdw_wl_sat 
+  else .$pars$fwdw_wl_sat + .$pars$fwdw_wl_slope * -(.$env$water_td - .$env$sphag_h) 
+}
+
+# Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
+f_fwdw_wtd_exp <- function(.) {
+  # Strack & Price 2009
+  
+  if((.$env$water_td - .$env$sphag_h) > 0) exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a*0 )
+  else exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a * (-(.$env$water_td - .$env$sphag_h)/10) ) 
 }
 
 
