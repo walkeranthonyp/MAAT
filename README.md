@@ -12,7 +12,7 @@ Built in sensitivity analysis and uncertainty quantification (SA/UQ) can be used
 The MAAT framework is a model wrapper and a model coding syntax that can be used to define a model of a system.
 The wrapper and the model system are separated and the syntax allows the wrapper to pass system-model specific information to the model without any system-model specific information contained in the wrapper. 
 All system-model specific information is contained within the system model and initialisation files. 
-This separation of wrapper and system model allows rapid development of new system models and system model components (e.g. process representations) withou the need to edit the wrapper.
+This separation of wrapper and system model allows rapid development of new system models and system model components (e.g. process representations) without the need to edit the wrapper.
 
 Current systems models that come packaged with the MAAT are a leaf-scale model of photosynthesis, a simple ground-water model detailed in Dai et al (2017 WRR), and a simple 'Hello World' type example and template for building new system models. 
 
@@ -100,8 +100,8 @@ Alternative command line options, their names, and how to specify them on the co
 
 ### Contribution guidelines ###
 
-* For development please fork this repo, create your own dev branch, and then [use the pull request functionality on BitBucket](https://confluence.atlassian.com/bitbucket/fork-a-teammate-s-repository-774243391.html). 
-Before making a pull request please ensure that your development branch code is up-to-date by [comparing your forked repo with the 'master' branch in the original repo](https://confluence.atlassian.com/bitbucket/create-a-pull-request-774243413.html) and checking your code has not deviated too far from the updates in master.
+* For development please fork this repo, create your own dev branch, and then [use the pull request functionality on GitHub](https://guides.github.com/activities/forking/). 
+Before making a pull request please ensure that your development branch code is up-to-date by [comparing your forked repo with the 'master' branch in the original repo](https://help.github.com/articles/creating-a-pull-request/) and checking your code has not deviated too far from the updates in master.
  
 * Code review - by walkeranthonyp and anyone else that has the time 
 
