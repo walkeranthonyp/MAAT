@@ -100,12 +100,23 @@ Alternative command line options, their names, and how to specify them on the co
 
 ### Contribution guidelines ###
 
-* For development please fork this repo, create your own dev branch, and then [use the pull request functionality on BitBucket](https://confluence.atlassian.com/bitbucket/fork-a-teammate-s-repository-774243391.html). 
-Before making a pull request please ensure that your development branch code is up-to-date by [comparing your forked repo with the 'master' branch in the original repo](https://confluence.atlassian.com/bitbucket/create-a-pull-request-774243413.html) and checking your code has not deviated too far from the updates in master.
+* For development please fork this repo, create your own dev branch, and then [use the pull request functionality on GitHub](https://help.github.com/articles/fork-a-repo/).
+Sync your fork with the master branch on the original repo and follow [these recommended steps to make sure your development code is up-to-date with the original repo](https://gist.github.com/Chaser324/ce0505fbed06b947d962).
  
-* Code review - by walkeranthonyp and anyone else that has the time 
+* Code review - by walkeranthonyp 
 
-* Other guidelines - none
+* Other guidelines - none as yet, coding standards, recommendations, and examples coming soon. 
+
+
+
+
+### Sponsorship ###
+
+We are grateful of the support from the U.S. Department of Energy (DOE) Office of Science, Biological and Environmental Research (BER). 
+
+Elements of this work are supported through various DOE BER projects.
+[NGEE Tropics](https://ngee-tropics.lbl.gov/) supports the development of the leaf and canopy scale photosynthesis models. 
+Development of the MAAT framework and early versions of the photosynthesis models were supported by the [ORNL Terrestrial Ecosystem Science SFA](https://tes-sfa.ornl.gov/).    
 
 
 
