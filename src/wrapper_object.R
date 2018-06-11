@@ -68,9 +68,9 @@ wrapper_object <-
       ########################################
 
       # initialise model with static variables
-      if(!is.null(.$static$fnames)) .$call_configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] ) else if(!.$wpars$unit_testing) stop('Static fnames not defined')
-      if(!is.null(.$static$pars))   .$call_configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   ) else if(!.$wpars$unit_testing) stop('Static pars not defined')
-      if(!is.null(.$static$env))    .$call_configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    ) else if(!.$wpars$unit_testing) stop('Static env not defined')      
+      if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] ) else if(!.$wpars$unit_testing) stop('Static fnames not defined')
+      if(!is.null(.$static$pars))   .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   ) else if(!.$wpars$unit_testing) stop('Static pars not defined')
+      if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    ) else if(!.$wpars$unit_testing) stop('Static env not defined')      
 
       # create matrices of runtime variables  
       ######################################
@@ -225,7 +225,7 @@ wrapper_object <-
     # nested run functions - 
     ###########################################################################
 
-    printc <- function(., r1, r2 ) {
+    printc <- function(.,r1,r2) {
       print(r1,quote=F)
       print(r2,quote=F)
     }
@@ -234,27 +234,7 @@ wrapper_object <-
     stack <- function(., a ) {
       apply(a, 2, function(v) v )
     }
-   
-    call_configure <- function(., vlist, df, o=T ) {
-      # This function is called from any of the run functions, or during model initialisation
-      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
 
-      # split model from variable name in df names  
-      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
-
-      # assign UQ variables
-      .$model$configure(vlist=vlist, df=df, prefix=prefix )
-
-      if(.$wpars$cverbose&o) {
-        print('',quote=F)
-        print(paste(.$model$name,'configure:'),quote=F)
-        print(prefix,quote=F)
-        print(t(df),quote=F)
-        print(.$model[[vlist]],quote=F)
-      }
-    }
-
- 
 
     # for factorial runs
     ###########################################################################
@@ -272,7 +252,7 @@ wrapper_object <-
       }
       
       # configure function names in the model
-      if(!is.null(.$dataf$fnames)) .$call_configure(vlist='fnames', df=.$dataf$fnames[i,], F )
+      if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
       if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
 
       # call next run function
@@ -288,7 +268,7 @@ wrapper_object <-
       # call rune
       
       # configure parameters in the model
-      if(!is.null(.$dataf$pars)) .$call_configure(vlist='pars', df=.$dataf$pars[j,], F )
+      if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[j,], F )
       if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[j,] )
       
       # call next run function
@@ -306,7 +286,7 @@ wrapper_object <-
       # call .$model$run or .$model$run_met if met data are provided
       
       # configure environment in the model
-      if(!is.null(.$dataf$env)) .$call_configure(vlist='env', df=.$dataf$env[k,], F )
+      if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[k,], F )
       if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
       
       # call next run function
@@ -327,7 +307,7 @@ wrapper_object <-
       # call rune_saltelli
       
       # configure function names in the model
-      if(!is.null(.$dataf$fnames)) .$call_configure(vlist='fnames',df=.$dataf$fnames[i,],F)
+      if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames',df=.$dataf$fnames[i,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
       
       # call next run function
@@ -343,7 +323,7 @@ wrapper_object <-
       # call runpmat_saltelli
       
       # configure environment in the model
-      if(!is.null(.$dataf$env)) .$call_configure(vlist='env', df=.$dataf$env[k,], F )
+      if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[k,], F )
       if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
       
       # call parameter matrix run function
@@ -386,7 +366,7 @@ wrapper_object <-
       names(psdf) <- colnames(.$dataf$pars)
 
       # configure parameters in the model
-      if(!is.null(.$dataf$pars)) .$call_configure(vlist='pars', df=psdf, F )
+      if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=psdf, F )
       if(.$wpars$cverbose) .$printc('pars', psdf )
       
       # run model
@@ -487,7 +467,7 @@ wrapper_object <-
       print(paste('started representation:', .$dataf$fnames[g,], ', of process:', colnames(.$dataf$fnames)), quote=F )
  
       # configure function names in the model
-      if(!is.null(.$dataf$fnames)) .$call_configure(vlist='fnames', df=.$dataf$fnames[g,] , F )
+      if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[g,] , F )
       if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnames[g,] )
 
       # calculate offset to correctly subset parsB matrix
@@ -506,7 +486,7 @@ wrapper_object <-
       # call run_repB
       
       # configure parameters in the model
-      if(!is.null(.$dataf$pars)) .$call_configure(vlist='pars', df=.$dataf$pars[h,], F )
+      if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[h,], F )
       if(.$wpars$cverbose) .$printc('pars', .$dataf$pars[h,] )
       
       # calculate offset to correctly subset parsB matrix
@@ -522,7 +502,7 @@ wrapper_object <-
       # call run_parB
       
       # configure function names in the model
-      if(!is.null(.$dataf$fnamesB)) .$call_configure(vlist='fnames', df=.$dataf$fnamesB[i,], F )
+      if(!is.null(.$dataf$fnamesB)) .$model$configure(vlist='fnames', df=.$dataf$fnamesB[i,], F )
       if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnamesB[i,] )
       
       # calculate offset to correctly subset parsB matrix
@@ -540,7 +520,7 @@ wrapper_object <-
       # call rune
       
       # configure parameters in the model
-      if(!is.null(.$dataf$parsB)) .$call_configure(vlist='pars', df=.$dataf$parsB[j,], F )
+      if(!is.null(.$dataf$parsB)) .$model$configure(vlist='pars', df=.$dataf$parsB[j,], F )
       if(.$wpars$cverbose)        .$printc('pars', .$dataf$parsB[j,] )
       
       # call the environment run function

@@ -385,7 +385,12 @@ leaf_object <-
     ###########################################################################
     # configure & run_met functions
 
-    configure <- function(., vlist, df, prefix ) { 
+    configure <- function(., vlist, df, o=T ) {
+      # This function is called from any of the run functions, or during model initialisation
+      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
+
+      # split model from variable name in UQ variables
+      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
       modobj <- .$name
       dfss   <- which(prefix==modobj)
       vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
@@ -396,6 +401,15 @@ leaf_object <-
         vlss <- vlss[-which(is.na(vlss))]
       }
 
+      # print configure setup if requested
+      if(.$cpars$cverbose&o) {
+        print('',quote=F)
+        print('Leaf configure:',quote=F)
+        print(prefix,quote=F)
+        print(t(df),quote=F)
+        print(.[[vlist]],quote=F)
+      }
+    
       # assign UQ variables
       .[[vlist]][vlss] <- df[dfss]
     }
@@ -411,8 +425,8 @@ leaf_object <-
       # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
      
       # met data assignment
-      .$configure(vlist='env', df=.$dataf$met[l,],
-                  prefix=vapply( strsplit(names(.$dataf$met[l,]), '.', fixed=T ), function(cv) cv[1], 'character' ))
+      .$configure(vlist='env', df=.$dataf$met[l,] )
+     
       # run model
       .$run()              
     }
