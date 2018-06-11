@@ -35,23 +35,23 @@ f_leafsys_enzymek <- function(.) {
   
   # kinetic pars & temperature dependence
   # - if the solver involves the energy balance all of this needs to go in the solver
-  temparglist          <- list(Tr=.$pars$reftemp.Kc,Ha=.$pars$Ha.Kc,q10=.$pars$q10.Kc,q10_func='f_q10_constant')
-  .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=temparglist)
-  temparglist          <- list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko,q10=.$pars$q10.Ko,q10_func='f_q10_constant')
-  .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=temparglist) 
+  #temparglist          <- list(Tr=.$pars$reftemp.Kc,Ha=.$pars$Ha.Kc,q10=.$pars$q10.Kc,q10_func='f_q10_constant')
+  .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,var='Kc')
+  #temparglist          <- list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko,q10=.$pars$q10.Ko,q10_func='f_q10_constant')
+  .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,var='Ko') 
   .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
   .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
 
-  temparglist          <- list(Tr=.$pars$reftemp.vcmax, Ha=.$pars$Ha.vcmax, Hd=.$pars$Hd.vcmax, Topt=.$pars$Topt.vcmax, q10=.$pars$q10.vcmax, q10_func=.$fnames$q10_func.vcmax,
-                               tupp=.$pars$tupp_cox.vcmax, tlow=.$pars$tlow_cox.vcmax, exp=.$pars$exp_cox.vcmax,
-                               a_deltaS_t=.$pars$a_deltaS_t.vcmax, b_deltaS_t=.$pars$b_deltaS_t.vcmax, deltaS=.$pars$deltaS.vcmax)
+  #temparglist          <- list(Tr=.$pars$reftemp.vcmax, Ha=.$pars$Ha.vcmax, Hd=.$pars$Hd.vcmax, Topt=.$pars$Topt.vcmax, q10=.$pars$q10.vcmax, q10_func=.$fnames$q10_func.vcmax,
+  #                             tupp=.$pars$tupp_cox.vcmax, tlow=.$pars$tlow_cox.vcmax, exp=.$pars$exp_cox.vcmax,
+  #                             a_deltaS_t=.$pars$a_deltaS_t.vcmax, b_deltaS_t=.$pars$b_deltaS_t.vcmax, deltaS=.$pars$deltaS.vcmax)
 
-  .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor_asc)(.,parlist=temparglist) * get(.$fnames$vcmax_tcor_des)(.,parlist=temparglist)
+  .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor_asc)(.,var='vcmax') * get(.$fnames$vcmax_tcor_des)(.,var='vcmax')
 
-  temparglist          <- list(Tr=.$pars$reftemp.jmax, Ha=.$pars$Ha.jmax, Hd=.$pars$Hd.jmax, Topt=.$pars$Topt.jmax, q10=.$pars$q10.jmax, q10_func=.$fnames$q10_func.jmax,
-                               a_deltaS_t=.$pars$a_deltaS_t.jmax, b_deltaS_t=.$pars$b_deltaS_t.jmax, deltaS=.$pars$deltaS.jmax)
-
-  .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor_asc)(.,parlist=temparglist)  * get(.$fnames$jmax_tcor_des)(.,parlist=temparglist)
+  #temparglist          <- list(Tr=.$pars$reftemp.jmax, Ha=.$pars$Ha.jmax, Hd=.$pars$Hd.jmax, Topt=.$pars$Topt.jmax, q10=.$pars$q10.jmax, q10_func=.$fnames$q10_func.jmax,
+  #                             a_deltaS_t=.$pars$a_deltaS_t.jmax, b_deltaS_t=.$pars$b_deltaS_t.jmax, deltaS=.$pars$deltaS.jmax)
+  #
+  .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor_asc)(.,var='jmax')  * get(.$fnames$jmax_tcor_des)(.,var='jmax')
 
   .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor_dependence)(.) 
 

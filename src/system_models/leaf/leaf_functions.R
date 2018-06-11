@@ -370,7 +370,7 @@ f_lim_collatz1991 <- function(.){
 ### Respiration functions
 
 f_rd_constant <- function(.) {
-  .$pars$atref.rd
+  .$pars$atref[['rd']]
 }
 
 f_rd_lin_vcmax <- function(.) {
@@ -395,12 +395,12 @@ f_rd_tcor_dependent <- function(.) {
 # Rd temperature scaling is independent
 f_rd_tcor_independent <- function(.) {
 
-  temparglist <- list(Tr=.$pars$reftemp.rd, q10_func=.$fnames$q10_func.rd, q10=.$pars$q10.rd, a_q10_t=.$pars$a_q10_t.rd, b_q10_t=.$pars$b_q10_t.rd,
-                      Ha=.$pars$Ha.rd, Hd=.$pars$Hd.rd, Topt=.$pars$Topt.rd,
-                      tupp=.$pars$tupp_cox.rd, tlow=.$pars$tlow_cox.rd, exp=.$pars$exp_cox.rd,
-                      a_deltaS_t=.$pars$a_deltaS_t.rd, b_deltaS_t=.$pars$b_deltaS_t.rd, deltaS=.$pars$deltaS.rd)
+#  temparglist <- list(Tr=.$pars$reftemp.rd, q10_func=.$fnames$q10_func.rd, q10=.$pars$q10.rd, a_q10_t=.$pars$a_q10_t.rd, b_q10_t=.$pars$b_q10_t.rd,
+#                      Ha=.$pars$Ha.rd, Hd=.$pars$Hd.rd, Topt=.$pars$Topt.rd,
+#                      tupp=.$pars$tupp_cox.rd, tlow=.$pars$tlow_cox.rd, exp=.$pars$exp_cox.rd,
+#                      a_deltaS_t=.$pars$a_deltaS_t.rd, b_deltaS_t=.$pars$b_deltaS_t.rd, deltaS=.$pars$deltaS.rd)
   
-  get(.$fnames$rd_tcor_asc)(.,parlist=temparglist) * get(.$fnames$rd_tcor_des)(.,parlist=temparglist)
+  get(.$fnames$rd_tcor_asc)(.,var='rd') * get(.$fnames$rd_tcor_des)(.,var='rd')
 }
 
 # light supression of respiration
@@ -472,9 +472,9 @@ f_tpu_tcor_dependent <- function(.) {
 # TPU temperature scaling is independent
 f_tpu_tcor_independent <- function(.) {
   
-  temparglist <- list(Tr=.$pars$reftemp.tpu, q10=.$pars$q10.tpu, Ha=.$pars$Ha.tpu, Hd=.$pars$Hd.tpu, Topt=.$pars$Topt.tpu,
-                      a_deltaS_t=.$pars$a_deltaS_t.tpu, b_deltaS_t=.$pars$b_deltaS_t.tpu, deltaS=.$pars$deltaS.tpu)
-  get(.$fnames$tpu_tcor_asc)(.,parlist=temparglist) * get(.$fnames$tpu_tcor_des)(.,parlist=temparglist)
+#  temparglist <- list(Tr=.$pars$reftemp.tpu, q10=.$pars$q10.tpu, Ha=.$pars$Ha.tpu, Hd=.$pars$Hd.tpu, Topt=.$pars$Topt.tpu,
+#                      a_deltaS_t=.$pars$a_deltaS_t.tpu, b_deltaS_t=.$pars$b_deltaS_t.tpu, deltaS=.$pars$deltaS.tpu)
+  get(.$fnames$tpu_tcor_asc)(.,var='tpu') * get(.$fnames$tpu_tcor_des)(.,var='tpu')
 }
 
 
@@ -722,26 +722,6 @@ f_rb_water_e2009 <- function(.){
 
 
 
-#### SPHAGNUM SPECIFIC FUNCTIONS
-#################################
-#
-## Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
-#f_fwdw_wl_lin <- function(.) {
-#  
-#  if((.$env$water_l - .$env$sphag_l) > 0) .$pars$fwdw_wl_sat 
-#  else .$pars$fwdw_wl_sat + .$pars$fwdw_wl_slope * -(.$env$water_l - .$env$sphag_l) 
-#}
-#
-## Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
-#f_fwdw_wl_exp <- function(.) {
-#  # Strack & Price 2009
-#  
-#  if((.$env$water_l - .$env$sphag_l) > 0) exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a*0 )
-#  else exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a * (-(.$env$water_l - .$env$sphag_l)/10) ) 
-#}
-#
-#
-#
 ### TEMPERATURE DEPENDENCE FUNCTIONS
 ################################
 # - all these functions should be scalars such that the current temperature and reference temperature can be specified and the correction scalar is returned
@@ -788,15 +768,15 @@ f_temp_scalar_Q10 <- function(.,var,...) {
   # Q10    -- factor by which rate increases for every 10 oC of temp increase  
   # Tr     -- reference temperature (oC) 
   
-  q10 <- get(.$fnaes$q10_func)(.,parlist)
+  q10 <- get(.$fnames$q10_func)(.,var=var)
   
-  parlist$q10 ^ ((.$state$leaf_temp-parlist$Tr)/10)
+  .$pars$q10[[var]] ^ ((.$state$leaf_temp-.$pars$reftemp[[var]])/10)
   
 }
 
 
 # Descending components of the temperature response function 
-f_temp_scalar_modArrhenius_des <- function(.,parlist,...) {
+f_temp_scalar_modArrhenius_des <- function(.,var,...) {
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   # descending component of modified Arrhenius temperature response function, Medlyn et al 2002
   
@@ -816,18 +796,18 @@ f_temp_scalar_modArrhenius_des <- function(.,parlist,...) {
   }
   
   # convert to Kelvin
-  Trk <- parlist$Tr + 273.15
+  Trk <- .$pars$reftemp + 273.15
   Tsk <- .$state$leaf_temp + 273.15
   
-  deltaS <- get(.$fnames$deltaS)(.,parlist)
+  deltaS <- get(.$fnames$deltaS)(.,var)
   
-  (1 + exp((Trk*deltaS-parlist$Hd) / (Trk*.$pars$R)) ) / 
-    (1 + exp((Tsk*deltaS-parlist$Hd) / (Tsk*.$pars$R)) )  
+  (1 + exp((Trk*deltaS-.$pars$Hd[[var]]) / (Trk*.$pars$R)) ) / 
+    (1 + exp((Tsk*deltaS-.$pars$Hd[[var]]) / (Tsk*.$pars$R)) )  
   
 }
 
 # descending component of temperature scaling from Collatz etal 1991
-f_temp_scalar_collatz1991_des <- function(.,parlist,...) {
+f_temp_scalar_collatz1991_des <- function(.,var,...) {
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   
   # input parameters  
@@ -838,19 +818,20 @@ f_temp_scalar_collatz1991_des <- function(.,parlist,...) {
   Tsk <- .$state$leaf_temp + 273.15
   
   # get deltaS
-  deltaS <- get(.$fnames$deltaS)(.,parlist)
+  deltaS <- get(.$fnames$deltaS)(.,var)
   
-  1 / ( 1 + exp((Tsk*deltaS-parlist$Hd) / (Tsk*.$pars$R)) )
+  1 / ( 1 + exp((Tsk*deltaS-.$pars$Hd[[var]]) / (Tsk*.$pars$R)) )
 }
 
 # descending component of temperature scaling from Cox etal 2001
-f_temp_scalar_cox2001_des <- function(.,parlist,...) {
+f_temp_scalar_cox2001_des <- function(.,var,...) {
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
   
   # input parameters  
   # Tr     -- reference temperature (oC) 
   
-  1 / ( (1 + exp(parlist$exp*(.$state$leaf_temp-parlist$tupp))) * (1 + exp(parlist$exp*(parlist$tlow-.$state$leaf_temp))) )
+  1 / ( (1 + exp(.$pars$exp_cox[[var]]*(.$state$leaf_temp-.$pars$tupp_cox[[var]]))) * 
+        (1 + exp(.$pars$exp_cox[[var]]*(.$pars$tlow_cox[[var]]-.$state$leaf_temp))) )
 }
 
 
@@ -858,47 +839,47 @@ f_temp_scalar_cox2001_des <- function(.,parlist,...) {
 # functions that can allow for temperature acclimation of parameters, deltaS, Q10
 
 # deltaS
-f_deltaS_constant <- function(.,parlist,...) {
+f_deltaS_constant <- function(.,var,...) {
   #constant delta S
 
-  parlist$deltaS
+  .$pars$deltaS[[var]]
 }
 
 #calculate delta S from T opt (temp where t scaling peaks) in oC
-f_deltaS <- function(.,parlist,...) {
+f_deltaS <- function(.,var,...) {
   #Medlyn 2002
   
   Toptk  <- parlist$Topt + 273.15
   
-  parlist$Hd/Toptk + (.$pars$R*log(parlist$Ha/(parlist$Hd - parlist$Ha)))
+  .$pars$Hd[[var]]/Toptk + (.$pars$R*log(.$pars$Ha[[var]]/(.$pars$Hd[[var]] - .$pars$Ha[[var]])))
 }
 
 #calculate delta S as a function of growth temp
-f_deltaS_lin_t <- function(.,parlist,...) {
+f_deltaS_lin_t <- function(.,var,...) {
 
   # CLM limits the range of growth temps 
-  parlist$a_deltaS_t + .$state$leaf_temp * parlist$b_deltaS_t 
+  .$pars$a_deltaS_t[[var]] + .$state$leaf_temp * .$pars$b_deltaS_t[[var]] 
 }
 
 # Q10
-f_q10_constant <- function(.,parlist,...) {
+f_q10_constant <- function(.,var,...) {
   # constant delta S
   
-  parlist$q10
+  .$pars$q10[[var]]
 }
 
 # calculate q10 as a function of T
-f_q10_lin_t <- function(.,parlist,...) {
+f_q10_lin_t <- function(.,var,...) {
   # Tjoelker 
   
-  parlist$a_q10_t + .$state$leaf_temp * parlist$b_q10_t 
+  .$pars$a_q10_t[[var]] + .$state$leaf_temp * .$pars$b_q10_t[[var]] 
 }
 
 
 
 ### Gamma star - CO2 compensation point in the absence of dark respiration
 f_gstar_constant <- function(.,...) {
-  .$pars$atref.gstar
+  .$pars$atref[['gstar']]
 }
 
 # calculates Gamma star as a function of Kc & Ko, and thus their combined temperature dependence
@@ -913,14 +894,14 @@ f_gstar_f1980 <- function(.,...) {
 f_gstar_constref <- function(.) {
   # this will probably not give the correct response to a change in atmospheric pressure
   
-  .$pars$atref.gstar * get(.$fnames$gstar_tcor)(.,parlist=list(Tr=.$pars$reftemp.gstar,Ha=.$pars$Ha.gstar)) 
+  .$pars$atref[['gstar']] * get(.$fnames$gstar_tcor)(.,var='gstar') 
 }
 
 # calcualtes gstar at leaftemp from tau
 f_gstar_c1991 <- function(.) {
   # takes a defined ref temperature value of tau and scales to leaf temp
   
-  .$state_pars$tau <- .$pars$atref.tau * get(.$fnames$tau_tcor)(.,parlist=list(Tr=.$pars$reftemp.tau,q10=.$pars$q10.tau,Ha=.$pars$Ha.tau,q10_func='f_q10_constant'))
+  .$state_pars$tau <- .$pars$atref[['tau']] * get(.$fnames$tau_tcor)(.,var='gstar',q10_func='f_q10_constant')
   .$state$oi/(2*.$state_pars$tau)   
 }
 

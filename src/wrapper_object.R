@@ -973,6 +973,11 @@ wrapper_object <-
       # list(df,p1)
     }    
     
+    
+    
+    # Unit testing functions
+    ###############################
+ 
     # general factorial test, with or without metdata
     .test <- function(.,metd=T,mc=T,pr=4,oconf=F) {
       

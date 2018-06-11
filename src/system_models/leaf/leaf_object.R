@@ -146,8 +146,7 @@ leaf_object <-
       rd_tcor_des         = 'f_temp_scalar_cox2001_des',
       q10_func.rd         = 'f_q10_constant',
       q10_func.vcmax      = 'f_q10_constant',
-      q10_func.jmax       = 'f_q10_constant',
-#      fwdw_ratio          = 'f_none',                   
+      q10_func.jmax       = 'f_q10_constant',      
       cica_ratio          = 'f_cica_constant',             
       ri                  = 'f_r_zero',
       rs                  = 'f_r_zero',
@@ -265,10 +264,6 @@ leaf_object <-
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
       hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
       hco_co2_diff_ratio = 0.56,  # ratio of HCO and CO2 diffusivity in water  
-#      fwdw_wl_slope = -0.022,     # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
-#      fwdw_wl_sat   = 16,         # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
-#      fwdw_wl_exp_a = -0.037,     # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
-#      fwdw_wl_exp_b = 3.254,      # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
       # respiration parameters
       a_rdv_25      = 0,          # intercept of linear rd25 to vcmax25 relationship        (umolm-2s-1)
       b_rdv_25      = 0.015,      # slope of linear rd25 to vcmax25 relationship            (unitless)
@@ -280,67 +275,95 @@ leaf_object <-
       a_rdv_25_t    = 0.015,      # intercept of b_rdv_25 relationship to temperature       (umolm-2s-1)
       b_rdv_25_t    = -0.0005,    # slope of b_rdv_25 relationship to temperature           (unitless)
       # temperature response parameters
-      reftemp.rd    = 25,         # reference temperature at which rd scalar = 1            (oC) 
-      reftemp.vcmax = 25,         # reference temperature at which Vcmax scalar = 1         (oC) 
-      reftemp.jmax  = 25,         # reference temperature at which Jmax scalar = 1          (oC)
-      reftemp.tpu   = 25,         # reference temperature at which TPU scalar = 1           (oC)
-      reftemp.Kc    = 25,         # reference temperature at which Kc scalar = 1            (oC)
-      reftemp.Ko    = 25,         # reference temperature at which Ko scalar = 1            (oC)
-      reftemp.gstar = 25,         # reference temperature at which gamma star scalar = 1    (oC)
-      reftemp.tau   = 25,         # reference temperature at which tau scalar = 1           (oC)
-      atref.rd      = 2,          # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
-      atref.vcmax   = 50,         # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
-      atref.jmax    = 100,        # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
-      atref.tpu     = 5,          # tpu at ref temp (usually 25oC)   - used to set TPU as a parameter                       (umolm-2s-1)
-      atref.Kc      = 40.49,      # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
-      atref.Ko      = 27.84,      # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
-      atref.gstar   = 4.325,      # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
-      atref.tau     = 2600,       # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (-)
-      atref.vomax   = numeric(1),
-      Ha.rd         = 69830,      # activation energy of respiration                        (J mol-1)
-      Ha.vcmax      = 69830,      # activation energy of Vcmax                              (J mol-1)
-      Ha.jmax       = 100280,     # activation energy of Jmax                               (J mol-1)
-      Ha.tpu        = 69830,      # activation energy of TPU                                (J mol-1)
-      Ha.Kc         = 79430,      # activation energy of Kc                                 (J mol-1)
-      Ha.Ko         = 36380,      # activation energy of Ko                                 (J mol-1)
-      Ha.gstar      = 37830,      # activation energy of gamma star                         (J mol-1)
-      Ha.tau        = -41572,     # activation energy of tau                                (J mol-1)
-      Ha.vomax      = 60110,      # activation energy of Vomax                              (J mol-1)
-      Hd.rd         = 200000,     # deactivation energy of rd                               (J mol-1)
-      Hd.vcmax      = 200000,     # deactivation energy of Vcmax                            (J mol-1)
-      Hd.jmax       = 200000,     # deactivation energy of Jmax                             (J mol-1)
-      Hd.tpu        = 200000,     # deactivation energy of TPU                              (J mol-1)
-      Topt.rd       = 27.56,      # temperature optimum of rd                               (oC)
-      Topt.vcmax    = 27.56,      # temperature optimum of Vcmax                            (oC)
-      Topt.jmax     = 19.89,      # temperature optimum of Jmax                             (oC)
-      Topt.tpu      = 27.56,      # temperature optimum of TPU                              (oC)
-      deltaS.rd     = numeric(1), # 
-      deltaS.vcmax  = numeric(1), # 
-      deltaS.jmax   = numeric(1), #
-      deltaS.tpu    = numeric(1), #
-      a_deltaS_t.rd     = 490,    # linear temperature response of rd deltaS   
-      a_deltaS_t.vcmax  = 668,    # linear temperature response of vcmax deltaS (Kattge & Knorr)  
-      a_deltaS_t.jmax   = 660,    # linear temperature response of jmax  deltaS (Kattge & Knorr)
-      a_deltaS_t.tpu    = 485,    # linear temperature response of tpu   deltaS (Kattge & Knorr)
-      b_deltaS_t.rd     = 0,      # linear temperature response of rd deltaS
-      b_deltaS_t.vcmax  = -1.07,  # linear temperature response of vcmax deltaS (Kattge & Knorr)
-      b_deltaS_t.jmax   = -0.75,  # linear temperature response of jmax deltaS (Kattge & Knorr)
-      b_deltaS_t.tpu    = 0,      # linear temperature response of tpu deltaS (Kattge & Knorr)
-      q10.rd        = 2,          # Q10 of Rd                                               (-)
-      q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
-      q10.jmax      = 2,          # Q10 of Jmax                                             (-)
-      q10.tpu       = 2,          # Q10 of TPU                                              (-)
-      q10.Kc        = 2,          # Q10 of Kc                                               (-)
-      q10.Ko        = 2,          # Q10 of Ko                                               (-)
-      q10.tau       = 0.57,       # Q10 of tau                                              (-)
-      a_q10_t.rd    = 3.22,       # linear temperature response of rd Q10 (Tjoelker etal 2001)
-      b_q10_t.rd    = -0.046,     # linear temperature response of rd Q10 (Tjoelker etal 2001)
-      tupp_cox.vcmax= 36,         # upper leaf T for Vcmax temp scaling from Cox 2001       (oC)
-      tupp_cox.rd   = 45,         # upper leaf T for rd temp scaling from Cox 2001 (LM3)    (oC)
-      tlow_cox.vcmax= 0,          # lower leaf T for Vcmax temp scaling from Cox 2001       (oC)
-      tlow_cox.rd   = 5,          # lower leaf T for rd temp scaling from Cox 2001          (oC)
-      exp_cox.vcmax = 0.3,        # exponent for Vcmax temp scaling from Cox 2001           (-)
-      exp_cox.rd    = 0.4,        # exponent for rd temp scaling from Cox 2001              (-)
+      reftemp = list(
+        rd    = 25,               # reference temperature at which rd scalar = 1            (oC) 
+        vcmax = 25,               # reference temperature at which Vcmax scalar = 1         (oC) 
+        jmax  = 25,               # reference temperature at which Jmax scalar = 1          (oC)
+        tpu   = 25,               # reference temperature at which TPU scalar = 1           (oC)
+        Kc    = 25,               # reference temperature at which Kc scalar = 1            (oC)
+        Ko    = 25,               # reference temperature at which Ko scalar = 1            (oC)
+        gstar = 25,               # reference temperature at which gamma star scalar = 1    (oC)
+        tau   = 25,               # reference temperature at which tau scalar = 1           (oC)
+      ),
+      atref = list(
+        rd      = 2,              # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
+        vcmax   = 50,             # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
+        jmax    = 100,            # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
+        tpu     = 5,              # tpu at ref temp (usually 25oC)   - used to set TPU as a parameter                       (umolm-2s-1)
+        Kc      = 40.49,          # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
+        Ko      = 27.84,          # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
+        gstar   = 4.325,          # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
+        tau     = 2600,           # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (-)
+        vomax   = numeric(1),
+      ),
+      Ha = list(
+        rd         = 69830,       # activation energy of respiration                        (J mol-1)
+        vcmax      = 69830,       # activation energy of Vcmax                              (J mol-1)
+        jmax       = 100280,      # activation energy of Jmax                               (J mol-1)
+        tpu        = 69830,       # activation energy of TPU                                (J mol-1)
+        Kc         = 79430,       # activation energy of Kc                                 (J mol-1)
+        Ko         = 36380,       # activation energy of Ko                                 (J mol-1)
+        gstar      = 37830,       # activation energy of gamma star                         (J mol-1)
+        tau        = -41572,      # activation energy of tau                                (J mol-1)
+        vomax      = 60110,       # activation energy of Vomax                              (J mol-1)i
+      ),
+      Hd = list(
+        rd         = 200000,      # deactivation energy of rd                               (J mol-1)
+        vcmax      = 200000,      # deactivation energy of Vcmax                            (J mol-1)
+        jmax       = 200000,      # deactivation energy of Jmax                             (J mol-1)
+        tpu        = 200000,      # deactivation energy of TPU                              (J mol-1)i
+      ),
+      Topt = list(
+        rd       = 27.56,         #  temperature optimum of rd                               (oC)
+        vcmax    = 27.56,         #  temperature optimum of Vcmax                            (oC)
+        jmax     = 19.89,         #  temperature optimum of Jmax                             (oC)
+        tpu      = 27.56,         #  temperature optimum of TPU                              (oC)
+      ),
+      deltaS = list(
+        rd     = numeric(1),      # 
+        vcmax  = numeric(1),      # 
+        jmax   = numeric(1),      #
+        tpu    = numeric(1),      #
+      ),
+      a_deltaS_t = list(
+        rd     = 490,             # linear temperature response of rd deltaS   
+        vcmax  = 668,             # linear temperature response of vcmax deltaS (Kattge & Knorr)  
+        jmax   = 660,             # linear temperature response of jmax  deltaS (Kattge & Knorr)
+        tpu    = 485,             # linear temperature response of tpu   deltaS (Kattge & Knorr)
+      ),
+      b_deltaS_t = list(
+        rd     = 0,               # linear temperature response of rd deltaS
+        vcmax  = -1.07,           # linear temperature response of vcmax deltaS (Kattge & Knorr)
+        jmax   = -0.75,           # linear temperature response of jmax deltaS (Kattge & Knorr)
+        tpu    = 0,               # linear temperature response of tpu deltaS (Kattge & Knorr)
+      ),
+      q10 = list(
+        rd        = 2,            # Q10 of Rd                                               (-)
+        vcmax     = 2,            # Q10 of Vcmax                                            (-)
+        jmax      = 2,            # Q10 of Jmax                                             (-)
+        tpu       = 2,            # Q10 of TPU                                              (-)
+        Kc        = 2,            # Q10 of Kc                                               (-)
+        Ko        = 2,            # Q10 of Ko                                               (-)
+        tau       = 0.57,         # Q10 of tau                                              (-)
+      ),
+      a_q10_t = list(
+        rd    = 3.22,             # linear temperature response of rd Q10 (Tjoelker etal 2001)
+      ),
+      b_q10_t = list(
+        rd    = -0.046,           # linear temperature response of rd Q10 (Tjoelker etal 2001)
+      ),
+      tupp_cox = list(
+        vcmax= 36,                # upper leaf T for Vcmax temp scaling from Cox 2001       (oC)
+        rd   = 45,                # upper leaf T for rd temp scaling from Cox 2001 (LM3)    (oC)
+      ),
+      tlow_cox = list(
+        vcmax= 0,                 # lower leaf T for Vcmax temp scaling from Cox 2001       (oC)
+        rd   = 5,                 # lower leaf T for rd temp scaling from Cox 2001          (oC)
+      ),
+      exp_cox = list(
+        vcmax = 0.3,              # exponent for Vcmax temp scaling from Cox 2001           (-)
+        rd    = 0.4,              # exponent for rd temp scaling from Cox 2001              (-)
+      ),
       gstar_bf_a    = 0.012,      # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_bf_b    = 1.68,       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_bf_c    = 42.7,       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
