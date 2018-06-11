@@ -64,7 +64,7 @@ fnames.static <- list(
   )
 
 pars.static <- list(
-  atref.vcmax  = 50
+  atref = list(vcmax = 50 )
   )
 
 env.static  <- list(

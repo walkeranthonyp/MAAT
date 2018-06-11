@@ -303,6 +303,7 @@ canopy_object <-
 
       # call child (leaf) assign 
       if(any(prefix!=modobj)) vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=df )     
+      #if(any(prefix!=modobj)) vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=df[-dfss] )     
     }   
 
 

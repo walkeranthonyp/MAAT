@@ -543,12 +543,25 @@ wrapper_object <-
     # the model object name in the variable name allows the configure function to correctly parse the variable.        
     init <- function(.) {
 
-      # prefixes the names of a list with 'modobj.' 
-      comb_init_list <- function(., v, modobj ) {
-        if(sum(is.null(v))==length(v)|is.null(v)) NULL
+      # combines sublists in list l into l and names them '<sublistnameinl.variablenameinsublist>' 
+      # i.e. removes list|sublist hierarchy and retains this information in the variable name
+      # prefixes the names of the resulting list with '<modobj>.' 
+      comb_init_list <- function(., l, modobj ) {
+        if(sum(is.null(l))==length(l)|is.null(l)) NULL
         else {
-          names(v) <- paste(modobj, names(v), sep='.' ) 
-          v
+          # check for any sublists in v 
+          slss <- vapply(l, is.list, logical(1))
+          if(any(slss)) {
+            l1 <- l[which(!slss)]
+  
+            for(ss in which(slss)) {
+              names(l[[ss]]) <- paste0(names(l[ss]),'.',names(l[[ss]]))
+              l1 <- c(l1,l[[ss]])
+            }
+          } else l1 <- l
+
+          names(l1) <- paste(modobj, names(l1), sep='.' ) 
+          l1 
         }
       }
      

@@ -144,9 +144,11 @@ leaf_object <-
       rd_tcor_dependence  = 'f_rd_tcor_dependent',
       rd_tcor_asc         = 'f_temp_scalar_Q10',
       rd_tcor_des         = 'f_temp_scalar_cox2001_des',
-      q10_func.rd         = 'f_q10_constant',
-      q10_func.vcmax      = 'f_q10_constant',
-      q10_func.jmax       = 'f_q10_constant',      
+      q10_func = list(
+        rd         = 'f_q10_constant',
+        vcmax      = 'f_q10_constant',
+        jmax       = 'f_q10_constant'
+      ),      
       cica_ratio          = 'f_cica_constant',             
       ri                  = 'f_r_zero',
       rs                  = 'f_r_zero',
@@ -283,7 +285,7 @@ leaf_object <-
         Kc    = 25,               # reference temperature at which Kc scalar = 1            (oC)
         Ko    = 25,               # reference temperature at which Ko scalar = 1            (oC)
         gstar = 25,               # reference temperature at which gamma star scalar = 1    (oC)
-        tau   = 25,               # reference temperature at which tau scalar = 1           (oC)
+        tau   = 25                # reference temperature at which tau scalar = 1           (oC)
       ),
       atref = list(
         rd      = 2,              # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
@@ -294,7 +296,7 @@ leaf_object <-
         Ko      = 27.84,          # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
         gstar   = 4.325,          # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
         tau     = 2600,           # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (-)
-        vomax   = numeric(1),
+        vomax   = numeric(1) 
       ),
       Ha = list(
         rd         = 69830,       # activation energy of respiration                        (J mol-1)
@@ -305,37 +307,37 @@ leaf_object <-
         Ko         = 36380,       # activation energy of Ko                                 (J mol-1)
         gstar      = 37830,       # activation energy of gamma star                         (J mol-1)
         tau        = -41572,      # activation energy of tau                                (J mol-1)
-        vomax      = 60110,       # activation energy of Vomax                              (J mol-1)i
+        vomax      = 60110        # activation energy of Vomax                              (J mol-1)i
       ),
       Hd = list(
         rd         = 200000,      # deactivation energy of rd                               (J mol-1)
         vcmax      = 200000,      # deactivation energy of Vcmax                            (J mol-1)
         jmax       = 200000,      # deactivation energy of Jmax                             (J mol-1)
-        tpu        = 200000,      # deactivation energy of TPU                              (J mol-1)i
+        tpu        = 200000       # deactivation energy of TPU                              (J mol-1)i
       ),
       Topt = list(
         rd       = 27.56,         #  temperature optimum of rd                               (oC)
         vcmax    = 27.56,         #  temperature optimum of Vcmax                            (oC)
         jmax     = 19.89,         #  temperature optimum of Jmax                             (oC)
-        tpu      = 27.56,         #  temperature optimum of TPU                              (oC)
+        tpu      = 27.56          #  temperature optimum of TPU                              (oC)
       ),
       deltaS = list(
         rd     = numeric(1),      # 
         vcmax  = numeric(1),      # 
         jmax   = numeric(1),      #
-        tpu    = numeric(1),      #
+        tpu    = numeric(1)       #
       ),
       a_deltaS_t = list(
         rd     = 490,             # linear temperature response of rd deltaS   
         vcmax  = 668,             # linear temperature response of vcmax deltaS (Kattge & Knorr)  
         jmax   = 660,             # linear temperature response of jmax  deltaS (Kattge & Knorr)
-        tpu    = 485,             # linear temperature response of tpu   deltaS (Kattge & Knorr)
+        tpu    = 485              # linear temperature response of tpu   deltaS (Kattge & Knorr)
       ),
       b_deltaS_t = list(
         rd     = 0,               # linear temperature response of rd deltaS
         vcmax  = -1.07,           # linear temperature response of vcmax deltaS (Kattge & Knorr)
         jmax   = -0.75,           # linear temperature response of jmax deltaS (Kattge & Knorr)
-        tpu    = 0,               # linear temperature response of tpu deltaS (Kattge & Knorr)
+        tpu    = 0                # linear temperature response of tpu deltaS (Kattge & Knorr)
       ),
       q10 = list(
         rd        = 2,            # Q10 of Rd                                               (-)
@@ -344,25 +346,25 @@ leaf_object <-
         tpu       = 2,            # Q10 of TPU                                              (-)
         Kc        = 2,            # Q10 of Kc                                               (-)
         Ko        = 2,            # Q10 of Ko                                               (-)
-        tau       = 0.57,         # Q10 of tau                                              (-)
+        tau       = 0.57          # Q10 of tau                                              (-)
       ),
       a_q10_t = list(
-        rd    = 3.22,             # linear temperature response of rd Q10 (Tjoelker etal 2001)
+        rd    = 3.22              # linear temperature response of rd Q10 (Tjoelker etal 2001)
       ),
       b_q10_t = list(
-        rd    = -0.046,           # linear temperature response of rd Q10 (Tjoelker etal 2001)
+        rd    = -0.046            # linear temperature response of rd Q10 (Tjoelker etal 2001)
       ),
       tupp_cox = list(
         vcmax= 36,                # upper leaf T for Vcmax temp scaling from Cox 2001       (oC)
-        rd   = 45,                # upper leaf T for rd temp scaling from Cox 2001 (LM3)    (oC)
+        rd   = 45                 # upper leaf T for rd temp scaling from Cox 2001 (LM3)    (oC)
       ),
       tlow_cox = list(
         vcmax= 0,                 # lower leaf T for Vcmax temp scaling from Cox 2001       (oC)
-        rd   = 5,                 # lower leaf T for rd temp scaling from Cox 2001          (oC)
+        rd   = 5                  # lower leaf T for rd temp scaling from Cox 2001          (oC)
       ),
       exp_cox = list(
         vcmax = 0.3,              # exponent for Vcmax temp scaling from Cox 2001           (-)
-        rd    = 0.4,              # exponent for rd temp scaling from Cox 2001              (-)
+        rd    = 0.4               # exponent for rd temp scaling from Cox 2001              (-)
       ),
       gstar_bf_a    = 0.012,      # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_bf_b    = 1.68,       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
@@ -387,33 +389,62 @@ leaf_object <-
 
     configure <- function(., vlist, df, o=T ) {
       # This function is called from any of the run functions, or during model initialisation
-      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
+      # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df 
 
-      # split model from variable name in UQ variables
-      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
+      # split variable names at . 
+      listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
+
       modobj <- .$name
-      dfss   <- which(prefix==modobj)
-      vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
+      # df subscripts for model object
+      moss   <- which(listnames[1,]==modobj)
+      # df subscripts for model object sublist variables (slmoss) and model object numeric variables (vlmoss) 
+      slss   <- which(listnames[3,moss]!='') 
+      if(length(slss)>0) {
+        slmoss <- moss[slss] 
+        vlmoss <- moss[-slss] 
+      } else {
+        slmoss <- NULL 
+        vlmoss <- moss 
+      }
+      # variable list subscripts for numeric variables 
+      vlss   <- match(listnames[2,vlmoss], names(.[[vlist]]) )
 
       # catch NAs in vlss 
-      if(any(is.na(vlss))) {
-        dfss <- dfss[-which(is.na(vlss))]
-        vlss <- vlss[-which(is.na(vlss))]
+      if(any(is.na(vlmoss))) {
+        vlmoss <- vlmoss[-which(is.na(vlss))]
+        vlss   <- vlss[-which(is.na(vlss))]
       }
 
+      # assign UQ variables
+      #if(length(slss)>0) vapply( df[moss[slss]], function(., v, vlist ) { lnames<-strsplit(v,'.',fixed=T); ss1 <- which(names(.[[vlist]])==lnames[2]); ss2 <- which(names(.[[vlist]][[ss1]])==lnames[3]); .[[vlist]][[ss1]][ss2] <- v; return(1) }, numeric(1), .=., vlist=vlist ) 
+      if(length(slss)>0) vapply( df[slmoss], .$configure_sublist, numeric(1), vlist=vlist ) 
+      else               .[[vlist]][vlss] <- df[vlmoss]
+    
       # print configure setup if requested
       if(.$cpars$cverbose&o) {
-        print('',quote=F)
-        print('Leaf configure:',quote=F)
-        print(prefix,quote=F)
-        print(t(df),quote=F)
-        print(.[[vlist]],quote=F)
+        print('', quote=F )
+        print('Leaf configure:', quote=F )
+        print(df, quote=F )
+        print(listnames, quote=F )
+        print(moss, quote=F )
+        print(slmoss, quote=F )
+        print(vlmoss, quote=F )
+        print(vlss, quote=F )
+        print(.[[vlist]], quote=F )
       }
-    
-      # assign UQ variables
-      .[[vlist]][vlss] <- df[dfss]
     }
  
+    
+    # configure a list variable 
+    configure_sublist <- function(., dfv, vlist ) {
+
+      lnames <- strsplit(dfv, '.', fixed=T )
+      ss1    <- which(names(.[[vlist]])==lnames[2])
+      ss2    <- which(names(.[[vlist]][[ss1]])==lnames[3])
+      .[[vlist]][[ss1]][ss2] <- v
+      return(1) 
+    } 
+
     
     run_met <- function(.,l) {
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe
@@ -500,8 +531,8 @@ leaf_object <-
     }
     
         
-    .test_tscalar <- function(.,leaf.temp=0:50,leaf.par=c(1000),leaf.ca_conc=400,rs='f_rs_medlyn2011',
-                              tcor_asc='f_temp_scalar_Arrhenius',tcor_des='f_scalar_none', 
+    .test_tscalar <- function(., leaf.temp=0:50, leaf.par=c(1000), leaf.ca_conc=400, rs='f_rs_medlyn2011',
+                              tcor_asc='f_temp_scalar_Arrhenius', tcor_des='f_scalar_none', Ha=70000, 
                               verbose=F,verbose_loop=F) {
       
       .$cpars$verbose       <- verbose
@@ -512,6 +543,7 @@ leaf_object <-
       
       .$fnames$vcmax_tcor_asc  <- tcor_asc
       .$fnames$vcmax_tcor_des  <- tcor_des
+      .$pars$Ha$vcmax      <- Ha
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
