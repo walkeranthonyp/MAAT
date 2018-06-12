@@ -244,12 +244,12 @@ wrapper_object <-
       # assumes that each row of the fnames matrix are independent and non-sequential
       # call runp
 
-      if(i == 1) {
-        print('runf',quote=F)
-        print(.$dataf$fnames,quote=F)
-        print(.$dataf$pars,quote=F)
-        print(.$dataf$env,quote=F)
-      }
+#      if(i == 1) {
+#        print('runf',quote=F)
+#        print(.$dataf$fnames,quote=F)
+#        print(.$dataf$pars,quote=F)
+#        print(.$dataf$env,quote=F)
+#      }
       
       # configure function names in the model
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
@@ -574,11 +574,11 @@ wrapper_object <-
         for( t in type ) {
           for( vl in vlists ) {
             # input variables
-            vars <- .[[paste0('init_',t)]][[mo]][[vl]]
-            
+            varlist <- .[[paste0('init_',t)]][[mo]][[vl]]
+ 
             # assign variables to wrapper, prefix variable names with the name of the model object that they belong to 
-            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(v=vars, modobj=mo ) 
-                            else                     c(.[[t]][[vl]], comb_init_list(v=vars, modobj=mo ) )
+            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(l=varlist, modobj=mo ) 
+                            else                     c(.[[t]][[vl]], comb_init_list(l=varlist, modobj=mo ) )
           }
         }
       
@@ -589,16 +589,16 @@ wrapper_object <-
 
           if(.$wpars$eval_strings) {
             vl   <- 'pars_eval'
-            vars <- .[[paste0('init_',t)]][[mo]][[vl]]
-            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(v=vars, modobj=mo ) 
-                            else                     c(.[[t]][[vl]], comb_init_list(v=vars, modobj=mo ) )
+            varlist <- .[[paste0('init_',t)]][[mo]][[vl]]
+            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(l=varlist, modobj=mo ) 
+                            else                     c(.[[t]][[vl]], comb_init_list(l=varlist, modobj=mo ) )
           }
   
           if(.$wpars$UQtype=='ye') {
             vl   <- 'pars_proc'
-            vars <- .[[paste0('init_',t)]][[mo]][[vl]]
-            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(v=vars, modobj=mo ) 
-                            else                     c(.[[t]][[vl]], comb_init_list(v=vars, modobj=mo ) )
+            varlist <- .[[paste0('init_',t)]][[mo]][[vl]]
+            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(l=varlist, modobj=mo ) 
+                            else                     c(.[[t]][[vl]], comb_init_list(l=varlist, modobj=mo ) )
             for( vn in names(vars) ) if( !any(vn==names(.[['init_dynamic']][[mo]][['pars_eval']])) )
               stop(paste('\n Input variable:', vn, 'in pars_proc, not found in: pars_eval list.',
                          '\n The proc_pars input list must contain exactly the same parameter names as pars_eval input list.',
@@ -765,6 +765,8 @@ wrapper_object <-
           # if met data
           # - so far will only work for factorial simulations
           } else {
+            print(vardf)  
+            print(.$dataf)  
             odf <- cbind(do.call(rbind , lapply(1:length(vardf[,1]) , .$combine, df=vardf ) ), .$dataf$out )            
             print(head(odf))
             if(dim(vardf)[2]==1) names(odf)[which(names(odf)=='df.i...')] <- names(vardf)
@@ -905,7 +907,7 @@ wrapper_object <-
     # Unit testing functions
 
     # simple test, run a single model instance with or without met data
-    .test_simple <- function(.,metd=F,mc=F,pr=4,oconf=F) {
+    .test_simple <- function(., metd=F, mc=F, pr=4, oconf=F ) {
       
       # source directory
       setwd('system_models/leaf')
@@ -924,8 +926,7 @@ wrapper_object <-
       .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
       .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening 
       
-      ### Define meteorological and environment dataset
-      ###############################
+      # Define meteorological and environment dataset
       .$model$env$par     <- 1000
       .$model$env$ca_conc <- 400  
       .$model$env$vpd     <- 1  
@@ -933,8 +934,7 @@ wrapper_object <-
       metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))      
       if(metd) .$dataf$met <- metdata
       
-      ### Define the static parameters and model functions  
-      ###############################
+      # Define the static parameters and model functions  
       .$static$fnames <- list(leaf.vcmax='f_vcmax_lin')
       .$dynamic$fnames <- list(
         leaf.etrans = c('f_j_farquhar1980')
@@ -948,8 +948,7 @@ wrapper_object <-
         leaf.avn_25 = 10
       )
       
-      # Run model
-      ###############################
+      # Run wrapper & model
       st <- system.time(
         .$run()
       )
@@ -958,18 +957,10 @@ wrapper_object <-
       print(st)
       print('',quote=F)
       
-      # # process & record output
-      # df <- .$output()
+      # process & record output
       .$output()
-      # p1 <- xyplot(A~leaf.ca_conc|leaf.etrans*leaf.rs,df,groups=leaf.temp,type='l',auto.key=T,
-      #              panel=function(...) { panel.abline(h=seq(0,20,2.5)) ; panel.xyplot(...) })
-      # list(df,p1)
     }    
     
-    
-    
-    # Unit testing functions
-    ###############################
  
     # general factorial test, with or without metdata
     .test <- function(.,metd=T,mc=T,pr=4,oconf=F) {
@@ -1047,13 +1038,113 @@ wrapper_object <-
     }    
 
 
-    # general factorial test with canopy object, with or without metdata
-    .test_can <- function(.,metd=T,mc=T,pr=4,verbose=F) {
+    # general factorial test, with or without metdata
+    .test_init <- function(., 
+                          metd=list(leaf.par = seq(800,1000,100), leaf.ca_conc = 400 ),
+                          sfnames=list(fnames=list(vcmax='f_vcmax_lin')),
+                          spars=list(pars=list(Ha=list(vcmax=7e4, jmax=4e4 ))),
+                          senv=list(env=list(par=1000, ca_conc=400 )),
+                          dfnames=NULL,
+                          dpars=NULL,
+                          denv=NULL
+                          ) {
+ 
+      #
+      .$model <- NULL
+      .$model$name <- 'leaf'      
+
+      # Define the static model functions, parameters, and environment  
+      .$init_static$leaf <- c(sfnames, spars, senv ) 
+      print('init_static')     
+      print(.$init_static)     
+       
+      # Define the dynamic model functions, parameters, and environment  
+      .$init_dynamic$leaf <- c(dfnames, dpars, denv ) 
+      print('init_dynamic')      
+      print(.$init_dynamic)      
+
+      # Run init function
+      .$init()
+      print('static')     
+      print(.$static)     
+      print('dynamic')     
+      print(.$dynamic)      
+      
+    }    
+
+
+    # general factorial test, with or without metdata
+    .test_con <- function(., mc=T, pr=4, oconf=F,
+                          metd=list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400),
+                          sfnames=list(leaf.vcmax='f_vcmax_lin'),
+                          spars=NULL,
+                          senv=list(par=1000, ca_conc=400 ),
+                          dfnames=list(
+                            leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991'),
+                            leaf.rs     = c('f_r_zero','f_rs_medlyn2011')
+                          ),
+                          dpars=list(
+                            leaf.avn_25 = 9:11,
+                            leaf.bvn_25 = 4:6
+                          ),
+                          denv=list(
+                            leaf.vpd  = c(1,2),
+                            leaf.temp = c(5,20)
+                          )
+                          ) {
       
       # source directory
+      setwd('system_models/leaf')
+      source('leaf_object.R')
+      setwd('../..')
+      
+      # clone the model object
+      .$model <- as.proto(leaf_object$as.list(),parent=.)
+      .$model$cpars$verbose  <- F      
+      .$model$cpars$cverbose <- oconf      
+      
+      # define parameters for the wrapper
+      .$wpars$multic       <- mc  # multicore the ensemble
+      .$wpars$procs        <- pr  # number of cores to use if above is true
+      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
+      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening 
+      
+      # Define meteorological dataset
+      if(!is.null(metd)) .$dataf$met  <- as.matrix(expand.grid(metd))
+
+      # Define the static model functions, parameters, and environment  
+      if(!is.null(sfnames)) .$static$fnames <- sfnames 
+      if(!is.null(spars))   .$static$pars   <- spars 
+      if(!is.null(senv))    .$static$env    <- senv 
+            
+      # Define the dynamic model functions, parameters, and environment  
+      if(!is.null(dfnames)) .$dynamic$fnames <- dfnames 
+      if(!is.null(dpars))   .$dynamic$pars   <- dpars 
+      if(!is.null(denv))    .$dynamic$env    <- denv 
+      
+      # Run wrapper & model
+      st <- system.time(
+        .$run()
+      )
+      print('',quote=F)
+      print('Run time:',quote=F)
+      print(st)
+      print('',quote=F)
+      
+      # process & record output
+      .$output()
+    }    
+
+
+    # general factorial test with canopy object, with or without metdata
+    .test_can <- function(., metd=T, mc=T, pr=4, verbose=F ) {
+      
+      # source directory
+      setwd('system_models/canopy')
       source('canopy_object.R')
       library(lattice)
-      
+      setwd('../..') 
+  
       # clone the model object
       .$model      <- as.proto(canopy_object$as.list(),parent=.)
       .$model$leaf <- as.proto(leaf_object$as.list(),parent=.$model)      
@@ -1075,23 +1166,21 @@ wrapper_object <-
       if(metd) .$dataf$met <- metdata
       
       # Define the parameters and model functions that are to be varied 
-      .$vars$fnames <- list(
+      .$dynamic$fnames <- list(
         canopy.can_scale_light = c('f_canlight_beerslaw_wrong','f_canlight_beerslaw'),
-#         leaf.etrans            = c('f_j_farquhar1980','f_j_collatz1991')
+        leaf.etrans            = c('f_j_farquhar1980','f_j_collatz1991'),
         leaf.rs                = c('f_rs_medlyn2011','f_r_zero')
       )
       
-      .$vars$env <- list(
-#         leaf.vpd  = c(1,2),
+      .$dynamic$env <- list(
+        leaf.vpd  = c(1,2),
         leaf.temp = c(5,20)
       )
-#       .$vars$env <- NA
       
-      .$vars$pars <- list(
+      .$dynamic$pars <- list(
         canopy.lai = seq(2,6,2),
         canopy.G   = seq(0.4,0.6,0.1)
       )
-#       .$vars$pars <- NA
       
       # Run model
       st <- system.time(
@@ -1105,8 +1194,6 @@ wrapper_object <-
       # process & record output
       df <- .$output()
       p1 <- xyplot(A~canopy.ca_conc|canopy.can_scale_light*leaf.rs,df,groups=canopy.lai,type='l',abline=5,auto.key=T)
-#       p1 <- xyplot(A~canopy.ca_conc|canopy.can_scale_light*leaf.temp,df,groups=leaf.rs,type='l',abline=5,auto.key=T)
-#       p1 <- xyplot(A~canopy.ca_conc|canopy.can_scale_light*leaf.temp,df,groups=leaf.etrans,type='l',abline=5,auto.key=T)
       list(df,p1)
     }
       

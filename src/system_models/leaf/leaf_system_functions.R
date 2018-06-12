@@ -40,7 +40,7 @@ f_leafsys_enzymek <- function(.) {
   .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
   .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
   .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor_asc)(., var='vcmax' ) * get(.$fnames$vcmax_tcor_des)(., var='vcmax' )
-  .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor_asc)(., var='jmax' )  * get(.$fnames$jmax_tcor_des)(., var='jmax' )
+  .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor_asc)(., var='jmax' )   * get(.$fnames$jmax_tcor_des)(., var='jmax' )
   .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor_dependence)(.) 
 
   # conductance/resistance terms

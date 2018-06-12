@@ -416,8 +416,7 @@ leaf_object <-
       }
 
       # assign UQ variables
-      #if(length(slss)>0) vapply( df[moss[slss]], function(., v, vlist ) { lnames<-strsplit(v,'.',fixed=T); ss1 <- which(names(.[[vlist]])==lnames[2]); ss2 <- which(names(.[[vlist]][[ss1]])==lnames[3]); .[[vlist]][[ss1]][ss2] <- v; return(1) }, numeric(1), .=., vlist=vlist ) 
-      if(length(slss)>0) vapply( df[slmoss], .$configure_sublist, numeric(1), vlist=vlist ) 
+      if(length(slss)>0) vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
       else               .[[vlist]][vlss] <- df[vlmoss]
     
       # print configure setup if requested
@@ -436,12 +435,11 @@ leaf_object <-
  
     
     # configure a list variable 
-    configure_sublist <- function(., dfv, vlist ) {
-
-      lnames <- strsplit(dfv, '.', fixed=T )
-      ss1    <- which(names(.[[vlist]])==lnames[2])
-      ss2    <- which(names(.[[vlist]][[ss1]])==lnames[3])
-      .[[vlist]][[ss1]][ss2] <- v
+    configure_sublist <- function(., ss, vlist, df ) {
+      lnames <- strsplit(names(df)[ss], '.', fixed=T )
+      ss1    <- which(names(.[[vlist]])==lnames[[1]][2])
+      ss2    <- which(names(.[[vlist]][[ss1]])==lnames[[1]][3])
+      .[[vlist]][[ss1]][ss2] <- df[ss] 
       return(1) 
     } 
 

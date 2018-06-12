@@ -22,18 +22,31 @@ out <- wrapper_object$.test_simple()
 out <- wrapper_object$.test_simple(metd=T)
 
 source('wrapper_object.R')
-out <- wrapper_object$.test(mc=F,metd=F,oconf=F)
-out <- wrapper_object$.test(mc=T,oconf=F)
-out <- wrapper_object$.test(mc=F,oconf=F)
-
-class(out)
-head(out)
+out <- wrapper_object$.test(mc=F, metd=F, oconf=F )
+out <- wrapper_object$.test(mc=T, oconf=F )
+out <- wrapper_object$.test(mc=F, oconf=F )
 
 library(lattice)
 xyplot(A~leaf.par |leaf.etrans*leaf.rs, out, groups=leaf.temp,type='l', panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
 xyplot(A~leaf.par |leaf.etrans*leaf.rs, out, groups=leaf.vpd, type='l', panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
 xyplot(A~leaf.par |leaf.etrans*leaf.rs, out, type='l', panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
 xyplot(ci~leaf.par |leaf.etrans*leaf.rs, out, type='l', panel=function(...) { panel.abline(h=seq(0,20,2.5));panel.xyplot(...)})
+
+source('wrapper_object.R')
+out <- wrapper_object$.test_con(mc=F, metd=F, oconf=F )
+out <- wrapper_object$.test_con(mc=T, oconf=F )
+out <- wrapper_object$.test_con(mc=F, oconf=F )
+out <- wrapper_object$.test_con(mc=F, oconf=F,
+                                  sfnames=list(leaf.vcmax_tcor_asc      = 'f_temp_scalar_Arrhenius',
+                                               leaf.jmax_tcor_asc       = 'f_temp_scalar_Arrhenius'
+                                  ),
+                                  dpars=list(leaf.Ha.vcmax=c(4e4,7e4),leaf.Ha.jmax=c(1e4,7e4))
+                                )
+
+source('wrapper_object.R')
+out <- wrapper_object$.test_init()
+wrapper_object$init_static
+wrapper_object$static
 
 # test model mimic
 source('wrapper_object.R')
@@ -50,19 +63,6 @@ wrapper_object$model$fnames
 
 wrapper_object$init_static
 wrapper_object$init_dynamic
-
-
-wrapper_object$dataf
-wrapper_object$dataf$met
-
-f_tpu_lin(wrapper_object$model)
-f_tpu_tcor_independent(wrapper_object$model)
-f_rs_ball1987(wrapper_object$model)
-f_rs_ball1987_fe(wrapper_object$model)
-f_rs_ball1987(wrapper_object$model,10,50)
-f_R_Brent_solver(wrapper_object$model)
-f_A_r_leaf(wrapper_object$model,100)
-f_rd_lin_vcmax(wrapper_object$model)
 
 
 # Leaf, Ye SA
@@ -82,7 +82,7 @@ wrapper_object$dataf$fnames
 wrapper_object$dataf$pars
 
 
-# Canopy
+# Canopy - not working, should get error message
 source('wrapper_object.R')
 out <- wrapper_object$.test_can(mc=F,verbose=F)
 head(out[[1]])
