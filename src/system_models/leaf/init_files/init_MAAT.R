@@ -49,14 +49,18 @@
 fnames.static <- list(
   solver_func     = 'f_A_r_leaf',
   gstar           = 'f_scalar_none',
-  Kc_tcor         = 'f_scalar_none',
-  Ko_tcor         = 'f_scalar_none',
   vcmax           = 'f_vcmax_constant',
   jmax            = 'f_jmax_power',
-  vcmax_tcor_asc  = 'f_scalar_none',
-  jmax_tcor_asc   = 'f_scalar_none',
-  vcmax_tcor_des  = 'f_scalar_none',
-  jmax_tcor_des   = 'f_scalar_none',
+  tcor_asc = list(  
+    vcmax   = 'f_scalar_none',
+    jmax    = 'f_scalar_none',
+    Kc      = 'f_scalar_none',
+    Ko      = 'f_scalar_none'
+  ),
+  tcor_des = list(  
+    vcmax   = 'f_scalar_none',
+    jmax    = 'f_scalar_none'
+  ),
   respiration     = 'f_rd_lin_vcmax', 
   ri              = 'f_r_zero',
   rs              = 'f_r_zero',

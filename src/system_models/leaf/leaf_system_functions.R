@@ -35,13 +35,13 @@ f_leafsys_enzymek <- function(.) {
   
   # kinetic pars & temperature dependence
   # - if the solver involves the energy balance all of this needs to go in the solver
-  .$state_pars$Kc      <- .$pars$atref[['Kc']] * get(.$fnames$Kc_tcor)(., var='Kc' )
-  .$state_pars$Ko      <- .$pars$atref[['Ko']] * get(.$fnames$Ko_tcor)(., var='Ko' ) 
+  .$state_pars$Kc      <- .$pars$atref[['Kc']] * get(.$fnames$tcor_asc[['Kc']])(., var='Kc' )
+  .$state_pars$Ko      <- .$pars$atref[['Ko']] * get(.$fnames$tcor_asc[['Ko']])(., var='Ko' ) 
   .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
   .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
-  .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor_asc)(., var='vcmax' ) * get(.$fnames$vcmax_tcor_des)(., var='vcmax' )
-  .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor_asc)(., var='jmax' )   * get(.$fnames$jmax_tcor_des)(., var='jmax' )
-  .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor_dependence)(.) 
+  .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$tcor_asc[['vcmax']])(., var='vcmax' ) * get(.$fnames$tcor_des[['vcmax']])(., var='vcmax' )
+  .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$tcor_asc[['jmax']])(., var='jmax' )   * get(.$fnames$tcor_des[['jmax']])(., var='jmax' )
+  .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tcor_dep[['tpu']])(.) 
 
   # conductance/resistance terms
   # - if either of these functions become a function of co2 or assimilation they can be easily moved into the solver
@@ -57,7 +57,7 @@ f_leafsys_enzymek <- function(.) {
   # electron transport rate
   .$state$J <- get(.$fnames$etrans)(.)
   # respiration
-  .$state$respiration  <- .$state_pars$rd * get(.$fnames$rd_tcor_dependence)(.)
+  .$state$respiration  <- .$state_pars$rd * get(.$fnames$tcor_dep[['rd']])(.)
   
   # if PAR > 0
   if(.$env$par > 0) {

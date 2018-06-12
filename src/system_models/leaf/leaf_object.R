@@ -117,45 +117,56 @@ leaf_object <-
     
     # function names
     fnames <- list(
-      leafsys             = 'f_leafsys_enzymek',
-      gstar               = 'f_gstar_constref',
-      gstar_tcor          = 'f_temp_scalar_quadratic_bf1985',
-      tau_tcor            = 'f_temp_scalar_Q10',
-      Kc_tcor             = 'f_temp_scalar_Arrhenius',
-      Ko_tcor             = 'f_temp_scalar_Arrhenius',
-      vcmax               = 'f_vcmax_lin',
-      jmax                = 'f_jmax_power',
-      tpu                 = 'f_tpu_lin',
-      vcmax_tcor_asc      = 'f_temp_scalar_Arrhenius',
-      jmax_tcor_asc       = 'f_temp_scalar_Arrhenius',
-      vcmax_tcor_des      = 'f_temp_scalar_modArrhenius_des',
-      jmax_tcor_des       = 'f_temp_scalar_modArrhenius_des',
-      tpu_tcor_dependence = 'f_tpu_tcor_dependent',
-      tpu_tcor_asc        = 'f_temp_scalar_Arrhenius',
-      tpu_tcor_des        = 'f_temp_scalar_modArrhenius_des',
-      deltaS              = 'f_deltaS',
-      etrans              = 'f_j_harley1992',
-      Acg                 = 'f_Acg_farquhar1980',
-      Ajg                 = 'f_Ajg_generic',
-      Apg                 = 'f_Apg_vonc2000',            
-      gas_diff            = 'f_ficks_ci',
-      respiration         = 'f_rd_lin_vcmax',
-      rl_rd_scalar        = 'f_scalar_none',
-      rd_tcor_dependence  = 'f_rd_tcor_dependent',
-      rd_tcor_asc         = 'f_temp_scalar_Q10',
-      rd_tcor_des         = 'f_temp_scalar_cox2001_des',
+      leafsys        = 'f_leafsys_enzymek',
+      solver_func    = 'f_A_r_leaf',
+      solver         = 'f_R_Brent_solver',
+      Acg            = 'f_Acg_farquhar1980',
+      Ajg            = 'f_Ajg_generic',
+      Apg            = 'f_Apg_vonc2000',            
+      etrans         = 'f_j_harley1992',
+      gas_diff       = 'f_ficks_ci',
+      Alim           = 'f_lim_farquhar1980',
+      vcmax          = 'f_vcmax_lin',
+      jmax           = 'f_jmax_power',
+      tpu            = 'f_tpu_lin',
+      respiration    = 'f_rd_lin_vcmax',
+      rl_rd_scalar   = 'f_scalar_none',
+      gstar          = 'f_gstar_constref',
+      ri             = 'f_r_zero',
+      rs             = 'f_r_zero',
+      rb             = 'f_r_zero',
+      cica_ratio     = 'f_cica_constant',             
+      tcor_asc = list(
+        vcmax          = 'f_tcor_asc_Arrhenius',
+        jmax           = 'f_tcor_asc_Arrhenius',
+        tpu            = 'f_tcor_asc_Arrhenius',
+        rd             = 'f_tcor_asc_Q10',
+        gstar          = 'f_tcor_asc_quadratic_bf1985',
+        tau            = 'f_tcor_asc_Q10',
+        Kc             = 'f_tcor_asc_Arrhenius',
+        Ko             = 'f_tcor_asc_Arrhenius'
+      ),
+      tcor_des = list(
+        vcmax          = 'f_tcor_des_modArrhenius',
+        jmax           = 'f_tcor_des_modArrhenius',
+        tpu            = 'f_tcor_des_modArrhenius',
+        rd             = 'f_tcor_des_cox2001'
+      ),
+      tcor_dep = list(
+        tpu            = 'f_tcor_dep_dependent',
+        rd             = 'f_tcor_dep_dependent'
+	),
+      deltaS   = list(  
+        rd             = 'f_deltaS',
+        vcmax          = 'f_deltaS',
+        jmax           = 'f_deltaS',
+        tpu            = 'f_deltaS'
+      ),
       q10_func = list(
-        rd         = 'f_q10_constant',
-        vcmax      = 'f_q10_constant',
-        jmax       = 'f_q10_constant'
-      ),      
-      cica_ratio          = 'f_cica_constant',             
-      ri                  = 'f_r_zero',
-      rs                  = 'f_r_zero',
-      rb                  = 'f_r_zero',
-      solver              = 'f_R_Brent_solver',
-      solver_func         = 'f_A_r_leaf',
-      Alim                = 'f_lim_farquhar1980'
+        rd             = 'f_q10_constant',
+        vcmax          = 'f_q10_constant',
+        jmax           = 'f_q10_constant'
+      )      
     )
     
     # leaf environment
@@ -533,7 +544,7 @@ leaf_object <-
     
         
     .test_tscalar <- function(., leaf.temp=0:50, leaf.par=c(1000), leaf.ca_conc=400, rs='f_rs_medlyn2011',
-                              tcor_asc='f_temp_scalar_Arrhenius', tcor_des='f_scalar_none', Ha=70000, 
+                              tcor_asc='f_tcor_asc_Arrhenius', tcor_des='f_scalar_none', Ha=70000, 
                               verbose=F,verbose_loop=F) {
       
       .$cpars$verbose       <- verbose
@@ -542,8 +553,8 @@ leaf_object <-
       
       if(verbose) str(.)
       
-      .$fnames$vcmax_tcor_asc  <- tcor_asc
-      .$fnames$vcmax_tcor_des  <- tcor_des
+      .$fnames$tcor_asc[['vcmax']]  <- tcor_asc
+      .$fnames$tcor_des[['vcmax']]  <- tcor_des
       .$pars$Ha$vcmax      <- Ha
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
@@ -554,8 +565,7 @@ leaf_object <-
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par','leaf.temp')))      
       .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
       
-      print(cbind(.$dataf$met,.$dataf$out))
-      p1 <- xyplot(I(unlist(vcmaxlt)/unlist(vcmax))~leaf.temp|as.factor(paste(tcor_asc,tcor_des)),.$dataf$out,abline=list(h=c(0,1),v=.$pars$reftemp.vcmax),
+      p1 <- xyplot(I(vcmaxlt/vcmax) ~ leaf.temp | as.factor(paste(tcor_asc,tcor_des)), .$dataf$out, abline=list(h=c(0,1), v=.$pars$reftemp[['vcmax']]),
                    ylab=expression('scalar'),xlab=expression(T*' ['^o*C*']'))
       print(p1)
     }
