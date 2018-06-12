@@ -20,7 +20,7 @@ f_none <- function(.) {
 # Solver to find root of .$fnames$solver_func
 f_R_Brent_solver <- function(.) {
   if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c((-.$state$respiration-0.00765326),50.1234),.=.,extendInt='yes')
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c((-.$state$rd-0.00765326),50.1234),.=.,extendInt='yes')
   .$solver_out$root
 }
 
@@ -38,7 +38,7 @@ f_assimilation <- function(.) {
   Amin            <- get(.$fnames$Alim)(.) 
   
   # calculate & return net A
-  Amin*.$state$cc - Amin*.$state_pars$gstar - .$state$respiration
+  Amin*.$state$cc - Amin*.$state_pars$gstar - .$state$rd
 }
   
 # Residual function for solver to calculate assimilation
@@ -117,8 +117,8 @@ f_A_r_leaf_analytical_quad <- function(.) {
     gsd <- get(paste0(.$fnames$rs,'_fe'))(.) / .$state$ca
     p   <- .$env$atm_press*1e-6
     a   <- p*( 1.6 - gsd*(.$state$ca + K) )
-    b   <- p*gsd*( .$state$ca*(V - .$state$respiration) - .$state$respiration*K - V*.$state_pars$gstar ) - .$pars$g0*(.$state$ca + K) + 1.6*p*(.$state$respiration - V)
-    c   <- .$pars$g0*( V*(.$state$ca - .$state_pars$gstar) - .$state$respiration*(K + .$state$ca) )
+    b   <- p*gsd*( .$state$ca*(V - .$state$rd) - .$state$rd*K - V*.$state_pars$gstar ) - .$pars$g0*(.$state$ca + K) + 1.6*p*(.$state$rd - V)
+    c   <- .$pars$g0*( V*(.$state$ca - .$state_pars$gstar) - .$state$rd*(K + .$state$ca) )
  
     # return cc
     A   <- quad_sol(a,b,c,'upper')
@@ -163,8 +163,8 @@ f_A_r0_leaf_analytical_quad <- function(.) {
     r   <- 1.4*.$state_pars$rb + 1.6*r0 + .$state_pars$ri
     p   <- .$env$atm_press*1e-6
     a   <- -p*r
-    b   <- .$state$ca + K - .$state$respiration*p*r + V*p*r
-    c   <- .$state$ca*(.$state$respiration-V) + .$state$respiration*K + V*.$state_pars$gstar 
+    b   <- .$state$ca + K - .$state$rd*p*r + V*p*r
+    c   <- .$state$ca*(.$state$rd-V) + .$state$rd*K + V*.$state_pars$gstar 
     
     # return cc
     A   <- quad_sol(a,b,c,'lower')
@@ -628,7 +628,7 @@ f_rs_yin2009 <- function(.,A=.$state$A,c=.$state$cb) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / ( .$pars$g0 + (A + .$state$respiration) * .$env$atm_press*1e-6 / ((c-.$state_pars$gstar) * (1/(.$pars$g_a1_yin - .$pars$g_b1_yin*.$env$vpd) - 1)) )
+  1 / ( .$pars$g0 + (A + .$state$rd) * .$env$atm_press*1e-6 / ((c-.$state_pars$gstar) * (1/(.$pars$g_a1_yin - .$pars$g_b1_yin*.$env$vpd) - 1)) )
 }
 
 f_rs_yin2009_fe <- function(.) {

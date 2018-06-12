@@ -61,10 +61,10 @@ fnames.static <- list(
     vcmax   = 'f_scalar_none',
     jmax    = 'f_scalar_none'
   ),
-  respiration     = 'f_rd_lin_vcmax', 
-  ri              = 'f_r_zero',
-  rs              = 'f_r_zero',
-  rb              = 'f_r_zero'
+  rd     = 'f_rd_lin_vcmax', 
+  ri     = 'f_r_zero',
+  rs     = 'f_r_zero',
+  rb     = 'f_r_zero'
   )
 
 pars.static <- list(

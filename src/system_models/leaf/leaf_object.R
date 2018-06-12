@@ -87,12 +87,12 @@ leaf_object <-
         
       } else if(.$cpars$output=='run') {
         
-        lout <- c(.$state_retrive(snames=c('A','cc','ci','respiration','lim')),
+        lout <- c(.$state_retrive(snames=c('A','cc','ci','rd','lim')),
                   .$state_retrive(snames=c('ri','rs','rb'), state='state_pars') )
         
       } else if(.$cpars$output=='all_lim') {
         
-        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','respiration','lim')), 
+        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
                   .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
         
       } else if(.$cpars$output=='full') {
@@ -101,7 +101,7 @@ leaf_object <-
         
       } else if(.$cpars$output=='sphagnum') {
         
-        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','respiration','lim','fwdw_ratio')), 
+        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim','fwdw_ratio')), 
                   .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
         
       }
@@ -129,7 +129,7 @@ leaf_object <-
       vcmax          = 'f_vcmax_lin',
       jmax           = 'f_jmax_power',
       tpu            = 'f_tpu_lin',
-      respiration    = 'f_rd_lin_vcmax',
+      rd             = 'f_rd_lin_vcmax',
       rl_rd_scalar   = 'f_scalar_none',
       gstar          = 'f_gstar_constref',
       ri             = 'f_r_zero',
@@ -202,9 +202,9 @@ leaf_object <-
       Acg = numeric(1),                # Carboxylaton limited rate of net asssimilation     (umol m-2 s-1)
       Ajg = numeric(1),                # light limited rate of carboxylation                (umol m-2 s-1)
       Apg = numeric(1),                # TPU limited rate of carboxylation                  (umol m-2 s-1)
-      A            = numeric(1),       # actual rate of carboxylation                       (umol m-2 s-1)
-      respiration  = numeric(1),       # actual rate of respiration                         (umol m-2 s-1)
-      lim          = numeric(1),       # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
+      A   = numeric(1),                # actual rate of carboxylation                       (umol m-2 s-1)
+      rd  = numeric(1),                # actual rate of respiration                         (umol m-2 s-1)
+      lim = numeric(1),                # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
 
       # diagnostic state
       A_noR        = numeric(1),       # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)

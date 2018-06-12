@@ -30,7 +30,7 @@ f_leafsys_enzymek <- function(.) {
   .$state_pars$vcmax   <- get(.$fnames$vcmax)(.)
   .$state_pars$jmax    <- get(.$fnames$jmax)(.)
   .$state_pars$tpu     <- get(.$fnames$tpu)(.)
-  .$state_pars$rd      <- get(.$fnames$respiration)(.)
+  .$state_pars$rd      <- get(.$fnames$rd)(.)
   .$state_pars$alpha   <- 0.5 * (1-.$pars$f)
   
   # kinetic pars & temperature dependence
@@ -57,14 +57,14 @@ f_leafsys_enzymek <- function(.) {
   # electron transport rate
   .$state$J <- get(.$fnames$etrans)(.)
   # respiration
-  .$state$respiration  <- .$state_pars$rd * get(.$fnames$tcor_dep[['rd']])(.)
+  .$state$rd  <- .$state_pars$rd * get(.$fnames$tcor_dep[['rd']])(.)
   
   # if PAR > 0
   if(.$env$par > 0) {
     # run photosynthesis
     # account for decreased respiration in the light
-    .$state$respiration  <- get(.$fnames$rl_rd_scalar)(.) * .$state$respiration
-    .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
+    .$state$rd  <- get(.$fnames$rl_rd_scalar)(.) * .$state$rd
+    .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$rd * .$state_pars$Km) / (.$state$rd - .$state_pars$vcmaxlt)
   
     # diagnostic calculations
     if(.$pars$diag) {
@@ -118,7 +118,7 @@ f_leafsys_enzymek <- function(.) {
     .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
     .$state$A_noR      <- NA
     .$state$transition <- NA
-    .$state$A          <- -.$state$respiration      
+    .$state$A          <- -.$state$rd      
     .$state$lim        <- 0       
     .$state_pars$rs    <- get(.$fnames$rs)(.)
   }
