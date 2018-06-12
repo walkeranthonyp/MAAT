@@ -277,36 +277,71 @@ canopy_object <-
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
 
-      # split model from variable name in df names 
-      prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
+      ## split model from variable name in df names 
+      #prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
+      # split variable names at . 
+      listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
 
       modobj <- .$name
-      dfss   <- which(prefix==modobj)
-      vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
+      #dfss   <- which(prefix==modobj)
+      #vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
+      # df subscripts for model object
+      moss   <- which(listnames[1,]==modobj)
+      # df subscripts for model object sublist variables (slmoss) and model object numeric variables (vlmoss) 
+      slss   <- which(listnames[3,moss]!='') 
+      if(length(slss)>0) {
+        slmoss <- moss[slss] 
+        vlmoss <- moss[-slss] 
+      } else {
+        slmoss <- NULL 
+        vlmoss <- moss 
+      }
+      # variable list subscripts for numeric variables 
+      vlss   <- match(listnames[2,vlmoss], names(.[[vlist]]) )
 
       # catch NAs in vlss
       if(any(is.na(vlss))) {
-        dfss <- dfss[-which(is.na(vlss))]
-        vlss <- vlss[-which(is.na(vlss))]
+        #dfss <- dfss[-which(is.na(vlss))]
+        #vlss <- vlss[-which(is.na(vlss))]
+        vlmoss <- vlmoss[-which(is.na(vlss))]
+        vlss   <- vlss[-which(is.na(vlss))]
       }
 
       if(.$cpars$verbose) {
         print('',quote=F)
         print('Canopy configure:',quote=F)
-        print(prefix,quote=F)
-        print(df,quote=F)
-        print(.[[vlist]],quote=F)
+        print(df, quote=F )
+        print(listnames, quote=F )
+        print(moss, quote=F )
+        print(slmoss, quote=F )
+        print(vlmoss, quote=F )
+        print(vlss, quote=F )
+        print(which(is.na(vlss)), quote=F )
+        print(.[[vlist]], quote=F )
       }
     
       # assign UQ variables
-      if(any(prefix==modobj)) .[[vlist]][vlss] <- df[dfss]
+      #if(any(prefix==modobj)) .[[vlist]][vlss] <- df[dfss]
+      if(length(slss)>0) vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
+      else               .[[vlist]][vlss] <- df[vlmoss]
 
       # call child (leaf) assign 
-      if(any(prefix!=modobj)) vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=df )     
+      if(any(listnames[1,]!=modobj)) vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=df[-moss] )     
       #if(any(prefix!=modobj)) vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=df[-dfss] )     
     }   
 
 
+    # configure a list variable 
+    configure_sublist <- function(., ss, vlist, df ) {
+      lnames <- strsplit(names(df)[ss], '.', fixed=T )
+      ss1    <- which(names(.[[vlist]])==lnames[[1]][2])
+      ss2    <- which(names(.[[vlist]][[ss1]])==lnames[[1]][3])
+      .[[vlist]][[ss1]][ss2] <- df[ss] 
+      return(1) 
+    } 
+
+
+    # call a child configure function
     child_configure <- function(., child, vlist, df ) { .[[child]]$configure(vlist=vlist, df=df ) ; return(1) }
     
     

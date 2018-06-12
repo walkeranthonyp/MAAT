@@ -1138,16 +1138,28 @@ wrapper_object <-
 
     # general factorial test with canopy object, with or without metdata
     .test_can <- function(., metd=T, mc=T, pr=4, verbose=F ) {
-      
+     
+      mod_obj <- 'canopy'
+       
       # source directory
-      setwd('system_models/canopy')
-      source('canopy_object.R')
-      library(lattice)
+      #setwd('system_models/canopy')
+      #source('canopy_object.R')
+      setwd(paste('system_models',mod_obj,sep='/'))
+      source(paste(mod_obj,'object.R',sep='_'))
+      # clone & build the model object
+      init_default <- .$build(model=paste(mod_obj,'object',sep='_') )
       setwd('../..') 
   
+      # load MAAT object(s) from source
+      #setwd(paste('system_models',mod_obj,sep='/'))
+      #source(paste(mod_obj,'object.R',sep='_'))
+      # clone & build the model object
+      #init_default <- .$build(model=paste(mod_obj,'object',sep='_'), mod_mimic=mod_mimic )
+      #setwd('../..')      
+  
       # clone the model object
-      .$model      <- as.proto(canopy_object$as.list(),parent=.)
-      .$model$leaf <- as.proto(leaf_object$as.list(),parent=.$model)      
+      #.$model      <- as.proto(canopy_object$as.list(),parent=.)
+      #.$model$leaf <- as.proto(leaf_object$as.list(),parent=.$model)      
 
       # define parameters for the model
       .$model$pars$verbose       <- verbose      
@@ -1193,6 +1205,7 @@ wrapper_object <-
       
       # process & record output
       df <- .$output()
+      library(lattice)
       p1 <- xyplot(A~canopy.ca_conc|canopy.can_scale_light*leaf.rs,df,groups=canopy.lai,type='l',abline=5,auto.key=T)
       list(df,p1)
     }

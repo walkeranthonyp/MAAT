@@ -409,16 +409,13 @@ leaf_object <-
       # variable list subscripts for numeric variables 
       vlss   <- match(listnames[2,vlmoss], names(.[[vlist]]) )
 
-      # catch NAs in vlss 
-      if(any(is.na(vlmoss))) {
+      # catch NAs in vlss
+      # allows variables to be passed that belong to different lists, e.g. state and env when run_leaf is called by the canopy   
+      if(any(is.na(vlss))) {
         vlmoss <- vlmoss[-which(is.na(vlss))]
         vlss   <- vlss[-which(is.na(vlss))]
       }
 
-      # assign UQ variables
-      if(length(slss)>0) vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
-      else               .[[vlist]][vlss] <- df[vlmoss]
-    
       # print configure setup if requested
       if(.$cpars$cverbose&o) {
         print('', quote=F )
@@ -429,8 +426,14 @@ leaf_object <-
         print(slmoss, quote=F )
         print(vlmoss, quote=F )
         print(vlss, quote=F )
+        print(which(is.na(vlss)), quote=F )
         print(.[[vlist]], quote=F )
       }
+
+      # assign UQ variables
+      if(length(slss)>0) vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
+      else               .[[vlist]][vlss] <- df[vlmoss]
+    
     }
  
     

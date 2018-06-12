@@ -82,7 +82,7 @@ wrapper_object$dataf$fnames
 wrapper_object$dataf$pars
 
 
-# Canopy - not working, should get error message
+# Canopy
 source('wrapper_object.R')
 out <- wrapper_object$.test_can(mc=F,verbose=F)
 head(out[[1]])
