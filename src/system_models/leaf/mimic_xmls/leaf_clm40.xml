@@ -2,19 +2,27 @@
   <leaf>
     <fnames>
       <gstar>'f_gstar_f1980'</gstar>
-      <Kc_tcor>'f_temp_scalar_Q10'</Kc_tcor>
-      <Ko_tcor>'f_temp_scalar_Q10'</Ko_tcor>
       <vcmax>'f_vcmax_clm'</vcmax>
-      <vcmax_tcor_asc>'f_temp_scalar_Q10'</vcmax_tcor_asc>
-      <vcmax_tcor_des>'f_temp_scalar_collatz1991_des'</vcmax_tcor_des>
-      <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
-      <deltaS>'f_deltaS_constant'</deltaS>
+      <tcor_asc>
+        <vcmax>'f_tcor_asc_Q10'</vcmax>
+        <Kc>'f_tcor_asc_Q10'</Kc>
+        <Ko>'f_tcor_asc_Q10'</Ko>
+      </tcor_asc>
+      <tcor_des>
+        <vcmax>'f_tcor_des_collatz1991'</vcmax>
+      </tcor_des>
+      <tcor_dep>
+        <tpu>'f_tcor_dep_dependent'</tpu>
+      </tcor_dep>
+      <deltaS>
+        <vcmax>'f_deltaS_constant'</vcmax>
+      </deltaS>
       <etrans>'f_j_collatz1991'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
       <gas_diff>'f_ficks_ci'</gas_diff>
-      <respiration>'f_rd_constant'</respiration>
+      <rd>'f_rd_constant'</rd>
       <rs>'f_rs_ball1987'</rs>
       <rb>'f_r_zero'</rb>
       <solver>'f_R_Brent_solver'</solver>
@@ -35,17 +43,31 @@
       <g0>0.01</g0>
       <g1_ball>9</g1_ball>
       <ri>0</ri>
-      <reftemp.vcmax>25</reftemp.vcmax>
-      <reftemp.Kc>25</reftemp.Kc>
-      <reftemp.Ko>25</reftemp.Ko>
-      <atref.rd>0</atref.rd>
-      <atref.Kc>30</atref.Kc>
-      <atref.Ko>30</atref.Ko>
-      <Hd.vcmax>2.2e+05</Hd.vcmax>
-      <deltaS.vcmax>710</deltaS.vcmax>
-      <q10.vcmax>2.4</q10.vcmax>
-      <q10.Kc>2.1</q10.Kc>
-      <q10.Ko>1.2</q10.Ko>
+      <!-- reference temperatures for temperature sensitive parameters -->
+      <reftemp>
+        <vcmax>25</vcmax>
+        <Kc>25</Kc>
+        <Ko>25</Ko>
+      </reftemp>
+      <!-- constants at reference temperature for temperature sensitive parameters -->
+      <atref>
+        <rd>0</rd>
+        <Kc>30</Kc>
+        <Ko>30</Ko>
+      </atref>
+      <Hd>
+        <vcmax>2.2e+05</vcmax>
+      </Hd>
+      <!-- delta S for temperature sensitive parameters -->
+      <deltaS>
+        <vcmax>710</vcmax>
+      </deltaS>
+      <!-- Q10 for temperature sensitive parameters -->
+      <q10>
+        <vcmax>2.4</vcmax>
+        <Kc>2.1</Kc>
+        <Ko>1.2</Ko>
+      </q10>
     </pars>
     <env>
       <o2_conc>0.209</o2_conc>

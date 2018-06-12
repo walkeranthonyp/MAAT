@@ -2,30 +2,43 @@
   <leaf>
     <fnames>
       <gstar>'f_gstar_constref'</gstar>
-      <gstar_tcor>'f_temp_scalar_Arrhenius'</gstar_tcor>
-      <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
-      <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
       <vcmax>'f_vcmax_clm'</vcmax>
       <jmax>'f_jmax_lin_t'</jmax>
       <tpu>'f_tpu_lin'</tpu>
-      <vcmax_tcor_asc>'f_temp_scalar_Arrhenius'</vcmax_tcor_asc>
-      <jmax_tcor_asc>'f_temp_scalar_Arrhenius'</jmax_tcor_asc>
-      <vcmax_tcor_des>'f_temp_scalar_modArrhenius_des'</vcmax_tcor_des>
-      <jmax_tcor_des>'f_temp_scalar_modArrhenius_des'</jmax_tcor_des>
-      <tpu_tcor_dependence>'f_tpu_tcor_independent'</tpu_tcor_dependence>
-      <tpu_tcor_asc>'f_temp_scalar_Arrhenius'</tpu_tcor_asc>
-      <tpu_tcor_des>'f_temp_scalar_modArrhenius_des'</tpu_tcor_des>
-      <deltaS>'f_deltaS_lin_t'</deltaS>
+      <!-- increasing component of temperature scaling for biochemical rates -->
+      <tcor_asc>
+        <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
+        <jmax>'f_tcor_asc_Arrhenius'</jmax>
+        <tpu>'f_tcor_asc_Arrhenius'</tpu>
+        <gstar>'f_tcor_asc_Arrhenius'</gstar>
+        <Kc>'f_tcor_asc_Arrhenius'</Kc>
+        <Ko>'f_tcor_asc_Arrhenius'</Ko>
+        <rd>'f_tcor_asc_Arrhenius'</rd>
+      </tcor_asc>
+      <tcor_des>
+        <vcmax>'f_tcor_des_modArrhenius'</vcmax>
+        <jmax>'f_tcor_des_modArrhenius'</jmax>
+        <tpu>'f_tcor_des_modArrhenius'</tpu>
+        <rd>'f_tcor_des_modArrhenius'</rd>
+      </tcor_des>
+      <!-- dependence of TPU & Rd temperature scaling on Vcmax -->
+      <tcor_dep>
+        <tpu>'f_tcor_dep_independent'</tpu>
+        <rd>'f_tcor_dep_independent'</rd>
+      </tcor_dep>
+      <deltaS>
+        <vcmax>'f_deltaS_lin_t'</vcmax>
+        <jmax>'f_deltaS_lin_t'</jmax>
+        <tpu>'f_deltaS_lin_t'</tpu>
+        <rd>'f_deltaS_lin_t'</rd>
+      </deltaS>
       <etrans>'f_j_farquharwong1984'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
       <gas_diff>'f_ficks_ci'</gas_diff>
-      <respiration>'f_rd_lin_vcmax'</respiration>
+      <rd>'f_rd_lin_vcmax'</rd>
       <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
-      <rd_tcor_dependence>'f_rd_tcor_independent'</rd_tcor_dependence> 
-      <rd_tcor_asc>'f_temp_scalar_Arrhenius'</rd_tcor_asc>
-      <rd_tcor_des>'f_temp_scalar_modArrhenius_des'</rd_tcor_des>
       <ri>'f_r_zero'</ri>
       <rs>'f_rs_ball1987'</rs>
       <rb>'f_r_zero'</rb>
@@ -53,35 +66,50 @@
       <a_rdv_25>0.0</a_rdv_25>
       <b_rdv_25>0.015</b_rdv_25>
       <rl_rd_ratio>1</rl_rd_ratio>
-      <reftemp.rd>25</reftemp.rd>
-      <reftemp.vcmax>25</reftemp.vcmax>
-      <reftemp.jmax>25</reftemp.jmax>
-      <reftemp.tpu>25</reftemp.tpu>
-      <reftemp.Kc>25</reftemp.Kc>
-      <reftemp.Ko>25</reftemp.Ko>
-      <reftemp.gstar>25</reftemp.gstar>
-      <atref.Kc>40.49</atref.Kc>
-      <atref.Ko>27.84</atref.Ko>
-      <atref.gstar>4.275</atref.gstar>
-      <Ha.rd>46390</Ha.rd>
-      <Ha.vcmax>72000</Ha.vcmax>
-      <Ha.jmax>50000</Ha.jmax>
-      <Ha.tpu>72000</Ha.tpu>
-      <Ha.Kc>79430</Ha.Kc>
-      <Ha.Ko>36380</Ha.Ko>
-      <Ha.gstar>37830</Ha.gstar>
-      <Hd.rd>150650</Hd.rd>
-      <Hd.vcmax>200000</Hd.vcmax>
-      <Hd.jmax>200000</Hd.jmax>
-      <Hd.tpu>200000</Hd.tpu>
-      <a_deltaS_t.rd>490</a_deltaS_t.rd>
-      <a_deltaS_t.vcmax>668.39</a_deltaS_t.vcmax>
-      <a_deltaS_t.jmax>659.70</a_deltaS_t.jmax>
-      <a_deltaS_t.tpu>485</a_deltaS_t.tpu>
-      <b_deltaS_t.rd>0</b_deltaS_t.rd>
-      <b_deltaS_t.vcmax>-1.07</b_deltaS_t.vcmax>
-      <b_deltaS_t.jmax>-0.75</b_deltaS_t.jmax>
-      <b_deltaS_t.tpu>0</b_deltaS_t.tpu>
+      <!-- reference temperatures for temperature sensitive parameters -->
+      <reftemp>
+        <rd>25</rd>
+        <vcmax>25</vcmax>
+        <jmax>25</jmax>
+        <tpu>25</tpu>
+        <Kc>25</Kc>
+        <Ko>25</Ko>
+        <gstar>25</gstar>
+      </reftemp>
+      <!-- constants at reference temperature for temperature sensitive parameters -->
+      <atref>
+        <Kc>40.49</Kc>
+        <Ko>27.84</Ko>
+        <gstar>4.275</gstar>
+      </atref>
+      <!-- activation energy for temperature sensitive parameters -->
+      <Ha>
+        <rd>46390</rd>
+        <vcmax>72000</vcmax>
+        <jmax>50000</jmax>
+        <tpu>72000</tpu>
+        <Kc>79430</Kc>
+        <Ko>36380</Ko>
+        <gstar>37830</gstar>
+      </Ha>
+      <Hd>
+        <rd>150650</rd>
+        <vcmax>200000</vcmax>
+        <jmax>200000</jmax>
+        <tpu>200000</tpu>
+      </Hd>
+      <a_deltaS_t>
+        <rd>490</rd>
+        <vcmax>668.39</vcmax>
+        <jmax>659.7</jmax>
+        <tpu>485</tpu>
+      </a_deltaS_t>
+      <b_deltaS_t>
+        <rd>0</rd>
+        <vcmax>-1.07</vcmax>
+        <jmax>-0.75</jmax>
+        <tpu>0</tpu>
+      </b_deltaS_t>
       <R>8.31446</R>
     </pars>
     <env>

@@ -2,19 +2,23 @@
   <leaf>
     <fnames>
       <gstar>'f_gstar_c1991'</gstar>
-      <tau_tcor>'f_temp_scalar_Q10'</tau_tcor>
-      <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
-      <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
       <vcmax>'f_vcmax_constant'</vcmax>
       <tpu>'f_tpu_lin'</tpu>
-      <vcmax_tcor_asc>'f_temp_scalar_Arrhenius'</vcmax_tcor_asc>
-      <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
+      <tcor_asc>
+        <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
+        <Kc>'f_tcor_asc_Arrhenius'</Kc>
+        <Ko>'f_tcor_asc_Arrhenius'</Ko>
+        <tau>'f_tcor_asc_Q10'</tau>
+      </tcor_asc>
+      <tcor_dep>
+        <tpu>'f_tcor_dep_dependent'</tpu>
+        <rd>'f_tcor_dep_dependent'</rd>
+      </tcor_dep>
       <etrans>'f_j_collatz1991'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_foley1996'</Apg>
-      <respiration>'f_rd_lin_vcmax'</respiration>
-      <rd_tcor_dependence>'f_rd_tcor_dependent'</rd_tcor_dependence> 
+      <rd>'f_rd_lin_vcmax'</rd>
       <ri>'f_r_zero'</ri>
       <rs>'f_rs_leuning1995'</rs>
       <rb>'f_r_zero'</rb>
@@ -35,18 +39,24 @@
       <d0>1.013</d0>
       <a_rdv_25>0.0</a_rdv_25>
       <b_rdv_25>0.020</b_rdv_25>
-      <reftemp.vcmax>15</reftemp.vcmax>
-      <reftemp.Kc>15</reftemp.Kc>
-      <reftemp.Ko>15</reftemp.Ko>
-      <reftemp.tau>15</reftemp.tau>
-      <atref.vcmax>60</atref.vcmax>
-      <atref.Kc>15.2</atref.Kc>
-      <atref.Ko>25.33</atref.Ko>
-      <atref.tau>4500</atref.tau>
-      <Ha.vcmax>24943</Ha.vcmax>
-      <Ha.Kc>49886</Ha.Kc>
-      <Ha.Ko>11640</Ha.Ko>
-      <Ha.tau>-41572</Ha.tau>
+      <reftemp>
+        <vcmax>15</vcmax>
+        <Kc>15</Kc>
+        <Ko>15</Ko>
+        <tau>15</tau>
+      </reftemp>
+      <atref>
+        <vcmax>60</vcmax>
+        <Kc>15.2</Kc>
+        <Ko>25.33</Ko>
+        <tau>4500</tau>
+      </atref>
+      <Ha>
+        <vcmax>24943</vcmax>
+        <Kc>49886</Kc>
+        <Ko>11640</Ko>
+        <tau>-41572</tau>
+      </Ha>
       <R>8.31446</R>
     </pars>
     <env>

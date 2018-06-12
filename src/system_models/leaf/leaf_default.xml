@@ -2,44 +2,59 @@
   <leaf>
     <fnames>
       <leafsys>'f_leafsys_enzymek'</leafsys>
-      <gstar>'f_gstar_constref'</gstar>
-      <gstar_tcor>'f_temp_scalar_quadratic_bf1985'</gstar_tcor>
-      <tau_tcor>'f_temp_scalar_Q10'</tau_tcor>
-      <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
-      <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
-      <vcmax>'f_vcmax_lin'</vcmax>
-      <jmax>'f_jmax_power'</jmax>
-      <tpu>'f_tpu_lin'</tpu>
-      <vcmax_tcor_asc>'f_temp_scalar_Arrhenius'</vcmax_tcor_asc>
-      <jmax_tcor_asc>'f_temp_scalar_Arrhenius'</jmax_tcor_asc>
-      <vcmax_tcor_des>'f_temp_scalar_modArrhenius_des'</vcmax_tcor_des>
-      <jmax_tcor_des>'f_temp_scalar_modArrhenius_des'</jmax_tcor_des>
-      <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
-      <tpu_tcor_asc>'f_temp_scalar_Arrhenius'</tpu_tcor_asc>
-      <tpu_tcor_des>'f_temp_scalar_modArrhenius_des'</tpu_tcor_des>
-      <deltaS>'f_deltaS'</deltaS>
-      <etrans>'f_j_harley1992'</etrans>
+      <solver_func>'f_A_r_leaf'</solver_func>
+      <solver>'f_R_Brent_solver'</solver>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
+      <etrans>'f_j_harley1992'</etrans>
       <gas_diff>'f_ficks_ci'</gas_diff>
-      <respiration>'f_rd_lin_vcmax'</respiration>
+      <Alim>'f_lim_farquhar1980'</Alim>
+      <vcmax>'f_vcmax_lin'</vcmax>
+      <jmax>'f_jmax_power'</jmax>
+      <tpu>'f_tpu_lin'</tpu>
+      <rd>'f_rd_lin_vcmax'</rd>
       <rl_rd_scalar>'f_scalar_none'</rl_rd_scalar>
-      <rd_tcor_dependence>'f_rd_tcor_dependent'</rd_tcor_dependence>
-      <rd_tcor_asc>'f_temp_scalar_Q10'</rd_tcor_asc>
-      <rd_tcor_des>'f_temp_scalar_cox2001_des'</rd_tcor_des>
+      <gstar>'f_gstar_constref'</gstar>
+      <ri>'f_r_zero'</ri>
+      <rs>'f_r_zero'</rs>
+      <rb>'f_r_zero'</rb>
+      <cica_ratio>'f_cica_constant'</cica_ratio>
+      <tcor_asc>
+        <vcmax>
+          'f_tcor_asc_Arrhenius'
+          </vcmax>
+        <jmax>
+          'f_tcor_asc_Arrhenius'
+          </jmax>
+        <tpu>'f_tcor_asc_Arrhenius'</tpu>
+        <rd>'f_tcor_asc_Q10'</rd>
+        <gstar>'f_tcor_asc_quadratic_bf1985'</gstar>
+        <tau>'f_tcor_asc_Q10'</tau>
+        <Kc>'f_tcor_asc_Arrhenius'</Kc>
+        <Ko>'f_tcor_asc_Arrhenius'</Ko>
+      </tcor_asc>
+      <tcor_des>
+        <vcmax>'f_tcor_des_modArrhenius'</vcmax>
+        <jmax>'f_tcor_des_modArrhenius'</jmax>
+        <tpu>'f_tcor_des_modArrhenius'</tpu>
+        <rd>'f_tcor_des_cox2001'</rd>
+      </tcor_des>
+      <tcor_dep>
+        <tpu>'f_tcor_dep_dependent'</tpu>
+        <rd>'f_tcor_dep_dependent'</rd>
+      </tcor_dep>
+      <deltaS>
+        <rd>'f_deltaS'</rd>
+        <vcmax>'f_deltaS'</vcmax>
+        <jmax>'f_deltaS'</jmax>
+        <tpu>'f_deltaS'</tpu>
+      </deltaS>
       <q10_func>
         <rd>'f_q10_constant'</rd>
         <vcmax>'f_q10_constant'</vcmax>
         <jmax>'f_q10_constant'</jmax>
       </q10_func>
-      <cica_ratio>'f_cica_constant'</cica_ratio>
-      <ri>'f_r_zero'</ri>
-      <rs>'f_r_zero'</rs>
-      <rb>'f_r_zero'</rb>
-      <solver>'f_R_Brent_solver'</solver>
-      <solver_func>'f_A_r_leaf'</solver_func>
-      <Alim>'f_lim_farquhar1980'</Alim>
     </fnames>
     <pars>
       <diag>FALSE</diag>

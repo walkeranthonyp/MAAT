@@ -2,40 +2,29 @@
   <leaf>
     <fnames>
       <leafsys>'c( 'f_leafsys_enzymek' )'</leafsys>
-      <gstar>'c( 'f_gstar_c1991', 'f_gstar_constant', 'f_gstar_constref', 'f_gstar_f1980' )'</gstar>
-      <gstar_tcor>'c(  )'</gstar_tcor>
-      <tau_tcor>'c(  )'</tau_tcor>
-      <Kc_tcor>'c(  )'</Kc_tcor>
-      <Ko_tcor>'c(  )'</Ko_tcor>
-      <vcmax>'c( 'f_vcmax_clm', 'f_vcmax_constant', 'f_vcmax_lin' )'</vcmax>
-      <jmax>'c( 'f_jmax_constant', 'f_jmax_lin', 'f_jmax_lin_t', 'f_jmax_power' )'</jmax>
-      <tpu>'c( 'f_tpu_constant', 'f_tpu_lin', 'f_tpu_tcor_dependent', 'f_tpu_tcor_independent' )'</tpu>
-      <vcmax_tcor_asc>'c(  )'</vcmax_tcor_asc>
-      <jmax_tcor_asc>'c(  )'</jmax_tcor_asc>
-      <vcmax_tcor_des>'c(  )'</vcmax_tcor_des>
-      <jmax_tcor_des>'c(  )'</jmax_tcor_des>
-      <tpu_tcor_dependence>'c(  )'</tpu_tcor_dependence>
-      <tpu_tcor_asc>'c(  )'</tpu_tcor_asc>
-      <tpu_tcor_des>'c(  )'</tpu_tcor_des>
-      <deltaS>'c( 'f_deltaS', 'f_deltaS_constant', 'f_deltaS_lin_t' )'</deltaS>
-      <etrans>'c(  )'</etrans>
+      <solver_func>'c(  )'</solver_func>
+      <solver>'c(  )'</solver>
       <Acg>'c( 'f_Acg_farquhar1980' )'</Acg>
       <Ajg>'c( 'f_Ajg_generic' )'</Ajg>
       <Apg>'c( 'f_Apg_foley1996', 'f_Apg_none', 'f_Apg_vonc2000' )'</Apg>
+      <etrans>'c(  )'</etrans>
       <gas_diff>'c(  )'</gas_diff>
-      <respiration>'c(  )'</respiration>
+      <Alim>'c(  )'</Alim>
+      <vcmax>'c( 'f_vcmax_clm', 'f_vcmax_constant', 'f_vcmax_lin' )'</vcmax>
+      <jmax>'c( 'f_jmax_constant', 'f_jmax_lin', 'f_jmax_lin_t', 'f_jmax_power' )'</jmax>
+      <tpu>'c( 'f_tpu_constant', 'f_tpu_lin' )'</tpu>
+      <rd>'c( 'f_rd_constant', 'f_rd_lin_N', 'f_rd_lin_vcmax', 'f_rd_lin_vcmax_t' )'</rd>
       <rl_rd_scalar>'c(  )'</rl_rd_scalar>
-      <rd_tcor_dependence>'c(  )'</rd_tcor_dependence>
-      <rd_tcor_asc>'c(  )'</rd_tcor_asc>
-      <rd_tcor_des>'c(  )'</rd_tcor_des>
-      <q10_func>'c(  )'</q10_func>
-      <cica_ratio>'c(  )'</cica_ratio>
+      <gstar>'c( 'f_gstar_c1991', 'f_gstar_constant', 'f_gstar_constref', 'f_gstar_f1980' )'</gstar>
       <ri>'c( 'f_ri_constant', 'f_ri_sphag_wf1998' )'</ri>
       <rs>'c( 'f_rs_ball1987', 'f_rs_ball1987_fe', 'f_rs_ball1987_r0', 'f_rs_constant', 'f_rs_constantCiCa', 'f_rs_constantCiCa_fe', 'f_rs_constantCiCa_r0', 'f_rs_cox1998', 'f_rs_cox1998_fe', 'f_rs_cox1998_r0', 'f_rs_leuning1995', 'f_rs_leuning1995_fe', 'f_rs_leuning1995_r0', 'f_rs_medlyn2011', 'f_rs_medlyn2011_fe', 'f_rs_medlyn2011_r0', 'f_rs_yin2009', 'f_rs_yin2009_fe', 'f_rs_yin2009_r0' )'</rs>
       <rb>'c( 'f_rb_constant', 'f_rb_leafdim', 'f_rb_water_e2009' )'</rb>
-      <solver>'c(  )'</solver>
-      <solver_func>'c(  )'</solver_func>
-      <Alim>'c(  )'</Alim>
+      <cica_ratio>'c(  )'</cica_ratio>
+      <tcor_asc>'c( 'f_tcor_asc_Arrhenius', 'f_tcor_asc_bethy', 'f_tcor_asc_Q10', 'f_tcor_asc_quadratic_bf1985' )'</tcor_asc>
+      <tcor_des>'c( 'f_tcor_des_collatz1991', 'f_tcor_des_cox2001', 'f_tcor_des_modArrhenius' )'</tcor_des>
+      <tcor_dep>'c( 'f_tcor_dep_dependent', 'f_tcor_dep_independent' )'</tcor_dep>
+      <deltaS>'c( 'f_deltaS', 'f_deltaS_constant', 'f_deltaS_lin_t' )'</deltaS>
+      <q10_func>'c(  )'</q10_func>
     </fnames>
   </leaf>
 </options>
