@@ -12,7 +12,7 @@ Built in sensitivity analysis and uncertainty quantification (SA/UQ) can be used
 The MAAT framework is a model wrapper and a model coding syntax that can be used to define a model of a system.
 The wrapper and the model system are separated and the syntax allows the wrapper to pass system-model specific information to the model without any system-model specific information contained in the wrapper. 
 All system-model specific information is contained within the system model and initialisation files. 
-This separation of wrapper and system model allows rapid development of new system models and system model components (e.g. process representations) withou the need to edit the wrapper.
+This separation of wrapper and system model allows rapid development of new system models and system model components (e.g. process representations) without the need to edit the wrapper.
 
 Current systems models that come packaged with the MAAT are a leaf-scale model of photosynthesis, a simple ground-water model detailed in Dai et al (2017 WRR), and a simple 'Hello World' type example and template for building new system models. 
 
@@ -100,8 +100,8 @@ Alternative command line options, their names, and how to specify them on the co
 
 ### Contribution guidelines ###
 
-* For development please fork this repo, create your own dev branch, and then [use the pull request functionality on GitHub](https://help.github.com/articles/fork-a-repo/).
-Sync your fork with the master branch on the original repo and follow [these recommended steps to make sure your development code is up-to-date with the original repo](https://gist.github.com/Chaser324/ce0505fbed06b947d962).
+* For development please [fork this repo and sync to the main repo](https://help.github.com/articles/fork-a-repo/), create your own dev branch, and then [use the pull request functionality on GitHub](https://help.github.com/articles/creating-a-pull-request/).
+Before starting new feature branches please make sure your fork and clone is up to date with the latest master branch on this repo.
  
 * Code review - by walkeranthonyp 
 
