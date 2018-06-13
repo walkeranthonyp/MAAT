@@ -100,12 +100,23 @@ Alternative command line options, their names, and how to specify them on the co
 
 ### Contribution guidelines ###
 
-* For development please fork this repo, create your own dev branch, and then [use the pull request functionality on GitHub](https://guides.github.com/activities/forking/). 
-Before making a pull request please ensure that your development branch code is up-to-date by [comparing your forked repo with the 'master' branch in the original repo](https://help.github.com/articles/creating-a-pull-request/) and checking your code has not deviated too far from the updates in master.
+* For development please [fork this repo and sync to the main repo](https://help.github.com/articles/fork-a-repo/), create your own dev branch, and then [use the pull request functionality on GitHub](https://help.github.com/articles/creating-a-pull-request/).
+Before starting new feature branches please make sure your fork and clone is up to date with the latest master branch on this repo.
  
-* Code review - by walkeranthonyp and anyone else that has the time 
+* Code review - by walkeranthonyp 
 
-* Other guidelines - none
+* Other guidelines - none as yet, coding standards, recommendations, and examples coming soon. 
+
+
+
+
+### Sponsorship ###
+
+We are grateful of the support from the U.S. Department of Energy (DOE) Office of Science, Biological and Environmental Research (BER). 
+
+Elements of this work are supported through various DOE BER projects.
+[NGEE Tropics](https://ngee-tropics.lbl.gov/) supports the development of the leaf and canopy scale photosynthesis models. 
+Development of the MAAT framework and early versions of the photosynthesis models were supported by the [ORNL Terrestrial Ecosystem Science SFA](https://tes-sfa.ornl.gov/).    
 
 
 

@@ -2,27 +2,34 @@
   <leaf>
     <fnames>
       <gstar>'f_gstar_c1991'</gstar>
-      <tau_tcor>'f_temp_scalar_Q10'</tau_tcor>
-      <Kc_tcor>'f_temp_scalar_Q10'</Kc_tcor>
-      <Ko_tcor>'f_temp_scalar_Q10'</Ko_tcor>
       <vcmax>'f_vcmax_constant'</vcmax>
       <tpu>'f_tpu_lin'</tpu>  <!-- TPU = 0.5Vcmax for C3 -->
-      <vcmax_tcor_asc>'f_temp_scalar_Q10'</vcmax_tcor_asc>
-      <vcmax_tcor_des>'f_temp_scalar_cox2001_des'</vcmax_tcor_des>
-      <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence> <!-- dependent on Vcmax -->
-      <tpu_tcor_asc>'f_scalar_none'</tpu_tcor_asc> <!-- based on Vcmax -->
+      <tcor_asc>
+        <vcmax>'f_tcor_asc_Q10'</vcmax>
+        <tau>'f_tcor_asc_Q10'</tau>
+        <Kc>'f_tcor_asc_Q10'</Kc>
+        <Ko>'f_tcor_asc_Q10'</Ko>
+        <rd>'f_tcor_asc_Q10'</rd>
+      </tcor_asc>
+      <tcor_des>
+        <vcmax>'f_tcor_des_cox2001'</vcmax>
+        <rd>'f_scalar_none'</rd>
+      </tcor_des>
+      <tcor_dep>
+        <tpu>'f_tcor_dep_dependent'</tpu>
+        <rd>'f_tcor_dep_independent'</rd>
+      </tcor_dep>
       <etrans>'f_j_collatz1991'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
       <gas_diff>'f_ficks_ci'</gas_diff>
-      <respiration>'f_rd_lin_vcmax'</respiration>
-      <rd_tcor_dependence>'f_rd_tcor_independent'</rd_tcor_dependence>
-      <rd_tcor_asc>'f_temp_scalar_Q10'</rd_tcor_asc> 
-      <rd_tcor_des>'f_scalar_none'</rd_tcor_des>
-      <q10_func.rd>'f_q10_constant'</q10_func.rd> <!-- different Q10 for day and night -->
-      <q10_func.vcmax>'f_q10_constant'</q10_func.vcmax>          
-      <q10_func.jmax>'f_q10_constant'</q10_func.jmax>
+      <rd>'f_rd_lin_vcmax'</rd>
+      <q10_func>
+        <rd>'f_q10_constant'</rd>
+        <vcmax>'f_q10_constant'</vcmax>
+        <jmax>'f_q10_constant'</jmax>
+      </q10_func> 
       <rs>'f_rs_leuning1995'</rs>
       <rb>'f_r_zero'</rb>
       <solver>'f_R_Brent_solver'</solver>
@@ -45,20 +52,28 @@
       <a_rdv_25>0.0</a_rdv_25>
       <b_rdv_25>0.015</b_rdv_25>
       <rl_rd_ratio>1</rl_rd_ratio>
-      <reftemp.rd>25</reftemp.rd>
-      <reftemp.vcmax>25</reftemp.vcmax>
-      <reftemp.Kc>25</reftemp.Kc>
-      <reftemp.Ko>25</reftemp.Ko>
-      <reftemp.tau>25</reftemp.tau>
-      <atref.vcmax>48</atref.vcmax> <!-- Table A1 MA2016, BDL-EVG -->
-      <atref.Kc>30</atref.Kc> <!-- Collatz 1991 -->
-      <atref.Ko>30</atref.Ko> <!-- Collatz 1991 -->
-      <atref.tau>2600</atref.tau> <!-- Collatz 1991 -->
-      <q10.rd>1.3</q10.rd> <!-- daytime value -->
-      <q10.vcmax>2</q10.vcmax>
-      <q10.Kc>2.1</q10.Kc>
-      <q10.Ko>1.2</q10.Ko>
-      <q10.tau>0.57</q10.tau> <!-- Collatz 1991 -->
+      <reftemp>
+        <rd>25</rd>
+        <vcmax>25</vcmax>
+        <Kc>25</Kc>
+        <Ko>25</Ko>
+        <tau>25</tau>
+      </reftemp>
+      <!-- constants at reference temperature for temperature sensitive parameters -->
+      <atref>
+        <vcmax>48</vcmax>
+        <Kc>30</Kc>
+        <Ko>30</Ko>
+        <tau>2600</tau>
+      </atref>
+      <!-- Q10 for temperature sensitive parameters -->
+      <q10>
+        <rd>1.3<rd>
+        <vcmax>2</vcmax>
+        <Kc>2.1</Kc>
+        <Ko>1.2</Ko>
+        <tau>0.57</tau> <!-- Collatz 1991 -->
+      </q10>
     </pars>
     <env>
       <o2_conc>0.21</o2_conc>

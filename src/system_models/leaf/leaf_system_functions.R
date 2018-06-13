@@ -30,30 +30,18 @@ f_leafsys_enzymek <- function(.) {
   .$state_pars$vcmax   <- get(.$fnames$vcmax)(.)
   .$state_pars$jmax    <- get(.$fnames$jmax)(.)
   .$state_pars$tpu     <- get(.$fnames$tpu)(.)
-  .$state_pars$rd      <- get(.$fnames$respiration)(.)
+  .$state_pars$rd      <- get(.$fnames$rd)(.)
   .$state_pars$alpha   <- 0.5 * (1-.$pars$f)
   
   # kinetic pars & temperature dependence
   # - if the solver involves the energy balance all of this needs to go in the solver
-  temparglist          <- list(Tr=.$pars$reftemp.Kc,Ha=.$pars$Ha.Kc,q10=.$pars$q10.Kc,q10_func='f_q10_constant')
-  .$state_pars$Kc      <- .$pars$atref.Kc * get(.$fnames$Kc_tcor)(.,parlist=temparglist)
-  temparglist          <- list(Tr=.$pars$reftemp.Ko,Ha=.$pars$Ha.Ko,q10=.$pars$q10.Ko,q10_func='f_q10_constant')
-  .$state_pars$Ko      <- .$pars$atref.Ko * get(.$fnames$Ko_tcor)(.,parlist=temparglist) 
+  .$state_pars$Kc      <- .$pars$atref[['Kc']] * get(.$fnames$tcor_asc[['Kc']])(., var='Kc' )
+  .$state_pars$Ko      <- .$pars$atref[['Ko']] * get(.$fnames$tcor_asc[['Ko']])(., var='Ko' ) 
   .$state_pars$Km      <- .$state_pars$Kc * (1+(.$state$oi/.$state_pars$Ko)) 
   .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
-
-  temparglist          <- list(Tr=.$pars$reftemp.vcmax, Ha=.$pars$Ha.vcmax, Hd=.$pars$Hd.vcmax, Topt=.$pars$Topt.vcmax, q10=.$pars$q10.vcmax, q10_func=.$fnames$q10_func.vcmax,
-                               tupp=.$pars$tupp_cox.vcmax, tlow=.$pars$tlow_cox.vcmax, exp=.$pars$exp_cox.vcmax,
-                               a_deltaS_t=.$pars$a_deltaS_t.vcmax, b_deltaS_t=.$pars$b_deltaS_t.vcmax, deltaS=.$pars$deltaS.vcmax)
-
-  .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$vcmax_tcor_asc)(.,parlist=temparglist) * get(.$fnames$vcmax_tcor_des)(.,parlist=temparglist)
-
-  temparglist          <- list(Tr=.$pars$reftemp.jmax, Ha=.$pars$Ha.jmax, Hd=.$pars$Hd.jmax, Topt=.$pars$Topt.jmax, q10=.$pars$q10.jmax, q10_func=.$fnames$q10_func.jmax,
-                               a_deltaS_t=.$pars$a_deltaS_t.jmax, b_deltaS_t=.$pars$b_deltaS_t.jmax, deltaS=.$pars$deltaS.jmax)
-
-  .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$jmax_tcor_asc)(.,parlist=temparglist)  * get(.$fnames$jmax_tcor_des)(.,parlist=temparglist)
-
-  .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tpu_tcor_dependence)(.) 
+  .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$tcor_asc[['vcmax']])(., var='vcmax' ) * get(.$fnames$tcor_des[['vcmax']])(., var='vcmax' )
+  .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$tcor_asc[['jmax']])(., var='jmax' )   * get(.$fnames$tcor_des[['jmax']])(., var='jmax' )
+  .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tcor_dep[['tpu']])(.) 
 
   # conductance/resistance terms
   # - if either of these functions become a function of co2 or assimilation they can be easily moved into the solver
@@ -69,14 +57,14 @@ f_leafsys_enzymek <- function(.) {
   # electron transport rate
   .$state$J <- get(.$fnames$etrans)(.)
   # respiration
-  .$state$respiration  <- .$state_pars$rd * get(.$fnames$rd_tcor_dependence)(.)
+  .$state$rd  <- .$state_pars$rd * get(.$fnames$tcor_dep[['rd']])(.)
   
   # if PAR > 0
   if(.$env$par > 0) {
     # run photosynthesis
     # account for decreased respiration in the light
-    .$state$respiration  <- get(.$fnames$rl_rd_scalar)(.) * .$state$respiration
-    .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$respiration * .$state_pars$Km) / (.$state$respiration - .$state_pars$vcmaxlt)
+    .$state$rd  <- get(.$fnames$rl_rd_scalar)(.) * .$state$rd
+    .$state_pars$gamma   <- (-.$state_pars$vcmaxlt * .$state_pars$gstar - .$state$rd * .$state_pars$Km) / (.$state$rd - .$state_pars$vcmaxlt)
   
     # diagnostic calculations
     if(.$pars$diag) {
@@ -130,7 +118,7 @@ f_leafsys_enzymek <- function(.) {
     .$state$cc <- .$state$ci <- .$state$cb <- .$state$ca
     .$state$A_noR      <- NA
     .$state$transition <- NA
-    .$state$A          <- -.$state$respiration      
+    .$state$A          <- -.$state$rd      
     .$state$lim        <- 0       
     .$state_pars$rs    <- get(.$fnames$rs)(.)
   }

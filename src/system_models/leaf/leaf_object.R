@@ -87,12 +87,12 @@ leaf_object <-
         
       } else if(.$cpars$output=='run') {
         
-        lout <- c(.$state_retrive(snames=c('A','cc','ci','respiration','lim')),
+        lout <- c(.$state_retrive(snames=c('A','cc','ci','rd','lim')),
                   .$state_retrive(snames=c('ri','rs','rb'), state='state_pars') )
         
       } else if(.$cpars$output=='all_lim') {
         
-        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','respiration','lim')), 
+        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
                   .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
         
       } else if(.$cpars$output=='full') {
@@ -101,7 +101,7 @@ leaf_object <-
         
       } else if(.$cpars$output=='sphagnum') {
         
-        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','respiration','lim','fwdw_ratio')), 
+        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim','fwdw_ratio')), 
                   .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
         
       }
@@ -117,44 +117,56 @@ leaf_object <-
     
     # function names
     fnames <- list(
-      leafsys             = 'f_leafsys_enzymek',
-      gstar               = 'f_gstar_constref',
-      gstar_tcor          = 'f_temp_scalar_quadratic_bf1985',
-      tau_tcor            = 'f_temp_scalar_Q10',
-      Kc_tcor             = 'f_temp_scalar_Arrhenius',
-      Ko_tcor             = 'f_temp_scalar_Arrhenius',
-      vcmax               = 'f_vcmax_lin',
-      jmax                = 'f_jmax_power',
-      tpu                 = 'f_tpu_lin',
-      vcmax_tcor_asc      = 'f_temp_scalar_Arrhenius',
-      jmax_tcor_asc       = 'f_temp_scalar_Arrhenius',
-      vcmax_tcor_des      = 'f_temp_scalar_modArrhenius_des',
-      jmax_tcor_des       = 'f_temp_scalar_modArrhenius_des',
-      tpu_tcor_dependence = 'f_tpu_tcor_dependent',
-      tpu_tcor_asc        = 'f_temp_scalar_Arrhenius',
-      tpu_tcor_des        = 'f_temp_scalar_modArrhenius_des',
-      deltaS              = 'f_deltaS',
-      etrans              = 'f_j_harley1992',
-      Acg                 = 'f_Acg_farquhar1980',
-      Ajg                 = 'f_Ajg_generic',
-      Apg                 = 'f_Apg_vonc2000',            
-      gas_diff            = 'f_ficks_ci',
-      respiration         = 'f_rd_lin_vcmax',
-      rl_rd_scalar        = 'f_scalar_none',
-      rd_tcor_dependence  = 'f_rd_tcor_dependent',
-      rd_tcor_asc         = 'f_temp_scalar_Q10',
-      rd_tcor_des         = 'f_temp_scalar_cox2001_des',
-      q10_func.rd         = 'f_q10_constant',
-      q10_func.vcmax      = 'f_q10_constant',
-      q10_func.jmax       = 'f_q10_constant',
-#      fwdw_ratio          = 'f_none',                   
-      cica_ratio          = 'f_cica_constant',             
-      ri                  = 'f_r_zero',
-      rs                  = 'f_r_zero',
-      rb                  = 'f_r_zero',
-      solver              = 'f_R_Brent_solver',
-      solver_func         = 'f_A_r_leaf',
-      Alim                = 'f_lim_farquhar1980'
+      leafsys        = 'f_leafsys_enzymek',
+      solver_func    = 'f_A_r_leaf',
+      solver         = 'f_R_Brent_solver',
+      Acg            = 'f_Acg_farquhar1980',
+      Ajg            = 'f_Ajg_generic',
+      Apg            = 'f_Apg_vonc2000',            
+      etrans         = 'f_j_harley1992',
+      gas_diff       = 'f_ficks_ci',
+      Alim           = 'f_lim_farquhar1980',
+      vcmax          = 'f_vcmax_lin',
+      jmax           = 'f_jmax_power',
+      tpu            = 'f_tpu_lin',
+      rd             = 'f_rd_lin_vcmax',
+      rl_rd_scalar   = 'f_scalar_none',
+      gstar          = 'f_gstar_constref',
+      ri             = 'f_r_zero',
+      rs             = 'f_r_zero',
+      rb             = 'f_r_zero',
+      cica_ratio     = 'f_cica_constant',             
+      tcor_asc = list(
+        vcmax          = 'f_tcor_asc_Arrhenius',
+        jmax           = 'f_tcor_asc_Arrhenius',
+        tpu            = 'f_tcor_asc_Arrhenius',
+        rd             = 'f_tcor_asc_Q10',
+        gstar          = 'f_tcor_asc_quadratic_bf1985',
+        tau            = 'f_tcor_asc_Q10',
+        Kc             = 'f_tcor_asc_Arrhenius',
+        Ko             = 'f_tcor_asc_Arrhenius'
+      ),
+      tcor_des = list(
+        vcmax          = 'f_tcor_des_modArrhenius',
+        jmax           = 'f_tcor_des_modArrhenius',
+        tpu            = 'f_tcor_des_modArrhenius',
+        rd             = 'f_tcor_des_cox2001'
+      ),
+      tcor_dep = list(
+        tpu            = 'f_tcor_dep_dependent',
+        rd             = 'f_tcor_dep_dependent'
+	),
+      deltaS   = list(  
+        rd             = 'f_deltaS',
+        vcmax          = 'f_deltaS',
+        jmax           = 'f_deltaS',
+        tpu            = 'f_deltaS'
+      ),
+      q10_func = list(
+        rd             = 'f_q10_constant',
+        vcmax          = 'f_q10_constant',
+        jmax           = 'f_q10_constant'
+      )      
     )
     
     # leaf environment
@@ -190,9 +202,9 @@ leaf_object <-
       Acg = numeric(1),                # Carboxylaton limited rate of net asssimilation     (umol m-2 s-1)
       Ajg = numeric(1),                # light limited rate of carboxylation                (umol m-2 s-1)
       Apg = numeric(1),                # TPU limited rate of carboxylation                  (umol m-2 s-1)
-      A            = numeric(1),       # actual rate of carboxylation                       (umol m-2 s-1)
-      respiration  = numeric(1),       # actual rate of respiration                         (umol m-2 s-1)
-      lim          = numeric(1),       # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
+      A   = numeric(1),                # actual rate of carboxylation                       (umol m-2 s-1)
+      rd  = numeric(1),                # actual rate of respiration                         (umol m-2 s-1)
+      lim = numeric(1),                # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
 
       # diagnostic state
       A_noR        = numeric(1),       # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
@@ -265,10 +277,6 @@ leaf_object <-
       co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
       hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
       hco_co2_diff_ratio = 0.56,  # ratio of HCO and CO2 diffusivity in water  
-#      fwdw_wl_slope = -0.022,     # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
-#      fwdw_wl_sat   = 16,         # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
-#      fwdw_wl_exp_a = -0.037,     # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
-#      fwdw_wl_exp_b = 3.254,      # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
       # respiration parameters
       a_rdv_25      = 0,          # intercept of linear rd25 to vcmax25 relationship        (umolm-2s-1)
       b_rdv_25      = 0.015,      # slope of linear rd25 to vcmax25 relationship            (unitless)
@@ -280,67 +288,95 @@ leaf_object <-
       a_rdv_25_t    = 0.015,      # intercept of b_rdv_25 relationship to temperature       (umolm-2s-1)
       b_rdv_25_t    = -0.0005,    # slope of b_rdv_25 relationship to temperature           (unitless)
       # temperature response parameters
-      reftemp.rd    = 25,         # reference temperature at which rd scalar = 1            (oC) 
-      reftemp.vcmax = 25,         # reference temperature at which Vcmax scalar = 1         (oC) 
-      reftemp.jmax  = 25,         # reference temperature at which Jmax scalar = 1          (oC)
-      reftemp.tpu   = 25,         # reference temperature at which TPU scalar = 1           (oC)
-      reftemp.Kc    = 25,         # reference temperature at which Kc scalar = 1            (oC)
-      reftemp.Ko    = 25,         # reference temperature at which Ko scalar = 1            (oC)
-      reftemp.gstar = 25,         # reference temperature at which gamma star scalar = 1    (oC)
-      reftemp.tau   = 25,         # reference temperature at which tau scalar = 1           (oC)
-      atref.rd      = 2,          # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
-      atref.vcmax   = 50,         # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
-      atref.jmax    = 100,        # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
-      atref.tpu     = 5,          # tpu at ref temp (usually 25oC)   - used to set TPU as a parameter                       (umolm-2s-1)
-      atref.Kc      = 40.49,      # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
-      atref.Ko      = 27.84,      # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
-      atref.gstar   = 4.325,      # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
-      atref.tau     = 2600,       # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (-)
-      atref.vomax   = numeric(1),
-      Ha.rd         = 69830,      # activation energy of respiration                        (J mol-1)
-      Ha.vcmax      = 69830,      # activation energy of Vcmax                              (J mol-1)
-      Ha.jmax       = 100280,     # activation energy of Jmax                               (J mol-1)
-      Ha.tpu        = 69830,      # activation energy of TPU                                (J mol-1)
-      Ha.Kc         = 79430,      # activation energy of Kc                                 (J mol-1)
-      Ha.Ko         = 36380,      # activation energy of Ko                                 (J mol-1)
-      Ha.gstar      = 37830,      # activation energy of gamma star                         (J mol-1)
-      Ha.tau        = -41572,     # activation energy of tau                                (J mol-1)
-      Ha.vomax      = 60110,      # activation energy of Vomax                              (J mol-1)
-      Hd.rd         = 200000,     # deactivation energy of rd                               (J mol-1)
-      Hd.vcmax      = 200000,     # deactivation energy of Vcmax                            (J mol-1)
-      Hd.jmax       = 200000,     # deactivation energy of Jmax                             (J mol-1)
-      Hd.tpu        = 200000,     # deactivation energy of TPU                              (J mol-1)
-      Topt.rd       = 27.56,      # temperature optimum of rd                               (oC)
-      Topt.vcmax    = 27.56,      # temperature optimum of Vcmax                            (oC)
-      Topt.jmax     = 19.89,      # temperature optimum of Jmax                             (oC)
-      Topt.tpu      = 27.56,      # temperature optimum of TPU                              (oC)
-      deltaS.rd     = numeric(1), # 
-      deltaS.vcmax  = numeric(1), # 
-      deltaS.jmax   = numeric(1), #
-      deltaS.tpu    = numeric(1), #
-      a_deltaS_t.rd     = 490,    # linear temperature response of rd deltaS   
-      a_deltaS_t.vcmax  = 668,    # linear temperature response of vcmax deltaS (Kattge & Knorr)  
-      a_deltaS_t.jmax   = 660,    # linear temperature response of jmax  deltaS (Kattge & Knorr)
-      a_deltaS_t.tpu    = 485,    # linear temperature response of tpu   deltaS (Kattge & Knorr)
-      b_deltaS_t.rd     = 0,      # linear temperature response of rd deltaS
-      b_deltaS_t.vcmax  = -1.07,  # linear temperature response of vcmax deltaS (Kattge & Knorr)
-      b_deltaS_t.jmax   = -0.75,  # linear temperature response of jmax deltaS (Kattge & Knorr)
-      b_deltaS_t.tpu    = 0,      # linear temperature response of tpu deltaS (Kattge & Knorr)
-      q10.rd        = 2,          # Q10 of Rd                                               (-)
-      q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
-      q10.jmax      = 2,          # Q10 of Jmax                                             (-)
-      q10.tpu       = 2,          # Q10 of TPU                                              (-)
-      q10.Kc        = 2,          # Q10 of Kc                                               (-)
-      q10.Ko        = 2,          # Q10 of Ko                                               (-)
-      q10.tau       = 0.57,       # Q10 of tau                                              (-)
-      a_q10_t.rd    = 3.22,       # linear temperature response of rd Q10 (Tjoelker etal 2001)
-      b_q10_t.rd    = -0.046,     # linear temperature response of rd Q10 (Tjoelker etal 2001)
-      tupp_cox.vcmax= 36,         # upper leaf T for Vcmax temp scaling from Cox 2001       (oC)
-      tupp_cox.rd   = 45,         # upper leaf T for rd temp scaling from Cox 2001 (LM3)    (oC)
-      tlow_cox.vcmax= 0,          # lower leaf T for Vcmax temp scaling from Cox 2001       (oC)
-      tlow_cox.rd   = 5,          # lower leaf T for rd temp scaling from Cox 2001          (oC)
-      exp_cox.vcmax = 0.3,        # exponent for Vcmax temp scaling from Cox 2001           (-)
-      exp_cox.rd    = 0.4,        # exponent for rd temp scaling from Cox 2001              (-)
+      reftemp = list(
+        rd    = 25,               # reference temperature at which rd scalar = 1            (oC) 
+        vcmax = 25,               # reference temperature at which Vcmax scalar = 1         (oC) 
+        jmax  = 25,               # reference temperature at which Jmax scalar = 1          (oC)
+        tpu   = 25,               # reference temperature at which TPU scalar = 1           (oC)
+        Kc    = 25,               # reference temperature at which Kc scalar = 1            (oC)
+        Ko    = 25,               # reference temperature at which Ko scalar = 1            (oC)
+        gstar = 25,               # reference temperature at which gamma star scalar = 1    (oC)
+        tau   = 25                # reference temperature at which tau scalar = 1           (oC)
+      ),
+      atref = list(
+        rd      = 2,              # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
+        vcmax   = 50,             # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
+        jmax    = 100,            # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
+        tpu     = 5,              # tpu at ref temp (usually 25oC)   - used to set TPU as a parameter                       (umolm-2s-1)
+        Kc      = 40.49,          # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
+        Ko      = 27.84,          # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
+        gstar   = 4.325,          # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
+        tau     = 2600,           # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (-)
+        vomax   = numeric(1) 
+      ),
+      Ha = list(
+        rd         = 69830,       # activation energy of respiration                        (J mol-1)
+        vcmax      = 69830,       # activation energy of Vcmax                              (J mol-1)
+        jmax       = 100280,      # activation energy of Jmax                               (J mol-1)
+        tpu        = 69830,       # activation energy of TPU                                (J mol-1)
+        Kc         = 79430,       # activation energy of Kc                                 (J mol-1)
+        Ko         = 36380,       # activation energy of Ko                                 (J mol-1)
+        gstar      = 37830,       # activation energy of gamma star                         (J mol-1)
+        tau        = -41572,      # activation energy of tau                                (J mol-1)
+        vomax      = 60110        # activation energy of Vomax                              (J mol-1)i
+      ),
+      Hd = list(
+        rd         = 200000,      # deactivation energy of rd                               (J mol-1)
+        vcmax      = 200000,      # deactivation energy of Vcmax                            (J mol-1)
+        jmax       = 200000,      # deactivation energy of Jmax                             (J mol-1)
+        tpu        = 200000       # deactivation energy of TPU                              (J mol-1)i
+      ),
+      Topt = list(
+        rd       = 27.56,         #  temperature optimum of rd                               (oC)
+        vcmax    = 27.56,         #  temperature optimum of Vcmax                            (oC)
+        jmax     = 19.89,         #  temperature optimum of Jmax                             (oC)
+        tpu      = 27.56          #  temperature optimum of TPU                              (oC)
+      ),
+      deltaS = list(
+        rd     = numeric(1),      # 
+        vcmax  = numeric(1),      # 
+        jmax   = numeric(1),      #
+        tpu    = numeric(1)       #
+      ),
+      a_deltaS_t = list(
+        rd     = 490,             # linear temperature response of rd deltaS   
+        vcmax  = 668,             # linear temperature response of vcmax deltaS (Kattge & Knorr)  
+        jmax   = 660,             # linear temperature response of jmax  deltaS (Kattge & Knorr)
+        tpu    = 485              # linear temperature response of tpu   deltaS (Kattge & Knorr)
+      ),
+      b_deltaS_t = list(
+        rd     = 0,               # linear temperature response of rd deltaS
+        vcmax  = -1.07,           # linear temperature response of vcmax deltaS (Kattge & Knorr)
+        jmax   = -0.75,           # linear temperature response of jmax deltaS (Kattge & Knorr)
+        tpu    = 0                # linear temperature response of tpu deltaS (Kattge & Knorr)
+      ),
+      q10 = list(
+        rd        = 2,            # Q10 of Rd                                               (-)
+        vcmax     = 2,            # Q10 of Vcmax                                            (-)
+        jmax      = 2,            # Q10 of Jmax                                             (-)
+        tpu       = 2,            # Q10 of TPU                                              (-)
+        Kc        = 2,            # Q10 of Kc                                               (-)
+        Ko        = 2,            # Q10 of Ko                                               (-)
+        tau       = 0.57          # Q10 of tau                                              (-)
+      ),
+      a_q10_t = list(
+        rd    = 3.22              # linear temperature response of rd Q10 (Tjoelker etal 2001)
+      ),
+      b_q10_t = list(
+        rd    = -0.046            # linear temperature response of rd Q10 (Tjoelker etal 2001)
+      ),
+      tupp_cox = list(
+        vcmax= 36,                # upper leaf T for Vcmax temp scaling from Cox 2001       (oC)
+        rd   = 45                 # upper leaf T for rd temp scaling from Cox 2001 (LM3)    (oC)
+      ),
+      tlow_cox = list(
+        vcmax= 0,                 # lower leaf T for Vcmax temp scaling from Cox 2001       (oC)
+        rd   = 5                  # lower leaf T for rd temp scaling from Cox 2001          (oC)
+      ),
+      exp_cox = list(
+        vcmax = 0.3,              # exponent for Vcmax temp scaling from Cox 2001           (-)
+        rd    = 0.4               # exponent for rd temp scaling from Cox 2001              (-)
+      ),
       gstar_bf_a    = 0.012,      # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_bf_b    = 1.68,       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
       gstar_bf_c    = 42.7,       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
@@ -362,21 +398,65 @@ leaf_object <-
     ###########################################################################
     # configure & run_met functions
 
-    configure <- function(., vlist, df, prefix ) { 
-      modobj <- .$name
-      dfss   <- which(prefix==modobj)
-      vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
+    configure <- function(., vlist, df, o=T ) {
+      # This function is called from any of the run functions, or during model initialisation
+      # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df 
 
-      # catch NAs in vlss 
+      # split variable names at . 
+      listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
+
+      modobj <- .$name
+      # df subscripts for model object
+      moss   <- which(listnames[1,]==modobj)
+      # df subscripts for model object sublist variables (slmoss) and model object numeric variables (vlmoss) 
+      slss   <- which(listnames[3,moss]!='') 
+      if(length(slss)>0) {
+        slmoss <- moss[slss] 
+        vlmoss <- moss[-slss] 
+      } else {
+        slmoss <- NULL 
+        vlmoss <- moss 
+      }
+      # variable list subscripts for numeric variables 
+      vlss   <- match(listnames[2,vlmoss], names(.[[vlist]]) )
+
+      # catch NAs in vlss
+      # allows variables to be passed that belong to different lists, e.g. state and env when run_leaf is called by the canopy   
       if(any(is.na(vlss))) {
-        dfss <- dfss[-which(is.na(vlss))]
-        vlss <- vlss[-which(is.na(vlss))]
+        vlmoss <- vlmoss[-which(is.na(vlss))]
+        vlss   <- vlss[-which(is.na(vlss))]
+      }
+
+      # print configure setup if requested
+      if(.$cpars$cverbose&o) {
+        print('', quote=F )
+        print('Leaf configure:', quote=F )
+        print(df, quote=F )
+        print(listnames, quote=F )
+        print(moss, quote=F )
+        print(slmoss, quote=F )
+        print(vlmoss, quote=F )
+        print(vlss, quote=F )
+        print(which(is.na(vlss)), quote=F )
+        print(.[[vlist]], quote=F )
       }
 
       # assign UQ variables
-      .[[vlist]][vlss] <- df[dfss]
+      if(length(slss)>0) vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
+      else               .[[vlist]][vlss] <- df[vlmoss]
+    
     }
  
+    
+    # configure a list variable 
+    configure_sublist <- function(., ss, vlist, df ) {
+      lnames <- strsplit(names(df)[ss], '.', fixed=T )
+      ss1    <- which(names(.[[vlist]])==lnames[[1]][2])
+      ss2    <- which(names(.[[vlist]][[ss1]])==lnames[[1]][3])
+      .[[vlist]][[ss1]][ss2] <- df[ss] 
+      return(1) 
+    } 
+
     
     run_met <- function(.,l) {
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe
@@ -388,8 +468,8 @@ leaf_object <-
       # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
      
       # met data assignment
-      .$configure(vlist='env', df=.$dataf$met[l,],
-                  prefix=vapply( strsplit(names(.$dataf$met[l,]), '.', fixed=T ), function(cv) cv[1], 'character' ))
+      .$configure(vlist='env', df=.$dataf$met[l,] )
+     
       # run model
       .$run()              
     }
@@ -463,8 +543,8 @@ leaf_object <-
     }
     
         
-    .test_tscalar <- function(.,leaf.temp=0:50,leaf.par=c(1000),leaf.ca_conc=400,rs='f_rs_medlyn2011',
-                              tcor_asc='f_temp_scalar_Arrhenius',tcor_des='f_scalar_none', 
+    .test_tscalar <- function(., leaf.temp=0:50, leaf.par=c(1000), leaf.ca_conc=400, rs='f_rs_medlyn2011',
+                              tcor_asc='f_tcor_asc_Arrhenius', tcor_des='f_scalar_none', Ha=70000, 
                               verbose=F,verbose_loop=F) {
       
       .$cpars$verbose       <- verbose
@@ -473,8 +553,9 @@ leaf_object <-
       
       if(verbose) str(.)
       
-      .$fnames$vcmax_tcor_asc  <- tcor_asc
-      .$fnames$vcmax_tcor_des  <- tcor_des
+      .$fnames$tcor_asc[['vcmax']]  <- tcor_asc
+      .$fnames$tcor_des[['vcmax']]  <- tcor_des
+      .$pars$Ha$vcmax      <- Ha
       .$fnames$ri          <- 'f_r_zero'
       .$fnames$rs          <- rs
       .$fnames$solver_func <- 'f_A_r_leaf'
@@ -484,8 +565,7 @@ leaf_object <-
       .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par','leaf.temp')))      
       .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
       
-      print(cbind(.$dataf$met,.$dataf$out))
-      p1 <- xyplot(I(unlist(vcmaxlt)/unlist(vcmax))~leaf.temp|as.factor(paste(tcor_asc,tcor_des)),.$dataf$out,abline=list(h=c(0,1),v=.$pars$reftemp.vcmax),
+      p1 <- xyplot(I(vcmaxlt/vcmax) ~ leaf.temp | as.factor(paste(tcor_asc,tcor_des)), .$dataf$out, abline=list(h=c(0,1), v=.$pars$reftemp[['vcmax']]),
                    ylab=expression('scalar'),xlab=expression(T*' ['^o*C*']'))
       print(p1)
     }

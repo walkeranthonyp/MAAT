@@ -2,22 +2,28 @@
   <leaf>
     <fnames>
       <gstar>'f_gstar_c1991'</gstar>
-      <tau_tcor>'f_temp_scalar_Q10'</tau_tcor>
-      <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
-      <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
       <vcmax>'f_vcmax_constant'</vcmax>
       <tpu>'f_tpu_lin'</tpu>
-      <vcmax_tcor_asc>'f_temp_scalar_Q10'</vcmax_tcor_asc>
-      <vcmax_tcor_des>'f_temp_scalar_cox2001_des'</vcmax_tcor_des>
-      <tpu_tcor_dependence>'f_tpu_tcor_dependent'</tpu_tcor_dependence>
+      <tcor_asc>
+        <vcmax>'f_tcor_asc_Q10'</vcmax>
+        <Kc>'f_tcor_asc_Arrhenius'</Kc>
+        <Ko>'f_tcor_asc_Arrhenius'</Ko>
+        <tau>'f_tcor_asc_Q10'</tau>
+      </tcor_asc>
+      <tcor_des>
+        <vcmax>'f_tcor_des_cox2001'</vcmax>
+      </tcor_des>
+      <tcor_dep>
+        <tpu>'f_tcor_dep_dependent'</tpu>
+        <rd>'f_tcor_dep_dependent'</rd>
+      </tcor_dep>
       <etrans>'f_j_collatz1991'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
       <gas_diff>'f_ficks_ci'</gas_diff>
-      <respiration>'f_rd_lin_vcmax'</respiration>
+      <rd>'f_rd_lin_vcmax'</rd>
       <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
-      <rd_tcor_dependence>'f_rd_tcor_dependent'</rd_tcor_dependence> 
       <q10_func.vcmax>'f_q10_constant'</q10_func.vcmax>          
       <ri>'f_r_zero'</ri>
       <rs>'f_rs_cox1998'</rs>
@@ -39,21 +45,35 @@
       <a_rdv_25>0.0</a_rdv_25>
       <b_rdv_25>0.015</b_rdv_25>
       <rl_rd_ratio>1</rl_rd_ratio>
-      <reftemp.vcmax>25</reftemp.vcmax>
-      <reftemp.Kc>25</reftemp.Kc>
-      <reftemp.Ko>25</reftemp.Ko>
-      <reftemp.tau>25</reftemp.tau>
-      <atref.vcmax>36.8</atref.vcmax>
-      <atref.Kc>30</atref.Kc>
-      <atref.Ko>30</atref.Ko>
-      <atref.tau>2600</atref.tau>
-      <q10.vcmax>2</q10.vcmax>
-      <q10.Kc>2.1</q10.Kc>
-      <q10.Ko>1.2</q10.Ko>
-      <q10.tau>0.57</q10.tau>
-      <tupp_cox.vcmax>36</tupp_cox.vcmax>
-      <tlow_cox.vcmax>0</tlow_cox.vcmax>
-      <exp_cox.vcmax>0.3</exp_cox.vcmax>
+      <reftemp>
+        <rd>25</rd>
+        <vcmax>25</vcmax>
+        <Kc>25</Kc>
+        <Ko>25</Ko>
+        <tau>25</tau>
+      </reftemp>
+      <!-- constants at reference temperature for temperature sensitive parameters -->
+      <atref>
+        <vcmax>36.8</vcmax>
+        <Kc>30</Kc>
+        <Ko>30</Ko>
+        <tau>2600</tau>
+      </atref>
+      <q10>
+        <vcmax>2</vcmax>
+        <Kc>2.1</Kc>
+        <Ko>1.2</Ko>
+        <tau>0.57</tau>
+      </q10>
+      <tupp_cox>
+        <vcmax>36</vcmax>
+      </tupp_cox>
+      <tlow_cox>
+        <vcmax>0</vcmax>
+      </tlow_cox>
+      <exp_cox>
+        <vcmax>0.3</vcmax>
+      </exp_cox>
       <R>8.31446</R>
     </pars>
     <env>

@@ -4,32 +4,40 @@
       <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
       f_gstar_constref will get a specified value at 25 and scale according to gstar_tcor, f_gstar_c1991 calculates from tau the CO2:O2 specificity ratio -->
       <gstar>'f_gstar_constref'</gstar>
-      <!-- temperature scaling of gamma star, only used if <gstar> is set to 'f_gstar_constref' -->
-      <gstar_tcor>'f_temp_scalar_Arrhenius'</gstar_tcor>
-      <!-- temperature scaling of Kc -->
-      <Kc_tcor>'f_temp_scalar_Arrhenius'</Kc_tcor>
-      <!-- temperature scaling of Ko -->
-      <Ko_tcor>'f_temp_scalar_Arrhenius'</Ko_tcor>
       <!-- calculate Vcmax at <reftemp.vcmax> -->
       <vcmax>'f_vcmax_constant'</vcmax>
       <!-- calculate Jmax at <reftemp.jmax>, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
       <jmax>'f_jmax_lin'</jmax>
       <!-- calculate TPU at <reftemp.tpu>, f(Vcmax) -->
       <tpu>'f_tpu_lin'</tpu>
-      <!-- increasing component of temperature scaling of Vcmax and Jmax -->
-      <vcmax_tcor_asc>'f_temp_scalar_Arrhenius'</vcmax_tcor_asc>
-      <jmax_tcor_asc>'f_temp_scalar_Arrhenius'</jmax_tcor_asc>
-      <!-- decreasing component of temperature scaling of Vcmax and Jmax -->
-      <vcmax_tcor_des>'f_temp_scalar_modArrhenius_des'</vcmax_tcor_des>
-      <jmax_tcor_des>'f_temp_scalar_modArrhenius_des'</jmax_tcor_des>
-      <!-- dependence of TPU temperature scaling on Vcmax -->
-      <tpu_tcor_dependence>'f_tpu_tcor_independent'</tpu_tcor_dependence>
-      <!-- increasing component of temperature scaling of TPU, if independent of Vcmax -->
-      <tpu_tcor_asc>'f_temp_scalar_Arrhenius'</tpu_tcor_asc>
-      <!-- decreasing component of temperature scaling of TPU, if independent of Vcmax -->
-      <tpu_tcor_des>'f_temp_scalar_modArrhenius_des'</tpu_tcor_des>
+      <!-- increasing component of temperature scaling for biochemical rates -->
+      <tcor_asc>
+        <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
+        <jmax>'f_tcor_asc_Arrhenius'</jmax>
+        <tpu>'f_tcor_asc_Arrhenius'</tpu>
+        <gstar>'f_tcor_asc_Arrhenius'</gstar>
+        <Kc>'f_tcor_asc_Arrhenius'</Kc>
+        <Ko>'f_tcor_asc_Arrhenius'</Ko>
+        <rd>'f_tcor_asc_Q10'</rd>
+      </tcor_asc>
+      <!-- decreasing component of temperature scaling for biopchemical rates -->
+      <tcor_des>
+        <vcmax>'f_tcor_des_modArrhenius'</vcmax>
+        <jmax>'f_tcor_des_modArrhenius'</jmax>
+        <tpu>'f_tcor_des_modArrhenius'</tpu>
+        <rd>'f_tcor_des_cox2001'</rd>
+      </tcor_des>
+      <!-- dependence of TPU & Rd temperature scaling on Vcmax -->
+      <tcor_dep>
+        <tpu>'f_tcor_dep_independent'</tpu>
+        <rd>'f_tcor_dep_independent'</rd>
+      </tcor_dep>
       <!-- function to determine delta S (entropy term) for rd, vcmax, & jmax; can be used for temperature acclimation -->
-      <deltaS>'f_deltaS_constant'</deltaS>
+      <deltaS>
+        <vcmax>'f_deltaS_constant'</vcmax>
+        <jmax>'f_deltaS_constant'</jmax>
+        <tpu>'f_deltaS_constant'</tpu>
+      </deltaS>
       <!-- electron transport -->
       <etrans>'f_j_farquharwong1984'</etrans>
       <!-- RuBP saturated gross carboxylation rate -->
@@ -41,17 +49,9 @@
       <!-- gas diffusion function, Fick's law; can apply a zero bound as gs solution can be negative at low ci -->
       <gas_diff>'f_ficks_ci'</gas_diff>
       <!-- calculate Rd at <reftemp.rd>, f(Vcmax), f(N), -->
-      <respiration>'f_rd_lin_N'</respiration>
+      <rd>'f_rd_lin_N'</rd>
       <!-- scaling of Rd in the dark to rd in the light, default is fixed ratio with ratio set to 1 -->
       <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
-      <!-- is temperature scaling of Rd the same as that of Vcmax or not -->
-      <rd_tcor_dependence>'f_rd_tcor_independent'</rd_tcor_dependence> 
-      <!-- increasing component of temperature scaling of Rd, if independent of Vcmax 
-      'f_temp_scalar_bethy' is a complete curve with ascending and decending components, 
-      if using 'f_temp_scalar_bethy' user must set the descending component to 'f_scalar_none' -->
-      <rd_tcor_asc>'f_temp_scalar_Q10'</rd_tcor_asc>
-      <!-- decreasing component of temperature scaling of Rd, if independent of Vcmax -->
-      <rd_tcor_des>'f_temp_scalar_cox2001_des'</rd_tcor_des>
       <!-- internal resistance to CO2 transport -->
       <ri>'f_r_zero'</ri>
       <!-- stomatal resistance to H2O & CO2 transport, constant CiCa is implicit in LPJ and Cox 1998 does something similar for JULES -->
@@ -111,40 +111,58 @@
       <a_rdv_25_t>0.015</a_rdv_25_t>
       <b_rdv_25_t>-0.0005</b_rdv_25_t>
       <!-- reference temperatures for temperature sensitive parameters -->
-      <reftemp.rd>25</reftemp.rd>
-      <reftemp.vcmax>25</reftemp.vcmax>
-      <reftemp.jmax>25</reftemp.jmax>
-      <reftemp.tpu>25</reftemp.tpu>
-      <reftemp.Kc>25</reftemp.Kc>
-      <reftemp.Ko>25</reftemp.Ko>
-      <reftemp.gstar>25</reftemp.gstar>
+      <reftemp>
+        <rd>25</rd>
+        <vcmax>25</vcmax>
+        <jmax>25</jmax>
+        <tpu>25</tpu>
+        <Kc>25</Kc>
+        <Ko>25</Ko>
+        <gstar>25</gstar>
+      </reftemp>
       <!-- constants at reference temperature for temperature sensitive parameters -->
-      <atref.rd>0.716</atref.rd>
-      <atref.vcmax>50</atref.vcmax>
-      <atref.Kc>40.49</atref.Kc>
-      <atref.Ko>27.84</atref.Ko>
-      <atref.gstar>4.275</atref.gstar>
+      <atref>
+        <rd>0.716</rd>
+        <vcmax>50</vcmax>
+        <Kc>40.49</Kc>
+        <Ko>27.84</Ko>
+        <gstar>4.275</gstar>
+      </atref>
       <!-- activation energy for temperature sensitive parameters -->
-      <Ha.vcmax>65330</Ha.vcmax>
-      <Ha.jmax>43540</Ha.jmax>
-      <Ha.tpu>531000</Ha.tpu>
-      <Ha.Kc>79430</Ha.Kc>
-      <Ha.Ko>36380</Ha.Ko>
-      <Ha.gstar>37830</Ha.gstar>
+      <Ha>
+        <vcmax>65330</vcmax>
+        <jmax>43540</jmax>
+        <tpu>53100</tpu>
+        <Kc>79430</Kc>
+        <Ko>36380</Ko>
+        <gstar>37830</gstar>
+      </Ha>
       <!-- Q10 for temperature sensitive parameters -->
-      <q10.rd>2</q10.rd>
+      <q10>
+        <rd>2<rd>
+      </q10>
       <!-- deactivation energy for temperature sensitive parameters -->
-      <Hd.vcmax>149250</Hd.vcmax>
-      <Hd.jmax>152040</Hd.jmax>
-      <Hd.tpu>150650</Hd.tpu>
+      <Hd>
+        <vcmax>149250</vcmax>
+        <jmax>152040</jmax>
+        <tpu>150650</tpu>
+      </Hd>
       <!-- delta S for temperature sensitive parameters -->
-      <deltaS.vcmax>485</deltaS.vcmax>
-      <deltaS.jmax>495</deltaS.jmax>
-      <deltaS.tpu>490</deltaS.tpu>
+      <deltaS>
+        <vcmax>485</vcmax>
+        <jmax>495</jmax>
+        <tpu>490</tpu>
+      </deltaS>
       <!-- upper and lower temperatures for Cox temperature scaling for temperature sensitive parameters -->
-      <tupp_cox.rd>55</tupp_cox.rd>
-      <exp_cox.rd>1.3</exp_cox.rd>
-      <tlow_cox.rd>-1e10</tlow_cox.rd>
+      <tupp_cox>
+        <rd>55</rd>
+      </tupp_cox>
+      <tlow_cox>
+        <rd>1.3</rd>
+      </tlow_cox>
+      <exp_cox>
+        <rd>-1e10</rd>
+      </exp_cox>
       <!-- universal gas constant -->
       <R>8.31446</R>
     </pars>

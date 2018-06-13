@@ -249,16 +249,25 @@ if(xml) {
 init_s <- if(exists('init_static')) fuselists(init_default,init_static) else init_default
 
 # check process representation functions specified in input exist 
+search_fnames <-  function(v, ln ) {
+  for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop(paste('The function: ',c1,' , specified in init', ln ,'does not exist')) else 'exists'
+} 
 print('',quote=F)
 print('Check static fnames requested exist:',quote=F)
-out <- lapply(init_s, function(l) lapply( l$fnames,        
-                      function(c1) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init static does not exist') else 'exists' ))
+out <- lapply(init_s, 
+              function(l) lapply( l$fnames, 
+                                 function(l) if(is.list(l)) lapply(l, search_fnames, ln='static') else search_fnames(l, ln='static' )
+                                 ))         
+                      #function(c1) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init static does not exist') else 'exists' ))
 print('  all static fnames requested exist',quote=F)
 
 print('',quote=F)
 print('Check dynamic fnames requested exist:',quote=F)
-out <- lapply(init_dynamic, function(l) lapply( l$fnames,
-                            function(v) for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init dynamic does not exist') else return('exists') ))
+out <- lapply(init_dynamic, 
+              function(l) lapply(l$fnames,
+                                 function(l) if(is.list(l)) lapply(l, search_fnames, ln='dynamic') else search_fnames(l, ln='dynamic' )
+                                 ))
+                            #function(v) for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init dynamic does not exist') else return('exists') ))
 print('  all dynamic fnames requested exist',quote=F)
 
 # add init lists to wrapper
@@ -267,7 +276,7 @@ maat$init_dynamic <- init_dynamic
 
 # output static parameters used in simulation
 print('',quote=F)
-print('Write record of static run variables',quote=F)
+print('Write record of static run variables:',quote=F)
 setwd(odir)
 listtoXML(paste(runid,'setup_static.xml',sep='_'),  'static',  sublist=init_s)
 listtoXML(paste(runid,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
