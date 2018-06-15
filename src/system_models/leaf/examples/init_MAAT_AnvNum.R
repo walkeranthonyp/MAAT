@@ -48,22 +48,26 @@
 # define lists
 fnames.static <- list(
   gstar           = 'f_gstar_constref',
-  gstar_tcor      = 'f_scalar_none',
-  Kc_tcor         = 'f_scalar_none',
-  Ko_tcor         = 'f_scalar_none',
+  tcor_asc = list(
+  	  gstar = 'f_scalar_none',
+  	  Kc    = 'f_scalar_none',
+  	  Ko    = 'f_scalar_none',
+  	  vcmax	= 'f_scalar_none',
+  	  jmax  = 'f_scalar_none'
+  ),
+    tcor_des = list(
+    vcmax  = 'f_scalar_none',
+  	jmax   = 'f_scalar_none'
+  ),
   vcmax           = 'f_vcmax_constant',
   jmax            = 'f_jmax_power',
-  vcmax_tcor_asc  = 'f_scalar_none',
-  jmax_tcor_asc   = 'f_scalar_none',
-  vcmax_tcor_des  = 'f_scalar_none',
-  jmax_tcor_des   = 'f_scalar_none',
-  respiration     = 'f_rd_lin_vcmax', 
+  rd 		      = 'f_rd_lin_vcmax', 
   ri              = 'f_r_zero',
   rb              = 'f_r_zero'
 )
 
 pars.static <- list(
-  atref.vcmax  = 50,
+  atref = list(vcmax = 50),
   g1_medlyn    = 3,          # Medlyn 2011 gs slope                                   (kPa^0.5)
   g1_leuning   = 6,          # Leuning 1995 gs slope                                  (unitless - likely higher than medlyn and ball g1)
   d0           = 1,          # Leuning 1995 D0                                        (kPa)

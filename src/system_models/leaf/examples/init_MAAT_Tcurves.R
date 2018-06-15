@@ -49,22 +49,26 @@
 fnames.static <- list(
   solver          = 'f_A_r_leaf_analytical',
   gstar           = 'f_scalar_none',
-  Kc_tcor         = 'f_scalar_none',
-  Ko_tcor         = 'f_scalar_none',
+  tcor_asc = list(
+  	Kc         = 'f_scalar_none',
+  	Ko 		   = 'f_scalar_none',
+  	vcmax  	   = 'f_scalar_none',
+  	jmax   	   = 'f_scalar_none'
+  ),
+    tcor_des = list(
+  	vcmax  = 'f_scalar_none',
+  	jmax   = 'f_scalar_none'
+  ),
   vcmax           = 'f_vcmax_constant',
   jmax            = 'f_jmax_lin',
-  vcmax_tcor_asc  = 'f_scalar_none',
-  jmax_tcor_asc   = 'f_scalar_none',
-  vcmax_tcor_des  = 'f_scalar_none',
-  jmax_tcor_des   = 'f_scalar_none',
-  respiration     = 'f_rd_lin_vcmax', 
+  rd     		  = 'f_rd_lin_vcmax', 
   ri              = 'f_r_zero',
   rb              = 'f_r_zero',
   rs              = 'f_rs_medlyn2011'
 )
 
 pars.static <- list(
-  atref.vcmax  = 50,
+  atref = list(vcmax  = 50),
   diag         = T
   )
 
@@ -83,8 +87,8 @@ env.static  <- list(
 
 # define lists
 fnames.var <- list(
-  vcmax_tcor_asc  = c('f_scalar_none','f_temp_scalar_Q10','f_temp_scalar_Arrhenius'),
-  vcmax_tcor_des  = c('f_scalar_none','f_temp_scalar_modArrhenius_des','f_temp_scalar_collatz1991_des','f_temp_scalar_cox2001_des')
+  vcmax_tcor_asc  = c('f_scalar_none','f_tcor_asc_Q10','f_tcor_asc_Arrhenius'),
+  vcmax_tcor_des  = c('f_scalar_none','f_tcor_des_modArrhenius','f_tcor_des_collatz1991','f_tcor_des_cox2001')
 )
 
 pars.var      <- list(
