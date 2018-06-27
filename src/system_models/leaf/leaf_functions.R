@@ -54,8 +54,7 @@ f_A_r_leaf <- function(., A ) {
   # assumes mesophyll resistance is in co2 units
   .$state$cc <- get(.$fnames$gas_diff)( . , A , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=A,c=get(.$fnames$gas_diff)(.,A)) + .$state_pars$ri ) )
   
-  #print(.$state$cc)
-  #print(f_assimilation(.))
+  #print(c(A,f_assimilation(.)))
   
   # calculate residual of net A
   f_assimilation(.) - A
@@ -228,16 +227,15 @@ transition_cc <- function(.) {
 
 
 # Carboxylation limitation
-f_Acg_farquhar1980 <- function(.,cc=.$state$cc){   
+f_Acg_farquhar1980 <- function(., cc=.$state$cc ) {   
   # Farquhar 1980 eq to calculate RuBisCO limited photosynthetic rate
   # umol m-2 s-1
-  # Wc<-(Vcmax*(Ci-Gamma))/(Ci+Kc*(1+(O/Ko)))
   
   # dvars
   # Ci (or Cc but vcmax needs adjusting)   
   
   # params
-  # Vcmax maximum carboxylation rate of RuBisCO  (umol m-2 s-1
+  # Vcmax maximum carboxylation rate of RuBisCO  (umol m-2 s-1)
   # Ko Michaelis constant for O2 mbar            (kPa)
   # Kc Michaelis constant for CO2                ( Pa) 
   
@@ -250,7 +248,7 @@ f_Acg_farquhar1980 <- function(.,cc=.$state$cc){
 }
 
 # electron transport limitation
-f_Ajg_generic <- function(.,cc=.$state$cc){
+f_Ajg_generic <- function(., cc=.$state$cc ) { 
   # generic eq to calculate light limited photosynthetic rate 
   # currently no other formulation exists (other than slighly different parameters in the denominator)
   # umol m-2 s-1
@@ -268,14 +266,14 @@ f_j_farquhar1980 <- function(.){
 }
 
 # Harley etal 1992 eq to calculate electron transport rate
-f_j_harley1992 <- function(.){
+f_j_harley1992 <- function(.) {
   # umol e m-2 s-1
   harley_alpha <- .$pars$a * .$state_pars$alpha
   harley_alpha*.$env$par / ( 1.0 + (harley_alpha**2)*(.$env$par**2) / (.$state_pars$jmaxlt**2) )**0.5  
 }
 
 # von Caemmerer 2000 book and taken from Farquhar & Wong 1984
-f_j_farquharwong1984 <- function(.){
+f_j_farquharwong1984 <- function(.) {
   # calculates J given Jmax, I - irradiance & alpha - electrons transported per photon
   
   # in von Caemmerer 2000 - I2 = I * a*(1-f)/2
@@ -292,7 +290,7 @@ f_j_farquharwong1984 <- function(.){
 }
 
 # Collatz etal 1991 eq to calculate electron transport rate
-f_j_collatz1991 <- function(.){
+f_j_collatz1991 <- function(.) {
   # umol e m-2 s-1
   
   .$pars$a * .$state_pars$alpha * .$env$par  
@@ -301,7 +299,7 @@ f_j_collatz1991 <- function(.){
 
 # TPU limitation
 # triose phosphate limitation from vonCaemmerer 2000 as corrected in Gu 2010
-f_Apg_vonc2000 <- function(.,cc=.$state$cc){
+f_Apg_vonc2000 <- function(., cc=.$state$cc ) {
   # this is derived from Harley & Sharkey 1991
   # the difference is that Harley & Sharkey iteratively solved to find tpu, while here tpu is set independently
   
@@ -316,23 +314,23 @@ f_Apg_vonc2000 <- function(.,cc=.$state$cc){
 }
 
 # triose phosphate limitation from Foley 1996, citing Harley & Sharkey 1991
-f_Apg_foley1996 <- function(.,cc=.$state$cc){
+f_Apg_foley1996 <- function(., cc=.$state$cc ) {
   # its not clear to me how they derive this from Harley and Sharkey
   # Eq 5 from Foley 1996: Js = 3 * tpu * (1 - gstar/cc) + Jp * gstar / cc
   # where Jp is the limiting rate of wc or wj
   
   if( cc <= .$state_pars$gstar ) NA
   else {
-    # calculate limiting cycle of wc and wj
+    # calculate limiting cycle of Acg and Ajg
     .$state$Apg <- NA
-    wmin <- get(.$fnames$Alim)(.) 
+    amin <- get(.$fnames$Alim)(.) 
 
-    (3*.$state_pars$tpult + wmin) / cc
+    (3*.$state_pars$tpult + amin) / cc
   }
 }
 
 # no triose phosphate limitation
-f_Apg_none <- function(.){
+f_Apg_none <- function(.) {
   # returns a high value so that TPU is never limiting
   
   9e3
@@ -341,13 +339,13 @@ f_Apg_none <- function(.){
 
 # limiting rate selection 
 # simple minimum of all three possible limitating states
-f_lim_farquhar1980 <- function(.){
+f_lim_farquhar1980 <- function(.) {
   
   min(c(.$state$Acg,.$state$Ajg,.$state$Apg),na.rm=T)
 }
 
 # smoothed solution of all three possible limiting states
-f_lim_collatz1991 <- function(.){
+f_lim_collatz1991 <- function(.) {
 
   a  <- .$pars$theta_col_cj
   b  <- -1 * (.$state$Acg + .$state$Ajg)
@@ -525,7 +523,7 @@ f_rs_medlyn2011_fe <- function(.) {
 
 f_rs_medlyn2011_r0 <- function(.) {
   # g0 component of rs from Medlyn 2011   
-  1 / .$pars$g0
+  1 / max(.$pars$g0,1e-6)
 }
 
 
@@ -544,7 +542,7 @@ f_rs_leuning1995_fe <- function(., c=.$state$cb ) {
 
 f_rs_leuning1995_r0 <- function(.) {
   # g0 component of rs from Leuning 1995   
-  1 / .$pars$g0
+  1 / max(.$pars$g0,1e-6)
 }
 
 
@@ -563,7 +561,7 @@ f_rs_ball1987_fe <- function(.) {
 
 f_rs_ball1987_r0 <- function(.) {
   # g0 component of rs from Ball 1987   
-  1 / .$pars$g0
+  1 / max(.$pars$g0,1e-6)
 }
 
 
@@ -638,7 +636,7 @@ f_rs_yin2009_fe <- function(.) {
 
 f_rs_yin2009_r0 <- function(.) {
   # This function is designed to avoid the problem of negative rs when A is negative, could just call the native function
-  1 / .$pars$g0 
+  1 / max(.$pars$g0,1e-6)
 }
 
 
@@ -712,7 +710,7 @@ f_tcor_dep_independent <- function(., var ) {
   get(.$fnames$tcor_asc[[var]])(., var=var ) * get(.$fnames$tcor_des[[var]])(., var=var )
 }
 
-# temperature dependence functions that cannot be separtaed into ascending and decending components
+# temperature dependence functions that cannot be separated into ascending and decending components
 f_tcor_asc_bethy <- function(., var, ... ) { 
   #tcor_des <- .$fnames$tcor_des[[var]]
   if(.$fnames$tcor_des[[var]]!='f_scalar_none') print('Warning: temp scaling will not work correctly, f_tcor_asc_bethy specified with a descending temperature scaling other than f_scalar_none')

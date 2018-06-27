@@ -15,6 +15,8 @@ source('../environment_functions.R')
 # based on Farquhar et al. 1980 
 f_leafsys_enzymek <- function(.) {
 
+   print('leafsys')
+
   # calculate environmental state
   # CO2 partial pressure (Pa)
   .$state$ca <- .$env$ca_conc * .$env$atm_press * 1e-6
@@ -58,7 +60,7 @@ f_leafsys_enzymek <- function(.) {
   .$state$J <- get(.$fnames$etrans)(.)
   # respiration
   .$state$rd  <- .$state_pars$rd * get(.$fnames$tcor_dep[['rd']])(.)
-  
+ 
   # if PAR > 0
   if(.$env$par > 0) {
     # run photosynthesis
@@ -71,7 +73,7 @@ f_leafsys_enzymek <- function(.) {
       .$state$A_noR      <- f_A_r_leaf_noR(.)
       .$state$transition <- transition_cc(.)
     }
-  
+    
     # calculate assimilation 
     .$state$A       <- get(.$fnames$solver)(.)      
     # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
@@ -108,6 +110,9 @@ f_leafsys_enzymek <- function(.) {
         #.$fnames$solver_func <- solver 
         .$fnames$solver <- solver 
     }}
+
+    #print(.$leaf$fnames)
+    #print(.$leaf$state_pars)
  
   }
  

@@ -28,7 +28,7 @@
 
 ###################################################################
 
-rm(list=ls())
+#rm(list=ls())
 
 # any one of the below objects to line 116 can be specified as a single string command line argument to this script 
 # the sub-arguments in the string (separated by a space) are interpreted individually as R code.
