@@ -37,7 +37,7 @@ canopy_object <-
       init_default <- readXML(paste(.$name,'default.xml',sep='_'))
      
       # read model mimic setup
-      if(!is.null(mod_mimic)) {
+      if(!is.null(mod_mimic)&F) {
         setwd('mimic_xmls')
         init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
         init_default <- fuselists(init_default,init_mimic)

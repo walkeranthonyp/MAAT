@@ -15,8 +15,6 @@ source('../environment_functions.R')
 # based on Farquhar et al. 1980 
 f_leafsys_enzymek <- function(.) {
 
-   print('leafsys')
-
   # calculate environmental state
   # CO2 partial pressure (Pa)
   .$state$ca <- .$env$ca_conc * .$env$atm_press * 1e-6
