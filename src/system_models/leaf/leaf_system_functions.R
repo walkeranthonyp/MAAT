@@ -32,7 +32,7 @@ f_leafsys_enzymek <- function(.) {
   .$state_pars$tpu     <- get(.$fnames$tpu)(.)
   .$state_pars$rd      <- get(.$fnames$rd)(.)
   .$state_pars$alpha   <- 0.5 * (1-.$pars$f)
-  
+
   # kinetic pars & temperature dependence
   # - if the solver involves the energy balance all of this needs to go in the solver
   .$state_pars$Kc      <- .$pars$atref[['Kc']] * get(.$fnames$tcor_asc[['Kc']])(., var='Kc' )

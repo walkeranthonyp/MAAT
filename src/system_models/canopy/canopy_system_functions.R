@@ -85,6 +85,9 @@ f_cansys_2bigleaf <- function(.) {
 # Multilayer canopy scaling
 ###############################
 f_cansys_multilayer <- function(.) {
+
+  #:q
+.$cpars$verbose <- T
  
   # initialise layers
   linc           <- .$state$lai / .$pars$layers

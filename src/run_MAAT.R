@@ -176,7 +176,8 @@ source(paste0(mod_object,'.R'))
 
 # clone and build the maat wrapper and model object
 maat         <- as.proto(wrapper_object$as.list()) 
-init_default <- maat$build(model=mod_object)
+#init_default <- maat$build(model=mod_object)
+init_default <- maat$build(model=mod_object, mod_mimic=mod_mimic )
 #print(init_default)
 rm(wrapper_object)
 rm(mod_object)
