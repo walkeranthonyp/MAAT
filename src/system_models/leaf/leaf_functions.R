@@ -19,8 +19,9 @@ f_none <- function(.) {
 
 # Solver to find root of .$fnames$solver_func
 f_R_Brent_solver <- function(.) {
-  if(.$cpars$verbose_loop) print(.$env)  
-  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c((-.$state$rd-0.00765326),50.1234),.=.,extendInt='yes')
+  if(.$cpars$verbose_loop) print(.$env) 
+
+  .$solver_out <- uniroot(get(.$fnames$solver_func),interval=c(-0.002765326,50.1234),.=.,extendInt='downX')
   .$solver_out$root
 }
 
