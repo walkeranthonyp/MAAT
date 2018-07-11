@@ -48,7 +48,7 @@ wrapper_object <-
       
       # Initialise 
       if(!.$wpars$unit_testing) {
-        if(.$wpars$UQtype=='ye')  .$wpars$eval_strings <- T
+        if(.$wpars$UQtype=='ye'|.$wpars$UQtype=='mcmc') .$wpars$eval_strings <- T
         .$init()
       }
 
@@ -100,7 +100,7 @@ wrapper_object <-
           # remove potentially large pars list 
           .$dynamic$pars   <- lapply(.$dynamic$pars, function(e) numeric(1) )        
 
-          # Ye et al process SA method 
+        # Ye et al process SA method 
         } else if(.$wpars$UQtype=='ye') {
           
           # need a minimum of >1 processes
@@ -115,9 +115,27 @@ wrapper_object <-
           
           # check input vars$pars* elements have same names
           # - to be done
+         
+        # if MCMC 
+        if(.$wpars$UQtype=='mcmc') {
           
+          # sample parameters from character string code snippets to generate initial proposal from priors 
+          n <- .$wpars$mcmc_chains
+          .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
+
+          # create pars / proposal matrix 
+          .$dataf$pars  <- do.call(cbind, .$dynamic$pars )
+         
+          # create accepted proposal array 
+          .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
+ 
+          # create accepted proposal likelihood matrix 
+          .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter ) 
+ 
+          # remove initialisation pars list 
+          .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )        
+
         } else {
-          # alternative UQ methods
           stop(paste('wrapper: no method for SA/UQ type',.$wpars$UQtype))
         }
         
@@ -158,13 +176,30 @@ wrapper_object <-
       # call initial run function in the hierarchy of nested run functions
       ################################
       
+      # process UQ run
       if(.$wpars$UQ&.$wpars$UQtype=='ye') {
-        # process UQ run, or either general variable run or matrix A and B of Saltelli method
         # - Ye process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure  
         vapply(1:.$dataf$lf, .$run_general_process_SA, numeric(0) )
         
+      # MCMC run
+      } else if(.$wpars$UQ&.$wpars$UQtype=='mcmc') {
+         
+        # if an MCMC and no met dataset has been specified, stop
+        if(is.null(.$dataf$met)&.$wpars$UQtype=='mcmc') stop('No current method to run MCMC without a met dataset')
+        if(length(.$dataf$mout)!=1)                     stop('No current method to run MCMC with multiple model outputs')
+
+        # initialise output matrix
+        .$dataf$out <- matrix(0, .$dataf$lp, length(.$dataf$met) )
+
+        # call run function
+        if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
+        else                 lapply( 1:.$dataf$lf, .$runf_mcmc )
+       
+        # print summary of results
+        .$print_output()
+         
+      # Saltelli SA matrix AB run or factorial run
       } else {
-        # Saltelli SA matrix AB run, or factorial run
         
         # if a Saltelli SA and a met dataset has been specified, stop
         if(!is.null(.$dataf$met)&.$wpars$UQtype=='saltelli') stop('No current method to run Saltelli SA with a met dataset')
@@ -298,6 +333,99 @@ wrapper_object <-
     }
 
     
+    # for MCMC runs
+    ###########################################################################
+    
+    runf_mcmc <- function(.,i) {
+      # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
+      # assumes that each row of the fnames matrix are independent and non-sequential
+      # call run_mcmc
+
+      # configure function names in the model
+      if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
+      if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
+
+      # evaluate model over initial proposals derived from prior
+      .$dataf$out[]  <- 
+        do.call( 'rbind', {
+            if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
+            else                 lapply(1:.$dataf$lp, .$runp_mcmc )
+        })
+
+      # calculate likelihood of initial proposal
+      .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()   
+
+      # run MCMC 
+      vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
+    }
+    
+    run_mcmc <- function(.,j) {
+      # This wrapper function is called from a vapply function to iterate / steop chains in an MCMC
+      # runs in serial as each step depends on the previous step
+      # call runp_mcmc
+    
+      # generate proposal matrix
+      .$dataf$pars[] <- .$gen_proposal_demc()   
+    
+      # evaluate model for proposal on each chain
+      .$dataf$out[]  <- 
+        do.call( 'rbind', {
+            if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F  )
+            else                 lapply(1:.$dataf$lp, .$runp_mcmc )
+        })
+    
+      # calculate likelihood of proposals on each chain
+      lklihood <- .$proposal_lklihood()   
+      
+      # accept / reject proposals on each chain 
+      accept <- .$proposal_accept()
+
+      # update accepted proposal array (.$dataf$pars_array) and likelihood matrix (.$dataf$pars_lklihood) 
+      .$dataf$pars_array[,,j+1]   <- if(accept) .$dataf$pars else .$dataf$pars_array[,,j]    
+      .$dataf$pars_lklihood[,j+1] <- if(accept) lklihood     else .$dataf$pars_lklihood[,j]    
+
+      # test for convergence every x iterations
+ 
+      # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function   
+      numeric(0) 
+    }
+ 
+    runp_mcmc <- function(.,k) {
+      # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
+      # runs each chain at each iteration in MCMC
+      # assumes that each row of the pars matrix are independent and non-sequential
+      # call run met
+      
+      # configure parameters in the model
+      if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[k,], F )
+      if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[k,] )
+      
+      # call metdata run function
+      #funv   <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )
+      vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
+    }
+   
+    # generate proposal using DE-MC algorithm  
+    gen_proposal_demc <- function(.) {
+      
+    }   
+ 
+    # calculate proposal likelihood using ...  
+    proposal_lklihood <- function(.) {
+      
+    }   
+ 
+    # calculate proposal acceptance using ...  
+    proposal_accept <- function(.) {
+      
+    }   
+ 
+    # calculate convergence using ...  
+    chain_convergence <- function(.) {
+      
+    }   
+ 
+ 
     # for ABi array for Sobol SA using Saltelli method
     ###########################################################################
     
@@ -631,17 +759,19 @@ wrapper_object <-
     # each element of the list is labelled by the variable name prefixed by the name of the model object that the variable belongs to
     # each of these lists is expanded, often factorially by expand.grid, and placed into the below list of dataframes
     dynamic <- list( 
-      fnames    = NULL,
-      fnamesB   = NULL,
-      pars      = NULL,
+      fnames        = NULL,
+      fnamesB       = NULL,
+      pars          = NULL,
       # list with same elements and names as pars but giving the fnames list name i.e. the process name to which each parameter belongs
-      pars_proc = NULL,
+      pars_proc     = NULL,
       # list with same elements and names as pars but each element is a code snippet as a string that once evaluated gives a vector or parameter values
       # allows different types of distributions to be specified for each parameter
       # this must be used for the Ye SA method
-      pars_eval = NULL,
-      parsB     = NULL,
-      env       = NULL
+      pars_eval     = NULL,
+      pars_lklihood = NULL,
+      pars_array    = NULL,
+      parsB         = NULL,
+      env           = NULL
     )
     
     # input/output matrices and dataframes
@@ -683,6 +813,8 @@ wrapper_object <-
       nmult    = 1,           # parameter sample number multiplier for saltelli method
       eval_strings = F,       # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
       sobol_init   = T,       # initialise sobol sequence or not when calling rsobol. This should not be modified by the user. 
+      mcmc_maxiter = 100,     # MCMC maximum number of iterations / steps in the chain 
+      mcmc_chains  = 10,      # MCMC number of chains 
       unit_testing = F
     )
     
@@ -1422,8 +1554,49 @@ wrapper_object <-
       list(AB=.$output_saltelli_AB(), ABi=.$output_saltelli_ABi() )
     }    
     
-    ###########################################################################
-    # end maat wrapper 
+    # test function for Saltelli method Sobol parametric sensitivity analysis
+    .test_mcmc_mixture <- function(., mc=T, pr=4, mcmc_chains=4 ) {
+      
+      library(lattice)
+      
+      # define control parameters
+      .$model$pars$verbose  <- F      
+      .$model$pars$cverbose <- F      
+      .$wpars$multic       <- mc           # multicore the ensemble
+      .$wpars$procs        <- pr           # number of cores to use if above is true
+      .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
+      .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
+      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
+     
+      # met dataf must be non-NULL
+
+      # model output must be scalar
+ 
+      # define the mixture model
+      .$model <- function(.) {
+        # write mixture model here
+      } 
+
+      # define priors - the mixture model needs to be a proto object with a configure, run, output functions etc ...
+      
+
+      # Run MCMC 
+      st <- system.time(
+        .$run()
+      )
+      print('',quote=F)
+      print('Run time:',quote=F)
+      print(st)
+      print('',quote=F)
+
+      # process & record output
+      # output   
+ 
+    }  
+    
+ 
+###########################################################################
+# end maat wrapper 
 }) 
 
 

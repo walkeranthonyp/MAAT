@@ -75,8 +75,10 @@ uq         <- T
 procSA     <- T
 # Saltelli Sobol SA
 salt       <- T
+# MCMC parameter estimation 
+mcmc       <- F
 
-# parameters for SA/UQ run
+# parameters for SA run
 # ensemble number for an SA/UQ style ensemble, not used if -uq- is false 
 psa_n      <- 10
 # coefficient of variation if used in parameter sampling in process sensitivity analysis
@@ -84,9 +86,17 @@ coef_var   <- 0.1
 # multiplier on process ensemble n for Saltelli ensemble n
 salt_nmult <- 100      
 
+# parameters for MCMC run
+# type of MCMC
+mcmc_type    <- 'demc'
+# number of MCMC chains to run (min 2x number of parameters estimated)
+mcmc_chains  <- 10
+# number of iterations / steps in MCMC chain
+mcmc_maxiter <- 100
+
 # run options
 # meteorological data file name
-metdata    <- NULL 
+metdata      <- NULL 
 
 # pass code snippets as strings to generate parameter samples, see init_MAAT.R and wrapper for use
 eval_strings <- F 
@@ -203,6 +213,8 @@ maat$wpars$UQ            <- uq
 maat$wpars$n             <- psa_n       
 maat$wpars$coef_var      <- coef_var       
 maat$wpars$nmult         <- salt_nmult       
+maat$wpars$mcmc_chains   <- mcmc_chains       
+maat$wpars$mcmc_maxiter  <- mcmc_maxiter       
 maat$wpars$eval_strings  <- eval_strings       
 maat$model$cpars$verbose <- F
 maat$model$cpars$output  <- mod_out
@@ -434,4 +446,28 @@ if(salt&uq) {
   gc()
 }
 
+### run MCMC algorithm parameter estimation if requested
+if(mcmc&uq) {
+  maat$model$pars$verbose  <- F
+  maat$wpars$UQtype <- 'mcmc'
 
+  # run MAAT
+  for(i in 1:5) print('',quote=F)
+  print('Run MCMC',quote=F)
+  st <- system.time(
+    maat$run()
+  )
+
+  for(i in 1:3) print('',quote=F)
+  print('MAAT MCMC runtime:',quote=F)
+  print(st,quote=F)
+
+  maat$clean()
+  print('',quote=F)
+  print('MAAT system memory used for MCMC:',quote=F)
+  gc()
+}
+
+
+
+### END ###
