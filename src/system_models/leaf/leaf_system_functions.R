@@ -32,7 +32,7 @@ f_leafsys_enzymek <- function(.) {
   .$state_pars$tpu     <- get(.$fnames$tpu)(.)
   .$state_pars$rd      <- get(.$fnames$rd)(.)
   .$state_pars$alpha   <- 0.5 * (1-.$pars$f)
-  
+
   # kinetic pars & temperature dependence
   # - if the solver involves the energy balance all of this needs to go in the solver
   .$state_pars$Kc      <- .$pars$atref[['Kc']] * get(.$fnames$tcor_asc[['Kc']])(., var='Kc' )
@@ -58,7 +58,7 @@ f_leafsys_enzymek <- function(.) {
   .$state$J <- get(.$fnames$etrans)(.)
   # respiration
   .$state$rd  <- .$state_pars$rd * get(.$fnames$tcor_dep[['rd']])(.)
-  
+ 
   # if PAR > 0
   if(.$env$par > 0) {
     # run photosynthesis
@@ -71,7 +71,7 @@ f_leafsys_enzymek <- function(.) {
       .$state$A_noR      <- f_A_r_leaf_noR(.)
       .$state$transition <- transition_cc(.)
     }
-  
+    
     # calculate assimilation 
     .$state$A       <- get(.$fnames$solver)(.)      
     # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
@@ -108,6 +108,9 @@ f_leafsys_enzymek <- function(.) {
         #.$fnames$solver_func <- solver 
         .$fnames$solver <- solver 
     }}
+
+    #print(.$leaf$fnames)
+    #print(.$leaf$state_pars)
  
   }
  

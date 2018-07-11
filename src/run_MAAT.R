@@ -28,7 +28,7 @@
 
 ###################################################################
 
-rm(list=ls())
+#rm(list=ls())
 
 # any one of the below objects to line 116 can be specified as a single string command line argument to this script 
 # the sub-arguments in the string (separated by a space) are interpreted individually as R code.
@@ -176,7 +176,8 @@ source(paste0(mod_object,'.R'))
 
 # clone and build the maat wrapper and model object
 maat         <- as.proto(wrapper_object$as.list()) 
-init_default <- maat$build(model=mod_object)
+#init_default <- maat$build(model=mod_object)
+init_default <- maat$build(model=mod_object, mod_mimic=mod_mimic )
 #print(init_default)
 rm(wrapper_object)
 rm(mod_object)

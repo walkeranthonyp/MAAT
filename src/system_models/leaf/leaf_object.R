@@ -38,7 +38,7 @@ leaf_object <-
       # read model mimic setup
       if(!is.null(mod_mimic)) {
         setwd('mimic_xmls')
-        print(mod_mimic)
+        print(paste('Leaf mimic:', mod_mimic ))
         init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
         init_default <- fuselists(init_default,init_mimic)
         setwd('..')
@@ -417,7 +417,7 @@ leaf_object <-
         slmoss <- NULL 
         vlmoss <- moss 
       }
-      # variable list subscripts for numeric variables 
+      # variable list subscripts for non-sublist variable variables 
       vlss   <- match(listnames[2,vlmoss], names(.[[vlist]]) )
 
       # catch NAs in vlss
@@ -442,9 +442,10 @@ leaf_object <-
       }
 
       # assign UQ variables
-      if(length(slss)>0) vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
-      else               .[[vlist]][vlss] <- df[vlmoss]
-    
+      #print(paste('Leaf conf:', vlist, names(df), df ))
+      if(length(slss)>0)   vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
+      if(length(vlmoss)>0) .[[vlist]][vlss] <- df[vlmoss]
+      #print(paste(df[vlmoss],.[[vlist]][vlss])) 
     }
  
     

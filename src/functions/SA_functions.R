@@ -228,22 +228,24 @@ func_sobol_sensitivity <- function(ABout,ABiout) {
   ev <- numeric(k)
   
   for(p in 1:k) {
-    # Calculate the partial variance caused by single parameter
-    # following the equation (c) in Table 2 Saltelli et al. (2010)
+    # Calculate the partial variance for a single parameter
+    # following the equation (c) in Table 2 Saltelli et al. (2010), from Jansen (1999)
     vv[p] <- sum( (ABout[(sn+1):(2*sn)] - ABiout[1:sn,p])^2 )
     
-    # Calculate the partial mean for total effect sensitivity index
-    # following the equation (f) in Table 2 Saltelli et al. (2010)
+    # Calculate the partial mean for a single parameter
+    # following the equation (f) in Table 2 Saltelli et al. (2010), from Jansen (1999)
     ev[p] <- sum( (ABout[1:sn] - ABiout[1:sn,p])^2 )
   }
   
   # calculate the total variance
   v_t <- var(ABout)
   
-  # Complete the equation (c) in Table 2 Saltelli et al. (2010) & calculate first-order sensitivity index
+  # Calculate first-order sensitivity index (Si)
+  # Complete the equation (c) in Table 2 Saltelli et al. (2010), from Jansen (1999)
   si  <- ( v_t - (vv/(2*sn)) ) / v_t
   
-  # Complete the equation (c) in Table 2 Saltelli et al. (2010) & calculate total-effect sensitivity index
+  # Calculate total-effect sensitivity index (STi)
+  # Complete the equation (f) in Table 2 Saltelli et al. (2010), from Jansen (1999)
   st  <- (ev/(2*sn)) / v_t
   
   # name parameter SA vectors

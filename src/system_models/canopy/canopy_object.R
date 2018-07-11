@@ -37,8 +37,9 @@ canopy_object <-
       init_default <- readXML(paste(.$name,'default.xml',sep='_'))
      
       # read model mimic setup
-      if(!is.null(mod_mimic)) {
+      if(!is.null(mod_mimic)&F) {
         setwd('mimic_xmls')
+        print(paste('Canopy mimic:', mod_mimic ))
         init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
         init_default <- fuselists(init_default,init_mimic)
         setwd('..')
@@ -49,7 +50,7 @@ canopy_object <-
       source('leaf_object.R')
       .$leaf     <- as.proto( leaf_object$as.list() )
       rm(leaf_object, pos=1 )
-      init_child <- .$leaf$build()
+      init_child <- .$leaf$build(mod_mimic=mod_mimic)
       .$leaf$cpars$output <- 'all_lim'
       setwd(paste0('../',.$name))
 
@@ -192,7 +193,7 @@ canopy_object <-
       lai     = numeric(1),      # 1.5 for Sphagnum Williams & Flannagan, 1998
       mass_a  = 10,
       C_to_N  = 40,
-      totalN  = numeric(1),
+      totalN  = 7,
       
       # Calculated state
       # canopy layer vectors
@@ -322,11 +323,15 @@ canopy_object <-
     
       # assign UQ variables
       #if(any(prefix==modobj)) .[[vlist]][vlss] <- df[dfss]
-      if(length(slss)>0) vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
-      else               .[[vlist]][vlss] <- df[vlmoss]
+      if(length(slss)>0)   vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
+      if(length(vlmoss)>0) .[[vlist]][vlss] <- df[vlmoss]
 
       # call child (leaf) assign 
-      if(any(listnames[1,]!=modobj)) vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=df[-moss] )     
+      #print(paste('conf:',vlist, names(df), df, length(moss) ))
+      if(any(listnames[1,]!=modobj)) {
+        dfc <- if(length(moss)>0) df[-moss] else df 
+        vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=dfc )
+      }     
       #if(any(prefix!=modobj)) vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=df[-dfss] )     
     }   
 
@@ -342,7 +347,10 @@ canopy_object <-
 
 
     # call a child configure function
-    child_configure <- function(., child, vlist, df ) { .[[child]]$configure(vlist=vlist, df=df ) ; return(1) }
+    child_configure <- function(., child, vlist, df ) { 
+      #print(paste('child conf:',vlist, names(df), df ))
+      .[[child]]$configure(vlist=vlist, df=df ) ; return(1) 
+    }
     
     
     run_met <- function(.,l){
