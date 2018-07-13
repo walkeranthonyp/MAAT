@@ -378,11 +378,11 @@ wrapper_object <-
       lklihood <- .$proposal_lklihood()   
       
       # accept / reject proposals on each chain 
-      accept <- .$proposal_accept(j=j,lklihood)
+      .$proposal_accept(j=j, lklihood )
 
       # update accepted proposal array (.$dataf$pars_array) and likelihood matrix (.$dataf$pars_lklihood) 
-      .$dataf$pars_array[,,j+1]   <- if(accept) .$dataf$pars else .$dataf$pars_array[,,j]    
-      .$dataf$pars_lklihood[,j+1] <- if(accept) lklihood     else .$dataf$pars_lklihood[,j]    
+      #.$dataf$pars_array[,,j+1]   <- if(accept) .$dataf$pars else .$dataf$pars_array[,,j]    
+      #.$dataf$pars_lklihood[,j+1] <- if(accept) lklihood     else .$dataf$pars_lklihood[,j]    
 
       # test for convergence every x iterations
  
@@ -440,33 +440,42 @@ wrapper_object <-
 	# number of measured data points
 	# measurement_num <- 
   	# calculate error residual
-	# error residual matrix = (experimentally measured data) - (data given by evaluating model with proposal matrix)
+	# error residual matrix = .$dataf$out - (experimentally measured data)  
 	# error_residual <- 
 	# sum of squared error
 	# should return vector corresponding to each chain/row in .$dataf$pars matrix
 	# SSR <- sum(abs(error_residual)^2)
  	# lklihood <- -(measurement_num/2)*log(SSR)
+
+        # likelihood for mixture model 
+        log(.$dataf$out)
     }   
  
     # calculate proposal acceptance using the Metropolis ratio  
     proposal_accept <- function(.,j,lklihood) {
 	# perform Metropolis accept/reject step
-	metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
+	metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j])
 	# ???
 	# metrop_ratio <- exp(lklihood - .$dataf$pars_liklihood[ ,j])
 	alpha <- pmin(1,metrop_ratio)
 	for (kk in 1:.$dataf$lp) {
 		# accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
-		if (log(alpha[kk]) > log(runif(1,min=0,max=1))) {
+		#if (log(alpha[kk]) > log(runif(1,min=0,max=1))) 
+		accept <- log(alpha[kk]) > log(runif(1,min=0,max=1)) 
 			# acceptance 
-			# .$dataf$pars[kk, ] stays the same 
-		} else {
-			# rejection
-			# previous proposal vector for given chain is repeated in .$dataf$pars
-			.$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j]
-			# ???
-			# .$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j-1]
-		} 
+			#.$dataf$pars_array[kk,,j+1] <- .$dataf$pars[kk, ] 
+		#} else {
+		#	# rejection
+		#	# previous proposal vector for given chain is repeated in .$dataf$pars
+		#	.$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j]
+		#	# ???
+		#	# .$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j-1]
+		#} 
+
+            .$dataf$pars_array[kk,,j+1]   <- if(accept) .$dataf$pars[kk,] else .$dataf$pars_array[kk,,j]    
+            .$dataf$pars_lklihood[kk,j+1] <- if(accept) lklihood[kk]      else .$dataf$pars_lklihood[kk,j]    
+        }
+
 		# alternatively . . .
 		# if (log(alpha[kk] < log(runif(1,min=0,max=1))) {
 			# acceptance
@@ -479,7 +488,7 @@ wrapper_object <-
 		# }
 	}
 	# do I need to return anything here?
-    }   
+    #}   
  
     # calculate convergence using the R-statistic convergence diagnostic of Gelman and Rubin  
     chain_convergence <- function(.) {
@@ -501,6 +510,9 @@ wrapper_object <-
 		# take mean of elements of Sequences along the first array dimension
 		# return vectors iterated meanSeq[ , ,1:chains]
 		# reshape meanSeq vectors into meanSeq matrices (chains-by-parameters)
+    
+                # might need transpose to get chains by pars
+                meanSeq <- apply(.$pars_array, 1:2, mean )
 	
 		# compute the variance between the means of the chains
 
@@ -1663,7 +1675,7 @@ wrapper_object <-
     }    
     
     # test function for Saltelli method Sobol parametric sensitivity analysis
-    .test_mcmc_mixture <- function(., mc=T, pr=4, mcmc_chains=8, mcmc_maxiter=100 ) {
+    .test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_chains=8, mcmc_maxiter=100 ) {
       
       # source directory
       setwd('system_models/mcmc_test')
@@ -1703,7 +1715,7 @@ wrapper_object <-
       B   <- chol(sig)
       # initialize chains with normal distribution
       priors <- matrix(1, mcmc_chains, 1 ) %*% mu + A  %*% B
-      colnames(priors) <- paste0('proposal', 1:4 )
+      colnames(priors) <- paste0('mcmc_test.proposal', 1:4 )
       .$dataf$pars     <- priors
 
       # Run MCMC 
@@ -1717,7 +1729,7 @@ wrapper_object <-
 
       # process & record output
       # output  
-      hist <- histogram(.$dataf$pars_arry) 
+      hist <- histogram(.$dataf$pars_array) 
       list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, hist=hist ) 
     }  
     

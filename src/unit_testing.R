@@ -82,6 +82,15 @@ wrapper_object$dataf$fnames
 wrapper_object$dataf$pars
 
 
+# MCMC Mixture test
+source('wrapper_object.R')
+out <- wrapper_object$.test_mcmc_mixture(mc=F, pr=6 )
+out[[3]]
+out <- wrapper_object$.test_mcmc_mixture(mc=F, pr=6, mcmc_chains=5, mcmc_maxiter=1000 )
+
+
+
+
 # Canopy
 source('wrapper_object.R')
 out <- wrapper_object$.test_can(mc=F,verbose=F)
