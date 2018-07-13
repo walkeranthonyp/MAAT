@@ -768,8 +768,6 @@ wrapper_object <-
       # allows different types of distributions to be specified for each parameter
       # this must be used for the Ye SA method
       pars_eval     = NULL,
-      pars_lklihood = NULL,
-      pars_array    = NULL,
       parsB         = NULL,
       env           = NULL
     )
@@ -778,43 +776,45 @@ wrapper_object <-
     # with an associated length for input matrices
     dataf  <- list( 
       # variables matrices - created during runtime 
-      fnames  = NULL,
-      fnamesB = NULL,
-      pars    = NULL,
-      parsB   = NULL,
-      env     = NULL,
-      met     = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example 
+      fnames        = NULL,
+      fnamesB       = NULL,
+      pars          = NULL,
+      parsB         = NULL,
+      pars_lklihood = NULL,
+      pars_array    = NULL,
+      env           = NULL,
+      met           = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example 
       # row length of above matrices
-      lf      = NULL,
-      lfA     = NULL,
-      lfB     = NULL,
-      lp      = NULL,
-      lpB     = NULL,
-      le      = NULL,
-      lm      = NULL,
+      lf            = NULL,
+      lfA           = NULL,
+      lfB           = NULL,
+      lp            = NULL,
+      lpB           = NULL,
+      le            = NULL,
+      lm            = NULL,
       # output matrices / arrays
-      mout         = NULL,    # example model output vector, for setting up vapply functions  
-      out          = NULL,    # output matrix
-      out_saltelli = NULL,    # saltelli output list
+      mout          = NULL,         # example model output vector, for setting up vapply functions  
+      out           = NULL,         # output matrix
+      out_saltelli  = NULL,         # saltelli output list
       # observation matrices /dataframes
-      obs     = NULL,         # a dataframe of observations against which to valiadate/ calculate likelihood of model
-      obsse   = NULL          # a dataframe of observation errors for the obs data, must exactly match the above dataframe
+      obs           = NULL,         # a dataframe of observations against which to valiadate/ calculate likelihood of model
+      obsse         = NULL          # a dataframe of observation errors for the obs data, must exactly match the above dataframe
       
     )
     
     # parameters specific to the wrapper object
     wpars <- list(
-      multic   = F,           # multicore the simulation
-      procs    = 6,           # number of processors to use if multic = T
-      cverbose = F,           # write configuration output during runtime 
-      UQ       = F,           # run a UQ analysis
-      UQtype   = 'none',      # SA/UQ type - 'saltelli' and 'ye' available so far
-      n        = numeric(1),  # parameter sample number
-      nmult    = 1,           # parameter sample number multiplier for saltelli method
-      eval_strings = F,       # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
-      sobol_init   = T,       # initialise sobol sequence or not when calling rsobol. This should not be modified by the user. 
-      mcmc_maxiter = 100,     # MCMC maximum number of iterations / steps in the chain 
-      mcmc_chains  = 10,      # MCMC number of chains 
+      multic       = F,           # multicore the simulation
+      procs        = 6,           # number of processors to use if multic = T
+      cverbose     = F,           # write configuration output during runtime 
+      UQ           = F,           # run a UQ analysis
+      UQtype       = 'none',      # SA/UQ type - 'saltelli' and 'ye' available so far
+      n            = numeric(1),  # parameter sample number
+      nmult        = 1,           # parameter sample number multiplier for saltelli method
+      eval_strings = F,           # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
+      sobol_init   = T,           # initialise sobol sequence or not when calling rsobol. This should not be modified by the user. 
+      mcmc_maxiter = 100,         # MCMC maximum number of iterations / steps in the chain 
+      mcmc_chains  = 10,          # MCMC number of chains 
       unit_testing = F
     )
     
@@ -1555,8 +1555,14 @@ wrapper_object <-
     }    
     
     # test function for Saltelli method Sobol parametric sensitivity analysis
-    .test_mcmc_mixture <- function(., mc=T, pr=4, mcmc_chains=4 ) {
+    .test_mcmc_mixture <- function(., mc=T, pr=4, mcmc_chains=8, mcmc_maxiter=100 ) {
       
+      # source directory
+      setwd('system_models/mcmc_test')
+      source('mcmc_test_object.R')
+      # clone & build the model object
+      init_default <- .$build(model='mcmc_test_object')
+      setwd('../..')
       library(lattice)
       
       # define control parameters
@@ -1566,19 +1572,31 @@ wrapper_object <-
       .$wpars$procs        <- pr           # number of cores to use if above is true
       .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
       .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
+      .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
+      .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
       .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
      
       # met dataf must be non-NULL
+      metdummy           <- matrix(1,1,1)
+      colnames(metdummy) <- 'mcmc_test.dummy'
+      .$dataf$met        <- metdummy
 
-      # model output must be scalar
- 
-      # define the mixture model
-      .$model <- function(.) {
-        # write mixture model here
-      } 
-
-      # define priors - the mixture model needs to be a proto object with a configure, run, output functions etc ...
-      
+      # define priors
+      # number of parameters in proposal
+      np  <- 4
+      # provide mean of initial sample 
+      # Q: what is the final 0 doing on the below vector?
+      mu  <- c(.$model$pars$mu1, .$model$pars$mu2, .$model$pars$mu3, 0 )
+      # provide initial covariance
+      sig <- (10*diag(np))
+      # create a (mcmc_chains x n) matrix of iid normal random variables
+      A   <- matrix(rnorm(mcmc_chains*np), mcmc_chains, np )
+      # compute choleski decomposition of initial covariance matrix
+      B   <- chol(sig)
+      # initialize chains with normal distribution
+      priors <- matrix(1, mcmc_chains, 1 ) %*% mu + A  %*% B
+      colnames(priors) <- paste0('proposal', 1:4 )
+      .$dataf$pars     <- priors
 
       # Run MCMC 
       st <- system.time(
@@ -1590,9 +1608,11 @@ wrapper_object <-
       print('',quote=F)
 
       # process & record output
-      # output   
- 
+      # output  
+      hist <- histogram(.$dataf$pars_arry) 
+      list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, hist=hist ) 
     }  
+    
     
  
 ###########################################################################

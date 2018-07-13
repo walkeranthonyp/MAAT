@@ -17,11 +17,11 @@ rename   "s/template/${MOBJ}/g" $SDIRM/$MOBJ/init_files/*
 
 # if mac else linux 
 if [[ $OSTYPE == darwin* ]]; then
-  sed -i '' "s@template@$MOBJ@g"  $SDIRM/$MOBJ/*
-  sed -i '' "s@template@$MOBJ@g"  $SDIRM/$MOBJ/init_files/*
+  sed -i '' "s@template@$MOBJ@g"  $SDIRM/$MOBJ/*.R
+  sed -i '' "s@template@$MOBJ@g"  $SDIRM/$MOBJ/init_files/*.R
 else
-  sed -i    "s@template@$MOBJ@g"  $SDIRM/$MOBJ/*
-  sed -i    "s@template@$MOBJ@g"  $SDIRM/$MOBJ/init_files/*
+  sed -i    "s@template@$MOBJ@g"  $SDIRM/$MOBJ/*.R
+  sed -i    "s@template@$MOBJ@g"  $SDIRM/$MOBJ/init_files/*.R
 fi
 
 
