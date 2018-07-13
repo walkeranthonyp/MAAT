@@ -115,6 +115,7 @@ wrapper_object <-
           
           # check input vars$pars* elements have same names
           # - to be done
+	}       
          
         # if MCMC 
         if(.$wpars$UQtype=='mcmc') {
@@ -455,40 +456,14 @@ wrapper_object <-
     proposal_accept <- function(.,j,lklihood) {
 	# perform Metropolis accept/reject step
 	metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j])
-	# ???
-	# metrop_ratio <- exp(lklihood - .$dataf$pars_liklihood[ ,j])
 	alpha <- pmin(1,metrop_ratio)
 	for (kk in 1:.$dataf$lp) {
-		# accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
-		#if (log(alpha[kk]) > log(runif(1,min=0,max=1))) 
+		# accept if Metropolis ratio > random number from uniform distribution on interval (0,1) 
 		accept <- log(alpha[kk]) > log(runif(1,min=0,max=1)) 
-			# acceptance 
-			#.$dataf$pars_array[kk,,j+1] <- .$dataf$pars[kk, ] 
-		#} else {
-		#	# rejection
-		#	# previous proposal vector for given chain is repeated in .$dataf$pars
-		#	.$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j]
-		#	# ???
-		#	# .$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j-1]
-		#} 
-
-            .$dataf$pars_array[kk,,j+1]   <- if(accept) .$dataf$pars[kk,] else .$dataf$pars_array[kk,,j]    
-            .$dataf$pars_lklihood[kk,j+1] <- if(accept) lklihood[kk]      else .$dataf$pars_lklihood[kk,j]    
+            	.$dataf$pars_array[kk,,j+1]   <- if(accept) .$dataf$pars[kk,] else .$dataf$pars_array[kk,,j]    
+            	.$dataf$pars_lklihood[kk,j+1] <- if(accept) lklihood[kk]      else .$dataf$pars_lklihood[kk,j]    
         }
-
-		# alternatively . . .
-		# if (log(alpha[kk] < log(runif(1,min=0,max=1))) {
-			# acceptance
-			# .$dataf$pars[kk, ] stays the same
-			# rejection
-			# previous proposal vector for given chain is repeated in .$dataf$pars
-			# .$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j]
-			# ???
-			# .$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j-1]
-		# }
-	}
-	# do I need to return anything here?
-    #}   
+    }   
  
     # calculate convergence using the R-statistic convergence diagnostic of Gelman and Rubin  
     chain_convergence <- function(.) {
@@ -541,8 +516,7 @@ wrapper_object <-
 		# return (1-by-parameters) vector
 	# } 
 	# maybe include a break?
-	# the MCMC method is considers converged if the R-stat for all parameters < 1.2
-			  
+	# the MCMC method is considers converged if the R-stat for all parameters < 1.2			  
     }   
  
  
