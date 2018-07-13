@@ -365,7 +365,7 @@ wrapper_object <-
       # call runp_mcmc
     
       # generate proposal matrix
-      .$dataf$pars[] <- .$gen_proposal_demc()   
+      .$gen_proposal_demc(j=j)   
     
       # evaluate model for proposal on each chain
       .$dataf$out[]  <- 
@@ -378,7 +378,7 @@ wrapper_object <-
       lklihood <- .$proposal_lklihood()   
       
       # accept / reject proposals on each chain 
-      accept <- .$proposal_accept()
+      accept <- .$proposal_accept(j=j,lklihood)
 
       # update accepted proposal array (.$dataf$pars_array) and likelihood matrix (.$dataf$pars_lklihood) 
       .$dataf$pars_array[,,j+1]   <- if(accept) .$dataf$pars else .$dataf$pars_array[,,j]    
@@ -406,23 +406,131 @@ wrapper_object <-
     }
    
     # generate proposal using DE-MC algorithm  
-    gen_proposal_demc <- function(.) {
-      
-    }   
- 
+    gen_proposal_demc <- function(.,j) {
+	# randomly select two different numbers R1 and R2 unequal to j
+	# from a uniform distribution without replacement
+  	R1 <- 0
+  	R2 <- 0
+	# perform Metropolis sampling
+	d <- ncol(.$dataf$pars)  
+	# scaling factor
+	gamma_star <- 2.38 / sqrt(d + d)
+	b <- 0.01
+ 	# draw random number from uniform distribution on interval (-b,b)
+	uniform_r <- runif(1,min=(-b),max=b)
+	# evaluate for each chain
+	for (ii in 1:.$dataf$lp) {
+  		while ((R1 == 0) | (R1 == ii)) {
+    			R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
+		}
+		while ((R2 == 0) | (R2 == ii) | (R2 == R1)) {
+			R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
+		} 
+		# evaluate for each parameter value
+  		for (jj in 1:d) {
+			# generate proposal via Differential Evolution
+			.$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j] + gamma_star * (.$dataf$pars_array[R1,jj,j] - .$dataf$pars_array[R2,jj,j]) + uniform_r
+  		}
+    	}	   
+    } 
+
     # calculate proposal likelihood using ...  
     proposal_lklihood <- function(.) {
-      
+	# standard error probability density function with iid error residuals
+	# number of measured data points
+	# measurement_num <- 
+  	# calculate error residual
+	# error residual matrix = (experimentally measured data) - (data given by evaluating model with proposal matrix)
+	# error_residual <- 
+	# sum of squared error
+	# should return vector corresponding to each chain/row in .$dataf$pars matrix
+	# SSR <- sum(abs(error_residual)^2)
+ 	# lklihood <- -(measurement_num/2)*log(SSR)
     }   
  
-    # calculate proposal acceptance using ...  
-    proposal_accept <- function(.) {
-      
+    # calculate proposal acceptance using the Metropolis ratio  
+    proposal_accept <- function(.,j,lklihood) {
+	# perform Metropolis accept/reject step
+	metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
+	# ???
+	# metrop_ratio <- exp(lklihood - .$dataf$pars_liklihood[ ,j])
+	alpha <- pmin(1,metrop_ratio)
+	for (kk in 1:.$dataf$lp) {
+		# accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
+		if (log(alpha[kk]) > log(runif(1,min=0,max=1))) {
+			# acceptance 
+			# .$dataf$pars[kk, ] stays the same 
+		} else {
+			# rejection
+			# previous proposal vector for given chain is repeated in .$dataf$pars
+			.$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j]
+			# ???
+			# .$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j-1]
+		} 
+		# alternatively . . .
+		# if (log(alpha[kk] < log(runif(1,min=0,max=1))) {
+			# acceptance
+			# .$dataf$pars[kk, ] stays the same
+			# rejection
+			# previous proposal vector for given chain is repeated in .$dataf$pars
+			# .$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j]
+			# ???
+			# .$dataf$pars[kk, ] <- .$dataf$pars_array[kk, ,j-1]
+		# }
+	}
+	# do I need to return anything here?
     }   
  
-    # calculate convergence using ...  
+    # calculate convergence using the R-statistic convergence diagnostic of Gelman and Rubin  
     chain_convergence <- function(.) {
-      
+    	# calculate the R-statistic convergence diagnostic
+     	# for more information, refer to: Gelman, A. and D.R. Rubin, 1992. 
+     	# Inference from Iterative Simulation Using Multiple Sequences, 
+     	# Statistical Science, Volume 7, Issue 4, 457-472.
+     	# Function based on Matlab code originally written by Jasper A. Vrugt
+     	# Los Alamos National Lab, August 2007
+	
+	# compute the dimensions of Sequences 3D array (n=evaluations/chain, nry=parameters, m=chains)
+	# make sure it is not dimensions of the preallocated array, but the dimensions of the already calculated
+
+	# if (n < 10) {
+		# set R-statistic to a large value
+	# } else {	
+		# compute the mean of the chains
+		
+		# take mean of elements of Sequences along the first array dimension
+		# return vectors iterated meanSeq[ , ,1:chains]
+		# reshape meanSeq vectors into meanSeq matrices (chains-by-parameters)
+	
+		# compute the variance between the means of the chains
+
+		# B <- n * var(meanSeq)
+		# return row vector (1-by-parameters) containing variances corresponding to each column
+
+		# calculate variance of the various chains
+
+		# for (zz in 1:.$dataf:lp) {
+			# varSeq[zz, ] <- var(Sequences[ , ,zz])
+			# return (chains-by-parameters) matrix
+		# }
+		
+		# compute average of within-chain variance
+		
+		# W <- mean(varSeq)
+		# return (1-by-parameters) vector
+
+		# estimate the target variance
+
+		# sigma2 <- ((n-1)/n) * W + (1/n) * B
+		# return (1-by-paremeters) vector
+
+		# compute the R-statistic convergence diagnostic
+		# R_stat <- sqrt((m+1)/m * sigma2/W - (n-1)/m/n)
+		# return (1-by-parameters) vector
+	# } 
+	# maybe include a break?
+	# the MCMC method is considers converged if the R-stat for all parameters < 1.2
+			  
     }   
  
  
