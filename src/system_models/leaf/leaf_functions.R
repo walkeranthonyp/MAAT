@@ -76,35 +76,46 @@ f_A_r_leaf_noRs <- function(.,A) {
   f_assimilation(.) - A
 }
 
-f_A_r_leaf_semianalytical <- function(.) {
+f_A_r_leaf_semiana <- function(.) {
   
-  a0 <- .$state$A_ana_rbzero <- f_A_r_leaf_analytical_quad
-  .$state$A_ana_rbg0zero <- f_A_r_leaf_analytical
-
-  fa0 <- f_A_r_leaf(A=.$state$A_ana_rbzero) 
-  if(fa0 > 0) stop('Solver error: fa0 > 0')  
-
-  # what about the case where a0 is negative?
-  deltaA1 <- 0.1 * .$state$A_ana_rbzero 
-  a1      <- .$state$A_ana_rbzero-deltaA1
-  fa1     <- f_A_r_leaf(A=a1) 
-  deltaA2 <- if(fa1 > 0) 0.5 * deltaA1 else 2 * deltaA1   
-  a2      <- .$state$A_ana_rbzero-deltaA2
-  fa2     <- f_A_r_leaf(A=a2) 
-  guesses <- c(fa0,fa1,fa2)
-  #if(any(guesses==0)) 
-  if( min(guesses) * max(guesses) >= 0 ) stop('Solver error: fa0-2 all > or < 0') 
+  rb_hold <- .$state_pars$rb
+  ri_hold <- .$state_pars$ri
   
-  # if spanning zero fit a quadratic a la Lomas
-  #bx = ((a+a0)*(faf-fa)/(af-a)-(af+a)*(fa-fa0)/(a-a0))/(a0-af)
-  #ax = (faf-fa-bx*(af-a))/(af**2-a**2)
-  #cx = fa-bx*a-ax*a**2
-  bx = ((a1+a0)*(fa2-fa1)/(a2-a1)-(a2+a1)*(fa1-fa0)/(a1-a0))/(a0-a2)
-  ax = (fa2-fa1-bx*(a2-a1))/(a2**2-a1**2)
-  cx = fa1-bx*a1-ax*a1**2
+  a0 <- .$state$A_ana_rbzero <- f_A_r_leaf_analytical_quad(.)
+  .$state$A_ana_rbg0zero <- f_A_r_leaf_analytical(.)
 
-  # quadratic soln. - which root should be selected?
-  quad_sol(ax,bx,cx,'lower')
+  .$state_pars$rb <- rb_hold
+  .$state_pars$ri <- ri_hold
+
+  fa0 <- f_A_r_leaf(., .$state$A_ana_rbzero ) 
+  if(fa0 > 1e-6) stop(paste('Solver error: fa0 > 1e-6;',fa0))  
+  
+  if(abs(fa0) < 1e-6 ) return(a0)
+  else {
+    # what about the case where a0 is negative?
+    deltaA1 <- .$pars$deltaA_prop * .$state$A_ana_rbzero 
+    a1      <- .$state$A_ana_rbzero-deltaA1
+    fa1     <- get(.$fnames$solver_func)(., a1 ) 
+    deltaA2 <- if(fa1 > 0) 0.5 * deltaA1 else 2 * deltaA1   
+    a2      <- .$state$A_ana_rbzero-deltaA2
+    fa2     <- get(.$fnames$solver_func)(., a2 ) 
+    guesses <- c(fa0,fa1,fa2)
+    #if(any(guesses==0)) 
+    if( min(guesses) * max(guesses) >= 0 ) stop(paste('Solver error: fa0-2 all > or < 0;',fa0,fa1,fa2)) 
+    
+    # if spanning zero fit a quadratic a la Lomas to find a solution
+    #bx = ((a+a0)*(faf-fa)/(af-a)-(af+a)*(fa-fa0)/(a-a0))/(a0-af)
+    #ax = (faf-fa-bx*(af-a))/(af**2-a**2)
+    #cx = fa-bx*a-ax*a**2
+    bx <- ((a1+a0)*(fa2-fa1)/(a2-a1)-(a2+a1)*(fa1-fa0)/(a1-a0))/(a0-a2)
+    ax <- (fa2-fa1-bx*(a2-a1))/(a2**2-a1**2)
+    cx <- fa1-bx*a1-ax*a1**2
+  
+    # quadratic soln. - which root should be selected?
+    assim <- quad_sol(ax,bx,cx,'lower')
+    .$state$fA_ana_final <- get(.$fnames$solver_func)(., assim ) 
+    return(assim)
+  }
 }
 
 

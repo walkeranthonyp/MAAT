@@ -85,6 +85,10 @@ leaf_object <-
         
         lout <- .$state_retrive(snames=c('A','ci','lim')) 
         
+      } else if(.$cpars$output=='state') {
+       
+        lout <- unlist(.[['state']])
+ 
       } else if(.$cpars$output=='run') {
         
         lout <- c(.$state_retrive(snames=c('A','cc','ci','rd','lim')),
@@ -216,10 +220,12 @@ leaf_object <-
       A   = numeric(1),                # actual rate of carboxylation                       (umol m-2 s-1)
       rd  = numeric(1),                # actual rate of respiration                         (umol m-2 s-1)
       lim = numeric(1),                # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
-
       # diagnostic state
-      A_noR        = numeric(1),       # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
-      transition   = numeric(1)        # cc at the transition point where wc = wj                        (Pa)
+      A_ana_rbzero   = numeric(1),     # rate of carboxylation assuming zero boundary layer resistance to CO2 diffusion (umol m-2 s-1)
+      A_ana_rbg0zero = numeric(1),     # rate of carboxylation assuming zero boundary layer resistance & zero minimum stomatal conductance to CO2 diffusion (umol m-2 s-1)
+      fA_ana_final   = numeric(1),     # value of solver function for final gusee from semi-analytical solver  (umol m-2 s-1)
+      A_noR          = numeric(1),     # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
+      transition     = numeric(1)      # cc at the transition point where wc = wj                        (Pa)
     )
     
     # results from solver
@@ -251,6 +257,7 @@ leaf_object <-
     pars   <- list(
       diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
       # photosynthetic parameters
+      deltaA_prop   = 0.05,       # proportion of first guess in A to use as delta in semi-analytical solver (unitless)  
       a             = 0.80,       # fraction of PAR absorbed by leaf                       (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
       f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
       ko_kc_ratio   = 0.21,       # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)
