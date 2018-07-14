@@ -84,8 +84,8 @@ mcmc_test_object <-
     pars   <- list(
       # mixture model parameters
       mixture_scale = 1e12, 
-      height1       = 0.1, 
-      height2       = 0.6, 
+      height1       = 0.5, 
+      height2       = 0.2, 
       height3       = 0.3, 
       mu1           = -8, 
       mu2           = 0, 
@@ -145,7 +145,7 @@ mcmc_test_object <-
       # assign UQ variables
       .[[vlist]][vlss] <- df[dfss]
       
-      if(.$cpars$cverbose&o) {
+      if(.$cpars$verbose&o) {
         print('',quote=F)
         print('mcmc_test configure:',quote=F)
         print(prefix,quote=F)

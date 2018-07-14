@@ -84,10 +84,17 @@ wrapper_object$dataf$pars
 
 # MCMC Mixture test
 source('wrapper_object.R')
+out <- wrapper_object$.test_mcmc_mixture(mc=F, pr=6, mcmc_chains=8, mcmc_maxiter=10000 )
+# out <- wrapper_object$.test_mcmc_mixture(mc=T, pr=6, mcmc_chains=8, mcmc_maxiter=1000 )
 out <- wrapper_object$.test_mcmc_mixture(mc=F, pr=6 )
 out[[3]]
-out <- wrapper_object$.test_mcmc_mixture(mc=F, pr=6, mcmc_chains=5, mcmc_maxiter=1000 )
 
+wrapper_object$dynamic
+wrapper_object$dataf$pars
+wrapper_object$model$pars
+wrapper_object$dataf$pars_array
+wrapper_object$dataf$pars_lklihood
+wrapper_object$wpars
 
 
 

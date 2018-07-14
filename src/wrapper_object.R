@@ -122,10 +122,13 @@ wrapper_object <-
           
           # sample parameters from character string code snippets to generate initial proposal from priors 
           n <- .$wpars$mcmc_chains
-          .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
+          #print(n)
+          .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
 
           # create pars / proposal matrix 
-          .$dataf$pars  <- do.call(cbind, .$dynamic$pars )
+          .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
+          #print(.$dynamic$pars)
+          #print(.$dataf$pars)
          
           # create accepted proposal array 
           .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
@@ -190,7 +193,8 @@ wrapper_object <-
         if(length(.$dataf$mout)!=1)                     stop('No current method to run MCMC with multiple model outputs')
 
         # initialise output matrix
-        .$dataf$out <- matrix(0, .$dataf$lp, length(.$dataf$met) )
+        .$dataf$out <- matrix(0, .$dataf$lp, dim(.$dataf$met)[2] )
+        #print(.$dataf$out)
 
         # call run function
         if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
@@ -346,6 +350,10 @@ wrapper_object <-
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
       if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
 
+      #print('here')
+      #print(.$dataf$pars)
+      #print(.$dataf$out)
+
       # evaluate model over initial proposals derived from prior
       .$dataf$out[]  <- 
         do.call( 'rbind', {
@@ -353,7 +361,11 @@ wrapper_object <-
             else                 lapply(1:.$dataf$lp, .$runp_mcmc )
         })
 
-      # calculate likelihood of initial proposal
+      #print('here')
+      #print(.$dataf$out)
+
+      # add to pars array and calculate likelihood of initial proposal
+      .$dataf$pars_array[,,1]   <- .$dataf$pars
       .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()   
 
       # run MCMC 
@@ -1648,7 +1660,7 @@ wrapper_object <-
       list(AB=.$output_saltelli_AB(), ABi=.$output_saltelli_ABi() )
     }    
     
-    # test function for Saltelli method Sobol parametric sensitivity analysis
+    # test function for MCMC parameter estimation using mixture model with tri-modal distribution 
     .test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_chains=8, mcmc_maxiter=100 ) {
       
       # source directory
@@ -1662,6 +1674,7 @@ wrapper_object <-
       # define control parameters
       .$model$pars$verbose  <- F      
       .$model$pars$cverbose <- F      
+      .$model$mcmc_testsys <- 'f_mcmc_testsys_mixture'      
       .$wpars$multic       <- mc           # multicore the ensemble
       .$wpars$procs        <- pr           # number of cores to use if above is true
       .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
@@ -1669,6 +1682,11 @@ wrapper_object <-
       .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
       .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
       .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
+
+      # set problem specific parameters
+      .$model$pars$mu1   <- -5      
+      .$model$pars$mu2   <- 0      
+      .$model$pars$mu3   <- 5      
      
       # met dataf must be non-NULL
       metdummy           <- matrix(1,1,1)
@@ -1676,21 +1694,89 @@ wrapper_object <-
       .$dataf$met        <- metdummy
 
       # define priors
-      # number of parameters in proposal
-      np  <- 4
-      # provide mean of initial sample 
-      # Q: what is the final 0 doing on the below vector?
-      mu  <- c(.$model$pars$mu1, .$model$pars$mu2, .$model$pars$mu3, 0 )
-      # provide initial covariance
-      sig <- (10*diag(np))
-      # create a (mcmc_chains x n) matrix of iid normal random variables
-      A   <- matrix(rnorm(mcmc_chains*np), mcmc_chains, np )
-      # compute choleski decomposition of initial covariance matrix
-      B   <- chol(sig)
-      # initialize chains with normal distribution
-      priors <- matrix(1, mcmc_chains, 1 ) %*% mu + A  %*% B
-      colnames(priors) <- paste0('mcmc_test.proposal', 1:4 )
-      .$dataf$pars     <- priors
+#      # number of parameters in proposal
+#      np  <- 4
+#      # provide mean of initial sample 
+#      # Q: what is the final 0 doing on the below vector?
+#      mu  <- c(.$model$pars$mu1, .$model$pars$mu2, .$model$pars$mu3, 0 )
+#      # provide initial covariance
+#      sig <- (10*diag(np))
+#      # create a (mcmc_chains x n) matrix of iid normal random variables
+#      A   <- matrix(rnorm(mcmc_chains*np), mcmc_chains, np )
+#      # compute choleski decomposition of initial covariance matrix
+#      B   <- chol(sig)
+#      # initialize chains with normal distribution
+#      priors <- matrix(1, mcmc_chains, 1 ) %*% mu + A  %*% B
+#      colnames(priors) <- paste0('mcmc_test.proposal', 1:4 )
+#      .$dataf$pars     <- priors
+#
+#      print('priors', quote=F )
+#      print(priors,quote=F)
+
+      .$dynamic$pars_eval <- list(
+        mcmc_test.proposal1  = 'runif(n,-10,0)',
+        mcmc_test.proposal2  = 'runif(n,  0,10)',
+        mcmc_test.proposal3  = 'runif(n,-10,10)',
+        mcmc_test.proposal4  = 'runif(n,-1,1)'
+      )
+
+      # Run MCMC 
+      st <- system.time(
+        .$run()
+      )
+      print('',quote=F)
+      print('Run time:',quote=F)
+      print(st)
+      print('',quote=F)
+
+      # process & record output
+      # output  
+      hist <- histogram(.$dataf$pars_array) 
+      list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, hist=hist ) 
+    }  
+    
+    # test function for MCMC parameter estimation in a linear regression 
+    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_maxiter=100 ) {
+      
+      # source directory
+      setwd('system_models/mcmc_test')
+      source('mcmc_test_object.R')
+      # clone & build the model object
+      init_default <- .$build(model='mcmc_test_object')
+      setwd('../..')
+      library(lattice)
+      
+      # define control parameters
+      .$model$pars$verbose  <- F      
+      .$model$pars$cverbose <- F      
+      .$model$mcmc_testsys <- 'f_mcmc_testsys_linregression'      
+      .$wpars$multic       <- mc           # multicore the ensemble
+      .$wpars$procs        <- pr           # number of cores to use if above is true
+      .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
+      .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
+      .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
+      .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
+      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
+
+      # set problem specific parameters
+      .$model$pars$syn_a_mu <- 2      
+      .$model$pars$syn_b_mu <- 7      
+      .$model$pars$syn_a_sd <- 3      
+      .$model$pars$syn_b_sd <- 2      
+     
+      # met data
+      x <- 1:100
+      .$dataf$met        <- matrix(x, length(x) ,1 ) 
+      names(.$dataf$met) <- 'mcmc_test.linreg_x'
+
+      # generate synthetic data
+        
+
+      # define priors
+      .$dynamic$pars_eval <- list(
+        mcmc_test.a  = 'runif(n,0,10)',
+        mcmc_test.b  = 'runif(n,0,10)'
+      )
 
       # Run MCMC 
       st <- system.time(
