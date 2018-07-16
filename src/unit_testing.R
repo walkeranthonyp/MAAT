@@ -84,10 +84,12 @@ wrapper_object$dataf$pars
 
 # MCMC Mixture test
 source('wrapper_object.R')
-out <- wrapper_object$.test_mcmc_mixture(mc=F, pr=6, mcmc_chains=8, mcmc_maxiter=10000 )
-# out <- wrapper_object$.test_mcmc_mixture(mc=T, pr=6, mcmc_chains=8, mcmc_maxiter=1000 )
 out <- wrapper_object$.test_mcmc_mixture(mc=F, pr=6 )
+out <- wrapper_object$.test_mcmc_mixture(mc=F, pr=6, mcmc_chains=8, mcmc_maxiter=10000 )
 out[[3]]
+df1 <- data.frame(lklihood=as.vector(t(out[[2]])), chain=rep(1:dim(out[[2]])[1],each=dim(out[[2]])[2]) )
+xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) , df1, groups=chain, auto.key=T, type='l' )
+xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) | chain , df1, auto.key=T, type='l' )
 
 wrapper_object$dynamic
 wrapper_object$dataf$pars
@@ -107,11 +109,6 @@ df1 <- data.frame(lklihood=as.vector(t(out[[2]])), chain=rep(1:dim(out[[2]])[1],
 xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) , df1, groups=chain, auto.key=T, type='l' )
 xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) | chain , df1, auto.key=T, type='l' )
 
-out[[2]][,1:10]
-out[[2]][,9990:10000]
-
-
-# out <- wrapper_object$.test_mcmc_linreg(mc=F, pr=6, mcmc_chains=8, mcmc_maxiter=10000 )
 
 wrapper_object$dynamic
 wrapper_object$dataf$pars
