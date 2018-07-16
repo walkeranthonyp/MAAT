@@ -369,6 +369,9 @@ wrapper_object <-
 
       # run MCMC 
       vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
+
+      # write output from MCMC
+      write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood), paste(ofname, 'mcmc', f, sep='_' ), type='rds' )
     }
     
     # This wrapper function is called from a vapply function to iterate / step chains in an MCMC
