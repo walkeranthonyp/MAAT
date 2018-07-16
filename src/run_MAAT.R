@@ -93,6 +93,10 @@ mcmc_type    <- 'demc'
 mcmc_chains  <- 10
 # number of iterations / steps in MCMC chain
 mcmc_maxiter <- 100
+# MCMC burn in to discard as a proportion of mcmc_maxiter, or number of iterations if converged sooner
+mcmc_burnin  <- 0.5
+# MCMC thinning for posterior, as a proportion 
+mcmc_thin    <- 0.1
 
 # run options
 # meteorological data file name
@@ -215,6 +219,8 @@ maat$wpars$coef_var      <- coef_var
 maat$wpars$nmult         <- salt_nmult       
 maat$wpars$mcmc_chains   <- mcmc_chains       
 maat$wpars$mcmc_maxiter  <- mcmc_maxiter       
+maat$wpars$mcmc_burnin   <- mcmc_burnin       
+maat$wpars$mcmc_thin     <- mcmc_thin       
 maat$wpars$eval_strings  <- eval_strings       
 maat$model$cpars$verbose <- F
 maat$model$cpars$output  <- mod_out

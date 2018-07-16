@@ -896,6 +896,8 @@ wrapper_object <-
       sobol_init   = T,           # initialise sobol sequence or not when calling rsobol. This should not be modified by the user. 
       mcmc_maxiter = 100,         # MCMC maximum number of iterations / steps in the chain 
       mcmc_chains  = 10,          # MCMC number of chains 
+      mcmc_burnin  = 0.5,         # MCMC proportion of maxiter burn in to discard in posterior 
+      mcmc_thin    = 0.1,         # MCMC chain thinning proportion 
       unit_testing = F
     )
     
