@@ -336,6 +336,11 @@ if(!is.null(metdata)) {
     print(metdata, quote=F )
     metdf <- read.csv(metdata,strip.white=T)  
     
+    ###################################
+    # add eval data to model object - total hack for now   
+    maat$dataf$obs <- metdf$GPP.PAR.ecor.real    
+    ###################################
+
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML 
     # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML 
     cols  <- match(unlist(sapply(met_trans,function(l) l)),names(metdf))
@@ -352,9 +357,11 @@ if(!is.null(metdata)) {
     } else {
       names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
     }
-        
+    
     # add to MAAT object
     maat$dataf$met <- metdf 
+      
+    # remove met data file  
     rm(metdf)
       
   } else {
