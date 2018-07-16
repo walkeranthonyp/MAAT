@@ -79,25 +79,28 @@ f_A_r_leaf_noRs <- function(.,A) {
 f_A_r_leaf_semiana <- function(.) {
   
   rb_hold <- .$state_pars$rb
+  g0_hold <- .$pars$g0
   ri_hold <- .$state_pars$ri
   
   a0 <- .$state$A_ana_rbzero <- f_A_r_leaf_analytical_quad(.)
-  .$state$A_ana_rbg0zero <- f_A_r_leaf_analytical(.)
+  #.$state$A_ana_rbg0zero <- f_A_r_leaf_analytical(.)
 
   .$state_pars$rb <- rb_hold
   .$state_pars$ri <- ri_hold
+  .$pars$g0 <- g0_hold 
 
-  fa0 <- f_A_r_leaf(., .$state$A_ana_rbzero ) 
-  if(fa0 > 1e-6) stop(paste('Solver error: fa0 > 1e-6;',fa0))  
+  fa0 <- f_A_r_leaf(., a0 ) 
+  if(fa0 > 1e-1) { print(.$env); print(.$state_pars); print(get(.$fnames$solver_func)(., seq(a0-2,a0+2,0.1 ))); stop(paste('Solver error: fa0 > 1e-1,',fa0,'; a,',a0)) }  
   
   if(abs(fa0) < 1e-6 ) return(a0)
+  else if(fa0 > 1e-6 ) { a0 <- a0 + .$pars$deltaA_prop * a0; fa0 <- f_A_r_leaf(., a0 ) } 
   else {
     # what about the case where a0 is negative?
-    deltaA1 <- .$pars$deltaA_prop * .$state$A_ana_rbzero 
-    a1      <- .$state$A_ana_rbzero-deltaA1
+    deltaA1 <- .$pars$deltaA_prop * a0 
+    a1      <- a0 - deltaA1
     fa1     <- get(.$fnames$solver_func)(., a1 ) 
     deltaA2 <- if(fa1 > 0) 0.5 * deltaA1 else 2 * deltaA1   
-    a2      <- .$state$A_ana_rbzero-deltaA2
+    a2      <- a0 - deltaA2
     fa2     <- get(.$fnames$solver_func)(., a2 ) 
     guesses <- c(fa0,fa1,fa2)
     #if(any(guesses==0)) 
