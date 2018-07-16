@@ -97,6 +97,29 @@ wrapper_object$dataf$pars_lklihood
 wrapper_object$wpars
 
 
+# MCMC linear regression test
+source('wrapper_object.R')
+out <- wrapper_object$.test_mcmc_linreg()
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=10000)
+out[[3]]
+dim(out[[2]])
+df1 <- data.frame(lklihood=as.vector(t(out[[2]])), chain=rep(1:dim(out[[2]])[1],each=dim(out[[2]])[2]) )
+xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) , df1, groups=chain, auto.key=T, type='l' )
+xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) | chain , df1, auto.key=T, type='l' )
+
+out[[2]][,1:10]
+out[[2]][,9990:10000]
+
+
+# out <- wrapper_object$.test_mcmc_linreg(mc=F, pr=6, mcmc_chains=8, mcmc_maxiter=10000 )
+
+wrapper_object$dynamic
+wrapper_object$dataf$pars
+wrapper_object$model$pars
+wrapper_object$dataf$pars_array
+wrapper_object$dataf$pars_lklihood
+wrapper_object$wpars
+
 
 # Canopy
 source('wrapper_object.R')

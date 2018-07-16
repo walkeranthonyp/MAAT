@@ -28,10 +28,12 @@ f_mcmc_testsys_mixture <- function(.) {
 }
 
 
-f_mcmc_testsys_linregression <- function(.) {
+f_mcmc_testsys_regression <- function(.) {
+
+  #print(c(.$pars$a, .$pars$b, .$env$linreg_x ))
 
   # line function used as the model in a linear regression
-  .$state$linreg_y[] <- .$pars$a + .$pars$b * .$env$linreg_x
+  .$state$linreg_y[] <- get(.$fnames$reg_func)(.) 
 }
 
 

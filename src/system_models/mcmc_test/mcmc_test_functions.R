@@ -10,8 +10,9 @@
 ### FUNCTIONS
 ################################
 
-#  
-f_gendata_linreg <- function(.) {   
+# regression functions
+f_reg_func_linear <- function(.) {   
+  .$pars$a + .$pars$b * .$env$linreg_x
 }
 
 

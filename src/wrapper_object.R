@@ -9,6 +9,7 @@
 library(proto)
 library(parallel)
 
+source('wrapper_functions.R')
 source('functions/general_functions.R')
 source('functions/calc_functions.R')
 
@@ -115,7 +116,7 @@ wrapper_object <-
           
           # check input vars$pars* elements have same names
           # - to be done
-	}       
+      }       
          
         # if MCMC 
         if(.$wpars$UQtype=='mcmc') {
@@ -193,7 +194,7 @@ wrapper_object <-
         if(length(.$dataf$mout)!=1)                     stop('No current method to run MCMC with multiple model outputs')
 
         # initialise output matrix
-        .$dataf$out <- matrix(0, .$dataf$lp, dim(.$dataf$met)[2] )
+        .$dataf$out <- matrix(0, .$dataf$lp, dim(.$dataf$met)[1] )
         #print(.$dataf$out)
 
         # call run function
@@ -341,8 +342,8 @@ wrapper_object <-
     # for MCMC runs
     ###########################################################################
     
+    # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
     runf_mcmc <- function(.,i) {
-      # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
       # assumes that each row of the fnames matrix are independent and non-sequential
       # call run_mcmc
 
@@ -352,28 +353,26 @@ wrapper_object <-
 
       #print('here')
       #print(.$dataf$pars)
-      #print(.$dataf$out)
+      #print(dim(.$dataf$out))
 
       # evaluate model over initial proposals derived from prior
+      #print(do.call('rbind',lapply(1:.$dataf$lp, .$runp_mcmc )))
       .$dataf$out[]  <- 
         do.call( 'rbind', {
             if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
             else                 lapply(1:.$dataf$lp, .$runp_mcmc )
         })
 
-      #print('here')
-      #print(.$dataf$out)
-
       # add to pars array and calculate likelihood of initial proposal
       .$dataf$pars_array[,,1]   <- .$dataf$pars
-      .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()   
+      .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)  
 
       # run MCMC 
       vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
     }
     
+    # This wrapper function is called from a vapply function to iterate / step chains in an MCMC
     run_mcmc <- function(.,j) {
-      # This wrapper function is called from a vapply function to iterate / steop chains in an MCMC
       # runs in serial as each step depends on the previous step
       # call runp_mcmc
     
@@ -386,25 +385,22 @@ wrapper_object <-
             if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F  )
             else                 lapply(1:.$dataf$lp, .$runp_mcmc )
         })
-    
+   
       # calculate likelihood of proposals on each chain
-      lklihood <- .$proposal_lklihood()   
+      lklihood <- get(.$fnames$proposal_lklihood)(.)   
       
       # accept / reject proposals on each chain 
       .$proposal_accept(j=j, lklihood )
 
-      # update accepted proposal array (.$dataf$pars_array) and likelihood matrix (.$dataf$pars_lklihood) 
-      #.$dataf$pars_array[,,j+1]   <- if(accept) .$dataf$pars else .$dataf$pars_array[,,j]    
-      #.$dataf$pars_lklihood[,j+1] <- if(accept) lklihood     else .$dataf$pars_lklihood[,j]    
-
       # test for convergence every x iterations
+      #
  
       # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function   
       numeric(0) 
     }
  
+    # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
     runp_mcmc <- function(.,k) {
-      # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
       # runs each chain at each iteration in MCMC
       # assumes that each row of the pars matrix are independent and non-sequential
       # call run met
@@ -414,121 +410,100 @@ wrapper_object <-
       if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[k,] )
       
       # call metdata run function
-      #funv   <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )
       vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
     }
    
+   
     # generate proposal using DE-MC algorithm  
     gen_proposal_demc <- function(.,j) {
-	# randomly select two different numbers R1 and R2 unequal to j
-	# from a uniform distribution without replacement
-  	R1 <- 0
-  	R2 <- 0
-	# perform Metropolis sampling
-	d <- ncol(.$dataf$pars)  
-	# scaling factor
-	gamma_star <- 2.38 / sqrt(d + d)
-	b <- 0.01
- 	# draw random number from uniform distribution on interval (-b,b)
-	uniform_r <- runif(1,min=(-b),max=b)
-	# evaluate for each chain
-	for (ii in 1:.$dataf$lp) {
-  		while ((R1 == 0) | (R1 == ii)) {
-    			R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
-		}
-		while ((R2 == 0) | (R2 == ii) | (R2 == R1)) {
-			R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
-		} 
-		# evaluate for each parameter value
-  		for (jj in 1:d) {
-			# generate proposal via Differential Evolution
-			.$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j] + gamma_star * (.$dataf$pars_array[R1,jj,j] - .$dataf$pars_array[R2,jj,j]) + uniform_r
-  		}
-    	}	   
+      # randomly select two different numbers R1 and R2 unequal to j
+      # from a uniform distribution without replacement
+      R1 <- 0
+      R2 <- 0
+      # perform Metropolis sampling
+      d <- ncol(.$dataf$pars)  
+      # scaling factor
+      gamma_star <- 2.38 / sqrt(d + d)
+      b <- 0.01
+      # draw random number from uniform distribution on interval (-b,b)
+      uniform_r <- runif(1,min=(-b),max=b)
+      # evaluate for each chain
+      for (ii in 1:.$dataf$lp) {
+        while ((R1 == 0) | (R1 == ii))                R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
+        while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
+        # evaluate for each parameter value
+        for (jj in 1:d) {
+          # generate proposal via Differential Evolution
+          .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j] + gamma_star * (.$dataf$pars_array[R1,jj,j] - .$dataf$pars_array[R2,jj,j]) + uniform_r
+        }
+      }     
     } 
 
-    # calculate proposal likelihood using ...  
-    proposal_lklihood <- function(.) {
-	# standard error probability density function with iid error residuals
-	# number of measured data points
-	# measurement_num <- 
-  	# calculate error residual
-	# error residual matrix = .$dataf$out - (experimentally measured data)  
-	# error_residual <- 
-	# sum of squared error
-	# should return vector corresponding to each chain/row in .$dataf$pars matrix
-	# SSR <- sum(abs(error_residual)^2)
- 	# lklihood <- -(measurement_num/2)*log(SSR)
-
-        # likelihood for mixture model 
-        log(.$dataf$out)
-    }   
- 
     # calculate proposal acceptance using the Metropolis ratio  
-    proposal_accept <- function(.,j,lklihood) {
-	# perform Metropolis accept/reject step
-	metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j])
-	alpha <- pmin(1,metrop_ratio)
-	for (kk in 1:.$dataf$lp) {
-		# accept if Metropolis ratio > random number from uniform distribution on interval (0,1) 
-		accept <- log(alpha[kk]) > log(runif(1,min=0,max=1)) 
-            	.$dataf$pars_array[kk,,j+1]   <- if(accept) .$dataf$pars[kk,] else .$dataf$pars_array[kk,,j]    
-            	.$dataf$pars_lklihood[kk,j+1] <- if(accept) lklihood[kk]      else .$dataf$pars_lklihood[kk,j]    
-        }
+    proposal_accept <- function(., j, lklihood ) {
+      # perform Metropolis accept/reject step
+      metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j])
+      alpha <- pmin(1,metrop_ratio)
+      for(kk in 1:.$dataf$lp) {
+        # accept if Metropolis ratio > random number from uniform distribution on interval (0,1) 
+        accept <- log(alpha[kk]) > log(runif(1,min=0,max=1)) 
+        .$dataf$pars_array[kk,,j+1]   <- if(accept) .$dataf$pars[kk,] else .$dataf$pars_array[kk,,j]    
+        .$dataf$pars_lklihood[kk,j+1] <- if(accept) lklihood[kk]      else .$dataf$pars_lklihood[kk,j]    
+      }
     }   
  
     # calculate convergence using the R-statistic convergence diagnostic of Gelman and Rubin  
     chain_convergence <- function(.) {
-    	# calculate the R-statistic convergence diagnostic
-     	# for more information, refer to: Gelman, A. and D.R. Rubin, 1992. 
-     	# Inference from Iterative Simulation Using Multiple Sequences, 
-     	# Statistical Science, Volume 7, Issue 4, 457-472.
-     	# Function based on Matlab code originally written by Jasper A. Vrugt
-     	# Los Alamos National Lab, August 2007
-	
-	# compute the dimensions of Sequences 3D array (n=evaluations/chain, nry=parameters, m=chains)
-	# make sure it is not dimensions of the preallocated array, but the dimensions of the already calculated
+      # calculate the R-statistic convergence diagnostic
+      # for more information, refer to: Gelman, A. and D.R. Rubin, 1992. 
+      # Inference from Iterative Simulation Using Multiple Sequences, 
+      # Statistical Science, Volume 7, Issue 4, 457-472.
+      # Function based on Matlab code originally written by Jasper A. Vrugt
+      # Los Alamos National Lab, August 2007
+      
+      # compute the dimensions of Sequences 3D array (n=evaluations/chain, nry=parameters, m=chains)
+      # make sure it is not dimensions of the preallocated array, but the dimensions of the already calculated
 
-	# if (n < 10) {
-		# set R-statistic to a large value
-	# } else {	
-		# compute the mean of the chains
-		
-		# take mean of elements of Sequences along the first array dimension
-		# return vectors iterated meanSeq[ , ,1:chains]
-		# reshape meanSeq vectors into meanSeq matrices (chains-by-parameters)
+      # if (n < 10) {
+        # set R-statistic to a large value
+      # } else {  
+        # compute the mean of the chains
+        
+        # take mean of elements of Sequences along the first array dimension
+        # return vectors iterated meanSeq[ , ,1:chains]
+        # reshape meanSeq vectors into meanSeq matrices (chains-by-parameters)
     
-                # might need transpose to get chains by pars
-                meanSeq <- apply(.$pars_array, 1:2, mean )
-	
-		# compute the variance between the means of the chains
+        # might need transpose to get chains by pars
+        meanSeq <- apply(.$pars_array, 1:2, mean )
+      
+        # compute the variance between the means of the chains
 
-		# B <- n * var(meanSeq)
-		# return row vector (1-by-parameters) containing variances corresponding to each column
+        # B <- n * var(meanSeq)
+        # return row vector (1-by-parameters) containing variances corresponding to each column
 
-		# calculate variance of the various chains
+        # calculate variance of the various chains
 
-		# for (zz in 1:.$dataf:lp) {
-			# varSeq[zz, ] <- var(Sequences[ , ,zz])
-			# return (chains-by-parameters) matrix
-		# }
-		
-		# compute average of within-chain variance
-		
-		# W <- mean(varSeq)
-		# return (1-by-parameters) vector
+        # for (zz in 1:.$dataf:lp) {
+          # varSeq[zz, ] <- var(Sequences[ , ,zz])
+          # return (chains-by-parameters) matrix
+        # }
+        
+        # compute average of within-chain variance
+        
+        # W <- mean(varSeq)
+        # return (1-by-parameters) vector
 
-		# estimate the target variance
+        # estimate the target variance
 
-		# sigma2 <- ((n-1)/n) * W + (1/n) * B
-		# return (1-by-paremeters) vector
+        # sigma2 <- ((n-1)/n) * W + (1/n) * B
+        # return (1-by-paremeters) vector
 
-		# compute the R-statistic convergence diagnostic
-		# R_stat <- sqrt((m+1)/m * sigma2/W - (n-1)/m/n)
-		# return (1-by-parameters) vector
-	# } 
-	# maybe include a break?
-	# the MCMC method is considers converged if the R-stat for all parameters < 1.2			  
+        # compute the R-statistic convergence diagnostic
+        # R_stat <- sqrt((m+1)/m * sigma2/W - (n-1)/m/n)
+        # return (1-by-parameters) vector
+      # } 
+      # maybe include a break?
+      # the MCMC method is considers converged if the R-stat for all parameters < 1.2        
     }   
  
  
@@ -903,8 +878,8 @@ wrapper_object <-
       out           = NULL,         # output matrix
       out_saltelli  = NULL,         # saltelli output list
       # observation matrices /dataframes
-      obs           = NULL,         # a dataframe of observations against which to valiadate/ calculate likelihood of model
-      obsse         = NULL          # a dataframe of observation errors for the obs data, must exactly match the above dataframe
+      obs           = NULL,         # a vector/matrix of observations against which to valiadate/ calculate likelihood of model
+      obsse         = NULL          # a vector/matrix of observation errors for the obs data, must exactly match the above dataframe
       
     )
     
@@ -924,7 +899,10 @@ wrapper_object <-
       unit_testing = F
     )
     
-    
+    fnames <- list(
+      proposal_lklihood <- 'proposal_lklihood_ssquared'
+    )   
+ 
     
     # Output processing functions
     ###########################################################################
@@ -1681,6 +1659,7 @@ wrapper_object <-
       .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
       .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
       .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
+      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_log'  # MCMC likelihood function 
       .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
 
       # set problem specific parameters
@@ -1736,7 +1715,8 @@ wrapper_object <-
     }  
     
     # test function for MCMC parameter estimation in a linear regression 
-    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_maxiter=100 ) {
+    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_maxiter=2,
+                                  x=1:10 ) {
       
       # source directory
       setwd('system_models/mcmc_test')
@@ -1749,33 +1729,37 @@ wrapper_object <-
       # define control parameters
       .$model$pars$verbose  <- F      
       .$model$pars$cverbose <- F      
-      .$model$mcmc_testsys <- 'f_mcmc_testsys_linregression'      
+      .$model$fnames$mcmc_testsys <- 'f_mcmc_testsys_regression'      
+      .$model$fnames$reg_func     <- 'f_reg_func_linear'      
       .$wpars$multic       <- mc           # multicore the ensemble
       .$wpars$procs        <- pr           # number of cores to use if above is true
       .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
       .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
       .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
       .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
-      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
+      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared'  # MCMC likelihood function 
+      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
 
       # set problem specific parameters
-      .$model$pars$syn_a_mu <- 2      
+      .$model$pars$syn_a_mu <- -2      
       .$model$pars$syn_b_mu <- 7      
-      .$model$pars$syn_a_sd <- 3      
-      .$model$pars$syn_b_sd <- 2      
+      .$model$pars$syn_a_sd <- 1      
+      .$model$pars$syn_b_sd <- 1      
      
       # met data
-      x <- 1:100
       .$dataf$met        <- matrix(x, length(x) ,1 ) 
-      names(.$dataf$met) <- 'mcmc_test.linreg_x'
+      colnames(.$dataf$met) <- 'mcmc_test.linreg_x'
 
       # generate synthetic data
-        
+      .$model$pars$a       <- rnorm(length(x), .$model$pars$syn_a_mu, .$model$pars$syn_a_sd )
+      .$model$pars$b       <- rnorm(length(x), .$model$pars$syn_b_mu, .$model$pars$syn_b_sd )
+      .$model$env$linreg_x <- x
+      .$dataf$obs          <- get(.$model$fnames$reg_func)(.$model)
 
       # define priors
       .$dynamic$pars_eval <- list(
-        mcmc_test.a  = 'runif(n,0,10)',
-        mcmc_test.b  = 'runif(n,0,10)'
+        mcmc_test.a  = 'runif(n,-10,30)',
+        mcmc_test.b  = 'runif(n,-10,30)'
       )
 
       # Run MCMC 

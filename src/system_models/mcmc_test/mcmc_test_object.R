@@ -36,7 +36,7 @@ mcmc_test_object <-
     # main run function
     
     run   <- function(.) {
-      
+    
       # call system model 
       get(.$fnames$mcmc_testsys)(.)
       
@@ -59,7 +59,7 @@ mcmc_test_object <-
     output <- function(.) {
       if(.$fnames$mcmc_testsys == 'f_mcmc_testsys_mixture') {
         .$state$mixture_p
-      } else if(.$fnames$mcmc_testsys == 'f_mcmc_testsys_linregression') {
+      } else if(.$fnames$mcmc_testsys == 'f_mcmc_testsys_regression') {
         .$state$linreg_y
       } else stop('Output type not defined')
     }    
@@ -77,7 +77,8 @@ mcmc_test_object <-
     
     # function names
     fnames <- list(
-      mcmc_testsys = 'f_mcmc_testsys_mixture'#,
+      mcmc_testsys = 'f_mcmc_testsys_mixture',
+      reg_func     = 'f_reg_func_linear'
     )
 
     #parameters
@@ -87,22 +88,22 @@ mcmc_test_object <-
       height1       = 0.5, 
       height2       = 0.2, 
       height3       = 0.3, 
-      mu1           = -8, 
+      mu1           = -5, 
       mu2           = 0, 
-      mu3           = 8, 
-      sd1           = 1,
-      sd2           = 1,
-      sd3           = 1,
+      mu3           = 5, 
+      sd1           = 2,
+      sd2           = 2,
+      sd3           = 2,
       proposal1     = 1,
       proposal2     = 1,
       proposal3     = 1,
       proposal4     = 1,
       
       # linear regresssion model parameters
-      syn_a_mu = 7,
-      syn_b_mu = 2,          
-      syn_a_sd = 2,          
-      syn_b_sd = 1,
+      syn_a_mu = 2,
+      syn_b_mu = 7,          
+      syn_a_sd = 3,          
+      syn_b_sd = 2,
       a        = 7,
       b        = 2          
     )
@@ -164,7 +165,7 @@ mcmc_test_object <-
       # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
       
       # met data assignment
-      # .$configure(vlist='env',df=.$dataf$met[l,],F)
+      .$configure(vlist='env',df=.$dataf$met[l,],F)
       
       # run model
       .$run()              
@@ -202,7 +203,7 @@ mcmc_test_object <-
       .$cpars$verbose_loop  <- verbose_loop
       .$cpars$output        <-'full'
       
-     .$fnames$mcmc_testsys <- 'f_mcmc_testsys_linregression' 
+     .$fnames$mcmc_testsys <- 'f_mcmc_testsys_regression' 
       
       .$run()
     }
