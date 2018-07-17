@@ -116,7 +116,7 @@ wrapper_object <-
           
           # check input vars$pars* elements have same names
           # - to be done
-      }       
+        }         
          
         # if MCMC 
         if(.$wpars$UQtype=='mcmc') {
