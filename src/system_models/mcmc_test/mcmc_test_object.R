@@ -165,7 +165,7 @@ mcmc_test_object <-
       # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
       
       # met data assignment
-      # .$configure(vlist='env',df=.$dataf$met[l,],F)
+      .$configure(vlist='env',df=.$dataf$met[l,],F)
       
       # run model
       .$run()              
