@@ -421,8 +421,8 @@ wrapper_object <-
       # number of data points to be used in boundary handling
       n <- 1000
       .$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-      minn <- pmin(.$dynamic$pars_bndhndling)
-      maxn <- pmax(.$dynamic$pars_bndhndling)
+      minn <- unlist(lapply(.$dynamic$pars_bndhndling,min))
+      maxn <- unlist(lapply(.$dynamic$pars_bndhndling,max))
       # randomly select two different numbers R1 and R2 unequal to j
       # from a uniform distribution without replacement
       R1 <- 0
