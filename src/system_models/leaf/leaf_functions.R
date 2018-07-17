@@ -405,7 +405,7 @@ f_rl_rd_lloyd1995 <- function(.) {
 
 # vcmax
 f_vcmax_constant <- function(.) {
-  .$pars$atref.vcmax
+  .$pars$atref[['vcmax']]
 }
 
 f_vcmax_lin <- function(.) {
@@ -420,7 +420,7 @@ f_vcmax_clm <- function(.) {
 
 # jmax
 f_jmax_constant <- function(.) {
-  .$pars$atref.jmax
+  .$pars$atref[['jmax']]
 }
 
 f_jmax_power <- function(.) {
@@ -440,7 +440,7 @@ f_jmax_lin_t <- function(.) {
 
 # TPU
 f_tpu_constant <- function(.) {
-  .$pars$atref.tpu
+  .$pars$atref[['tpu']]
 }
 
 f_tpu_lin <- function(.) {

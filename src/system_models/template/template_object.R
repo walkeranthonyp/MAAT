@@ -23,11 +23,27 @@ template_object <-
     
     name <- 'template'
     
-    # no expected child objects
+    # child objects - none expected 
+    child_list <- NULL 
     
-    # build function
-    build <- function(.) {
-      as.proto(.$as.list())
+    # build function 
+    build <- function(., mod_mimic=NULL, ... ) {
+      # no expected child objects
+      ## if template model requires child objects, see build function in canopy_object.R ## 
+
+      # read default model setup for highest level model
+      init_default <- readXML(paste(.$name,'default.xml',sep='_'))
+     
+      # read model mimic setup
+      if(!is.null(mod_mimic)) {
+        setwd('mimic_xmls')
+        print(paste('template mimic:', mod_mimic ))
+        init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
+        init_default <- fuselists(init_default,init_mimic)
+        setwd('..')
+      }
+
+      init_default
     }
     
     
@@ -36,14 +52,13 @@ template_object <-
     # main run function
     
     run   <- function(.) {
-      
+     
+      print('', quote=F )
+      print('Run Model:', quote=F )
+      print('', quote=F )
+ 
       # call system model 
       get(.$fnames$templatesys)(.)
-      
-      # print to screen
-      if(.$cpars$verbose) {
-        print(.$state)
-      }
       
       # output
       .$output()
@@ -58,8 +73,11 @@ template_object <-
     # -- returns a list of outputs
     output <- function(.) {
       if(.$cpars$output=='full') {
-        print('done')
-      else if(.$cpars$output=='none') { 
+        ## delete the two below print statements to allow a single output vector ##  
+        print('', quote=F )
+        print('Output:', quote=F )
+        unlist(.$state)
+      } else if(.$cpars$output=='none') { 
         print('')
       } else stop('Output type not defined')
       
@@ -93,12 +111,14 @@ template_object <-
       val2  = 7           
     )
 
-    # template environment
+    # template environment 
+    ## - this is a place holder for model inputs, not used in this example
     env <- list(
       ca_conc   = numeric(0)    
       )
 
     #template state parameters (i.e. calculated parameters)
+    ## - this is a place holder for state variables taht are also parameters, not used in this example
     state_pars <- list(
       vcmax    = numeric(0)   
     )
@@ -114,31 +134,64 @@ template_object <-
     ###########################################################################
     # Run & configure functions
     
-    configure <- function(.,vlist,df,o=T){
+    configure <- function(., vlist, df, o=T ) {
       # This function is called from any of the run functions, or during model initialisation
-      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
-      
-      # name and assign the UQ variables
-      uqvars <- names(df)
-      prefix <- vapply( strsplit(uqvars,'.', fixed=T), function(cv) cv[1], 'character' )
+      # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df 
+
+      # split variable names at . 
+      listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
+
       modobj <- .$name
-      dfss   <- which(prefix==modobj)
-      vlss   <- match(uqvars[dfss], paste0(modobj,'.',names(.[[vlist]])) )
-      
+      # df subscripts for model object
+      moss   <- which(listnames[1,]==modobj)
+      # df subscripts for model object sublist variables (slmoss) and model object numeric variables (vlmoss) 
+      slss   <- which(listnames[3,moss]!='') 
+      if(length(slss)>0) {
+        slmoss <- moss[slss] 
+        vlmoss <- moss[-slss] 
+      } else {
+        slmoss <- NULL 
+        vlmoss <- moss 
+      }
+      # variable list subscripts for non-sublist variable variables 
+      vlss   <- match(listnames[2,vlmoss], names(.[[vlist]]) )
+
       # catch NAs in vlss
-      if(any(is.na(vlss))) stop(paste('names mismatch between model object variables and input list variable:', uqvars[which(is.na(vlss))] ))
+      # allows variables to be passed that belong to different lists, e.g. state and env when run_leaf is called by the canopy   
+      if(any(is.na(vlss))) {
+        vlmoss <- vlmoss[-which(is.na(vlss))]
+        vlss   <- vlss[-which(is.na(vlss))]
+      }
+
+      # print configure setup if requested
+      if(.$cpars$cverbose&o) {
+        print('', quote=F )
+        print('template configure:', quote=F )
+        print(df, quote=F )
+        print(listnames, quote=F )
+        print(moss, quote=F )
+        print(slmoss, quote=F )
+        print(vlmoss, quote=F )
+        print(vlss, quote=F )
+        print(which(is.na(vlss)), quote=F )
+        print(.[[vlist]], quote=F )
+      }
 
       # assign UQ variables
-      .[[vlist]][vlss] <- df[dfss]
-      
-      if(.$cpars$cverbose&o) {
-        print('',quote=F)
-        print('template configure:',quote=F)
-        print(prefix,quote=F)
-        print(df,quote=F)
-        print(.[vlist],quote=F)
-      }
+      if(length(slss)>0)   vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
+      if(length(vlmoss)>0) .[[vlist]][vlss] <- df[vlmoss]
     }
+ 
+    
+    # configure a list variable 
+    configure_sublist <- function(., ss, vlist, df ) {
+      lnames <- strsplit(names(df)[ss], '.', fixed=T )
+      ss1    <- which(names(.[[vlist]])==lnames[[1]][2])
+      ss2    <- which(names(.[[vlist]][[ss1]])==lnames[[1]][3])
+      .[[vlist]][[ss1]][ss2] <- df[ss] 
+      return(1) 
+    } 
+
     
     run_met <- function(.,l){
       # This wrapper function is called from an lapply function to run this model over every row of a dataframe
@@ -162,28 +215,24 @@ template_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test <- function(.,verbose=T,verbose_loop=T) {
+    .test <- function(., verbose=F ) {
       
-      if(verbose) {
-        str.proto(.)
-      }
-
+      if(verbose) str(.)
+      
       .$cpars$verbose       <- verbose
-      .$cpars$verbose_loop  <- verbose_loop
       .$cpars$output        <-'full'
       
       .$run()
     }
 
-    .test_change_func <- function(.,verbose=T,verbose_loop=T,
-                                  template.text='f_text_combine',template.calcval='f_calcval_product',template.print='f_print_textonly') {
+    .test_change_func <- function(., verbose=F,
+                                  template.text='f_text_combine',
+                                  template.calcval='f_calcval_product',
+                                  template.print='f_print_textonly' ) {
       
-      if(verbose) {
-        str.proto(.)
-      }
+      if(verbose) str(.)
 
       .$cpars$verbose       <- verbose
-      .$cpars$verbose_loop  <- verbose_loop
       .$cpars$output        <-'full'
       
       .$fnames$text         <- template.text
@@ -193,15 +242,13 @@ template_object <-
       .$run()
     }
 
-    .test_change_pars <- function(.,verbose=T,verbose_loop=T,
-                                  template.text1='hello',template.text2='world') {
+    .test_change_pars <- function(., verbose=T,
+                                  template.text1='hello',
+                                  template.text2='world' ) {
       
-      if(verbose) {
-        str.proto(.)
-      }
+      if(verbose) str(.)
 
       .$cpars$verbose       <- verbose
-      .$cpars$verbose_loop  <- verbose_loop
       .$cpars$output        <-'full'
       
       .$pars$text1          <- template.text1
@@ -211,8 +258,8 @@ template_object <-
     }
       
       
-    #######################################################################        
-    # end object      
+#######################################################################        
+# end template object      
 })
 
 

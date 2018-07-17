@@ -30,11 +30,11 @@ f_calcval_power <- function(.) {
 
 # print values
 f_print_textonly <- function(.) {
-  print(.$state$text)
+  print(.$state$text, quote=F )
 }
 
 f_print_textandval <- function(.) {
-  print(paste(.$state$text,.$state$calcval))
+  print(paste(.$state$text,.$state$calcval), quote=F )
 }
 
 
