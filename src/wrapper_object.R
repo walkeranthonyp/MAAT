@@ -418,6 +418,11 @@ wrapper_object <-
    
     # generate proposal using DE-MC algorithm  
     gen_proposal_demc <- function(.,j) {
+      # number of data points to be used in boundary handling
+      n <- 1000
+      .$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+      minn <- pmin(.$dynamic$pars_bndhndling)
+      maxn <- pmax(.$dynamic$pars_bndhndling)
       # randomly select two different numbers R1 and R2 unequal to j
       # from a uniform distribution without replacement
       R1 <- 0
@@ -427,18 +432,26 @@ wrapper_object <-
       # scaling factor
       gamma_star <- 2.38 / sqrt(d + d)
       b <- 0.01
-      # draw random number from uniform distribution on interval (-b,b)
-      uniform_r <- runif(1,min=(-b),max=b)
       # evaluate for each chain
       for (ii in 1:.$dataf$lp) {
         while ((R1 == 0) | (R1 == ii))                R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
         while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
+        # draw random number from uniform distribution on interval (-b,b)
+        uniform_r <- runif(1,min=(-b),max=b)
         # evaluate for each parameter value
         for (jj in 1:d) {
           # generate proposal via Differential Evolution
           .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j] + gamma_star * (.$dataf$pars_array[R1,jj,j] - .$dataf$pars_array[R2,jj,j]) + uniform_r
+          # boundary handling for minumum
+          if (.$dataf$pars[ii,jj] < minn[jj]) {
+            .$dataf$pars[ii,jj] <- minn[jj]
+          }
+          # boundary handling for maximum
+          if (.$dataf$pars[ii,jj] > maxn[jj]) {
+            .$dataf$pars[ii,jj] <- maxn[jj]
+          } 
         }
-      }     
+      }
     } 
 
     # calculate proposal acceptance using the Metropolis ratio  
