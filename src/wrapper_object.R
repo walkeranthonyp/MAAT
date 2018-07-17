@@ -60,7 +60,7 @@ wrapper_object <-
       # - parameters samples must be generated from code snippets as strings
       if(.$wpars$eval_string&is.null(.$dynamic$pars_eval)) {
         stop(paste('wrapper: eval_strings = T but dynamic$pars_eval not set. \n
-              vars$pars_eval:,\n',.$dynamic$pars_eval,'\n 
+              dynamic$pars_eval:,\n',.$dynamic$pars_eval,'\n 
               NOTE: Ye method SA must draw parameter samples during runtime \n
               from code snippets written as strings in dynamic$pars_eval')) 
       }
@@ -92,7 +92,7 @@ wrapper_object <-
               # sample parameters from character string code snippets to generate matrices A and B
               n <- 2 * .$wpars$n
               .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
-            } else  stop('wrapper: pars (or pars_eval) list in vars list is empty')
+            } else  stop('wrapper: pars (or pars_eval) list in dynamic list is empty')
           }         
 
           # create pars matrix
@@ -111,10 +111,10 @@ wrapper_object <-
           test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
           if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
           
-          # assign same list structure as dynamic$pars_eval to vars$pars 
+          # assign same list structure as dynamic$pars_eval to dynamic$pars 
           .$dynamic$pars   <- lapply(.$dynamic$pars_eval,function(e) numeric(1) )
           
-          # check input vars$pars* elements have same names
+          # check input dynamic$pars* elements have same names
           # - to be done
       }       
          
@@ -123,7 +123,6 @@ wrapper_object <-
           
           # sample parameters from character string code snippets to generate initial proposal from priors 
           n <- .$wpars$mcmc_chains
-          #print(n)
           .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
 
           # create pars / proposal matrix 
@@ -145,8 +144,8 @@ wrapper_object <-
         }
         
       } else {
-        # not a formal SA/UQ run - factorial combination of variables specified in the vars lists  
-        .$dataf$pars <- if(!is.null(.$dynamic$pars)) as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F))   else NULL
+        # not a formal SA/UQ run - factorial combination of variables specified in the dynamic lists  
+        .$dataf$pars <- if(!is.null(.$dynamic$pars)) as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F)) else NULL
       } 
       
       # calculate input matrix lengths 
@@ -800,18 +799,20 @@ wrapper_object <-
           t <- 'dynamic'
 
           if(.$wpars$eval_strings) {
-            vl   <- 'pars_eval'
+            vl      <- 'pars_eval'
             varlist <- .[[paste0('init_',t)]][[mo]][[vl]]
             .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(l=varlist, modobj=mo ) 
-                            else                     c(.[[t]][[vl]], comb_init_list(l=varlist, modobj=mo ) )
+                            else                      c(.[[t]][[vl]], comb_init_list(l=varlist, modobj=mo ) )
           }
   
           if(.$wpars$UQtype=='ye') {
-            vl   <- 'pars_proc'
+            vl      <- 'pars_proc'
             varlist <- .[[paste0('init_',t)]][[mo]][[vl]]
             .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(l=varlist, modobj=mo ) 
                             else                     c(.[[t]][[vl]], comb_init_list(l=varlist, modobj=mo ) )
-            for( vn in names(vars) ) if( !any(vn==names(.[['init_dynamic']][[mo]][['pars_eval']])) )
+
+            #for( vn in names(vars) ) if( !any(vn==names(.[['init_dynamic']][[mo]][['pars_eval']])) )
+            for( vn in names(.$dynamic$pars_proc) ) if( !any(vn==names(.[['init_dynamic']][[mo]][['pars_eval']])) )
               stop(paste('\n Input variable:', vn, 'in pars_proc, not found in: pars_eval list.',
                          '\n The proc_pars input list must contain exactly the same parameter names as pars_eval input list.',
                          '\n The proc_pars is required to assign a parameter to a process as part of a process sensitivity analysis.'))
@@ -839,7 +840,7 @@ wrapper_object <-
     
     # dynamic variables
     # all expected to be of class 'list'
-    # each list in the 'vars' list comprise vectors of the values for each variable, 
+    # each list in the 'dynamic' list comprise vectors of the values for each variable, 
     # each element of the list is labelled by the variable name prefixed by the name of the model object that the variable belongs to
     # each of these lists is expanded, often factorially by expand.grid, and placed into the below list of dataframes
     dynamic <- list( 
@@ -895,7 +896,7 @@ wrapper_object <-
       UQtype       = 'none',      # SA/UQ type - 'saltelli' and 'ye' available so far
       n            = numeric(1),  # parameter sample number
       nmult        = 1,           # parameter sample number multiplier for saltelli method
-      eval_strings = F,           # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
+      eval_strings = F,           # switch tellin wrapper that dynamic$pars are to be evaluated from code string snippets in dynamic$pars_eval
       sobol_init   = T,           # initialise sobol sequence or not when calling rsobol. This should not be modified by the user. 
       mcmc_maxiter = 100,         # MCMC maximum number of iterations / steps in the chain 
       mcmc_chains  = 10,          # MCMC number of chains 
