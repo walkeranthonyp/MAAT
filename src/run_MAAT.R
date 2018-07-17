@@ -88,44 +88,46 @@ salt_nmult <- 100
 
 # parameters for MCMC run
 # type of MCMC
-mcmc_type    <- 'demc'
+mcmc_type     <- 'demc'
 # number of MCMC chains to run (min 2x number of parameters estimated)
-mcmc_chains  <- 10
+mcmc_chains   <- 10
 # number of iterations / steps in MCMC chain
-mcmc_maxiter <- 100
+mcmc_maxiter  <- 100
 # MCMC burn in to discard as a proportion of mcmc_maxiter, or number of iterations if converged sooner
-mcmc_burnin  <- 0.5
+mcmc_burnin   <- 0.5
 # MCMC thinning for posterior, as a proportion 
-mcmc_thin    <- 0.1
+mcmc_thin     <- 0.1
+# MCMC thinning for observations, as a proportion 
+mcmc_thin_obs <- 1
 
 # run options
 # meteorological data file name
-metdata      <- NULL 
+metdata       <- NULL 
 
 # pass code snippets as strings to generate parameter samples, see init_MAAT.R and wrapper for use
-eval_strings <- F 
+eval_strings  <- F 
 
 # initialise in the configuration of the below specified model
 # options are: clm40, 
-mod_mimic    <- NULL
+mod_mimic     <- NULL
 
 # static and dynamic initialisation files are XMLs, if false init file is the R script named below
-xml          <- F
+xml           <- F
 
 # initialisation data file name if not an XML
-init         <- 'init_MAAT' 
+init          <- 'init_MAAT' 
 
 # run i.d. - used as suffix/prefix for in/out files
-runid        <- NULL 
+runid         <- NULL 
 
 # basic output file name
-of_main      <- 'out'
+of_main       <- 'out'
 
 # model output switch 
-mod_out      <- 'run'
+mod_out       <- 'run'
 
 # output file format.  supported: rds, csv (default)
-of_format    <- 'csv'
+of_format     <- 'csv'
 
 
 
@@ -221,6 +223,7 @@ maat$wpars$mcmc_chains   <- mcmc_chains
 maat$wpars$mcmc_maxiter  <- mcmc_maxiter       
 maat$wpars$mcmc_burnin   <- mcmc_burnin       
 maat$wpars$mcmc_thin     <- mcmc_thin       
+maat$wpars$mcmc_thin_obs <- mcmc_thin_obs       
 maat$wpars$eval_strings  <- eval_strings       
 maat$model$cpars$verbose <- F
 maat$model$cpars$output  <- mod_out
