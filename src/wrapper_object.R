@@ -189,12 +189,22 @@ wrapper_object <-
       } else if(.$wpars$UQ&.$wpars$UQtype=='mcmc') {
          
         # if an MCMC and no met dataset has been specified, stop
-        if(is.null(.$dataf$met)&.$wpars$UQtype=='mcmc') stop('No current method to run MCMC without a met dataset')
-        if(length(.$dataf$mout)!=1)                     stop('No current method to run MCMC with multiple model outputs')
+        if(is.null(.$dataf$met))    stop('No current method to run MCMC without a met dataset')
+        if(length(.$dataf$mout)!=1) stop('No current method to run MCMC with multiple model outputs')
+
+        # if observation subsampling specified - currently evenly spaced subsampling
+        if(.$wpars$mcmc_thin_obs < 1.0) {
+          if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value:', .$wpars$mcmc_thin_obs ) 
+          thin <- floor( 1 / .$wpars$mcmc_thin_obs ) 
+          oss  <- seq(1, dim(.$dataf$metdata)[1], thin )  
+          .$dataf$met   <- .$dataf$met[oss,]
+          .$dataf$obs   <- .$dataf$obs[oss]
+          #.$dataf$obsse <- .$dataf$obsse[thin]
+          .$dataf$lm    <- dim(.$dataf$met)[1]    
+        }
 
         # initialise output matrix
         .$dataf$out <- matrix(0, .$dataf$lp, dim(.$dataf$met)[1] )
-        #print(.$dataf$out)
 
         # call run function
         if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
@@ -915,6 +925,7 @@ wrapper_object <-
       mcmc_chains  = 10,          # MCMC number of chains 
       mcmc_burnin  = 0.5,         # MCMC proportion of maxiter burn in to discard in posterior 
       mcmc_thin    = 0.1,         # MCMC chain thinning proportion 
+      mcmc_thin_obs= 1,           # MCMC observation thinning proportion 
       unit_testing = F
     )
     
