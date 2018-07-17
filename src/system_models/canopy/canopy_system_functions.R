@@ -86,9 +86,6 @@ f_cansys_2bigleaf <- function(.) {
 ###############################
 f_cansys_multilayer <- function(.) {
 
-  #:q
-.$cpars$verbose <- T
- 
   # initialise layers
   linc           <- .$state$lai / .$pars$layers
   ca_calc_points <- seq(linc, .$state$lai, linc ) 
