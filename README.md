@@ -48,7 +48,7 @@ An example from the leaf model object `unit_testing.R` script to run an ACi curv
 source('leaf_object.R')
 leaf_object$.test_aci(leaf.ca_conc=seq(0.1,2000,50))
 ```
-The MAAT wrapper can also be tested. 
+The MAAT wrapper can also be tested to ensure teh wrapper is working correctly and to test the various SA/UQ ensembles provided with MAAT. 
 ```bash 
 cd ./src/
 rstudio unit_testing.R
@@ -95,6 +95,11 @@ Alternative command line options, their names, and how to specify them on the co
  
 * Meteorological data files. Coming soon ... 
 
+
+### Further information ###
+Further information can be found in the README files in sub-directories:
+* How to set up and run examples can be found in `src/system_models/leaf/examples` and `src/system_models/gwater_rt/examples`.
+* The MAAT formalism for defining model objects and how to start a template for coding a new model object can be found in `src/system_models`.
 
 
 

@@ -18,7 +18,11 @@ f_templatesys_1 <- function(.) {
   .$state$text    <- get(.$fnames$text)(.)
   .$state$calcval <- get(.$fnames$calcval)(.)
 
-  # print combined text and calculated state
+  # call print function
   get(.$fnames$print)(.)  
   
 }
+
+
+
+### END ###
