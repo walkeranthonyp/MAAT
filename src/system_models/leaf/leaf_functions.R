@@ -85,6 +85,8 @@ f_A_r_leaf_semiana <- function(.) {
   a0 <- .$state$A_ana_rbzero <- f_A_r_leaf_analytical_quad(.)
   #.$state$A_ana_rbg0zero <- f_A_r_leaf_analytical(.)
 
+  if(a0<0) stop('a0 < 0 ,',a0)
+
   .$state_pars$rb <- rb_hold
   .$state_pars$ri <- ri_hold
   .$pars$g0 <- g0_hold 
@@ -102,10 +104,14 @@ f_A_r_leaf_semiana <- function(.) {
     deltaA2 <- if(fa1 > 0) 0.5 * deltaA1 else 2 * deltaA1   
     a2      <- a0 - deltaA2
     fa2     <- get(.$fnames$solver_func)(., a2 ) 
-    guesses <- c(fa0,fa1,fa2)
+    guesses  <- c(a0,a1,a2)
+    fguesses <- c(fa0,fa1,fa2)
     #if(any(guesses==0)) 
-    if( min(guesses) * max(guesses) >= 0 ) stop(paste('Solver error: fa0-2 all > or < 0;',fa0,fa1,fa2)) 
-    
+    if( min(fguesses) * max(fguesses) >= 0 ) stop(paste('Solver error: fa0-2 all > or < 0;',fa0,fa1,fa2)) 
+   
+    .$state$aguess  <- guesses 
+    .$state$faguess <- fguesses
+   
     # if spanning zero fit a quadratic a la Lomas to find a solution
     #bx = ((a+a0)*(faf-fa)/(af-a)-(af+a)*(fa-fa0)/(a-a0))/(a0-af)
     #ax = (faf-fa-bx*(af-a))/(af**2-a**2)
@@ -113,11 +119,22 @@ f_A_r_leaf_semiana <- function(.) {
     bx <- ((a1+a0)*(fa2-fa1)/(a2-a1)-(a2+a1)*(fa1-fa0)/(a1-a0))/(a0-a2)
     ax <- (fa2-fa1-bx*(a2-a1))/(a2**2-a1**2)
     cx <- fa1-bx*a1-ax*a1**2
-  
+ 
+    #print(length(unlist(.$state)))
+    #print(unlist(.$state))
+ 
     # quadratic soln. - which root should be selected?
-    assim <- quad_sol(ax,bx,cx,'lower')
-    .$state$fA_ana_final <- get(.$fnames$solver_func)(., assim ) 
-    return(assim)
+    assim <- .$state$assim <- quad_sol(ax,bx,cx,'both')
+    #print(assim)
+    #print(length(unlist(.$state)))
+    #print(unlist(.$state))
+    .$state$fA_ana_final[1] <- get(.$fnames$solver_func)(., assim[1] ) 
+    .$state$fA_ana_final[2] <- get(.$fnames$solver_func)(., assim[2] ) 
+    ss    <- which(assim>min(guesses)&assim<max(guesses))
+    #print(ss)
+    if(length(ss)==0)      stop('no solution within initial 3 guesses') 
+    else if(length(ss)==2) stop('both solutions within initial 3 guesses') 
+    else return(assim[ss])
   }
 }
 

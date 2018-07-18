@@ -223,7 +223,10 @@ leaf_object <-
       # diagnostic state
       A_ana_rbzero   = numeric(1),     # rate of carboxylation assuming zero boundary layer resistance to CO2 diffusion (umol m-2 s-1)
       A_ana_rbg0zero = numeric(1),     # rate of carboxylation assuming zero boundary layer resistance & zero minimum stomatal conductance to CO2 diffusion (umol m-2 s-1)
-      fA_ana_final   = numeric(1),     # value of solver function for final gusee from semi-analytical solver  (umol m-2 s-1)
+      aguess  = numeric(3),            # value of three guesses from semi-analytical solver  (umol m-2 s-1)
+      faguess = numeric(3),            # value of solver function on three guesses from semi-analytical solver  (umol m-2 s-1)
+      assim   = numeric(2),            # roots of fitted quadratic in semi-analytical solver
+      fA_ana_final   = numeric(2),     # value of solver function for final gusee from semi-analytical solver  (umol m-2 s-1)
       A_noR          = numeric(1),     # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
       transition     = numeric(1)      # cc at the transition point where wc = wj                        (Pa)
     )
