@@ -260,7 +260,7 @@ leaf_object <-
     pars   <- list(
       diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
       # photosynthetic parameters
-      deltaA_prop   = 0.05,       # proportion of first guess in A to use as delta in semi-analytical solver (unitless)  
+      deltaA_prop   = 0.15,        # proportion of first guess in A to use as delta in semi-analytical solver (unitless)  
       a             = 0.80,       # fraction of PAR absorbed by leaf                       (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
       f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
       ko_kc_ratio   = 0.21,       # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)

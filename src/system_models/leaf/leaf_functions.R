@@ -76,66 +76,81 @@ f_A_r_leaf_noRs <- function(.,A) {
   f_assimilation(.) - A
 }
 
+# Semi-analytical solution 
 f_A_r_leaf_semiana <- function(.) {
-  
+  # - finds the analytical solution assuming rb and ri are zero to use as first guess (a0)
+  # - this should always be larger than the full solution (unless rb and ri are zero)
+  # - make a second (a1) and third (a2) guess smaller than a0
+  # - calculate solver function value for these three guesses (fa0, fa1, fa2) 
+  # - check to make sure these span the root
+  # - fit a quadratic through the threee sets of co-ordinates to find the root 
+ 
+  # save values that may get reset by analytical function 
   rb_hold <- .$state_pars$rb
   g0_hold <- .$pars$g0
   ri_hold <- .$state_pars$ri
   
+  # find the analytical solution assuming rb and ri are zero to use as first guess (a0)
   a0 <- .$state$A_ana_rbzero <- f_A_r_leaf_analytical_quad(.)
-  #.$state$A_ana_rbg0zero <- f_A_r_leaf_analytical(.)
 
-  if(a0<0) stop('a0 < 0 ,',a0)
-
+  # return values potentially reset by analytical function to the data structure
   .$state_pars$rb <- rb_hold
   .$state_pars$ri <- ri_hold
   .$pars$g0 <- g0_hold 
 
+  # currently no method to handle a0 < 0 - need to do
+  if(a0<0) stop('a0 < 0 ,',a0)
+
+  # a0 should always be larger than the full solution (unless rb and ri are zero) meaning that fa0 should always be < 0
   fa0 <- f_A_r_leaf(., a0 ) 
-  if(fa0 > 1e-1) { print(.$env); print(.$state_pars); print(get(.$fnames$solver_func)(., seq(a0-2,a0+2,0.1 ))); stop(paste('Solver error: fa0 > 1e-1,',fa0,'; a,',a0)) }  
-  
+  if(fa0 > 1e-6) { 
+    print(unlist(.$env)); print(unlist(.$state_pars)); print(get(.$fnames$solver_func)(., seq(a0-2,a0+2,0.1 ))) 
+    stop(paste('Solver error: fa0 > 1e-1,',fa0,'; a,',a0)) 
+  }  
+ 
+  #  
   if(abs(fa0) < 1e-6 ) return(a0)
   else if(fa0 > 1e-6 ) { a0 <- a0 + .$pars$deltaA_prop * a0; fa0 <- f_A_r_leaf(., a0 ) } 
   else {
-    # what about the case where a0 is negative?
+
+    # second guess
     deltaA1 <- .$pars$deltaA_prop * a0 
     a1      <- a0 - deltaA1
     fa1     <- get(.$fnames$solver_func)(., a1 ) 
+
+    # third guess
     deltaA2 <- if(fa1 > 0) 0.5 * deltaA1 else 2 * deltaA1   
     a2      <- a0 - deltaA2
     fa2     <- get(.$fnames$solver_func)(., a2 ) 
+
+    # check f(guesses) span zero i.e. that guesses span the root
     guesses  <- c(a0,a1,a2)
     fguesses <- c(fa0,fa1,fa2)
-    #if(any(guesses==0)) 
-    if( min(fguesses) * max(fguesses) >= 0 ) stop(paste('Solver error: fa0-2 all > or < 0;',fa0,fa1,fa2)) 
-   
+    if( min(fguesses) * max(fguesses) >= 0 ) {
+      print(unlist(.$fnames)); print(unlist(.$pars)); print(unlist(.$state_pars))
+      stop(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
+    } 
     .$state$aguess  <- guesses 
     .$state$faguess <- fguesses
    
-    # if spanning zero fit a quadratic a la Lomas to find a solution
-    #bx = ((a+a0)*(faf-fa)/(af-a)-(af+a)*(fa-fa0)/(a-a0))/(a0-af)
-    #ax = (faf-fa-bx*(af-a))/(af**2-a**2)
-    #cx = fa-bx*a-ax*a**2
+    # fit a quadratic through the three sets of co-ordinates a la Lomas 
     bx <- ((a1+a0)*(fa2-fa1)/(a2-a1)-(a2+a1)*(fa1-fa0)/(a1-a0))/(a0-a2)
     ax <- (fa2-fa1-bx*(a2-a1))/(a2**2-a1**2)
     cx <- fa1-bx*a1-ax*a1**2
  
-    #print(length(unlist(.$state)))
-    #print(unlist(.$state))
- 
-    # quadratic soln. - which root should be selected?
+    # find the root of the quadratic that lies between guesses 
     assim <- .$state$assim <- quad_sol(ax,bx,cx,'both')
-    #print(assim)
-    #print(length(unlist(.$state)))
-    #print(unlist(.$state))
     .$state$fA_ana_final[1] <- get(.$fnames$solver_func)(., assim[1] ) 
     .$state$fA_ana_final[2] <- get(.$fnames$solver_func)(., assim[2] ) 
     ss    <- which(assim>min(guesses)&assim<max(guesses))
-    #print(ss)
+    
+    # catch potential errors
     if(length(ss)==0)      stop('no solution within initial 3 guesses') 
     else if(length(ss)==2) stop('both solutions within initial 3 guesses') 
     else return(assim[ss])
   }
+
+
 }
 
 
@@ -190,8 +205,39 @@ f_A_r_leaf_analytical_quad <- function(.) {
     b   <- p*gsd*( .$state$ca*(V - .$state$rd) - .$state$rd*K - V*.$state_pars$gstar ) - .$pars$g0*(.$state$ca + K) + 1.6*p*(.$state$rd - V)
     c   <- .$pars$g0*( V*(.$state$ca - .$state_pars$gstar) - .$state$rd*(K + .$state$ca) )
  
-    # return A - 1e-6 for numerical stability when A = 0 
-    quad_sol(a,b,c,'upper') + 1e-6
+    # return cc
+    A   <- quad_sol(a,b,c,'upper')
+#    f_ficks_ci(., A=A, r=1.6*get(.$fnames$rs)(.,A=A) )
+#  }
+#
+#  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
+#  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
+#  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
+#
+#  # maximum cc corresponds to the minimum of the limiting rates  
+#  .$state$cc <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
+#  
+#  # calculate net A
+#  Anet <- f_assimilation(.)
+#
+#  # calculate rs
+#  .$pars$g0[] <- g0_hold 
+#  .$state_pars$rs <- get(.$fnames$rs)(.,A=Anet)
+#  
+#  # set ci & cc
+#  .$state$cc <-.$state$ci <- f_ficks_ci(.,A=Anet, r=1.6*.$state_pars$rs )
+#
+#  # recalculate Ag for each limiting process
+#  # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
+#  .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
+#  .$state$Ajg <- get(.$fnames$Ajg)(.) * .$state$cc
+#  .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
+#
+#  # return net A
+#  Anet
+
+### revisons so that this can work with Collatz 
+    A
   }
 
   .$state$Acg <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
@@ -233,8 +279,37 @@ f_A_r0_leaf_analytical_quad <- function(.) {
     b   <- .$state$ca + K - .$state$rd*p*r + V*p*r
     c   <- .$state$ca*(.$state$rd-V) + .$state$rd*K + V*.$state_pars$gstar 
     
-    # return A 
-    quad_sol(a,b,c,'lower')
+    # return cc
+    A   <- quad_sol(a,b,c,'lower')
+#    f_ficks_ci(., A=A, r=r )
+#  }
+#
+#  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
+#  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
+#  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
+#
+#  # maximum cc corresponds to the minimum of the limiting rates  
+#  .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
+#  
+#  # calculate net A
+#  Anet <- f_assimilation(.)
+#
+#  # calculate rs
+#  .$state_pars$rs <- r0 
+#  
+#  # set ci & cb
+#  .$state$cb <- f_ficks_ci(., A=Anet )
+#  .$state$ci <- f_ficks_ci(., A=Anet, c=.$state$cb, r=1.6*.$state_pars$rs )
+#
+#  # recalculate Ag for each limiting process
+#  # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
+#  .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
+#  .$state$Ajg <- get(.$fnames$Ajg)(.) * .$state$cc
+#  .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
+#
+#  # return net A
+#  Anet
+    A
   }
 
   .$state$Acg <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
