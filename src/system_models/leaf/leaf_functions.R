@@ -150,7 +150,6 @@ f_A_r_leaf_semiana <- function(.) {
     else return(assim[ss])
   }
 
-
 }
 
 
@@ -207,52 +206,26 @@ f_A_r_leaf_analytical_quad <- function(.) {
  
     # return cc
     A   <- quad_sol(a,b,c,'upper')
-#    f_ficks_ci(., A=A, r=1.6*get(.$fnames$rs)(.,A=A) )
-#  }
-#
-#  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
-#  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
-#  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
-#
-#  # maximum cc corresponds to the minimum of the limiting rates  
-#  .$state$cc <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
-#  
-#  # calculate net A
-#  Anet <- f_assimilation(.)
-#
-#  # calculate rs
-#  .$pars$g0[] <- g0_hold 
-#  .$state_pars$rs <- get(.$fnames$rs)(.,A=Anet)
-#  
-#  # set ci & cc
-#  .$state$cc <-.$state$ci <- f_ficks_ci(.,A=Anet, r=1.6*.$state_pars$rs )
-#
-#  # recalculate Ag for each limiting process
-#  # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
-#  .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
-#  .$state$Ajg <- get(.$fnames$Ajg)(.) * .$state$cc
-#  .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
-#
-#  # return net A
-#  Anet
-
-### revisons so that this can work with Collatz 
-    A
+    f_ficks_ci(., A=A, r=1.6*get(.$fnames$rs)(.,A=A) )
   }
 
-  .$state$Acg <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
-  .$state$Ajg <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
-  .$state$Apg <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
+  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
+  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
+  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
 
-  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin        <- get(.$fnames$Alim)(.) 
+  # maximum cc corresponds to the minimum of the limiting rates  
+  .$state$cc <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
   
-  # determine cc/ci based on Amin
+  # calculate net A
+  Anet <- f_assimilation(.)
+
   # calculate rs
-  .$pars$g0[]     <- g0_hold 
-  .$state_pars$rs <- get(.$fnames$rs)(.,A=Amin)
-  .$state$cc <-.$state$ci <- f_ficks_ci(., A=Amin, r=1.6*.$state_pars$rs )
-    
+  .$pars$g0[] <- g0_hold 
+  .$state_pars$rs <- get(.$fnames$rs)(.,A=Anet)
+  
+  # set ci & cc
+  .$state$cc <-.$state$ci <- f_ficks_ci(.,A=Anet, r=1.6*.$state_pars$rs )
+
   # recalculate Ag for each limiting process
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
   .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
@@ -260,7 +233,7 @@ f_A_r_leaf_analytical_quad <- function(.) {
   .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
 
   # return net A
-  Amin
+  Anet
 }
 
 
@@ -281,49 +254,26 @@ f_A_r0_leaf_analytical_quad <- function(.) {
     
     # return cc
     A   <- quad_sol(a,b,c,'lower')
-#    f_ficks_ci(., A=A, r=r )
-#  }
-#
-#  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
-#  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
-#  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
-#
-#  # maximum cc corresponds to the minimum of the limiting rates  
-#  .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
-#  
-#  # calculate net A
-#  Anet <- f_assimilation(.)
-#
-#  # calculate rs
-#  .$state_pars$rs <- r0 
-#  
-#  # set ci & cb
-#  .$state$cb <- f_ficks_ci(., A=Anet )
-#  .$state$ci <- f_ficks_ci(., A=Anet, c=.$state$cb, r=1.6*.$state_pars$rs )
-#
-#  # recalculate Ag for each limiting process
-#  # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
-#  .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
-#  .$state$Ajg <- get(.$fnames$Ajg)(.) * .$state$cc
-#  .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
-#
-#  # return net A
-#  Anet
-    A
+    f_ficks_ci(., A=A, r=r )
   }
 
-  .$state$Acg <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
-  .$state$Ajg <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
-  .$state$Apg <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
+  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
+  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
+  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
 
-  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin        <- get(.$fnames$Alim)(.) 
+  # maximum cc corresponds to the minimum of the limiting rates  
+  .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
   
-  # determine cc/ci based on Amin
+  # calculate net A
+  Anet <- f_assimilation(.)
+
+  # calculate rs
   .$state_pars$rs <- r0 
-  .$state$cb <- f_ficks_ci(., A=Amin )
-  .$state$cc <-.$state$ci <- f_ficks_ci(., A=Amin, r=1.6*.$state_pars$rs )
-    
+  
+  # set ci & cb
+  .$state$cb <- f_ficks_ci(., A=Anet )
+  .$state$ci <- f_ficks_ci(., A=Anet, c=.$state$cb, r=1.6*.$state_pars$rs )
+
   # recalculate Ag for each limiting process
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
   .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
@@ -331,7 +281,7 @@ f_A_r0_leaf_analytical_quad <- function(.) {
   .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
 
   # return net A
-  Amin
+  Anet
 }
 
 
