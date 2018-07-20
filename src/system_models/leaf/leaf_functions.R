@@ -115,6 +115,10 @@ f_A_r_leaf_analytical_quad <- function(.) {
   .$state_pars$rb <- 0
   .$state_pars$ri <- 0
 
+  # correctly assign g0 if rs functions assume g0 = 0
+  g0_hold <- .$pars$g0
+  if(.$fnames$rs=='f_rs_cox1998'|.$fnames$rs=='f_rs_constantCiCa') .$pars$g0[] <- 0 
+
   # calculate coefficients of quadratic to solve A
   assim_quad_soln <- function(.,V,K) {
     gsd <- get(paste0(.$fnames$rs,'_fe'))(.) / .$state$ca
