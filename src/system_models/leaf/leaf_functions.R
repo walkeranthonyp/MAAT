@@ -76,6 +76,7 @@ f_A_r_leaf_noRs <- function(.,A) {
   f_assimilation(.) - A
 }
 
+
 # Semi-analytical solution 
 f_A_r_leaf_semiana <- function(.) {
   # - finds the analytical solution assuming rb and ri are zero to use as first guess (a0)
@@ -204,28 +205,23 @@ f_A_r_leaf_analytical_quad <- function(.) {
     b   <- p*gsd*( .$state$ca*(V - .$state$rd) - .$state$rd*K - V*.$state_pars$gstar ) - .$pars$g0*(.$state$ca + K) + 1.6*p*(.$state$rd - V)
     c   <- .$pars$g0*( V*(.$state$ca - .$state_pars$gstar) - .$state$rd*(K + .$state$ca) )
  
-    # return cc
-    A   <- quad_sol(a,b,c,'upper')
-    f_ficks_ci(., A=A, r=1.6*get(.$fnames$rs)(.,A=A) )
+    # return A 
+    quad_sol(a,b,c,'upper')
   }
 
-  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
-  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
-  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
+  .$state$Acg <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
+  .$state$Ajg <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
+  .$state$Apg <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
 
-  # maximum cc corresponds to the minimum of the limiting rates  
-  .$state$cc <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
+  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
+  Amin        <- get(.$fnames$Alim)(.) 
   
-  # calculate net A
-  Anet <- f_assimilation(.)
-
+  # determine cc/ci based on Amin
   # calculate rs
-  .$pars$g0[] <- g0_hold 
-  .$state_pars$rs <- get(.$fnames$rs)(.,A=Anet)
-  
-  # set ci & cc
-  .$state$cc <-.$state$ci <- f_ficks_ci(.,A=Anet, r=1.6*.$state_pars$rs )
-
+  .$pars$g0[]     <- g0_hold 
+  .$state_pars$rs <- get(.$fnames$rs)(.,A=Amin)
+  .$state$cc <-.$state$ci <- f_ficks_ci(., A=Amin, r=1.6*.$state_pars$rs )
+    
   # recalculate Ag for each limiting process
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
   .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
@@ -233,7 +229,7 @@ f_A_r_leaf_analytical_quad <- function(.) {
   .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
 
   # return net A
-  Anet
+  Amin
 }
 
 
@@ -252,28 +248,22 @@ f_A_r0_leaf_analytical_quad <- function(.) {
     b   <- .$state$ca + K - .$state$rd*p*r + V*p*r
     c   <- .$state$ca*(.$state$rd-V) + .$state$rd*K + V*.$state_pars$gstar 
     
-    # return cc
-    A   <- quad_sol(a,b,c,'lower')
-    f_ficks_ci(., A=A, r=r )
+    # return A 
+    quad_sol(a,b,c,'lower')
   }
 
-  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
-  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
-  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
+  .$state$Acg <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
+  .$state$Ajg <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
+  .$state$Apg <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
 
-  # maximum cc corresponds to the minimum of the limiting rates  
-  .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
+  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
+  Amin        <- get(.$fnames$Alim)(.) 
   
-  # calculate net A
-  Anet <- f_assimilation(.)
-
-  # calculate rs
+  # determine cc/ci based on Amin
   .$state_pars$rs <- r0 
-  
-  # set ci & cb
-  .$state$cb <- f_ficks_ci(., A=Anet )
-  .$state$ci <- f_ficks_ci(., A=Anet, c=.$state$cb, r=1.6*.$state_pars$rs )
-
+  .$state$cb <- f_ficks_ci(., A=Amin )
+  .$state$cc <-.$state$ci <- f_ficks_ci(., A=Amin, r=1.6*.$state_pars$rs )
+    
   # recalculate Ag for each limiting process
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
   .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
@@ -281,7 +271,7 @@ f_A_r0_leaf_analytical_quad <- function(.) {
   .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
 
   # return net A
-  Anet
+  Amin
 }
 
 
