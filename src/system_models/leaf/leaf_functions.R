@@ -63,6 +63,7 @@ f_A_r_leaf <- function(., A ) {
   f_assimilation(.) - A
 } 
 
+
 # same as above function but with no stomatal resistance 
 f_A_r_leaf_noRs <- function(.,A) {
   
@@ -120,15 +121,15 @@ f_A_r_leaf_analytical_quad <- function(.) {
   if(.$fnames$rs=='f_rs_cox1998'|.$fnames$rs=='f_rs_constantCiCa') .$pars$g0[] <- 0 
 
   # calculate coefficients of quadratic to solve A
-  assim_quad_soln <- function(.,V,K) {
+  assim_quad_soln <- function(., V, K ) {
     gsd <- get(paste0(.$fnames$rs,'_fe'))(.) / .$state$ca
     p   <- .$env$atm_press*1e-6
     a   <- p*( 1.6 - gsd*(.$state$ca + K) )
     b   <- p*gsd*( .$state$ca*(V - .$state$rd) - .$state$rd*K - V*.$state_pars$gstar ) - .$pars$g0*(.$state$ca + K) + 1.6*p*(.$state$rd - V)
     c   <- .$pars$g0*( V*(.$state$ca - .$state_pars$gstar) - .$state$rd*(K + .$state$ca) )
  
-    # return A 
-    quad_sol(a,b,c,'upper')
+    # return A - 1e-6 for numerical stability when A = 0 
+    quad_sol(a,b,c,'upper') + 1e-6
   }
 
   .$state$Acg <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
