@@ -206,7 +206,10 @@ wrapper_object <-
         # initialise output matrix
         .$dataf$out <- matrix(0, .$dataf$lp, dim(.$dataf$met)[1] )
 
-        # call run function
+        # initialise output array
+        .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, dim(.$dataf$met)[1], (.$wpars$mcmc_maxiter/2)))
+     
+	# call run function
         if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
         else                 lapply( 1:.$dataf$lf, .$runf_mcmc )
        
@@ -380,7 +383,7 @@ wrapper_object <-
       vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
 
       # write output from MCMC
-      write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
+      write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
     }
     
     # This wrapper function is called from a vapply function to iterate / step chains in an MCMC
@@ -474,6 +477,9 @@ wrapper_object <-
         accept <- log(alpha[kk]) > log(runif(1,min=0,max=1)) 
         .$dataf$pars_array[kk,,j+1]   <- if(accept) .$dataf$pars[kk,] else .$dataf$pars_array[kk,,j]    
         .$dataf$pars_lklihood[kk,j+1] <- if(accept) lklihood[kk]      else .$dataf$pars_lklihood[kk,j]    
+        out_n <- .$wpars$mcmc_maxiter/2       
+        if (j > out_n) 
+          .$dataf$out_mcmc[kk,,(j-out_n)] <- if(accept | j==out_n+1) .$dataf$out[kk,]      else .$dataf$out_mcmc[kk,,(j-out_n-1)]    
       }
     }   
  
@@ -903,6 +909,7 @@ wrapper_object <-
       # output matrices / arrays
       mout          = NULL,         # example model output vector, for setting up vapply functions  
       out           = NULL,         # output matrix
+      out_mcmc    = NULL,         # output array
       out_saltelli  = NULL,         # saltelli output list
       # observation matrices /dataframes
       obs           = NULL,         # a vector/matrix of observations against which to valiadate/ calculate likelihood of model
