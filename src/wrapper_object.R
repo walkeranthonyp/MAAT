@@ -1753,7 +1753,7 @@ wrapper_object <-
     
     # test function for MCMC parameter estimation in a linear regression 
     .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_maxiter=3,
-                                  x=1:10, a_mu=-2, b_mu=7, a_sd=1, b_sd=1, standard_err=0.1 ) {
+                                  x=1:10, a_mu=-5, b_mu=25, a_sd=1, b_sd=1, standard_err=0.5 ) {
       
       # source directory
       setwd('system_models/mcmc_test')
@@ -1799,6 +1799,9 @@ wrapper_object <-
         mcmc_test.a  = 'runif(n,-10,30)',
         mcmc_test.b  = 'runif(n,-10,30)'
       )
+
+      # define ofname
+      .$ofname <- 'lin_reg_test'
 
       # Run MCMC 
       st <- system.time(
