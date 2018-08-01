@@ -937,7 +937,7 @@ wrapper_object <-
     )
     
     fnames <- list(
-      proposal_lklihood = 'f_proposal_lklihood_ssquared'
+      proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
     )   
  
     
@@ -1752,8 +1752,8 @@ wrapper_object <-
     }  
     
     # test function for MCMC parameter estimation in a linear regression 
-    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_maxiter=2,
-                                  x=1:10 ) {
+    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_maxiter=3,
+                                  x=1:10, a_mu=-2, b_mu=7, a_sd=1, b_sd=1, standard_err=0.1 ) {
       
       # source directory
       setwd('system_models/mcmc_test')
@@ -1774,14 +1774,14 @@ wrapper_object <-
       .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
       .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
       .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
-      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared'  # MCMC likelihood function 
+      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared_se'  # MCMC likelihood function 
       .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
 
       # set problem specific parameters
-      .$model$pars$syn_a_mu <- -2      
-      .$model$pars$syn_b_mu <- 7      
-      .$model$pars$syn_a_sd <- 1      
-      .$model$pars$syn_b_sd <- 1      
+      .$model$pars$syn_a_mu <- a_mu      
+      .$model$pars$syn_b_mu <- b_mu      
+      .$model$pars$syn_a_sd <- a_sd     
+      .$model$pars$syn_b_sd <- b_sd      
      
       # met data
       .$dataf$met        <- matrix(x, length(x) ,1 ) 
@@ -1792,6 +1792,7 @@ wrapper_object <-
       .$model$pars$b       <- rnorm(length(x), .$model$pars$syn_b_mu, .$model$pars$syn_b_sd )
       .$model$env$linreg_x <- x
       .$dataf$obs          <- get(.$model$fnames$reg_func)(.$model)
+      .$dataf$obsse        <- rnorm(length(x), mean = 0, sd = standard_err) 
 
       # define priors
       .$dynamic$pars_eval <- list(
