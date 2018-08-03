@@ -347,7 +347,8 @@ if(!is.null(metdata)) {
     
     ###################################
     # add eval data to model object - total hack for now   
-    maat$dataf$obs <- metdf$GPP.PAR.ecor.real    
+    maat$dataf$obs    <- metdf$GPP.PAR.ecor.real    
+    maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se 
     ###################################
 
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML 
