@@ -470,8 +470,6 @@ wrapper_object <-
     # calculate proposal acceptance using the Metropolis ratio  
     proposal_accept <- function(., j, lklihood ) {
       # perform Metropolis accept/reject step
-print(lklihood) 
-pritn(.$dataf$part_lklihood)
       metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j])
       alpha <- pmin(1,metrop_ratio)
       for(kk in 1:.$dataf$lp) {

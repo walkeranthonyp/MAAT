@@ -46,7 +46,7 @@ f_proposal_lklihood_ssquared_se <- function(.) {
     # homoscedastic error
     # calculate sum of squared error
     SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
-    log_density <- -(measurment_num/2)*log(2*pi) - measurment_num*log(meas_sigma) - (1/2)*meas_sigma^(-2)*SSR
+    log_density <- -(measurment_num/2)*log(2*pi) - measurment_num*log(abs(meas_sigma)) - (1/2)*meas_sigma^(-2)*SSR
   }
   else {
     # heteroscedastic error
