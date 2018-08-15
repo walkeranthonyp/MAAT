@@ -104,9 +104,20 @@ f_A_r_leaf_semiana <- function(.) {
 
   # a0 should mostly be larger than the full solution (unless rb and ri are zero) meaning that fa0 should always be < 0
   fa0 <- f_A_r_leaf(., a0 ) 
+  
+  if(is.na(fa0)) {
+    print('')
+    print(c(a0,fa0))
+    print(unlist(.$fnames)); print(unlist(.$pars)); print(unlist(.$state_pars)); print(unlist(.$state)); print(unlist(.$env)) 
+    #print(c(a0,fa0))
+    #a0 <- a0 - 1e-2
+    #fa0 <- f_A_r_leaf(., a0 ) 
+    #print(c(a0,fa0))
+  }
  
   #  
-  if(abs(fa0) < 1e-6 ) return(a0)
+  if(a0 == 0 ) return(1e-3) 
+  else if(abs(fa0) < 1e-6) return(a0)
   else {
  
     # in rare case when initial guess is smaller than solution and fa0 > 0
@@ -156,24 +167,69 @@ f_A_r_leaf_semiana <- function(.) {
     #else            a2 <- a1 - (a0-a1)   # works if initial guess is too high but what if initial guess is too small? need to change sign
     fa2 <- get(.$fnames$solver_func)(., a2 ) 
 
-    # check f(guesses) span zero i.e. that guesses span the root
-    guesses  <- c(a0,a1,a2)
-    fguesses <- c(fa0,fa1,fa2)
-    if( min(fguesses) * max(fguesses) >= 0 ) {
-      print(unlist(.$fnames)); print(unlist(.$pars)); print(unlist(.$state_pars)); print(unlist(.$env)) 
-      #print(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
+    # check that fa1 isn't huge relative to fa0
+    if(fa1 > 20*abs(fa0)) {
+      print(c('fa0,',round(fa0,4),'fa1 HUGE,',round(fa1,4),'fa2,',round(fa2,4),'a0,',round(a0,4),'a1,',round(a1,4),'a2,',round(a2,4) ))
+      
+      if(fa2*fa0 < 0) {
+        a1  <- mean(c(a0,a2))  
+        fa1 <- get(.$fnames$solver_func)(., a1 ) 
+      } else {
+        a2hold <- a2
+        a2  <- mean(c(a1,a2))  
+        fa2 <- get(.$fnames$solver_func)(., a2 ) 
+        if(fa2>fa1) {
+          while(fa2>0) {
+            #a2  <- mean(c(a0,a2))  
+            #a2  <- mean(c(a2hold,a2))  
+            a2  <- a2 - 0.01  
+            fa2 <- get(.$fnames$solver_func)(., a2 ) 
+          }
+        } 
+      }
+
+      print(c('fa0,',round(fa0,4),'fa1 REDO,',round(fa1,4),'fa2,',round(fa2,4),'a0,',round(a0,4),'a1,',round(a1,4),'a2,',round(a2,4) ))
+
+      if(fa2*fa0 < 0) {
+        a1  <- mean(c(a0,a2))  
+        fa1 <- get(.$fnames$solver_func)(., a1 ) 
+        print(c('fa0,',round(fa0,4),'fa1 REDO,',round(fa1,4),'fa2,',round(fa2,4),'a0,',round(a0,4),'a1,',round(a1,4),'a2,',round(a2,4) ))
+      } else stop('failed')
+
       sinput <- seq(a0-2,a0+2,0.1 )
       out    <- numeric(length(sinput))
       for( i in 1:length(sinput) ) {
         out[i] <- f_A_r_leaf(., A=sinput[i] )
       }
       print(cbind(sinput,out))
-      stop(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))      
-#      a2  <- a2 - deltaA1
-#      fa2 <- get(.$fnames$solver_func)(., a2 ) 
-#      guesses  <- c(a0,a1,a2)
-#      fguesses <- c(fa0,fa1,fa2)
-#      if( min(fguesses) * max(fguesses) >= 0 ) stop(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
+    }
+
+    # check f(guesses) span zero i.e. that guesses span the root
+    guesses  <- c(a0,a1,a2)
+    fguesses <- c(fa0,fa1,fa2)
+    if( min(fguesses) * max(fguesses) >= 0 ) {
+      print(unlist(.$fnames)); print(unlist(.$pars)); print(unlist(.$state_pars)); print(unlist(.$env)) 
+      print(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
+      sinput <- seq(a0-2,a0+2,0.1 )
+      out    <- numeric(length(sinput))
+      for( i in 1:length(sinput) ) {
+        out[i] <- f_A_r_leaf(., A=sinput[i] )
+      }
+      print(cbind(sinput,out))
+      #stop(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))      
+      #a2  <- a2 - deltaA1
+      a2  <- mean(c(a1,a2))  
+      fa2 <- get(.$fnames$solver_func)(., a2 ) 
+      
+      if(fa2*fa0 < 0) {
+        a1  <- mean(c(a0,a2))  
+        fa1 <- get(.$fnames$solver_func)(., a1 ) 
+      }
+
+      guesses  <- c(a0,a1,a2)
+      fguesses <- c(fa0,fa1,fa2)
+      print(paste('New fas,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
+      if( min(fguesses) * max(fguesses) >= 0 ) stop(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
     } 
     .$state$aguess  <- guesses 
     .$state$faguess <- fguesses
@@ -191,8 +247,8 @@ f_A_r_leaf_semiana <- function(.) {
     ss    <- which(assim>min(guesses)&assim<max(guesses))
     
     # catch potential errors
-    if(length(ss)==0)      stop('no solution within initial 3 guesses') 
-    else if(length(ss)==2) stop('both solutions within initial 3 guesses') 
+    if(length(ss)==0)      stop('no solution,', assim,'; within initial 3 guesses,',a0,a1,a2,'fguesses,',fa0,fa1,fa2 ) 
+    else if(length(ss)==2) stop('both solutions,',assim,'; within initial 3 guesses,',a0,a1,a2,'fguesses,',fa0,fa1,fa2 ) 
     else return(assim[ss])
   }
 }
