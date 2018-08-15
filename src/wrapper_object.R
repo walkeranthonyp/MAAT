@@ -206,7 +206,10 @@ wrapper_object <-
         # initialise output matrix
         .$dataf$out <- matrix(0, .$dataf$lp, dim(.$dataf$met)[1] )
 
-        # call run function
+        # initialise output array
+        .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, dim(.$dataf$met)[1], (.$wpars$mcmc_maxiter/2)))
+     
+	# call run function
         if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
         else                 lapply( 1:.$dataf$lf, .$runf_mcmc )
        
@@ -380,7 +383,7 @@ wrapper_object <-
       vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
 
       # write output from MCMC
-      write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
+      write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
     }
     
     # This wrapper function is called from a vapply function to iterate / step chains in an MCMC
@@ -428,6 +431,11 @@ wrapper_object <-
    
     # generate proposal using DE-MC algorithm  
     gen_proposal_demc <- function(.,j) {
+      # number of data points to be used in boundary handling
+      n <- 1000
+      .$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+      minn <- unlist(lapply(.$dynamic$pars_bndhndling,min))
+      maxn <- unlist(lapply(.$dynamic$pars_bndhndling,max))
       # randomly select two different numbers R1 and R2 unequal to j
       # from a uniform distribution without replacement
       R1 <- 0
@@ -437,18 +445,26 @@ wrapper_object <-
       # scaling factor
       gamma_star <- 2.38 / sqrt(d + d)
       b <- 0.01
-      # draw random number from uniform distribution on interval (-b,b)
-      uniform_r <- runif(1,min=(-b),max=b)
       # evaluate for each chain
       for (ii in 1:.$dataf$lp) {
         while ((R1 == 0) | (R1 == ii))                R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
         while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
+        # draw random number from uniform distribution on interval (-b,b)
+        uniform_r <- runif(1,min=(-b),max=b)
         # evaluate for each parameter value
         for (jj in 1:d) {
           # generate proposal via Differential Evolution
           .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j] + gamma_star * (.$dataf$pars_array[R1,jj,j] - .$dataf$pars_array[R2,jj,j]) + uniform_r
+          # boundary handling for minumum
+          if (.$dataf$pars[ii,jj] < minn[jj]) {
+            .$dataf$pars[ii,jj] <- minn[jj]
+          }
+          # boundary handling for maximum
+          if (.$dataf$pars[ii,jj] > maxn[jj]) {
+            .$dataf$pars[ii,jj] <- maxn[jj]
+          } 
         }
-      }     
+      }
     } 
 
     # calculate proposal acceptance using the Metropolis ratio  
@@ -461,6 +477,9 @@ wrapper_object <-
         accept <- log(alpha[kk]) > log(runif(1,min=0,max=1)) 
         .$dataf$pars_array[kk,,j+1]   <- if(accept) .$dataf$pars[kk,] else .$dataf$pars_array[kk,,j]    
         .$dataf$pars_lklihood[kk,j+1] <- if(accept) lklihood[kk]      else .$dataf$pars_lklihood[kk,j]    
+        out_n <- .$wpars$mcmc_maxiter/2       
+        if (j > out_n) 
+          .$dataf$out_mcmc[kk,,(j-out_n)] <- if(accept | j==out_n+1) .$dataf$out[kk,]      else .$dataf$out_mcmc[kk,,(j-out_n-1)]    
       }
     }   
  
@@ -890,6 +909,7 @@ wrapper_object <-
       # output matrices / arrays
       mout          = NULL,         # example model output vector, for setting up vapply functions  
       out           = NULL,         # output matrix
+      out_mcmc    = NULL,         # output array
       out_saltelli  = NULL,         # saltelli output list
       # observation matrices /dataframes
       obs           = NULL,         # a vector/matrix of observations against which to valiadate/ calculate likelihood of model
@@ -917,7 +937,7 @@ wrapper_object <-
     )
     
     fnames <- list(
-      proposal_lklihood = 'f_proposal_lklihood_ssquared'
+      proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
     )   
  
     
@@ -1732,8 +1752,8 @@ wrapper_object <-
     }  
     
     # test function for MCMC parameter estimation in a linear regression 
-    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_maxiter=2,
-                                  x=1:10 ) {
+    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_maxiter=3,
+                                  x=1:10, a_mu=-25, b_mu=25, a_sd=1, b_sd=1, standard_err=0.5 ) {
       
       # source directory
       setwd('system_models/mcmc_test')
@@ -1754,14 +1774,14 @@ wrapper_object <-
       .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
       .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
       .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
-      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared'  # MCMC likelihood function 
+      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared_se'  # MCMC likelihood function 
       .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
 
       # set problem specific parameters
-      .$model$pars$syn_a_mu <- -2      
-      .$model$pars$syn_b_mu <- 7      
-      .$model$pars$syn_a_sd <- 1      
-      .$model$pars$syn_b_sd <- 1      
+      .$model$pars$syn_a_mu <- a_mu      
+      .$model$pars$syn_b_mu <- b_mu      
+      .$model$pars$syn_a_sd <- a_sd     
+      .$model$pars$syn_b_sd <- b_sd      
      
       # met data
       .$dataf$met        <- matrix(x, length(x) ,1 ) 
@@ -1772,12 +1792,16 @@ wrapper_object <-
       .$model$pars$b       <- rnorm(length(x), .$model$pars$syn_b_mu, .$model$pars$syn_b_sd )
       .$model$env$linreg_x <- x
       .$dataf$obs          <- get(.$model$fnames$reg_func)(.$model)
+      .$dataf$obsse        <- rnorm(length(x), mean = 0, sd = standard_err) 
 
       # define priors
       .$dynamic$pars_eval <- list(
-        mcmc_test.a  = 'runif(n,-10,30)',
-        mcmc_test.b  = 'runif(n,-10,30)'
+        mcmc_test.a  = 'runif(n,-30,30)',
+        mcmc_test.b  = 'runif(n,-30,30)'
       )
+
+      # define ofname
+      .$ofname <- 'lin_reg_test'
 
       # Run MCMC 
       st <- system.time(
