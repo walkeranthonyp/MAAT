@@ -99,6 +99,8 @@ mcmc_burnin   <- 0.5
 mcmc_thin     <- 0.1
 # MCMC thinning for observations, as a proportion 
 mcmc_thin_obs <- 1
+# MCMC option to assume homoscedastic error in measured observations (else, heteroscedastic)
+mcmc_homosced <- F
 
 # run options
 # meteorological data file name
@@ -224,6 +226,7 @@ maat$wpars$mcmc_maxiter  <- mcmc_maxiter
 maat$wpars$mcmc_burnin   <- mcmc_burnin       
 maat$wpars$mcmc_thin     <- mcmc_thin       
 maat$wpars$mcmc_thin_obs <- mcmc_thin_obs       
+maat$wpars$mcmc_homosced <- mcmc_homosced
 maat$wpars$eval_strings  <- eval_strings       
 maat$model$cpars$verbose <- F
 maat$model$cpars$output  <- mod_out

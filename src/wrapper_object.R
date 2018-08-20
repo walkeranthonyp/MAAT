@@ -933,6 +933,7 @@ wrapper_object <-
       mcmc_burnin  = 0.5,         # MCMC proportion of maxiter burn in to discard in posterior 
       mcmc_thin    = 0.1,         # MCMC chain thinning proportion 
       mcmc_thin_obs= 1,           # MCMC observation thinning proportion 
+      mcmc_homosced= F,           # MCMC option for homoscedastic error
       unit_testing = F
     )
     
