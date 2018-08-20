@@ -43,6 +43,7 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   #meas_sigma <- .$dataf$obsse
 
   # remove zeros from measurement error  
+<<<<<<< HEAD
   #subset1    <- sapply(meas_sigma, function(row) all(row > 0))
   # change this!
   #meas_sigma2 <- meas_sigma[subset1]
@@ -51,6 +52,13 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   # number of measured data points (that do not have zero uncertainty)
   # obs_n <- length(.$dataf$obs)
   obs_n <- length(sspos)
+=======
+  subset1  <- sapply(meas_sigma, function(row) all(row > 1e-6))
+  meas_sigma2 <- meas_sigma[subset1]
+  # number of measured data points (that are not zero)
+  # measurment_num <- length(.$dataf$obs)
+  measurment_num <- length(meas_sigma2)
+>>>>>>> 38749bdb42005adfbd211493ac76f36b332f58d0
   # calculate error residual
   # each chain is on rows of dataf$out, take transpose
   #error_residual_matrix <- t(.$dataf$out)[sspos,] - .$dataf$obs[sspos]
@@ -61,9 +69,14 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   if (length(.$dataf$obsse) == 1) {
     # homoscedastic error - I think this is an assumption that the error is constant across all values of obs
     # calculate sum of squared error
+<<<<<<< HEAD
     error_residual_matrix <- t(.$dataf$out)[sspos,] - .$dataf$obs[sspos]
     SSR                   <- apply(error_residual_matrix, 2, function(v) sum(v^2))
     log_density           <- -(obs_n/2)*log(2*pi) - obs_n*log(abs(.$dataf$obsse)) - 0.5*.$dataf$obsse^(-2)*SSR
+=======
+    SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
+    log_density <- -(measurment_num/2)*log(2*pi) - measurment_num*log(abs(meas_sigma)) - (1/2)*meas_sigma^(-2)*SSR
+>>>>>>> 38749bdb42005adfbd211493ac76f36b332f58d0
   } else {
     # heteroscedastic error
     #err_div_sig     <- error_residual_matrix / as.vector(.$dataf$obsse[sspos])
@@ -76,7 +89,6 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   }  
 
   # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
-  print(log_density)
   log_density
 } 
 
