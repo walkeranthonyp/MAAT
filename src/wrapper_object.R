@@ -1753,7 +1753,7 @@ wrapper_object <-
     }  
     
     # test function for MCMC parameter estimation in a linear regression 
-    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_maxiter=3,
+    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_homosced=T, mcmc_maxiter=3,
                                   x=1:10, a_mu=-25, b_mu=25, a_sd=1, b_sd=1, standard_err=0.5 ) {
       
       # source directory
@@ -1769,14 +1769,15 @@ wrapper_object <-
       .$model$pars$cverbose <- F      
       .$model$fnames$mcmc_testsys <- 'f_mcmc_testsys_regression'      
       .$model$fnames$reg_func     <- 'f_reg_func_linear'      
-      .$wpars$multic       <- mc           # multicore the ensemble
-      .$wpars$procs        <- pr           # number of cores to use if above is true
-      .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
-      .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
-      .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
-      .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
+      .$wpars$multic        <- mc            # multicore the ensemble
+      .$wpars$procs         <- pr            # number of cores to use if above is true
+      .$wpars$UQ            <- T             # run a UQ/SA style ensemble 
+      .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble 
+      .$wpars$mcmc_chains   <- mcmc_chains   # MCMC number of chains 
+      .$wpars$mcmc_homosced <- mcmc_homosced # MCMC homoscedastic error
+      .$wpars$mcmc_maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain 
       .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared_se'  # MCMC likelihood function 
-      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
+      .$wpars$unit_testing  <- T             # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
 
       # set problem specific parameters
       .$model$pars$syn_a_mu <- a_mu      

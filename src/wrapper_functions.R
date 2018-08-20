@@ -46,7 +46,7 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   obs_n <- length(sspos)
 
   # observed error
-  obsse <- if(mcmc_homosced)   rep(mean(.$dataf$obsse[sspos]), obs_n)
+  obsse <- if(.$wpars$mcmc_homosced)   rep(mean(.$dataf$obsse[sspos]), obs_n)
            else                .$dataf$obsse[sspos]
  
   # calculate error residual (each chain is on rows of dataf$out, take transpose)
