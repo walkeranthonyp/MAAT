@@ -37,8 +37,7 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   # read in measurement error
   meas_sigma <- .$dataf$obsse
   # remove zeros from measurement error  
-  subset1  <- sapply(meas_sigma, function(row) all(row > 0))
-# change this!
+  subset1  <- sapply(meas_sigma, function(row) all(row > 1e-6))
   meas_sigma2 <- meas_sigma[subset1]
   # number of measured data points (that are not zero)
   # measurment_num <- length(.$dataf$obs)
@@ -54,8 +53,7 @@ f_proposal_lklihood_ssquared_se <- function(.) {
     # calculate sum of squared error
     SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
     log_density <- -(measurment_num/2)*log(2*pi) - measurment_num*log(abs(meas_sigma)) - (1/2)*meas_sigma^(-2)*SSR
-  }
-  else {
+  } else {
     # heteroscedastic error
     err_div_sig <- error_residual_matrix2 / as.vector(meas_sigma2)
     sum_err_div_sig <- apply(err_div_sig, 2, function(v) sum(v^2))
@@ -63,7 +61,6 @@ f_proposal_lklihood_ssquared_se <- function(.) {
     log_density <- -(measurment_num/2)*log(2*pi) - sum(log(abs(meas_sigma2))) - (1/2)*sum_err_div_sig
   }  
   # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
-  print(log_density)
   log_density
 } 
 
