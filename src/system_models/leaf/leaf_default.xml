@@ -198,7 +198,7 @@
       <R>8.31446</R>
     </pars>
     <env>
-      <ca_conc>0</ca_conc>
+      <ca_conc>400</ca_conc>
       <o2_conc>0.21</o2_conc>
       <par>0</par>
       <water_l>0</water_l>

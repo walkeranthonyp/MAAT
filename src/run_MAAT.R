@@ -241,7 +241,7 @@ if(xml) {
   # read user defined XMLs of dynamic variables
   dynamicxml   <- paste(mod_obj,'user','dynamic.xml',sep='_')
   if(file.exists(dynamicxml)) init_dynamic <- readXML(dynamicxml)
-  else                       {lid <- list(list(fnames=NULL,pars=NULL,env=NLL)); names(lid) <- mod_obj; init_dynamic <- lid } 
+  else                       {lid <- list(list(fnames=NULL,pars=NULL,env=NULL)); names(lid) <- mod_obj; init_dynamic <- lid } 
   
   # otherwise read init list R script
 } else source(initf)
@@ -264,11 +264,13 @@ print('  all static fnames requested exist',quote=F)
 
 print('',quote=F)
 print('Check dynamic fnames requested exist:',quote=F)
-out <- lapply(init_dynamic, 
-              function(l) lapply(l$fnames,
-                                 function(l) if(is.list(l)) lapply(l, search_fnames, ln='dynamic') else search_fnames(l, ln='dynamic' )
-                                 ))
-                            #function(v) for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init dynamic does not exist') else return('exists') ))
+if(!is.null(init_dynamic$fnames[[]])) { 
+  out <- lapply(init_dynamic, 
+                function(l) lapply(l$fnames,
+                                   function(l) if(is.list(l)) lapply(l, search_fnames, ln='dynamic') else search_fnames(l, ln='dynamic' )
+                                   ))
+                              #function(v) for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init dynamic does not exist') else return('exists') ))
+}
 print('  all dynamic fnames requested exist',quote=F)
 
 # add init lists to wrapper
