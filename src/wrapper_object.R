@@ -446,7 +446,7 @@ wrapper_object <-
       gamma_star <- 2.38 / sqrt(d + d)
       # b <- 0.01
       # b <- 0.8
-      b <- 0.1
+      b <- 0.2
       # evaluate for each chain
       for (ii in 1:.$dataf$lp) {
         while ((R1 == 0) | (R1 == ii))                R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
