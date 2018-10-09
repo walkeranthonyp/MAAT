@@ -758,9 +758,9 @@ f_tcor_asc_Q10 <- function(., var, ... ) {
   # input parameters  
   # Q10    -- factor by which rate increases for every 10 oC of temp increase  
   # Tr     -- reference temperature (oC) 
-  
+ 
   q10 <- get(.$fnames$q10_func[[var]])(., var=var )
-  
+ 
   q10 ^ ((.$state$leaf_temp - .$pars$reftemp[[var]])/10)
   
 }

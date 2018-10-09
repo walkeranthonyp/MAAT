@@ -154,7 +154,8 @@ leaf_object <-
       ),
       tcor_dep = list(
         tpu            = 'f_tcor_dep_dependent',
-        rd             = 'f_tcor_dep_dependent'
+        rd             = 'f_tcor_dep_dependent',
+        tau            = 'f_tcor_dep_dependent'
 	),
       deltaS   = list(  
         rd             = 'f_deltaS',
@@ -165,7 +166,10 @@ leaf_object <-
       q10_func = list(
         rd             = 'f_q10_constant',
         vcmax          = 'f_q10_constant',
-        jmax           = 'f_q10_constant'
+        jmax           = 'f_q10_constant',
+        tau            = 'f_q10_constant',
+        Kc             = 'f_q10_constant',
+        Ko             = 'f_q10_constant'
       )      
     )
     

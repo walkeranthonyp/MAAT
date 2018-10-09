@@ -139,7 +139,7 @@
       </Ha>
       <!-- Q10 for temperature sensitive parameters -->
       <q10>
-        <rd>2<rd>
+        <rd>2</rd>
       </q10>
       <!-- deactivation energy for temperature sensitive parameters -->
       <Hd>

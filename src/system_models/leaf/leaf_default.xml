@@ -43,6 +43,7 @@
       <tcor_dep>
         <tpu>'f_tcor_dep_dependent'</tpu>
         <rd>'f_tcor_dep_dependent'</rd>
+        <tau>'f_tcor_dep_dependent'</tau>
       </tcor_dep>
       <deltaS>
         <rd>'f_deltaS'</rd>
@@ -54,6 +55,9 @@
         <rd>'f_q10_constant'</rd>
         <vcmax>'f_q10_constant'</vcmax>
         <jmax>'f_q10_constant'</jmax>
+        <tau>'f_q10_constant'</tau>
+        <Kc>'f_q10_constant'</Kc>
+        <Ko>'f_q10_constant'</Ko>
       </q10_func>
     </fnames>
     <pars>
