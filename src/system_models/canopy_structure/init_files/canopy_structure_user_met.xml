@@ -1,0 +1,20 @@
+<met_data_translator>
+  <canopy_structure>
+    <env>
+      <temp>'column name of variable in metdata file'</temp>
+      <par>'column name of variable in metdata file'</par>
+      <ca_conc>'column name of variable in metdata file'</ca_conc>
+      <vpd>'column name of variable in metdata file'</vpd>
+      <zenith>'column name of variable in metdata file'</zenith>
+      <lai>'column name of variable in metdata file'</lai>
+      <upper_can_prop_young>'column name of variable in metdata file'</upper_can_prop_young>
+      <upper_can_prop_mature>'column name of variable in metdata file'</upper_can_prop_mature>
+      <upper_can_prop_old>'column name of variable in metdata file'</upper_can_prop_old>
+      <lower_can_prop_young>'column name of variable in metdata file'</lower_can_prop_young>
+      <lower_can_prop_mature>'column name of variable in metdata file'</lower_can_prop_mature>
+      <lower_can_prop_old>'column name of variable in metdata file'</lower_can_prop_old>
+      <water_td>'column name of variable in metdata file'</water_td>
+      <sphag_h>'column name of variable in metdata file'</sphag_h>
+    </env>
+  </canopy_structure>
+</met_data_translator>

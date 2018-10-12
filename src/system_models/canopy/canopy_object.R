@@ -132,6 +132,7 @@ canopy_object <-
       pars_init     = 'f_pars_init',
       rt            = 'f_rt_beerslaw_goudriaan',
       scale_n       = 'f_scale_n_CLMuniform',
+      scale_vcmax   = 'f_scale_vcmax_uniform',
       scale_ca      = 'f_scale_ca_uniform',
       scale_vpd     = 'f_scale_vpd_uniform',
       lai           = 'f_lai_constant',
@@ -190,11 +191,12 @@ canopy_object <-
     # state
     state <- list(
       # External
-      lai     = numeric(1),      # 1.5 for Sphagnum Williams & Flannagan, 1998
+      lai     = numeric(1), 
       mass_a  = 10,
       C_to_N  = 40,
       totalN  = 7,
-      
+      vcmax0  = numeric(1),      
+ 
       # Calculated state
       # canopy layer vectors
       vert    = list(
@@ -203,6 +205,7 @@ canopy_object <-
           leaf.ca_conc    = numeric(1),
           leaf.vpd        = numeric(1),
           leaf.par        = numeric(1),
+          leaf.vcmax      = numeric(1), 
           leaf.leafN_area = numeric(1)
         ),
         # variable canopy light & physiology by sun and shade leaves
@@ -388,6 +391,7 @@ canopy_object <-
       
       .$leaf$configure(vlist='env',   df=df[ii,] )
       .$leaf$configure(vlist='state', df=df[ii,] )
+      .$leaf$configure(vlist='pars',  df=df[ii,] )
       
       # run leaf
       .$leaf$run()        
