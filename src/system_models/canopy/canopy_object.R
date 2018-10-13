@@ -51,7 +51,7 @@ canopy_object <-
       .$leaf     <- as.proto( leaf_object$as.list() )
       rm(leaf_object, pos=1 )
       init_child <- .$leaf$build(mod_mimic=mod_mimic)
-      .$leaf$cpars$output <- 'all_lim'
+      .$leaf$cpars$output <- 'canopy'
       setwd(paste0('../',.$name))
 
       # build full init list
@@ -64,8 +64,8 @@ canopy_object <-
     # main run function
     
     run <- function(.) {
-      if(.$cpars$verbose) print('canopy_run')
-      
+      if(.$cpars$verbose) print('canopy run()')
+     
       # initialise canopy
       .$state$lai <- get(.$fnames$lai)(.) # this also could point to a higher level plant object  
       get(.$fnames$pars_init)(.)
@@ -103,11 +103,11 @@ canopy_object <-
         
       } else if(.$cpars$output=='leaf') {
         c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-          ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA)
+          gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA)
         
       } else if(.$cpars$output=='all_lim') {
         c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-          ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA, 
+          gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA, 
           Acg_lim=.$state$integrated$Acg_lim, 
           Ajg_lim=.$state$integrated$Ajg_lim, 
           Apg_lim=.$state$integrated$Apg_lim, 
@@ -160,12 +160,12 @@ canopy_object <-
     
     # Environment
     env <- list(
-      temp      = numeric(1),      
-      par       = numeric(1),      
+      temp      = 25,      
+      par       = 1000,      
       par_dir   = numeric(1),      
       par_diff  = numeric(1),      
-      ca_conc   = numeric(1),
-      vpd       = numeric(1),
+      ca_conc   = 400,
+      vpd       = 1,
       clearness = 1,
       zenith    = 0,
       water_td  = numeric(1),
@@ -213,9 +213,10 @@ canopy_object <-
           respiration = numeric(1),
           ci          = numeric(1),
           cc          = numeric(1),
-          rb          = numeric(1),
-          rs          = numeric(1),
-          ri          = numeric(1),
+          gb          = numeric(1),
+          gs          = numeric(1),
+          gi          = numeric(1),
+          g           = numeric(1),
           lim         = numeric(1)
         ),
         shade = list( 
@@ -225,9 +226,10 @@ canopy_object <-
           respiration = numeric(1),
           ci          = numeric(1),
           cc          = numeric(1),
-          rb          = numeric(1),
-          rs          = numeric(1),
-          ri          = numeric(1),
+          gb          = numeric(1),
+          gs          = numeric(1),
+          gi          = numeric(1),
+          g           = numeric(1),
           lim         = numeric(1)
         ),
         layer = list( 
@@ -236,9 +238,10 @@ canopy_object <-
           respiration = numeric(1),
           ci          = numeric(1),
           cc          = numeric(1),
-          rb          = numeric(1),
-          rs          = numeric(1),
-          ri          = numeric(1),
+          gb          = numeric(1),
+          gs          = numeric(1),
+          gi          = numeric(1),
+          g           = numeric(1),
           lim         = numeric(1)
         )
       ),
@@ -255,9 +258,10 @@ canopy_object <-
         cb             = numeric(1),        # canopy mean boundary layer CO2                   (Pa)
         ci             = numeric(1),        # canopy mean leaf internal CO2                    (Pa) 
         cc             = numeric(1),        # canopy mean chloroplast CO2                      (Pa)
-        rb             = numeric(1),        # canopy boundary resistance                       (m2s mol-1)
-        rs             = numeric(1),        # canopy stomatal resistance                       (m2s mol-1) 
-        ri             = numeric(1),        # canopy leaf internal resistance                  (m2s mol-1)
+        gb             = numeric(1),        # canopy leaf boundary conductance                 (m2s mol-1)
+        gs             = numeric(1),        # canopy stomatal conductance                      (m2s mol-1) 
+        gi             = numeric(1),        # canopy leaf internal conductance                 (m2s mol-1)
+        g              = numeric(1),        # canopy total conductance                         (m2s mol-1)
         respiration    = numeric(1)         # canopy respiration rate                          (umol m-2s-1)        
       )
     )
@@ -326,7 +330,7 @@ canopy_object <-
 
       # call child (leaf) assign 
       #print(paste('conf:',vlist, names(df), df, length(moss) ))
-      if(any(listnames[1,]!=modobj)) {
+      if(any(listnames[1,]!=.$name)) {
         dfc <- if(length(moss)>0) df[-which(listnames[1,]==.$name)] else df 
         vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=dfc )
       }     

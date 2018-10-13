@@ -204,7 +204,7 @@
     <env>
       <ca_conc>400</ca_conc>
       <o2_conc>0.21</o2_conc>
-      <par>0</par>
+      <par>1000</par>
       <water_l>0</water_l>
       <sphag_l>0</sphag_l>
       <temp>25</temp>

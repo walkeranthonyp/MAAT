@@ -95,6 +95,12 @@ leaf_object <-
         lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
                   .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
         
+      } else if(.$cpars$output=='canopy') {
+        
+        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
+                  gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb, 
+                  g =1/ (.$state_pars$ri + .$state_pars$rs + .$state_pars$rb) )
+        
       } else if(.$cpars$output=='full') {
         
         lout <- unlist(c(.$state, .$state_pars ))
@@ -175,9 +181,9 @@ leaf_object <-
     
     # leaf environment
     env <- list(
-      ca_conc   = numeric(1),          # (umol mol-1)
+      ca_conc   = 400,                 # (umol mol-1)
       o2_conc   = 0.21,                # ( mol mol-1)
-      par       = numeric(1),          # (umol photons m-2 s-1)
+      par       = 1000,                # (umol photons m-2 s-1)
       water_l   = numeric(1),          # (mm) water level relative to hollow surfwce
       sphag_l   = 0,                   # (mm) Sphagnum surface relative to hollow surfwce
       temp      = 25,                  # (oC)
