@@ -89,15 +89,15 @@ canopy_structure_object <-
     # -- returns a vector of outputs
     output <- function(.){
       if(.$cpars$output=='run') {
-        c(A=.$state$integrated$A, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration)
+        c(A=.$state$integrated$A, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration)
         
       } else if(.$cpars$output=='canopy') {
         c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-          ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA)
+          gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA)
         
       } else if(.$cpars$output=='all_lim') {
         c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-          ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA 
+          gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA 
           #Acg_lim=.$state$integrated$Acg_lim, 
           #Ajg_lim=.$state$integrated$Ajg_lim, 
           #Apg_lim=.$state$integrated$Apg_lim, 
@@ -197,9 +197,10 @@ canopy_structure_object <-
           cb          = numeric(1),
           ci          = numeric(1),
           cc          = numeric(1),
-          rb          = numeric(1),
-          rs          = numeric(1),
-          ri          = numeric(1)
+          g           = numeric(1),  
+          gb          = numeric(1),
+          gs          = numeric(1),
+          gi          = numeric(1)
         ),
         mature = list( 
           A           = numeric(1),
@@ -207,9 +208,10 @@ canopy_structure_object <-
           cb          = numeric(1),
           ci          = numeric(1),
           cc          = numeric(1),
-          rb          = numeric(1),
-          rs          = numeric(1),
-          ri          = numeric(1)
+          g           = numeric(1),  
+          gb          = numeric(1),
+          gs          = numeric(1),
+          gi          = numeric(1)
         ),
         old = list( 
           A           = numeric(1),
@@ -217,9 +219,10 @@ canopy_structure_object <-
           cb          = numeric(1),
           ci          = numeric(1),
           cc          = numeric(1),
-          rb          = numeric(1),
-          rs          = numeric(1),
-          ri          = numeric(1)
+          g           = numeric(1),  
+          gb          = numeric(1),
+          gs          = numeric(1),
+          gi          = numeric(1)
         ),
         layer = list( 
           A           = numeric(1),
@@ -227,28 +230,30 @@ canopy_structure_object <-
           cb          = numeric(1),
           ci          = numeric(1),
           cc          = numeric(1),
-          rb          = numeric(1),
-          rs          = numeric(1),
-          ri          = numeric(1)
+          g           = numeric(1),  
+          gb          = numeric(1),
+          gs          = numeric(1),
+          gi          = numeric(1)
         )
       ),
       
-      # integrated canopy_structure values
+      # integrated canopy values
       integrated = list(
-        A              = numeric(1),        # canopy_structure assimilation rate                         (umol m-2s-1)
-        respiration    = numeric(1),        # canopy_structure respiration rate                          (umol m-2s-1)        
-#        Acg_lim        = numeric(1),        # assimilation rate of canopy_structure layers Ac limited    (umol m-2s-1)
-#        Ajg_lim        = numeric(1),        # assimilation rate of canopy_structure layers Aj limited    (umol m-2s-1)        
-#        Apg_lim        = numeric(1),        # assimilation rate of canopy_structure layers Ap limited    (umol m-2s-1)        
-#        layers_Acg_lim = numeric(1),        # number of canopy_structure layers Ac limited        
-#        layers_Ajg_lim = numeric(1),        # number of canopy_structure layers Aj limited        
-#        layers_Apg_lim = numeric(1),        # number of canopy_structure layers Ap limited
-        cb             = numeric(1),        # canopy_structure mean boundary layer CO2                   (Pa)
-        ci             = numeric(1),        # canopy_structure mean canopy internal CO2                  (Pa) 
-        cc             = numeric(1),        # canopy_structure mean chloroplast CO2                      (Pa)
-        rb             = numeric(1),        # canopy_structure boundary resistance                       (m2s mol-1)
-        rs             = numeric(1),        # canopy_structure stomatal resistance                       (m2s mol-1) 
-        ri             = numeric(1)         # canopy_structure canopy internal resistance                (m2s mol-1)
+        A              = numeric(1),        # canopy assimilation rate                          (umol m-2s-1)
+        respiration    = numeric(1),        # canopy respiration rate                           (umol m-2s-1)        
+#        Acg_lim        = numeric(1),        # assimilation rate of canopy layers Ac limited    (umol m-2s-1)
+#        Ajg_lim        = numeric(1),        # assimilation rate of canopy layers Aj limited    (umol m-2s-1)        
+#        Apg_lim        = numeric(1),        # assimilation rate of canopy layers Ap limited    (umol m-2s-1)        
+#        layers_Acg_lim = numeric(1),        # number of canopy layers Ac limited        
+#        layers_Ajg_lim = numeric(1),        # number of canopy layers Aj limited        
+#        layers_Apg_lim = numeric(1),        # number of canopy layers Ap limited
+        cb             = numeric(1),        # canopy mean boundary layer CO2                   (Pa)
+        ci             = numeric(1),        # canopy mean canopy internal CO2                  (Pa) 
+        cc             = numeric(1),        # canopy mean chloroplast CO2                      (Pa)
+        g              = numeric(1),        # canopy conductance                               (mol H2O m-2 s-1 )
+        gb             = numeric(1),        # canopy leaf boundary conductance                 (mol H2O m-2 s-1 )
+        gs             = numeric(1),        # canopy stomatal conductance                      (mol H2O m-2 s-1 )
+        gi             = numeric(1)         # canopy leaf internal conductance                 (mol CO2 m-2 s-1 ) 
       )
     )
 
@@ -266,60 +271,62 @@ canopy_structure_object <-
     
     configure <- function(., vlist, df, o=T ) {
       # This function is called from any of the run functions, or during model initialisation
-      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
+      # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df 
 
-      ## split model from variable name in df names 
       # split variable names at . 
       listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
 
-      modobj <- .$name
-      # df subscripts for model object
-      moss   <- which(listnames[1,]==modobj)
-      # df subscripts for model object sublist variables (slmoss) and model object numeric variables (vlmoss) 
-      slss   <- which(listnames[3,moss]!='') 
-      if(length(slss)>0) {
-        slmoss <- moss[slss] 
-        vlmoss <- moss[-slss] 
-      } else {
-        slmoss <- NULL 
-        vlmoss <- moss 
-      }
-      # variable list subscripts for numeric variables 
-      vlss   <- match(listnames[2,vlmoss], names(.[[vlist]]) )
+      # df subscripts for model object 
+      mss <- which(listnames[1,]==.$name)
 
-      # catch NAs in vlss
+      # variable list subscripts in model object data structure 
+      vlss   <- match(listnames[2,mss], names(.[[vlist]]) )
+
+      # remove NAs in vlss from vlss and mss
       if(any(is.na(vlss))) {
-        vlmoss <- vlmoss[-which(is.na(vlss))]
-        vlss   <- vlss[-which(is.na(vlss))]
+        mss  <- mss[-which(is.na(vlss))]
+        vlss <- vlss[-which(is.na(vlss))]
       }
 
-      if(.$cpars$verbose) {
-        print('',quote=F)
-        print('Canopy structure configure:',quote=F)
+      # df subscripts for sublist variables (slmss) and non-sublist variables (nslmss) 
+      slss   <- which(listnames[3,mss]!='')
+      if(length(slss)>0) {
+        slmss  <- mss[slss] 
+        nslmss <- mss[-slss]
+        vlss   <- vlss[-slss] 
+      } else {
+        slmss  <- NULL 
+        nslmss <- mss 
+      }
+
+      # print configure setup if requested
+      if(.$cpars$cverbose&o) {
+        print('', quote=F )
+        print('Leaf configure:', quote=F )
         print(df, quote=F )
         print(listnames, quote=F )
-        print(moss, quote=F )
-        print(slmoss, quote=F )
-        print(vlmoss, quote=F )
+        print(mss, quote=F )
+        print(slmss, quote=F )
+        print(nslmss, quote=F )
         print(vlss, quote=F )
         print(which(is.na(vlss)), quote=F )
         print(.[[vlist]], quote=F )
       }
-    
-      # assign UQ variables
-      #if(any(prefix==modobj)) .[[vlist]][vlss] <- df[dfss]
-      if(length(slss)>0)   vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
-      if(length(vlmoss)>0) .[[vlist]][vlss] <- df[vlmoss]
 
-      # call child (canopy) assign 
+      # assign UQ variables
+      #print(paste('Leaf conf:', vlist, names(df), df ))
+      if(length(slss)>0)    vapply( slmss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
+      if(length(nslmss)>0) .[[vlist]][vlss] <- df[nslmss]
+      #print(paste(df[vlmoss],.[[vlist]][vlss])) 
+
+      # call child (leaf) assign 
       #print(paste('conf:',vlist, names(df), df, length(moss) ))
-      if(any(listnames[1,]!=modobj)) {
-        dfc <- if(length(moss)>0) df[-moss] else df 
+      if(any(listnames[1,]!=.$name)) {
+        dfc <- if(length(moss)>0) df[-which(listnames[1,]==.$name)] else df 
         vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=dfc )
       }     
-      #if(any(prefix!=modobj)) vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=df[-dfss] )     
     }   
-
+    
 
     # configure a list variable 
     configure_sublist <- function(., ss, vlist, df ) {
@@ -399,7 +406,7 @@ canopy_structure_object <-
       .$run()
     }
     
-    .test_aca <- function(., verbose=F, verbose_loop=F, canopy_structure.par=c(100,1000), canopy.ca_conc=seq(50,1200,50),
+    .test_aca <- function(., verbose=F, verbose_loop=F, canopy_structure.par=c(100,1000), canopy_structure.ca_conc=seq(50,1200,50),
                           rs = 'f_r_zero' ) {
       
       # Child Objects

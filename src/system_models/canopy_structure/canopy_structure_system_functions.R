@@ -51,7 +51,8 @@ f_canstrctsys_leafdem <- function(.) {
   #print(colnames(cohortmatrix))
 
   # run canopy - need to output layer matrix 
-  canopy_out <- vapply(1:lcohorts, .$run_canopy, matrix(0,30,9), df=cohortmatrix )
+  #canopy_out <- vapply(1:lcohorts, .$run_canopy, matrix(0,.$pars$layers,length(.$canopy$output()), df=cohortmatrix )
+  canopy_out <- vapply(1:lcohorts, .$run_canopy, matrix(0,.$pars$layers,10), df=cohortmatrix )
   #canopy_out <- vapply(1:lcohorts, .$run_canopy, .$canopy$output(), df=cohortmatrix )
 
   # assign data to canopy_structure object data structure
