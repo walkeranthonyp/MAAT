@@ -40,6 +40,7 @@ canopy_object$leaf$output
 canopy_object$leaf$state
 canopy_object$leaf$state_pars
 canopy_object$leaf$fnames
+canopy_object$leaf$env
 
 
 # canopy ACa curve

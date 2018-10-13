@@ -419,6 +419,7 @@ leaf_object <-
     ###########################################################################
     # configure & run_met functions
 
+    # configure a list variable 
     configure <- function(., vlist, df, o=T ) {
       # This function is called from any of the run functions, or during model initialisation
       # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df 

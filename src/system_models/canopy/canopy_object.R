@@ -98,6 +98,7 @@ canopy_object <-
     # output processing function
     # -- returns a vector of outputs
     output <- function(.){
+    
       if(.$cpars$output=='run') {
         c(A=.$state$integrated$A, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration)
         
@@ -118,6 +119,10 @@ canopy_object <-
         
       } else if(.$cpars$output=='full') {
         c(.$state$integrated, .$state_pars)
+
+      } else if(.$cpars$output=='leaf_dem') {
+        vapply(.$state$vert$layer, function(v) v, .$state$vert$layer[[1]] )
+
       }
     }    
 
@@ -132,7 +137,8 @@ canopy_object <-
       pars_init     = 'f_pars_init',
       rt            = 'f_rt_beerslaw_goudriaan',
       scale_n       = 'f_scale_n_CLMuniform',
-      scale_vcmax   = 'f_scale_vcmax_uniform',
+      scale_vcmax   = 'f_scale_vcmax_beerslaw',
+      vcmax_k       = 'f_vcmax_k_constant',
       scale_ca      = 'f_scale_ca_uniform',
       scale_vpd     = 'f_scale_vpd_uniform',
       lai           = 'f_lai_constant',
@@ -148,15 +154,18 @@ canopy_object <-
       lai_max          = 4,
       lai_curve        = 0.5,
       leaf_cores       = 1,
-      G                = 0.5,    # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
-      can_clump        = 1,      # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-      k_layer          = 0,      # used by some to determine light scaling, not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
-      alb_soil         = 0.15,   # soil albedo
-      leaf_reflectance = 0.075,  # leaf reflectance
-      fwdw_wl_slope    = -0.022, # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
-      fwdw_wl_sat      = 16,     # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
-      fwdw_wl_exp_a    = -0.037, # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
-      fwdw_wl_exp_b    = 3.254   # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
+      G                = 0.5,     # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
+      can_clump        = 1,       # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
+      k_layer          = 0,       # used by some to determine light scaling, not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
+      alb_soil         = 0.15,    # soil albedo
+      leaf_reflectance = 0.075,   # leaf reflectance
+      vcmax_k          = 0.2,     # scaling exponent for vcmax through canopy
+      vcmax_k_expa     = -2.43,   # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
+      vcmax_k_expb     = 9.63e-3, # slope parameter in exponnent to calculate scaling exponent for vcmax through canopy
+      fwdw_wl_slope    = -0.022,  # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
+      fwdw_wl_sat      = 16,      # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
+      fwdw_wl_exp_a    = -0.037,  # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
+      fwdw_wl_exp_b    = 3.254    # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
     )
     
     # Environment
@@ -181,6 +190,7 @@ canopy_object <-
       k_diff       = numeric(1),
       k_dirprime   = numeric(1),
       k_diffprime  = numeric(1),
+      vcmax_k      = numeric(1),
       lscattering  = numeric(1),
       alb_dir      = numeric(1),
       alb_diff     = numeric(1),
@@ -202,11 +212,11 @@ canopy_object <-
       vert    = list(
         # variable canopy environment etc
         leaf = list( 
-          leaf.ca_conc    = numeric(1),
-          leaf.vpd        = numeric(1),
-          leaf.par        = numeric(1),
-          leaf.vcmax      = numeric(1), 
-          leaf.leafN_area = numeric(1)
+          leaf.ca_conc     = numeric(1),
+          leaf.vpd         = numeric(1),
+          leaf.par         = numeric(1),
+          leaf.atref.vcmax = numeric(1), 
+          leaf.leafN_area  = numeric(1)
         ),
         # variable canopy light & physiology by sun and shade leaves
         sun = list( 

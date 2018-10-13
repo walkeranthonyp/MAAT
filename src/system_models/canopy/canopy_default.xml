@@ -5,12 +5,13 @@
       <pars_init>'f_pars_init'</pars_init>
       <rt>'f_rt_beerslaw_goudriaan'</rt>
       <scale_n>'f_scale_n_CLMuniform'</scale_n>
+      <scale_vcmax>'f_scale_vcmax_beerslaw'</scale_vcmax>
       <scale_ca>'f_scale_ca_uniform'</scale_ca>
       <scale_vpd>'f_scale_vpd_uniform'</scale_vpd>
       <lai>'f_lai_constant'</lai>
       <par_partition>'f_par_partition_spitters'</par_partition>
       <water_status>'f_water_status_none'</water_status>
-      <fwdw>'f_fwdw_wtd_lin'</fwdw>
+      <fwdw>'f_fwdw_wth_lin'</fwdw>
     </fnames>
     <pars>
       <layers>10</layers>
@@ -23,6 +24,7 @@
       <k_layer>0</k_layer>
       <alb_soil>0.15</alb_soil>
       <leaf_reflectance>0.075</leaf_reflectance>
+      <k_vcmax>0.2</k_vcmax>
       <fwdw_wl_slope>-0.022</fwdw_wl_slope>
       <fwdw_wl_sat>16</fwdw_wl_sat>
       <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>

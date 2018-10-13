@@ -64,8 +64,8 @@ canopy_structure_object <-
     # main run function
     
     run <- function(.) {
-      if(.$cpars$verbose) print('canopy_structure_run')
-      
+      if(.$cpars$verbose) print('canopy_structure run()')
+    
       # assign canopy_structure environment to canopy environment 
       # any canopy_structure scaling of these variables will overwrite the values written here 
       envss     <- which(names(.$env) %in% names(.$canopy$env) )
@@ -120,27 +120,28 @@ canopy_structure_object <-
     fnames <- list(
       canstrctsys    = 'f_canstrctsys_leafdem',
       pars_init      = 'f_pars_init',
-      lai            = 'f_lai_env',
+      lai            = 'f_lai_leafdem_env',
+      leafdem_upper  = 'f_leafdem_upper_wu2017',
+      leafdem_lower  = 'f_leafdem_lower_wu2017',
       leafdem_vcmax0 = 'f_leafdem_vcmax0_constant',
-      leafdem_upper  = 'f_leafdem_upper_env',
-      leafdem_lower  = 'f_leafdem_lower_env',
       water_status   = 'f_water_status_none',
       fwdw           = 'f_fwdw_wth_lin'
     )
     
     # parameters
     pars <- list(
+      canopy_cores     = 1,
       layers           = 30,
       lai              = 10,
-      lai_cutoff       = 2.5,
+      lai_upper        = 2.5,
+      lai_ftop         = 0.7,
+      vcmax0 = list(
+        young  = 7,
+        mature = 35,
+        old    = 20
+      ),
       lai_max          = 4,
       lai_curve        = 0.5,
-      canopy_cores     = 1,
-      vcmax0 = list(
-        young  = numeric(1),
-        mature = numeric(1),
-        old    = numeric(1)
-      ),
       fwdw_wl_slope    = -0.022, # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
       fwdw_wl_sat      = 16,     # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
       fwdw_wl_exp_a    = -0.037, # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
@@ -149,20 +150,16 @@ canopy_structure_object <-
     
     # Environment
     env <- list(
-      temp      = numeric(1),      
-      par       = numeric(1),      
-      ca_conc   = numeric(1),
-      vpd       = numeric(1),
-      zenith    = 0,
-      lai       = numeric(1),
-      upper_can_prop_young  = numeric(1), 
-      upper_can_prop_mature = numeric(1), 
-      upper_can_prop_old    = numeric(1), 
-      lower_can_prop_young  = numeric(1), 
-      lower_can_prop_mature = numeric(1), 
-      lower_can_prop_old    = numeric(1), 
-      water_td  = numeric(1),
-      sphag_h   = numeric(1)
+      temp       = 25,      
+      par        = 1000,      
+      ca_conc    = 400,
+      vpd        = 1,
+      zenith     = 0,
+      lai_young  = 1, 
+      lai_mature = 2,
+      lai_old    = 3,
+      water_td   = numeric(1),
+      sphag_h    = numeric(1)
     )
     
     # state parameters
@@ -174,7 +171,10 @@ canopy_structure_object <-
     # state
     state <- list(
       # External
-      lai     = numeric(1),    
+      lai            = numeric(1),    
+      lai_young      = numeric(1),    
+      lai_mature     = numeric(1),    
+      lai_old        = numeric(1),    
       upper_can_prop = numeric(3), 
       lower_can_prop = numeric(3), 
       
@@ -269,13 +269,10 @@ canopy_structure_object <-
       # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
 
       ## split model from variable name in df names 
-      #prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
       # split variable names at . 
       listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
 
       modobj <- .$name
-      #dfss   <- which(prefix==modobj)
-      #vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
       # df subscripts for model object
       moss   <- which(listnames[1,]==modobj)
       # df subscripts for model object sublist variables (slmoss) and model object numeric variables (vlmoss) 
@@ -292,8 +289,6 @@ canopy_structure_object <-
 
       # catch NAs in vlss
       if(any(is.na(vlss))) {
-        #dfss <- dfss[-which(is.na(vlss))]
-        #vlss <- vlss[-which(is.na(vlss))]
         vlmoss <- vlmoss[-which(is.na(vlss))]
         vlss   <- vlss[-which(is.na(vlss))]
       }
@@ -396,10 +391,10 @@ canopy_structure_object <-
       .$canopy$cpars$verbose  <- F
       
       .$env$par        <- 2000
-      .$env$ca_conc    <- 200
-      .$pars$lai       <- 10
-      .$state$mass_a   <- 175
-      .$state$C_to_N   <- 40
+      .$env$ca_conc    <- 400
+      .$env$lai        <- 10
+      #.$state$mass_a   <- 175
+      #.$state$C_to_N   <- 40
       
       .$run()
     }

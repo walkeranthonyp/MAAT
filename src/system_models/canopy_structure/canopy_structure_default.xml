@@ -30,7 +30,7 @@
     <env>
       <temp>0</temp>
       <par>0</par>
-      <ca_conc>0</ca_conc>
+      <ca_conc>400</ca_conc>
       <vpd>0</vpd>
       <zenith>0</zenith>
       <lai>0</lai>
