@@ -99,7 +99,7 @@ leaf_object <-
         
         lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
                   gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb, 
-                  g =1/ (.$state_pars$ri + .$state_pars$rs + .$state_pars$rb) )
+                  g =1/ (.$state_pars$rs + .$state_pars$rb) )
         
       } else if(.$cpars$output=='full') {
         
