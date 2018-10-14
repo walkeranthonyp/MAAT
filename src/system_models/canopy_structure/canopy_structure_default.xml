@@ -3,43 +3,40 @@
     <fnames>
       <canstrctsys>'f_canstrctsys_leafdem'</canstrctsys>
       <pars_init>'f_pars_init'</pars_init>
-      <lai>'f_lai_env'</lai>
+      <lai>'f_lai_leafdem_env'</lai>
+      <leafdem_upper>'f_leafdem_upper_wu2017'</leafdem_upper>
+      <leafdem_lower>'f_leafdem_lower_wu2017'</leafdem_lower>
       <leafdem_vcmax0>'f_leafdem_vcmax0_constant'</leafdem_vcmax0>
-      <leafdem_upper>'f_leafdem_upper_env'</leafdem_upper>
-      <leafdem_lower>'f_leafdem_lower_env'</leafdem_lower>
       <water_status>'f_water_status_none'</water_status>
-      <fwdw>'f_fwdw_wth_lin'</fwdw>
+      <fwdw>'f_fwdw_wtd_lin'</fwdw>
     </fnames>
     <pars>
+      <canopy_cores>1</canopy_cores>
       <layers>30</layers>
       <lai>10</lai>
-      <lai_cutoff>2.5</lai_cutoff>
+      <lai_upper>2.5</lai_upper>
+      <lai_ftop>0.7</lai_ftop>
+      <vcmax0>
+        <young>7</young>
+        <mature>35</mature>
+        <old>20</old>
+      </vcmax0>
       <lai_max>4</lai_max>
       <lai_curve>0.5</lai_curve>
-      <canopy_cores>1</canopy_cores>
-      <vcmax0>
-        <young>0</young>
-        <mature>0</mature>
-        <old>0</old>
-      </vcmax0>
       <fwdw_wl_slope>-0.022</fwdw_wl_slope>
       <fwdw_wl_sat>16</fwdw_wl_sat>
       <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>
       <fwdw_wl_exp_b>3.254</fwdw_wl_exp_b>
     </pars>
     <env>
-      <temp>0</temp>
-      <par>0</par>
+      <temp>25</temp>
+      <par>1000</par>
       <ca_conc>400</ca_conc>
-      <vpd>0</vpd>
+      <vpd>1</vpd>
       <zenith>0</zenith>
-      <lai>0</lai>
-      <upper_can_prop_young>0</upper_can_prop_young>
-      <upper_can_prop_mature>0</upper_can_prop_mature>
-      <upper_can_prop_old>0</upper_can_prop_old>
-      <lower_can_prop_young>0</lower_can_prop_young>
-      <lower_can_prop_mature>0</lower_can_prop_mature>
-      <lower_can_prop_old>0</lower_can_prop_old>
+      <lai_young>1</lai_young>
+      <lai_mature>2</lai_mature>
+      <lai_old>3</lai_old>
       <water_td>0</water_td>
       <sphag_h>0</sphag_h>
     </env>

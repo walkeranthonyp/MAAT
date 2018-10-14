@@ -3,10 +3,10 @@
     <fnames>
       <canstrctsys>'c( 'f_canstrctsys_leafdem' )'</canstrctsys>
       <pars_init>'c(  )'</pars_init>
-      <lai>'c( 'f_lai_constant', 'f_lai_env', 'f_lai_sphagnum' )'</lai>
+      <lai>'c( 'f_lai_constant', 'f_lai_env', 'f_lai_leafdem_env', 'f_lai_sphagnum' )'</lai>
+      <leafdem_upper>'c( 'f_leafdem_upper_wu2017' )'</leafdem_upper>
+      <leafdem_lower>'c( 'f_leafdem_lower_wu2017' )'</leafdem_lower>
       <leafdem_vcmax0>'c( 'f_leafdem_vcmax0_constant' )'</leafdem_vcmax0>
-      <leafdem_upper>'c( 'f_leafdem_upper_env' )'</leafdem_upper>
-      <leafdem_lower>'c( 'f_leafdem_lower_env' )'</leafdem_lower>
       <water_status>'c(  )'</water_status>
       <fwdw>'c(  )'</fwdw>
     </fnames>

@@ -125,7 +125,7 @@ canopy_structure_object <-
       leafdem_lower  = 'f_leafdem_lower_wu2017',
       leafdem_vcmax0 = 'f_leafdem_vcmax0_constant',
       water_status   = 'f_water_status_none',
-      fwdw           = 'f_fwdw_wth_lin'
+      fwdw           = 'f_fwdw_wtd_lin'
     )
     
     # parameters
@@ -317,12 +317,12 @@ canopy_structure_object <-
       #print(paste('Leaf conf:', vlist, names(df), df ))
       if(length(slss)>0)    vapply( slmss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
       if(length(nslmss)>0) .[[vlist]][vlss] <- df[nslmss]
-      #print(paste(df[vlmoss],.[[vlist]][vlss])) 
+      #print(paste(df[nslmss],.[[vlist]][vlss])) 
 
       # call child (leaf) assign 
-      #print(paste('conf:',vlist, names(df), df, length(moss) ))
+      #print(paste('conf:',vlist, names(df), df, length(mss) ))
       if(any(listnames[1,]!=.$name)) {
-        dfc <- if(length(moss)>0) df[-which(listnames[1,]==.$name)] else df 
+        dfc <- if(length(mss)>0) df[-which(listnames[1,]==.$name)] else df 
         vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=dfc )
       }     
     }   

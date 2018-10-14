@@ -53,6 +53,35 @@ f_leafdem_lower_wu2017 <- function(.) {
 }
 
 
+# Canopy/Leaf water status  
+################################
+
+f_water_status_none <- function(.) .$leaf$state$fwdw_ratio <- NA
+
+# set sphagnum water status
+f_water_status_sphagnum <- function(.) {
+  .$leaf$state$fwdw_ratio <- get(.$fnames$fwdw)(.) 
+}
+
+
+# Sphagnum functions
+################################
+
+# Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
+f_fwdw_wtd_lin <- function(.) {
+  
+  if((.$env$water_td - .$env$sphag_h) > 0) .$pars$fwdw_wl_sat 
+  else .$pars$fwdw_wl_sat + .$pars$fwdw_wl_slope * -(.$env$water_td - .$env$sphag_h) 
+}
+
+# Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
+f_fwdw_wtd_exp <- function(.) {
+  # Strack & Price 2009
+  
+  if((.$env$water_td - .$env$sphag_h) > 0) exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a*0 )
+  else exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a * (-(.$env$water_td - .$env$sphag_h)/10) ) 
+}
+
 
 
 ### END ###

@@ -11,7 +11,7 @@
       <lai>'f_lai_constant'</lai>
       <par_partition>'f_par_partition_spitters'</par_partition>
       <water_status>'f_water_status_none'</water_status>
-      <fwdw>'f_fwdw_wth_lin'</fwdw>
+      <fwdw>'f_fwdw_wtd_lin'</fwdw>
     </fnames>
     <pars>
       <layers>10</layers>
