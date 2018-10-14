@@ -1,9 +1,9 @@
 ################################
 #
-# MAAT Leaf Model - example initialisation script
+# MAAT Canopy Structure Model - example initialisation script
 # 
 # AWalker (walkerap@ornl.gov) 
-# December 2015
+# October 2018
 #
 ################################
 
@@ -51,28 +51,31 @@
 leaf.fnames.static <- list(
   solver_func = 'f_A_r_leaf',
   gstar       = 'f_scalar_none',
-  Kc_tcor     = 'f_scalar_none',
-  Ko_tcor     = 'f_scalar_none',
-  respiration = 'f_rd_lin_vcmax', 
   ri          = 'f_r_zero',
   rs          = 'f_r_zero',
   rb          = 'f_r_zero'
   )
 
-leaf.pars.static <- list(
-  atref.vcmax  = 50
-  )
+leaf.pars.static <- NULL 
 
 leaf.env.static  <- list(
   par     = 1000,
   temp    = 25
   )
 
+
 canopy.fnames.static <- NULL   
 
 canopy.pars.static   <- NULL
 
 canopy.env.static    <- NULL
+
+
+canopy_structure.fnames.static <- NULL   
+
+canopy_structure.pars.static   <- NULL
+
+canopy_structure.env.static    <- NULL
 
 
 
@@ -98,15 +101,24 @@ leaf.env.var       <- list(
 
 canopy.fnames.var    <- NULL
 
-canopy.pars.var      <- list(
-  lai_curve = c(0.1,0.3,0.5,1)
-)
+canopy.pars.var      <- NULL 
 
 canopy.pars_proc.var <- NULL
 
 canopy.pars_eval.var <- NULL
 
 canopy.env.var       <- NULL
+
+
+canopy_structure.fnames.var    <- NULL
+
+canopy_structure.pars.var      <- NULL 
+
+canopy_structure.pars_proc.var <- NULL
+
+canopy_structure.pars_eval.var <- NULL
+
+canopy_structure.env.var       <- NULL
 
 
 
@@ -123,7 +135,13 @@ init_static <- list(
     fnames = canopy.fnames.static,
     pars   = canopy.pars.static,
     env    = canopy.env.static
-  ))
+  ),
+  canopy_structure = list(
+    fnames = canopy_structure.fnames.static,
+    pars   = canopy_structure.pars.static,
+    env    = canopy_structure.env.static
+  )
+)
 
 init_dynamic <- list(
   leaf = list(
@@ -139,7 +157,15 @@ init_dynamic <- list(
     pars_proc = canopy.pars_proc.var,
     pars_eval = canopy.pars_eval.var,
     env       = canopy.env.var
-  ))
+  ),
+  canopy_structure = list(
+    fnames    = canopy_structure.fnames.var,
+    pars      = canopy_structure.pars.var,
+    pars_proc = canopy_structure.pars_proc.var,
+    pars_eval = canopy_structure.pars_eval.var,
+    env       = canopy_structure.env.var
+  )
+)
 
 
 

@@ -1,6 +1,6 @@
 ################################
 #
-# MAAT Leaf Model - example initialisation script
+# MAAT Canopy Model - example initialisation script
 # 
 # AWalker (walkerap@ornl.gov) 
 # December 2015
@@ -51,22 +51,20 @@
 leaf.fnames.static <- list(
   solver_func = 'f_A_r_leaf',
   gstar       = 'f_scalar_none',
-  Kc_tcor     = 'f_scalar_none',
-  Ko_tcor     = 'f_scalar_none',
-  respiration = 'f_rd_lin_vcmax', 
   ri          = 'f_r_zero',
   rs          = 'f_r_zero',
   rb          = 'f_r_zero'
   )
 
 leaf.pars.static <- list(
-  atref.vcmax  = 50
+  atref = list(vcmax = 50 )
   )
 
 leaf.env.static  <- list(
   par     = 1000,
   temp    = 25
   )
+
 
 canopy.fnames.static <- NULL   
 
@@ -123,7 +121,8 @@ init_static <- list(
     fnames = canopy.fnames.static,
     pars   = canopy.pars.static,
     env    = canopy.env.static
-  ))
+  )
+)
 
 init_dynamic <- list(
   leaf = list(
@@ -139,7 +138,8 @@ init_dynamic <- list(
     pars_proc = canopy.pars_proc.var,
     pars_eval = canopy.pars_eval.var,
     env       = canopy.env.var
-  ))
+  )
+)
 
 
 

@@ -406,7 +406,9 @@ canopy_structure_object <-
       .$run()
     }
     
-    .test_aca <- function(., verbose=F, verbose_loop=F, canopy_structure.par=c(100,1000), canopy_structure.ca_conc=seq(50,1200,50),
+    .test_aca <- function(., verbose=F, verbose_loop=F, 
+                          canopy_structure.par=c(100,1000), 
+                          canopy_structure.ca_conc=seq(50,1200,50),
                           rs = 'f_r_zero' ) {
       
       # Child Objects
@@ -416,23 +418,35 @@ canopy_structure_object <-
       .$cpars$verbose         <- verbose
       .$canopy$cpars$verbose  <- F
       
-      .$env$par        <- 2000
-      .$env$ca_conc    <- 200
-      .$pars$lai       <- 10
-      .$state$mass_a   <- 175
-      .$state$C_to_N   <- 40
+      #.$env$par        <- 2000
+     # .$env$ca_conc    <- 200
+     # .$pars$lai       <- 10
+     # .$state$mass_a   <- 175
+     # .$state$C_to_N   <- 40
       
       if(verbose) str.proto(canopy_structure_object)
-      
+     
+      # generate met data 
       .$dataf       <- list()
       .$dataf$met   <- expand.grid(mget(c('canopy_structure.ca_conc','canopy_structure.par')))
       
+      # run maat
       .$dataf$out  <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+      
+      # run output
       print(cbind(.$dataf$met,.$dataf$out))
-      p1 <- xyplot(A~.$dataf$met$canopy_structure.ca_conc|as.factor(.$dataf$met$canopy_structure.par),
-                   .$dataf$out,abline=0,
-                   ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),
-                   xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'))
+      p1 <- 
+        if(length(canopy_structure.ca_conc) > 2) 
+          xyplot(A~.$dataf$met$canopy_structure.ca_conc|as.factor(.$dataf$met$canopy_structure.par),
+                 .$dataf$out,abline=0,
+                 ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),
+                 xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'))
+        else if(length(canopy_structure.par) > 2) 
+          xyplot(A~.$dataf$met$canopy_structure.par|as.factor(.$dataf$met$canopy_structure.ca_conc),
+                 .$dataf$out,abline=0,
+                 ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),
+                 xlab=expression('PAR ['*mu*mol*' '*m^-2*s^-1*']'))
+      
       print(p1)
     }
     
