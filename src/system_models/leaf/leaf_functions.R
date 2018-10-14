@@ -80,13 +80,13 @@ f_A_r_leaf_noRs <- function(.,A) {
 # Semi-analytical solution 
 f_A_r_leaf_semiana <- function(.) {
   # - finds the analytical solution assuming rb and ri are zero to use as first guess (a0)
-  # - this should always be larger than the full solution (unless rb and ri are zero)
-  # - make a second (a1) and third (a2) guess smaller than a0
+  # - make a second (a1) guess 
+  # - make a third (a2) guess 
   # - calculate solver function value for these three guesses (fa0, fa1, fa2) 
   # - check to make sure these span the root
-  # - fit a quadratic through the threee sets of co-ordinates to find the root 
+  # - fit a quadratic through the three sets of co-ordinates to find the root 
  
-  # save values that may get reset by analytical function 
+  # save values that may get reset by analytical function = perhaps move this to the quadratic solver 
   rb_hold <- .$state_pars$rb
   g0_hold <- .$pars$g0
   ri_hold <- .$state_pars$ri
@@ -95,24 +95,22 @@ f_A_r_leaf_semiana <- function(.) {
   a0 <- .$state$A_ana_rbzero <- f_A_r_leaf_analytical_quad(.)
 
   # return values potentially reset by analytical function to the data structure
-  .$state_pars$rb <- rb_hold
-  .$state_pars$ri <- ri_hold
-  .$pars$g0       <- g0_hold 
+  .$state_pars$rb[] <- rb_hold
+  .$state_pars$ri[] <- ri_hold
+  .$pars$g0[]       <- g0_hold 
 
   # currently no method to handle a0 < 0 - this should be fine 
   #if(a0<0) stop('a0 < 0 ,',a0)
 
-  # a0 should mostly be larger than the full solution (unless rb and ri are zero) meaning that fa0 should always be < 0
+  # a0 should mostly be larger than the full solution (unless rb and ri are zero) 
+  # meaning that fa0 should mostly be < 0
   fa0 <- f_A_r_leaf(., a0 ) 
-  
+ 
+  # is this necessary? 
   if(is.na(fa0)) {
     print('')
     print(c(a0,fa0))
     print(unlist(.$fnames)); print(unlist(.$pars)); print(unlist(.$state_pars)); print(unlist(.$state)); print(unlist(.$env)) 
-    #print(c(a0,fa0))
-    #a0 <- a0 - 1e-2
-    #fa0 <- f_A_r_leaf(., a0 ) 
-    #print(c(a0,fa0))
   }
  
   #  
@@ -157,9 +155,9 @@ f_A_r_leaf_semiana <- function(.) {
 #    fa2     <- get(.$fnames$solver_func)(., a2 ) 
 
     # second guess, also analytical
-    .$state$cc <- get(.$fnames$gas_diff)( . , a0 , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=a0,c=get(.$fnames$gas_diff)(.,a0)) + .$state_pars$ri ) )
-    a1         <- f_assimilation(.) 
-    fa1        <- get(.$fnames$solver_func)(., a1 ) 
+    .$state$cc[] <- get(.$fnames$gas_diff)( . , a0 , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=a0,c=get(.$fnames$gas_diff)(.,a0)) + .$state_pars$ri ) )
+    a1           <- f_assimilation(.) 
+    fa1          <- get(.$fnames$solver_func)(., a1 ) 
 
     # third guess
     a2 <- mean(c(a0,a1))  
@@ -231,8 +229,8 @@ f_A_r_leaf_semiana <- function(.) {
       print(paste('New fas,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
       if( min(fguesses) * max(fguesses) >= 0 ) stop(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
     } 
-    .$state$aguess  <- guesses 
-    .$state$faguess <- fguesses
+    .$state$aguess[]  <- guesses 
+    .$state$faguess[] <- fguesses
    
     # fit a quadratic through the three sets of co-ordinates a la Lomas (one step of Muller's method) 
     # Muller, David E., "A Method for Solving Algebraic Equations Using an Automatic Computer," Mathematical Tables and Other Aids to Computation, 10 (1956)    
@@ -241,7 +239,7 @@ f_A_r_leaf_semiana <- function(.) {
     cx <- fa1-bx*a1-ax*a1**2
  
     # find the root of the quadratic that lies between guesses 
-    assim <- .$state$assim <- quad_sol(ax,bx,cx,'both')
+    assim <- .$state$assim[] <- quad_sol(ax,bx,cx,'both')
     .$state$fA_ana_final[1] <- get(.$fnames$solver_func)(., assim[1] ) 
     .$state$fA_ana_final[2] <- get(.$fnames$solver_func)(., assim[2] ) 
     ss    <- which(assim>min(guesses)&assim<max(guesses))
@@ -289,9 +287,9 @@ f_A_r_leaf_analytical_quad <- function(.) {
   # combines all rate limiting processes
 
   # set cb, rb & ri
-  .$state$cb      <- .$state$ca
-  .$state_pars$rb <- 0
-  .$state_pars$ri <- 0
+  .$state$cb[]      <- .$state$ca
+  .$state_pars$rb[] <- 0
+  .$state_pars$ri[] <- 0
 
   # correctly assign g0 if rs functions assume g0 = 0
   g0_hold <- .$pars$g0
@@ -319,14 +317,14 @@ f_A_r_leaf_analytical_quad <- function(.) {
   # determine cc/ci based on Amin
   # calculate rs
   .$pars$g0[]     <- g0_hold 
-  .$state_pars$rs <- get(.$fnames$rs)(.,A=Amin)
-  .$state$cc <-.$state$ci <- f_ficks_ci(., A=Amin, r=1.6*.$state_pars$rs )
+  .$state_pars$rs[] <- get(.$fnames$rs)(.,A=Amin)
+  .$state$cc[] <-.$state$ci[] <- f_ficks_ci(., A=Amin, r=1.6*.$state_pars$rs )
     
   # recalculate Ag for each limiting process
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
-  .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
-  .$state$Ajg <- get(.$fnames$Ajg)(.) * .$state$cc
-  .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
+  .$state$Acg[] <- get(.$fnames$Acg)(.) * .$state$cc
+  .$state$Ajg[] <- get(.$fnames$Ajg)(.) * .$state$cc
+  .$state$Apg[] <- get(.$fnames$Apg)(.) * .$state$cc
 
   # return net A
   Amin
