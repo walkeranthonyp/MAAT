@@ -154,7 +154,7 @@ if(is.null(odir)) {
 initf       <- if(is.null(runid))     paste(init,'R',sep='.')       else paste(init,'_',runid,'.R',sep='')
 # prefix for output files
 ofname      <- if(is.null(runid))     of_main                       else paste(of_main,runid,sep='_')
-ofname      <- if(is.null(mod_mimic)) ofname                        else paste(ofname,mod_mimic,sep='_')
+ofname      <- if(is.null(mod_mimic)) ofname                        else paste(mod_mimic,ofname,sep='_')
 # prefix for saltelli sensitivity output files
 sofname     <- if(is.null(runid))     paste(of_main,'salt',sep='_') else paste(runid,of_main,'salt',sep='_')
 

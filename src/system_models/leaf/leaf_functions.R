@@ -716,9 +716,9 @@ f_tcor_asc_bethy <- function(., var, ... ) {
   #tcor_des <- .$fnames$tcor_des[[var]]
   if(.$fnames$tcor_des[[var]]!='f_scalar_none') print('Warning: temp scaling will not work correctly, f_tcor_asc_bethy specified with a descending temperature scaling other than f_scalar_none')
  
-  exp(-(.$state$leaf_temp-.$pars$Tr[[var]])/10) * 
+  exp(-(.$state$leaf_temp-.$pars$reftemp[[var]])/10) * 
     ( (.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$state$leaf_temp) ^ ((.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$state$leaf_temp)/(10*.$pars$b_q10_t[[var]]))    /  
-        ( (.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$pars$Tr[[var]]) ^ ((.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$pars$Tr[[var]])/(10*.$pars$b_q10_t[[var]])) ) )
+        ( (.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$pars$reftemp[[var]]) ^ ((.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$pars$reftemp[[var]])/(10*.$pars$b_q10_t[[var]])) ) )
   
 }
 
