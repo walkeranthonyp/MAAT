@@ -134,6 +134,7 @@ leaf_object <-
       Alim           = 'f_lim_farquhar1980',
       vcmax          = 'f_vcmax_lin',
       jmax           = 'f_jmax_power',
+      tcor_jmax      = 'f_scalar_none',
       tpu            = 'f_tpu_lin',
       rd             = 'f_rd_lin_vcmax',
       rl_rd_scalar   = 'f_scalar_none',
