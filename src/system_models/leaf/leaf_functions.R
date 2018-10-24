@@ -437,6 +437,15 @@ f_jmax_lin_t <- function(.) {
   .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25    
 }
 
+f_jmax_lin_t2 <- function(.) {
+  .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25 * get(.$fnames$tcor_jmax)(.)    
+}
+
+f_tcor_jmax_lin <- function(.) {
+  (.$pars$a_jvt_25 + .$pars$b_jvt_25 * .$state$leaf_temp ) /
+    (.$pars$a_jvt_25 + .$pars$b_jvt_25 * 25 )
+}
+
 
 # TPU
 f_tpu_constant <- function(.) {
@@ -620,14 +629,14 @@ f_rs_cox1998_r0 <- function(.) {
 
 
 # ORCHIDEE assumption for stomatal resistance, from Yin & Struik 2009
-f_rs_yin2009 <- function(.,A=.$state$A,c=.$state$cb) {
+f_rs_yin2009 <- function(., A=.$state$A, c=.$state$ci ) {
   # This will not work with the either analytical solution (as they are currently coded) due to the A + Rd in the denominator
   # this also prevents negative values when A is negative 
   
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / ( .$pars$g0 + (A + .$state$rd) * .$env$atm_press*1e-6 / ((c-.$state_pars$gstar) * (1/(.$pars$g_a1_yin - .$pars$g_b1_yin*.$env$vpd) - 1)) )
+  1 / (1.6*( .$pars$g0 + ( (A + .$state$rd)  / (1e6/.$env$atm_press*(.$state$ci-.$state_pars$gstar)) ) * (1/(1/(.$pars$g_a1_yin - .$pars$g_b1_yin*.$env$vpd) - 1)) ))
 }
 
 f_rs_yin2009_fe <- function(.) {
