@@ -49,6 +49,10 @@ Make sure RStudio is closed before opening the unit testing script as this will 
 cd ./src/system_models/<modelobject>/
 rstudio unit_testing.R
 ```
+or in a Mac terminal
+```bash
+open -na Rstudio unit_testing.R
+```
 where `<modelobject>` is the name of the system model to be tested.
 The unit testing script can be run line by line to run a number of tests of the model objects. 
 An example from the leaf model object `unit_testing.R` script to run an ACi curve: 
@@ -60,6 +64,10 @@ The MAAT wrapper can also be tested to ensure the wrapper is working correctly a
 ```bash 
 cd ./src/
 rstudio unit_testing.R
+```
+or in a Mac terminal
+```bash
+open -na Rstudio unit_testing.R
 ```
 
 
