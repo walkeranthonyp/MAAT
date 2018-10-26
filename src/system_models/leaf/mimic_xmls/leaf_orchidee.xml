@@ -7,7 +7,8 @@
       <!-- calculate Vcmax at <reftemp.vcmax> -->
       <vcmax>'f_vcmax_constant'</vcmax>
       <!-- calculate Jmax at <reftemp.jmax>, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
-      <jmax>'f_jmax_lin_t'</jmax>
+      <jmax>'f_jmax_lin'</jmax>
+      <tcor_jmax>'f_tcor_jmax_lin'</tcor_jmax>
       <!-- increasing component of temperature scaling for biochemical rates -->
       <tcor_asc>
         <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
@@ -69,7 +70,7 @@
       <theta_j>0.7</theta_j>
       <!-- intercept & slope of Jmax25 to Vcmax25 area linear relationship -->
       <ajv_25>0</ajv_25>
-      <bjv_25>1.67</bjv_25>
+      <bjv_25>1.715</bjv_25>
       <!-- intercept & slope of Jmax25:Vcmax25 ratio to leaf temperature linear relationship -->
       <a_jvt_25>2.59</a_jvt_25>      
       <b_jvt_25>-0.035</b_jvt_25>      

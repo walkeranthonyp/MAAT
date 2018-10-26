@@ -12,6 +12,7 @@
       <Alim>'f_lim_farquhar1980'</Alim>
       <vcmax>'f_vcmax_lin'</vcmax>
       <jmax>'f_jmax_power'</jmax>
+      <tcor_jmax>'f_scalar_none'</tcor_jmax>
       <tpu>'f_tpu_lin'</tpu>
       <rd>'f_rd_lin_vcmax'</rd>
       <rl_rd_scalar>'f_scalar_none'</rl_rd_scalar>
@@ -43,6 +44,7 @@
       <tcor_dep>
         <tpu>'f_tcor_dep_dependent'</tpu>
         <rd>'f_tcor_dep_dependent'</rd>
+        <tau>'f_tcor_dep_dependent'</tau>
       </tcor_dep>
       <deltaS>
         <rd>'f_deltaS'</rd>
@@ -54,6 +56,9 @@
         <rd>'f_q10_constant'</rd>
         <vcmax>'f_q10_constant'</vcmax>
         <jmax>'f_q10_constant'</jmax>
+        <tau>'f_q10_constant'</tau>
+        <Kc>'f_q10_constant'</Kc>
+        <Ko>'f_q10_constant'</Ko>
       </q10_func>
     </fnames>
     <pars>
@@ -198,9 +203,9 @@
       <R>8.31446</R>
     </pars>
     <env>
-      <ca_conc>0</ca_conc>
+      <ca_conc>400</ca_conc>
       <o2_conc>0.21</o2_conc>
-      <par>0</par>
+      <par>1000</par>
       <water_l>0</water_l>
       <sphag_l>0</sphag_l>
       <temp>25</temp>

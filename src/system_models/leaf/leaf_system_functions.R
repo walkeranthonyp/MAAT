@@ -41,7 +41,7 @@ f_leafsys_enzymek <- function(.) {
   .$state_pars$gstar   <- get(.$fnames$gstar)(.) 
   .$state_pars$vcmaxlt <- .$state_pars$vcmax * get(.$fnames$tcor_asc[['vcmax']])(., var='vcmax' ) * get(.$fnames$tcor_des[['vcmax']])(., var='vcmax' )
   .$state_pars$jmaxlt  <- .$state_pars$jmax  * get(.$fnames$tcor_asc[['jmax']])(., var='jmax' )   * get(.$fnames$tcor_des[['jmax']])(., var='jmax' )
-  .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tcor_dep[['tpu']])(.) 
+  .$state_pars$tpult   <- .$state_pars$tpu   * get(.$fnames$tcor_dep[['tpu']])(., var='tpu' ) 
 
   # conductance/resistance terms
   # - if either of these functions become a function of co2 or assimilation they can be easily moved into the solver
@@ -57,7 +57,7 @@ f_leafsys_enzymek <- function(.) {
   # electron transport rate
   .$state$J <- get(.$fnames$etrans)(.)
   # respiration
-  .$state$rd  <- .$state_pars$rd * get(.$fnames$tcor_dep[['rd']])(.)
+  .$state$rd  <- .$state_pars$rd * get(.$fnames$tcor_dep[['rd']])(., var='rd' )
  
   # if PAR > 0
   if(.$env$par > 0) {
