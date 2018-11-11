@@ -11,7 +11,7 @@
 # Big Leaf canopy scaling 
 ###############################
 # Sellers et al 1992
-f_cansys_bigleaf_s1992 <- function(.,k=.$state_pars$k_dirprime,...) {
+f_cansys_bigleaf_s1992 <- function(., k=.$state_pars$k_dirprime, ... ) {
   # this function was described in Sellers to deal with time intergrated values of fpar and k 
   # could write wrapper function or if to pass different k coefficients
   
@@ -19,8 +19,8 @@ f_cansys_bigleaf_s1992 <- function(.,k=.$state_pars$k_dirprime,...) {
   fpar <- 1 - exp(-k*.$state$lai)
   
   # set leaf environment
-  # I0 is incident light
-  .$leaf$env$par     <- .$k_dir * (1-.$leafscattering) * .$env$par
+  # I0 is incident light - F_0 * first half of B_2 in Eq 37b (Sellers 1992)
+  .$leaf$env$par     <- .$state_pars$k_dir * (1-.$state_pars$lscattering) * .$env$par
   # assume no variation in CO2 concentration, VPD, and T
   #.$leaf$env$ca_conc <- .$env$ca_conc
   #.$leaf$env$vpd     <- .$env$vpd
@@ -34,6 +34,7 @@ f_cansys_bigleaf_s1992 <- function(.,k=.$state_pars$k_dirprime,...) {
   .$leaf$run()
   
   # scale
+  # Eq 34 Sellers (1992)
   .$state$integrated$A              <- .$leaf$state$A * fpar/k
   .$state$integrated$respiration    <- .$leaf$state$respiration * fpar/k
   .$state$integrated$Acg_lim        <- if(.$leaf$state$lim==2) .$state$integrated$A else 0
@@ -43,6 +44,7 @@ f_cansys_bigleaf_s1992 <- function(.,k=.$state_pars$k_dirprime,...) {
   .$state$integrated$layers_Ajg_lim <- if(.$leaf$state$lim==3) .$state$lai
   .$state$integrated$layers_Apg_lim <- if(.$leaf$state$lim==7) .$state$lai
   # convert reistance to conductance, minus minimum conductance, scale, add min conductance multiplied by LAI
+  # A combination of Eq 35 and Eq 37f in Sellers (1992)
   .$state$integrated$gs             <- (1/.$leaf$state$rs - .$leaf$pars$g0) * fpar/k + .$leaf$pars$g0*.$state$lai 
   # canopy mean values of Ci and Cc
   .$state$integrated$ci             <- .$leaf$state$ci * fpar/k / .$state$lai

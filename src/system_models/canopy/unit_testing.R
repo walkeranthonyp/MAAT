@@ -20,7 +20,7 @@ library(lattice)
 source('canopy_object.R')
 
 # canopy
-canopy_object$fnames$can_scale_light <- 'f_canlight_beerslaw_goudriaan'
+canopy_object$fnames$can_scale_light <- 'f_rt_beerslaw_goudriaan'
 canopy_object$.test()
 canopy_object$state$integrated$A
 
@@ -28,7 +28,7 @@ canopy_object$pars$layers <- 40
 canopy_object$state$vert
 canopy_object$state_pars
 
-canopy_object$fnames$can_scale_light <- 'f_canlight_goudriaan'
+canopy_object$fnames$can_scale_light <- 'f_rt_goudriaan'
 canopy_object$.test()
 canopy_object$state$integrated$A
 canopy_object$pars
@@ -44,6 +44,8 @@ canopy_object$leaf$fnames
 
 # canopy ACa curve
 source('canopy_object.R')
+canopy_object$fnames$cansys <- 'f_cansys_bigleaf_s1992'
+canopy_object$fnames$can_scale_light <- 'f_rt_goudriaan'
 canopy_object$.test_aca()
 canopy_object$env
 canopy_object$state
@@ -51,6 +53,10 @@ canopy_object$state
 canopy_object$fnames$rt <- 'f_rt_goudriaan'
 canopy_object$.test_aca()
 canopy_object$.test_aca(rs='f_rs_medlyn2011')
+
+canopy_object$fnames$cansys <- 'f_cansys_bigleaf_s1992'
+canopy_object$fnames$can_scale_light <- 'f_canlight_beerslaw'
+canopy_object$.test_aca()
 
 
 
