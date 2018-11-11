@@ -76,6 +76,9 @@ canopy_object <-
       df        <- as.data.frame(.$env[envss])
       names(df) <- paste0('leaf.',names(df))
       .$leaf$configure(vlist='env', df=df ) 
+  
+      # set leaf absorptance to 1 as all cansys functions (should) account for leaf scattering
+      .$leaf$pars$a <- 1.0
 
       # calculate water status
       get(.$fnames$water_status)(.)
@@ -149,7 +152,7 @@ canopy_object <-
       leaf_cores       = 1,
       G                = 0.5,    # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
       can_clump        = 1,      # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-      k_layer          = 0,      # used by some to determine light scaling, not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
+      k_layer          = 0.5,    # for multilayer canopy, where in the layer to calculate physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
       alb_soil         = 0.15,   # soil albedo
       leaf_reflectance = 0.075,  # leaf reflectance
       fwdw_wl_slope    = -0.022, # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
@@ -248,6 +251,7 @@ canopy_object <-
       
       # integrated canopy values
       integrated = list(
+        apar           = numeric(1),        # canopy absorbed PAR
         A              = numeric(1),        # canopy assimilation rate                         (umol m-2s-1)
         Acg_lim        = numeric(1),        # assimilation rate of canopy layers Ac limited    (umol m-2s-1)
         Ajg_lim        = numeric(1),        # assimilation rate of canopy layers Aj limited    (umol m-2s-1)        

@@ -17,9 +17,9 @@ f_cansys_bigleaf_s1992 <- function(., k=.$state_pars$k_dirprime, ... ) {
   
   # calculate fPAR, after Sellers 1992, see also Friend 2001
   fpar <- 1 - exp(-k*.$state$lai)
-  
+ 
   # set leaf environment
-  # I0 is incident light - F_0 * first half of B_2 in Eq 37b (Sellers 1992)
+  # incident light - F_0 * first half of B_2 in Eq 37b (Sellers 1992)
   .$leaf$env$par     <- .$state_pars$k_dir * (1-.$state_pars$lscattering) * .$env$par
   # assume no variation in CO2 concentration, VPD, and T
   #.$leaf$env$ca_conc <- .$env$ca_conc
@@ -34,6 +34,7 @@ f_cansys_bigleaf_s1992 <- function(., k=.$state_pars$k_dirprime, ... ) {
   .$leaf$run()
   
   # scale
+  .$state$integrated$apar <- fpar * .$env$par 
   # Eq 34 Sellers (1992)
   .$state$integrated$A              <- .$leaf$state$A * fpar/k
   .$state$integrated$respiration    <- .$leaf$state$respiration * fpar/k
@@ -88,10 +89,12 @@ f_cansys_2bigleaf <- function(.) {
 f_cansys_multilayer <- function(.) {
 
   # initialise layers
+  # k_layer determines where in the layer photosynthesis etc is calculated, a value of 0.5 calculates at the center of the layer   
   linc           <- .$state$lai / .$pars$layers
-  ca_calc_points <- seq(linc, .$state$lai, linc ) 
+  ca_calc_points <- seq((linc-linc*.$pars$k_layer), (.$state$lai-linc*.$pars$k_layer), linc ) 
   layers         <- .$pars$layers # this could be a function to dynamically specify the no. of layers 
   .$init_vert(l=layers) # reallocating this memory is unnecessary in cases where layers is a fixed parameter. 
+  #print(ca_calc_points)
   
   # canopy leaf layer properties 
   .$state$vert$leaf$leaf.leafN_area[] <- get(.$fnames$scale_n)(.,   ca_calc_points )
@@ -136,21 +139,23 @@ f_cansys_multilayer <- function(.) {
 
   # integrate canopy layers
   # canopy sum values
-  .$state$integrated$A[]              <- sum(.$state$vert$layer$A) * linc
+  .$state$integrated$apar[]           <- sum(.$state$vert$layer$apar) * linc
+  .$state$integrated$A[]              <- sum(.$state$vert$layer$A)    * linc
+  .$state$integrated$gb[]             <- sum(.$state$vert$layer$gb)   * linc 
+  .$state$integrated$gs[]             <- sum(.$state$vert$layer$gs)   * linc 
+  .$state$integrated$gi[]             <- sum(.$state$vert$layer$gi)   * linc 
+  .$state$integrated$g[]              <- sum(.$state$vert$layer$g)    * linc 
   .$state$integrated$respiration[]    <- sum(.$state$vert$layer$respiration) * linc
-  .$state$integrated$Acg_lim[]        <- sum(.$state$vert$layer$A * (.$state$lim==2)) * linc 
-  .$state$integrated$Ajg_lim[]        <- sum(.$state$vert$layer$A * (.$state$lim==3)) * linc
-  .$state$integrated$Apg_lim[]        <- sum(.$state$vert$layer$A * (.$state$lim==7)) * linc
+  # currently the scaling of A under different limiting rates will only work when both sun and shaded leaves in a layer are limited by the same process   
+  .$state$integrated$Acg_lim[]        <- sum(.$state$vert$layer$A * (.$state$vert$layer$lim==2)) * linc 
+  .$state$integrated$Ajg_lim[]        <- sum(.$state$vert$layer$A * (.$state$vert$layer$lim==3)) * linc
+  .$state$integrated$Apg_lim[]        <- sum(.$state$vert$layer$A * (.$state$vert$layer$lim==7)) * linc
   .$state$integrated$layers_Acg_lim[] <- sum(.$state$vert$layer$lim==2)
   .$state$integrated$layers_Ajg_lim[] <- sum(.$state$vert$layer$lim==3)
   .$state$integrated$layers_Apg_lim[] <- sum(.$state$vert$layer$lim==7)
-  .$state$integrated$gb[]             <- sum(.$state$vert$layer$gb) * linc 
-  .$state$integrated$gs[]             <- sum(.$state$vert$layer$gs) * linc 
-  .$state$integrated$gi[]             <- sum(.$state$vert$layer$gi) * linc 
-  .$state$integrated$g[]              <- sum(.$state$vert$layer$g)  * linc 
   # canopy mean values
-  .$state$integrated$cc[]             <- sum(.$state$vert$layer$cc) / .$state$lai * linc
-  .$state$integrated$ci[]             <- sum(.$state$vert$ci) / .$state$lai * linc
+  .$state$integrated$cc[]             <- sum(.$state$vert$layer$cc) * linc / .$state$lai
+  .$state$integrated$ci[]             <- sum(.$state$vert$layer$ci) * linc / .$state$lai 
   
 }
 
