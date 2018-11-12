@@ -29,7 +29,7 @@ Older code is fine to use without co-authorship, but again there is no harm in c
 This is a balance, and likely no single rule really fits all situations, discussion and communication is the best policy.  
 
 
-### MAAT set up ###
+### MAAT installation ###
 
 * Fork this repo and then clone your fork to your local machine. 
 
@@ -62,14 +62,18 @@ cd ./src/
 rstudio unit_testing.R
 ```
 
-
-* Set up a MAAT project:
+### Run simulations with MAAT ###
+* Set up a MAAT project.
+A MAAT project is a directory on your hard drive where multiple related MAAT simulations can be defined, run, and have output stored.
+These project directories (as many as you like can be set up) are isolated from the source code. 
+For beginners with git, DO NOT set up a MAAT project in the source code directory. 
+To set up a new project run the following command from within the maat source code directory on your machine:
 ```bash 
 ./run_scripts/setup_MAAT_project.bs <modelobject> <projectpath>
 ```
 where `<modelobject>` is the name of the system model to be used in the project and `<projectpath>` is the full path of where the project is to be set up.
 The lowest level directory in the path will be created if it does not already exist.
-Run the above command with `leaf` as `<modelobject>` and your prefered path to set up the MAAT project. 
+The first time you set up a MAAT project try running the above command with `leaf` as `<modelobject>` and your prefered path to set up a test case MAAT project. 
 Change directory to the project directory and a simple instance of MAAT can be run:  
 ```bash
 cd <projectpath>
@@ -84,7 +88,7 @@ Once the above steps have been completed and MAAT is working without error, the 
 A MAAT ensemble is defined by the process representations, the parameter values, and the environmental variables that a user defines. 
 These values can be defined as static, i.e. values that are invariant across the whole ensemble, or dynamic values i.e. values that are varied across the ensemble. 
 The values of the static variables and dynamic variables are defined by the user as either lists in an R script `init_MAAT.R` or as separate XML files `init_user_static.xml` and `init_user_dynamic.xml`. 
-These are expected to be found in the highest level project directory. So that multiple simulations can be run from within the same project, these initialisation file names and be appended with `_<runid>` where `<runid>` is a character string that identifies the particular ensemble. 
+These are expected to be found in the highest level project directoryi, i.e. `<projectpath>`. So that multiple simulations can be run from within the same project, these initialisation file names and be appended with `_<runid>` where `<runid>` is a character string that identifies the particular ensemble. 
 For example, you can create a new init file, edit it, and then rerun MAAT with the runid as the first argument to the call script.
 Assuming you are still in the project directory:
 ```bash

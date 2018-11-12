@@ -21,7 +21,7 @@
       <leaf_cores>1</leaf_cores>
       <G>0.5</G>
       <can_clump>1</can_clump>
-      <k_layer>0</k_layer>
+      <k_layer>0.5</k_layer>
       <alb_soil>0.15</alb_soil>
       <leaf_reflectance>0.075</leaf_reflectance>
       <k_vcmax>0.2</k_vcmax>
