@@ -37,7 +37,7 @@ f_cansys_bigleaf_s1992 <- function(., k=.$state_pars$k_dirprime, ... ) {
   .$state$integrated$apar <- fpar * .$env$par 
   # Eq 34 Sellers (1992)
   .$state$integrated$A              <- .$leaf$state$A * fpar/k
-  .$state$integrated$respiration    <- .$leaf$state$respiration * fpar/k
+  .$state$integrated$rd             <- .$leaf$state$rd * fpar/k
   .$state$integrated$Acg_lim        <- if(.$leaf$state$lim==2) .$state$integrated$A else 0
   .$state$integrated$Ajg_lim        <- if(.$leaf$state$lim==3) .$state$integrated$A else 0 
   .$state$integrated$Apg_lim        <- if(.$leaf$state$lim==7) .$state$integrated$A else 0
@@ -47,7 +47,7 @@ f_cansys_bigleaf_s1992 <- function(., k=.$state_pars$k_dirprime, ... ) {
   # convert reistance to conductance, minus minimum conductance, scale, add min conductance multiplied by LAI
   # A combination of Eq 35 and Eq 37f in Sellers (1992)
   .$state$integrated$gs             <- (1/.$leaf$state$rs - .$leaf$pars$g0) * fpar/k + .$leaf$pars$g0*.$state$lai 
-  # canopy mean values of Ci and Cc
+  # canopy mean values of Ci and Cc - not sure this is correct
   .$state$integrated$ci             <- .$leaf$state$ci * fpar/k / .$state$lai
   .$state$integrated$cc             <- .$leaf$state$cc * fpar/k / .$state$lai
   
@@ -135,25 +135,22 @@ f_cansys_multilayer <- function(.) {
   }
 
   # combine sun and shade leaves  
-  for(vname in names(.$state$vert$layer)) .$state$vert$layer[[vname]][] <- .$state$vert$sun[[vname]] * .$state$vert$sun$fraction + .$state$vert$shade[[vname]] * .$state$vert$shade$fraction
+  for(vname in c('apar','A','gb','gs','gi','g','rd','cb','ci','cc') ) { 
+    .$state$vert$layer[[vname]][] <-
+      .$state$vert$sun[[vname]] * .$state$vert$sun$fraction + .$state$vert$shade[[vname]] * .$state$vert$shade$fraction
+  } 
+
+  # partition A among limiting rates  
+  .$state$vert$layer$Acg_lim[] <- .$state$vert$sun$A * (.$state$vert$sun$lim==2) * .$state$vert$sun$fraction + .$state$vert$shade$A * (.$state$vert$shade$lim==2) * .$state$vert$shade$fraction 
+  .$state$vert$layer$Ajg_lim[] <- .$state$vert$sun$A * (.$state$vert$sun$lim==3) * .$state$vert$sun$fraction + .$state$vert$shade$A * (.$state$vert$shade$lim==3) * .$state$vert$shade$fraction 
+  .$state$vert$layer$Acg_lim[] <- .$state$vert$sun$A * (.$state$vert$sun$lim==7) * .$state$vert$sun$fraction + .$state$vert$shade$A * (.$state$vert$shade$lim==7) * .$state$vert$shade$fraction 
 
   # integrate canopy layers
   # canopy sum values
-  .$state$integrated$apar[]           <- sum(.$state$vert$layer$apar) * linc
-  .$state$integrated$A[]              <- sum(.$state$vert$layer$A)    * linc
-  .$state$integrated$gb[]             <- sum(.$state$vert$layer$gb)   * linc 
-  .$state$integrated$gs[]             <- sum(.$state$vert$layer$gs)   * linc 
-  .$state$integrated$gi[]             <- sum(.$state$vert$layer$gi)   * linc 
-  .$state$integrated$g[]              <- sum(.$state$vert$layer$g)    * linc 
-  .$state$integrated$respiration[]    <- sum(.$state$vert$layer$respiration) * linc
-  # currently the scaling of A under different limiting rates will only work when both sun and shaded leaves in a layer are limited by the same process   
-  .$state$integrated$Acg_lim[]        <- sum(.$state$vert$layer$A * (.$state$vert$layer$lim==2)) * linc 
-  .$state$integrated$Ajg_lim[]        <- sum(.$state$vert$layer$A * (.$state$vert$layer$lim==3)) * linc
-  .$state$integrated$Apg_lim[]        <- sum(.$state$vert$layer$A * (.$state$vert$layer$lim==7)) * linc
-  .$state$integrated$layers_Acg_lim[] <- sum(.$state$vert$layer$lim==2)
-  .$state$integrated$layers_Ajg_lim[] <- sum(.$state$vert$layer$lim==3)
-  .$state$integrated$layers_Apg_lim[] <- sum(.$state$vert$layer$lim==7)
-  # canopy mean values
+  for(vname in c('apar','A','gb','gs','gi','g','rd','Acg_lim','Ajg_lim','Apg_lim') ) {
+    .$state$integrated[[vname]][] <- sum(.$state$vert$layer[[vname]]) * linc
+  } 
+  # canopy mean values - not sure that this is correct 
   .$state$integrated$cc[]             <- sum(.$state$vert$layer$cc) * linc / .$state$lai
   .$state$integrated$ci[]             <- sum(.$state$vert$layer$ci) * linc / .$state$lai 
   
