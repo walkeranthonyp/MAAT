@@ -114,10 +114,7 @@ canopy_object <-
           gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA, 
           Acg_lim=.$state$integrated$Acg_lim, 
           Ajg_lim=.$state$integrated$Ajg_lim, 
-          Apg_lim=.$state$integrated$Apg_lim#, 
-          #layers_Acg_lim=.$state$integrated$layers_Acg_lim, 
-          #layers_Ajg_lim=.$state$integrated$layers_Ajg_lim, 
-          #layers_Apg_lim=.$state$integrated$layers_Apg_lim
+          Apg_lim=.$state$integrated$Apg_lim 
         )
         
       } else if(.$cpars$output=='full') {
@@ -141,6 +138,7 @@ canopy_object <-
       rt            = 'f_rt_beerslaw_goudriaan',
       scale_n       = 'f_scale_n_CLMuniform',
       scale_vcmax   = 'f_scale_vcmax_beerslaw',
+      vcmax0        = 'f_vcmax0_constant',
       k_vcmax       = 'f_k_vcmax_constant',
       scale_ca      = 'f_scale_ca_uniform',
       scale_vpd     = 'f_scale_vpd_uniform',
@@ -162,6 +160,7 @@ canopy_object <-
       k_layer          = 0.5,     # for multilayer canopy, where in the layer to calculate physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
       alb_soil         = 0.15,    # soil albedo
       leaf_reflectance = 0.075,   # leaf reflectance
+      vcmax0           = 35,      # vcmax at extreme top of canopy
       k_vcmax          = 0.2,     # scaling exponent for vcmax through canopy
       k_vcmax_expa     = -2.43,   # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
       k_vcmax_expb     = 9.63e-3, # slope parameter in exponnent to calculate scaling exponent for vcmax through canopy
@@ -261,7 +260,6 @@ canopy_object <-
           Acg_lim  = numeric(1),        # assimilation rate of canopy layers Ac limited    (umol m-2s-1)
           Ajg_lim  = numeric(1),        # assimilation rate of canopy layers Aj limited    (umol m-2s-1)        
           Apg_lim  = numeric(1),        # assimilation rate of canopy layers Ap limited    (umol m-2s-1)        
-          lim      = numeric(1)
         )
       ),
       
@@ -415,7 +413,7 @@ canopy_object <-
     #######################################################################           
     # Test functions
     
-    .test <- function(.,verbose=T){
+    .test <- function(., verbose=T, par=2000, ca_conc=400, lai=6 ) {
       
       # Child Objects
       #.$leaf <- as.proto(leaf_object$as.list(),all.names=T)
@@ -426,9 +424,9 @@ canopy_object <-
       .$cpars$verbose       <- verbose
       .$leaf$cpars$verbose  <- F
       
-      .$env$par        <- 2000
-      .$env$ca_conc    <- 200
-      .$pars$lai       <- 10
+      .$env$par        <- par
+      .$env$ca_conc    <- ca_conc
+      .$pars$lai       <- lai
       .$state$mass_a   <- 175
       .$state$C_to_N   <- 40
       

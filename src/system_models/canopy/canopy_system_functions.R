@@ -26,7 +26,7 @@ f_cansys_bigleaf_s1992 <- function(., k=.$state_pars$k_dirprime, ... ) {
   #.$leaf$env$vpd     <- .$env$vpd
   #.$leaf$env$temp    <- .$env$temp
   
-  # set leaf N0 
+  # set leaf N0 or Vcmax0 - as with multi-layer model need to choose one and initialise leaf fnames correctly
   .$leaf$state$leafN_area <- .$state$totalN * k / fpar
   
   # calculate A0
@@ -50,6 +50,7 @@ f_cansys_bigleaf_s1992 <- function(., k=.$state_pars$k_dirprime, ... ) {
   # canopy mean values of Ci and Cc - not sure this is correct
   .$state$integrated$ci             <- .$leaf$state$ci * fpar/k / .$state$lai
   .$state$integrated$cc             <- .$leaf$state$cc * fpar/k / .$state$lai
+  .$state$integrated$cb             <- .$leaf$state$cb * fpar/k / .$state$lai
   
 }
 
@@ -152,8 +153,9 @@ f_cansys_multilayer <- function(.) {
     .$state$integrated[[vname]][] <- sum(.$state$vert$layer[[vname]]) * linc
   } 
   # canopy mean values - not sure that this is correct 
-  .$state$integrated$cc[]             <- sum(.$state$vert$layer$cc) * linc / .$state$lai
-  .$state$integrated$ci[]             <- sum(.$state$vert$layer$ci) * linc / .$state$lai 
+  .$state$integrated$cc[] <- sum(.$state$vert$layer$cc) * linc / .$state$lai
+  .$state$integrated$ci[] <- sum(.$state$vert$layer$ci) * linc / .$state$lai 
+  .$state$integrated$cb[] <- sum(.$state$vert$layer$cb) * linc / .$state$lai 
   
 }
 
