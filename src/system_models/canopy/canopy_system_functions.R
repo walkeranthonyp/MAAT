@@ -97,9 +97,10 @@ f_cansys_multilayer <- function(.) {
   #print(ca_calc_points)
   
   # canopy leaf layer properties 
-  .$state$vert$leaf$leaf.leafN_area[] <- get(.$fnames$scale_n)(.,   ca_calc_points )
-  .$state$vert$leaf$leaf.ca_conc[]    <- get(.$fnames$scale_ca)(.,  ca_calc_points )
-  .$state$vert$leaf$leaf.vpd[]        <- get(.$fnames$scale_vpd)(., ca_calc_points )
+  .$state$vert$leaf$leaf.leafN_area[]  <- get(.$fnames$scale_n)(.,     ca_calc_points )
+  .$state$vert$leaf$leaf.atref.vcmax[] <- get(.$fnames$scale_vcmax)(., ca_calc_points )
+  .$state$vert$leaf$leaf.ca_conc[]     <- get(.$fnames$scale_ca)(.,    ca_calc_points )
+  .$state$vert$leaf$leaf.vpd[]         <- get(.$fnames$scale_vpd)(.,   ca_calc_points )
 
   # Light scaling  
   get(.$fnames$rt)(., ca_calc_points )
@@ -107,7 +108,7 @@ f_cansys_multilayer <- function(.) {
   # sunlit leaves / direct light
   .$state$vert$leaf$leaf.par[] <- .$state$vert$sun$apar 
   # create leaf environment  matrix
-  lmatrix  <- vapply(.$state$vert$leaf[c('leaf.leafN_area','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
+  lmatrix  <- vapply(.$state$vert$leaf[c('leaf.leafN_area','leaf.atref.vcmax','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
   # run leaf
   leaf_out <- vapply(1:layers, .$run_leaf, .$leaf$output(), df=lmatrix )
   # assign data to canopy object data structure
@@ -122,7 +123,7 @@ f_cansys_multilayer <- function(.) {
   if(any(.$state$vert$sun$fraction < 1) ) { 
     .$state$vert$leaf$leaf.par[] <- .$state$vert$shade$apar 
     # create leaf environment matrix
-    lmatrix  <- vapply(.$state$vert$leaf[c('leaf.leafN_area','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
+    lmatrix  <- vapply(.$state$vert$leaf[c('leaf.leafN_area','leaf.atref.vcmax','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
     # run leaf
     leaf_out <- vapply(1:layers, .$run_leaf, .$leaf$output(), df=lmatrix )
     # assign data to canopy object data structure

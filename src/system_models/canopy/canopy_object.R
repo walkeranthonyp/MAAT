@@ -101,6 +101,7 @@ canopy_object <-
     # output processing function
     # -- returns a vector of outputs
     output <- function(.){
+    
       if(.$cpars$output=='run') {
         c(A=.$state$integrated$A, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration)
         
@@ -121,6 +122,10 @@ canopy_object <-
         
       } else if(.$cpars$output=='full') {
         c(.$state$integrated, .$state_pars)
+
+      } else if(.$cpars$output=='leaf_dem') {
+        vapply(.$state$vert$layer, function(v) v, .$state$vert$layer[[1]] )
+
       }
     }    
 
@@ -135,12 +140,14 @@ canopy_object <-
       pars_init     = 'f_pars_init',
       rt            = 'f_rt_beerslaw_goudriaan',
       scale_n       = 'f_scale_n_CLMuniform',
+      scale_vcmax   = 'f_scale_vcmax_beerslaw',
+      k_vcmax       = 'f_k_vcmax_constant',
       scale_ca      = 'f_scale_ca_uniform',
       scale_vpd     = 'f_scale_vpd_uniform',
       lai           = 'f_lai_constant',
       par_partition = 'f_par_partition_spitters',
       water_status  = 'f_water_status_none',
-      fwdw          = 'f_fwdw_wth_lin'
+      fwdw          = 'f_fwdw_wtd_lin'
     )
     
     # parameters
@@ -150,15 +157,18 @@ canopy_object <-
       lai_max          = 4,
       lai_curve        = 0.5,
       leaf_cores       = 1,
-      G                = 0.5,    # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
-      can_clump        = 1,      # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-      k_layer          = 0.5,    # for multilayer canopy, where in the layer to calculate physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
-      alb_soil         = 0.15,   # soil albedo
-      leaf_reflectance = 0.075,  # leaf reflectance
-      fwdw_wl_slope    = -0.022, # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
-      fwdw_wl_sat      = 16,     # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
-      fwdw_wl_exp_a    = -0.037, # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
-      fwdw_wl_exp_b    = 3.254   # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
+      G                = 0.5,     # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
+      can_clump        = 1,       # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
+      k_layer          = 0.5,     # for multilayer canopy, where in the layer to calculate physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
+      alb_soil         = 0.15,    # soil albedo
+      leaf_reflectance = 0.075,   # leaf reflectance
+      k_vcmax          = 0.2,     # scaling exponent for vcmax through canopy
+      k_vcmax_expa     = -2.43,   # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
+      k_vcmax_expb     = 9.63e-3, # slope parameter in exponnent to calculate scaling exponent for vcmax through canopy
+      fwdw_wl_slope    = -0.022,  # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
+      fwdw_wl_sat      = 16,      # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
+      fwdw_wl_exp_a    = -0.037,  # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
+      fwdw_wl_exp_b    = 3.254    # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
     )
     
     # Environment
@@ -183,6 +193,7 @@ canopy_object <-
       k_diff       = numeric(1),
       k_dirprime   = numeric(1),
       k_diffprime  = numeric(1),
+      k_vcmax      = numeric(1),
       lscattering  = numeric(1),
       alb_dir      = numeric(1),
       alb_diff     = numeric(1),
@@ -193,20 +204,22 @@ canopy_object <-
     # state
     state <- list(
       # External
-      lai     = numeric(1),      # 1.5 for Sphagnum Williams & Flannagan, 1998
+      lai     = numeric(1), 
       mass_a  = 10,
       C_to_N  = 40,
       totalN  = 7,
-      
+      vcmax0  = numeric(1),      
+ 
       # Calculated state
       # canopy layer vectors
       vert    = list(
         # variable canopy environment etc
         leaf = list( 
-          leaf.ca_conc    = numeric(1),
-          leaf.vpd        = numeric(1),
-          leaf.par        = numeric(1),
-          leaf.leafN_area = numeric(1)
+          leaf.ca_conc     = numeric(1),
+          leaf.vpd         = numeric(1),
+          leaf.par         = numeric(1),
+          leaf.atref.vcmax = numeric(1), 
+          leaf.leafN_area  = numeric(1)
         ),
         # variable canopy light & physiology by sun and shade leaves
         sun = list( 
@@ -330,15 +343,14 @@ canopy_object <-
       #print(paste('Leaf conf:', vlist, names(df), df ))
       if(length(slss)>0)    vapply( slmss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
       if(length(nslmss)>0) .[[vlist]][vlss] <- df[nslmss]
-      #print(paste(df[vlmoss],.[[vlist]][vlss])) 
+      #print(paste(df[nslmss],.[[vlist]][vlss])) 
 
       # call child (leaf) assign 
-      #print(paste('conf:',vlist, names(df), df, length(moss) ))
+      #print(paste('conf:',vlist, names(df), df, length(mss) ))
       if(any(listnames[1,]!=.$name)) {
-        dfc <- if(length(moss)>0) df[-which(listnames[1,]==.$name)] else df 
+        dfc <- if(length(mss)>0) df[-which(listnames[1,]==.$name)] else df 
         vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=dfc )
       }     
-      #if(any(prefix!=modobj)) vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=df[-dfss] )     
     }   
 
 
@@ -392,6 +404,7 @@ canopy_object <-
       
       .$leaf$configure(vlist='env',   df=df[ii,] )
       .$leaf$configure(vlist='state', df=df[ii,] )
+      .$leaf$configure(vlist='pars',  df=df[ii,] )
       
       # run leaf
       .$leaf$run()        
