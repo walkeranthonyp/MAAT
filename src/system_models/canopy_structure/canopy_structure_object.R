@@ -403,7 +403,7 @@ canopy_structure_object <-
     #######################################################################           
     # Test functions
     
-    .test <- function(.,verbose=T){
+    .test <- function(., verbose=T, par=1320, ca_conc=400  ){
       
       # Child Objects
       .$build()
@@ -412,11 +412,8 @@ canopy_structure_object <-
       .$cpars$verbose       <- verbose
       .$canopy$cpars$verbose  <- F
       
-      .$env$par        <- 2000
-      .$env$ca_conc    <- 400
-      .$env$lai        <- 10
-      #.$state$mass_a   <- 175
-      #.$state$C_to_N   <- 40
+      .$env$par        <- par 
+      .$env$ca_conc    <- ca_conc
       
       .$run()
     }
@@ -432,12 +429,6 @@ canopy_structure_object <-
 
       .$cpars$verbose         <- verbose
       .$canopy$cpars$verbose  <- F
-      
-      #.$env$par        <- 2000
-     # .$env$ca_conc    <- 200
-     # .$pars$lai       <- 10
-     # .$state$mass_a   <- 175
-     # .$state$C_to_N   <- 40
       
       if(verbose) str.proto(canopy_structure_object)
      
