@@ -27,9 +27,10 @@ f_canstrctsys_leafdem <- function(.) {
   .$state$lower_can_prop <- get(.$fnames$leafdem_lower)(.)
 
   # fix vcmax as a constant at the leaf level 
-  .$canopy$leaf$fnames$vcmax <- 'f_vcmax_constant'  
+  .$canopy$leaf$fnames$vcmax  <- 'f_vcmax_constant'  
 
   # scale vcmax as decreasing exponential function through the canopy 
+  .$canopy$fnames$vcmax0      <- 'f_vcmax0_constant'  
   .$canopy$fnames$scale_vcmax <- 'f_scale_vcmax_beerslaw'  
 
   # calculate vcmax for leaf cohorts
@@ -52,7 +53,7 @@ f_canstrctsys_leafdem <- function(.) {
 
   # run canopy - need to output layer matrix 
   #canopy_out <- vapply(1:lcohorts, .$run_canopy, matrix(0,.$pars$layers,length(.$canopy$output()), df=cohortmatrix )
-  canopy_out <- vapply(1:lcohorts, .$run_canopy, matrix(0,.$pars$layers,10), df=cohortmatrix )
+  canopy_out <- vapply(1:lcohorts, .$run_canopy, matrix(0,.$pars$layers,length(.$canopy$state$vert$layer)), df=cohortmatrix )
   #canopy_out <- vapply(1:lcohorts, .$run_canopy, .$canopy$output(), df=cohortmatrix )
 
   # assign data to canopy_structure object data structure
@@ -86,20 +87,13 @@ f_canstrctsys_leafdem <- function(.) {
 
   # integrate canopy_structure layers
   # canopy_structure sum values
-  .$state$integrated$A[]              <- sum(.$state$vert$layer$A) * linc
-  .$state$integrated$respiration[]    <- sum(.$state$vert$layer$respiration) * linc
-#  .$state$integrated$Acg_lim[]        <- sum(.$state$vert$layer$A * (.$state$lim==2)) * linc 
-#  .$state$integrated$Ajg_lim[]        <- sum(.$state$vert$layer$A * (.$state$lim==3)) * linc
-#  .$state$integrated$Apg_lim[]        <- sum(.$state$vert$layer$A * (.$state$lim==7)) * linc
-#  .$state$integrated$layers_Acg_lim[] <- sum(.$state$vert$layer$lim==2)
-#  .$state$integrated$layers_Ajg_lim[] <- sum(.$state$vert$layer$lim==3)
-#  .$state$integrated$layers_Apg_lim[] <- sum(.$state$vert$layer$lim==7)
-  .$state$integrated$rb[]             <- 1 / sum(1/.$state$vert$layer$rb * linc )
-  .$state$integrated$rs[]             <- 1 / sum(1/.$state$vert$layer$rs * linc )
-  .$state$integrated$ri[]             <- 1 / sum(1/.$state$vert$layer$ri * linc )
-  # canopy_structure mean values -- where is cb?
-  .$state$integrated$cc[]             <- sum(.$state$vert$layer$cc) / .$state$lai * linc
-  .$state$integrated$ci[]             <- sum(.$state$vert$ci) / .$state$lai * linc
+  for(vname in c('apar','A','gb','gs','gi','g','rd','Acg_lim','Ajg_lim','Apg_lim') ) {
+    .$state$integrated[[vname]][] <- sum(.$state$vert$layer[[vname]]) * linc
+  }
+  # canopy_structure mean values 
+  .$state$integrated$cb[] <- sum(.$state$vert$layer$cb) / .$state$lai * linc
+  .$state$integrated$cc[] <- sum(.$state$vert$layer$cc) / .$state$lai * linc
+  .$state$integrated$ci[] <- sum(.$state$vert$ci)       / .$state$lai * linc
   
 }
 
