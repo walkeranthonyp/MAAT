@@ -259,7 +259,7 @@ canopy_object <-
           g        = numeric(1),
           Acg_lim  = numeric(1),        # assimilation rate of canopy layers Ac limited    (umol m-2s-1)
           Ajg_lim  = numeric(1),        # assimilation rate of canopy layers Aj limited    (umol m-2s-1)        
-          Apg_lim  = numeric(1),        # assimilation rate of canopy layers Ap limited    (umol m-2s-1)        
+          Apg_lim  = numeric(1)         # assimilation rate of canopy layers Ap limited    (umol m-2s-1)        
         )
       ),
       
