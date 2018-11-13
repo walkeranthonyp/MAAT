@@ -6,6 +6,7 @@
       <rt>'c( 'f_rt_beerslaw', 'f_rt_beerslaw_goudriaan', 'f_rt_goudriaan' )'</rt>
       <scale_n>'c( 'f_scale_n_beerslaw', 'f_scale_n_CLMuniform' )'</scale_n>
       <scale_vcmax>'c( 'f_scale_vcmax_beerslaw', 'f_scale_vcmax_uniform' )'</scale_vcmax>
+      <vcmax0>'c( 'f_vcmax0_constant' )'</vcmax0>
       <k_vcmax>'c( 'f_k_vcmax_constant', 'f_k_vcmax_lloyd2012' )'</k_vcmax>
       <scale_ca>'c( 'f_scale_ca_uniform' )'</scale_ca>
       <scale_vpd>'c( 'f_scale_vpd_uniform' )'</scale_vpd>
