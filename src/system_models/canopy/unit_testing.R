@@ -58,7 +58,6 @@ canopy_object$pars$k_layer  <- 0.5
 canopy_object$pars$layers   <- 40
 canopy_object$.test_aca()
 canopy_object$.test_aca(rs='f_rs_medlyn2011')
-canopy_object$.test_aca()
 canopy_object$fnames$k_vcmax <- 'f_k_vcmax_lloyd2012'
 canopy_object$.test(par=1320, ca_conc=400 )
 canopy_object$.test_aca()
