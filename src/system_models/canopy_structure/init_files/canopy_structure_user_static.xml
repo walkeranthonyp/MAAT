@@ -8,7 +8,7 @@
       <leafdem_lower>'f_leafdem_lower_wu2017'</leafdem_lower>
       <leafdem_vcmax0>'f_leafdem_vcmax0_constant'</leafdem_vcmax0>
       <water_status>'f_water_status_none'</water_status>
-      <fwdw>'f_fwdw_wth_lin'</fwdw>
+      <fwdw>'f_fwdw_wtd_lin'</fwdw>
     </fnames>
     <pars>
       <canopy_cores>1</canopy_cores>

@@ -6,6 +6,7 @@
       <rt>'f_rt_beerslaw_goudriaan'</rt>
       <scale_n>'f_scale_n_CLMuniform'</scale_n>
       <scale_vcmax>'f_scale_vcmax_beerslaw'</scale_vcmax>
+      <k_vcmax>'f_k_vcmax_constant'</k_vcmax>
       <scale_ca>'f_scale_ca_uniform'</scale_ca>
       <scale_vpd>'f_scale_vpd_uniform'</scale_vpd>
       <lai>'f_lai_constant'</lai>
@@ -25,6 +26,8 @@
       <alb_soil>0.15</alb_soil>
       <leaf_reflectance>0.075</leaf_reflectance>
       <k_vcmax>0.2</k_vcmax>
+      <k_vcmax_expa>-2.43</k_vcmax_expa>
+      <k_vcmax_expb>0.00963</k_vcmax_expb>
       <fwdw_wl_slope>-0.022</fwdw_wl_slope>
       <fwdw_wl_sat>16</fwdw_wl_sat>
       <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>

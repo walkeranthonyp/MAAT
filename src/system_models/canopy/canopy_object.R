@@ -141,7 +141,7 @@ canopy_object <-
       rt            = 'f_rt_beerslaw_goudriaan',
       scale_n       = 'f_scale_n_CLMuniform',
       scale_vcmax   = 'f_scale_vcmax_beerslaw',
-      vcmax_k       = 'f_vcmax_k_constant',
+      k_vcmax       = 'f_k_vcmax_constant',
       scale_ca      = 'f_scale_ca_uniform',
       scale_vpd     = 'f_scale_vpd_uniform',
       lai           = 'f_lai_constant',
@@ -162,9 +162,9 @@ canopy_object <-
       k_layer          = 0.5,     # for multilayer canopy, where in the layer to calculate physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003) 
       alb_soil         = 0.15,    # soil albedo
       leaf_reflectance = 0.075,   # leaf reflectance
-      vcmax_k          = 0.2,     # scaling exponent for vcmax through canopy
-      vcmax_k_expa     = -2.43,   # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
-      vcmax_k_expb     = 9.63e-3, # slope parameter in exponnent to calculate scaling exponent for vcmax through canopy
+      k_vcmax          = 0.2,     # scaling exponent for vcmax through canopy
+      k_vcmax_expa     = -2.43,   # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
+      k_vcmax_expb     = 9.63e-3, # slope parameter in exponnent to calculate scaling exponent for vcmax through canopy
       fwdw_wl_slope    = -0.022,  # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
       fwdw_wl_sat      = 16,      # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
       fwdw_wl_exp_a    = -0.037,  # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
@@ -193,7 +193,7 @@ canopy_object <-
       k_diff       = numeric(1),
       k_dirprime   = numeric(1),
       k_diffprime  = numeric(1),
-      vcmax_k      = numeric(1),
+      k_vcmax      = numeric(1),
       lscattering  = numeric(1),
       alb_dir      = numeric(1),
       alb_diff     = numeric(1),

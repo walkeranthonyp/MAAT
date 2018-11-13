@@ -84,7 +84,7 @@ f_pars_init <- function(.) {
   .$state_pars$k_diffprime <- .$state_pars$m * .$state_pars$k_diff
 
   # calculate extinction coefficient for Vcmax
-  .$state_pars$vcmax_k     <- get(.$fnames$vcmax_k)(.)
+  .$state_pars$k_vcmax     <- get(.$fnames$k_vcmax)(.)
 }
 
 
@@ -164,17 +164,17 @@ f_scale_n_beerslaw <- function(.,l) {
 f_scale_vcmax_beerslaw <- function(.,l) {
   # for use with a multilayer phototsynthesis scheme
   
-  .$state$vcmax0 * exp(-.$state_pars$vcmax_k*l) 
+  .$state$vcmax0 * exp(-.$state_pars$k_vcmax*l) 
 }
 
 f_scale_vcmax_uniform <- function(., layers ) {
   rep(.$state$vcmax0, length(layers) ) 
 }
 
-f_vcmax_k_constant  <- function(.) .$pars$vcmax_k
+f_k_vcmax_constant  <- function(.) .$pars$k_vcmax
 
-f_vcmax_k_lloyd2012 <- function(.) {
-   exp( .$pars$vcmax_k_expa + .$pars$vcmax_k_expb*.$state$vcmax0 )
+f_k_vcmax_lloyd2012 <- function(.) {
+   exp( .$pars$k_vcmax_expa + .$pars$k_vcmax_expb*.$state$vcmax0 )
 }
 
 
