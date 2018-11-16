@@ -20,8 +20,16 @@ MAAT is written in R and uses the object oriented programming package 'proto' to
 MAAT has been developed on Linux Ubuntu 16.04 and is designed to be run from the command line (and in some instances from within the R console or IDE like Rstudio).
 
 
+### Use guidelines ### 
 
-### MAAT set up ###
+If you want to use this code then please do!
+If you plan to publish using this code the please be respectful of other people's work and their willingness to open source their code. 
+If you are using recent modifications and code updates, please be aware that the author of these developments may not have yet published what they are intending to, please contact them to discuss.
+Older code is fine to use without co-authorship, but again there is no harm in contacting code authors to clear this.
+This is a balance, and likely no single rule really fits all situations, discussion and communication is the best policy.  
+
+
+### MAAT installation ###
 
 * Fork this repo and then clone your fork to your local machine. 
 
@@ -48,20 +56,24 @@ An example from the leaf model object `unit_testing.R` script to run an ACi curv
 source('leaf_object.R')
 leaf_object$.test_aci(leaf.ca_conc=seq(0.1,2000,50))
 ```
-The MAAT wrapper can also be tested. 
+The MAAT wrapper can also be tested to ensure the wrapper is working correctly and to test the various SA/UQ ensembles provided with MAAT. 
 ```bash 
 cd ./src/
 rstudio unit_testing.R
 ```
 
-
-* Set up a MAAT project:
+### Run simulations with MAAT ###
+* Set up a MAAT project.
+A MAAT project is a directory on your hard drive where multiple related MAAT simulations can be defined, run, and have output stored.
+These project directories (as many as you like can be set up) are isolated from the source code. 
+For beginners with git, DO NOT set up a MAAT project in the source code directory. 
+To set up a new project run the following command from within the maat source code directory on your machine:
 ```bash 
 ./run_scripts/setup_MAAT_project.bs <modelobject> <projectpath>
 ```
 where `<modelobject>` is the name of the system model to be used in the project and `<projectpath>` is the full path of where the project is to be set up.
 The lowest level directory in the path will be created if it does not already exist.
-Run the above command with `leaf` as `<modelobject>` and your prefered path to set up the MAAT project. 
+The first time you set up a MAAT project try running the above command with `leaf` as `<modelobject>` and your prefered path to set up a test case MAAT project. 
 Change directory to the project directory and a simple instance of MAAT can be run:  
 ```bash
 cd <projectpath>
@@ -76,7 +88,7 @@ Once the above steps have been completed and MAAT is working without error, the 
 A MAAT ensemble is defined by the process representations, the parameter values, and the environmental variables that a user defines. 
 These values can be defined as static, i.e. values that are invariant across the whole ensemble, or dynamic values i.e. values that are varied across the ensemble. 
 The values of the static variables and dynamic variables are defined by the user as either lists in an R script `init_MAAT.R` or as separate XML files `init_user_static.xml` and `init_user_dynamic.xml`. 
-These are expected to be found in the highest level project directory. So that multiple simulations can be run from within the same project, these initialisation file names and be appended with `_<runid>` where `<runid>` is a character string that identifies the particular ensemble. 
+These are expected to be found in the highest level project directoryi, i.e. `<projectpath>`. So that multiple simulations can be run from within the same project, these initialisation file names and be appended with `_<runid>` where `<runid>` is a character string that identifies the particular ensemble. 
 For example, you can create a new init file, edit it, and then rerun MAAT with the runid as the first argument to the call script.
 Assuming you are still in the project directory:
 ```bash
@@ -93,8 +105,21 @@ The names of the variables and their various options can be found in `<model_obj
 Alternative command line options, their names, and how to specify them on the command line can be found on lines 33 - 110 of `run_MAAT.R`.
 
  
-* Meteorological data files. Coming soon ... 
+* Meteorological data files.
+The path and filename for meteorological data can be passed as an option to run_MAAT.R through any of the `call_*.bs` scripts.
+Currently all the meteorological data must reside in a single file in csv format with the first row (and only the first row) as a column header.
+A file named `<modelobject>_user_met.xml` must also exist in the directory `<projectpath>`.
+An example xml is copied across to that directory when the project is set up.
+The xml is structured to represent the input data of the model object, i.e. the `env` list in the data struture.
+To allow MAAT to read your meteorological data file, the values in the `<modelobject>_user_met.xml` list should be the name in the column header of the meteorological file of the variable that corresponds to the variable name in the MAAT `env` list.
+Note that not all variables in the `env` list must be specified in the xml or the met data file, in this case the default or the value set in the static or dynamic input is used. 
+In the case where a variable appears in the static or dynamic list AND the met data file, the values in the met data file will be used.        
 
+
+### Further information ###
+Further information can be found in the README files in sub-directories:
+* How to set up and run examples can be found in `src/system_models/leaf/examples` and `src/system_models/gwater_rt/examples`.
+* The MAAT formalism for defining model objects and how to start a template for coding a new model object can be found in `src/system_models`.
 
 
 
@@ -105,8 +130,8 @@ Before starting new feature branches please make sure your fork and clone is up 
  
 * Code review - by walkeranthonyp 
 
-* Other guidelines - none as yet, coding standards, recommendations, and examples coming soon. 
-
+* If you using this code and you are developing additional system models, please use pull requests to integrate your models back up with this central repo.
+This will help to maintain a central code-base and the principles of open science, facilitating other people's work and benefitting everyone.  
 
 
 

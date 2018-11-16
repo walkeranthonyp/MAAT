@@ -11,7 +11,8 @@
       <gas_diff>'c(  )'</gas_diff>
       <Alim>'c(  )'</Alim>
       <vcmax>'c( 'f_vcmax_clm', 'f_vcmax_constant', 'f_vcmax_lin' )'</vcmax>
-      <jmax>'c( 'f_jmax_constant', 'f_jmax_lin', 'f_jmax_lin_t', 'f_jmax_power' )'</jmax>
+      <jmax>'c( 'f_jmax_constant', 'f_jmax_lin', 'f_jmax_power' )'</jmax>
+      <tcor_jmax>'c( 'f_scalar_none', 'f_tcor_jmax_lin' )'</tcor_jmax>
       <tpu>'c( 'f_tpu_constant', 'f_tpu_lin' )'</tpu>
       <rd>'c( 'f_rd_constant', 'f_rd_lin_N', 'f_rd_lin_vcmax', 'f_rd_lin_vcmax_t' )'</rd>
       <rl_rd_scalar>'c(  )'</rl_rd_scalar>

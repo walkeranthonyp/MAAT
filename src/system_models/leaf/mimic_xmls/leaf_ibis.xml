@@ -14,6 +14,9 @@
         <tpu>'f_tcor_dep_dependent'</tpu>
         <rd>'f_tcor_dep_dependent'</rd>
       </tcor_dep>
+      <q10_func>
+        <tau>'f_q10_constant'</tau>
+      </q10_func>
       <etrans>'f_j_collatz1991'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
