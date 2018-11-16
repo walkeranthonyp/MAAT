@@ -20,14 +20,6 @@ MAAT is written in R and uses the object oriented programming package 'proto' to
 MAAT has been developed on Linux Ubuntu 16.04 and is designed to be run from the command line (and in some instances from within the R console or IDE like Rstudio).
 
 
-### Use guidelines ### 
-
-If you want to use this code then please do!
-If you plan to publish using this code the please be respectful of other people's work and their willingness to open source their code. 
-If you are using recent modifications and code updates, please be aware that the author of these developments may not have yet published what they are intending to, please contact them to discuss.
-Older code is fine to use without co-authorship, but again there is no harm in contacting code authors to clear this.
-This is a balance, and likely no single rule really fits all situations, discussion and communication is the best policy.  
-
 
 ### MAAT set up ###
 
@@ -56,7 +48,7 @@ An example from the leaf model object `unit_testing.R` script to run an ACi curv
 source('leaf_object.R')
 leaf_object$.test_aci(leaf.ca_conc=seq(0.1,2000,50))
 ```
-The MAAT wrapper can also be tested to ensure the wrapper is working correctly and to test the various SA/UQ ensembles provided with MAAT. 
+The MAAT wrapper can also be tested to ensure teh wrapper is working correctly and to test the various SA/UQ ensembles provided with MAAT. 
 ```bash 
 cd ./src/
 rstudio unit_testing.R
@@ -101,15 +93,7 @@ The names of the variables and their various options can be found in `<model_obj
 Alternative command line options, their names, and how to specify them on the command line can be found on lines 33 - 110 of `run_MAAT.R`.
 
  
-* Meteorological data files.
-The path and filename for meteorological data can be passed as an option to run_MAAT.R through any of the `call_*.bs` scripts.
-Currently all the meteorological data must reside in a single file in csv format with the first row (and only the first row) as a column header.
-A file named `<modelobject>_user_met.xml` must also exist in the directory `<projectpath>`.
-An example xml is copied across to that directory when the project is set up.
-The xml is structured to represent the input data of the model object, i.e. the `env` list in the data struture.
-To allow MAAT to read your meteorological data file, the values in the `<modelobject>_user_met.xml` list should be the name in the column header of the meteorological file of the variable that corresponds to the variable name in the MAAT `env` list.
-Note that not all variables in the `env` list must be specified in the xml or the met data file, in this case the default or the value set in the static or dynamic input is used. 
-In the case where a variable appears in the static or dynamic list AND the met data file, the values in the met data file will be used.        
+* Meteorological data files. Coming soon ... 
 
 
 ### Further information ###
@@ -126,8 +110,8 @@ Before starting new feature branches please make sure your fork and clone is up 
  
 * Code review - by walkeranthonyp 
 
-* If you using this code and you are developing additional system models, please use pull requests to integrate your models back up with this central repo.
-This will help to maintain a central code-base and the principles of open science, facilitating other people's work and benefitting everyone.  
+* Other guidelines - none as yet, coding standards, recommendations, and examples coming soon. 
+
 
 
 

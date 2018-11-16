@@ -25,7 +25,6 @@ f_R_Brent_solver <- function(.) {
   .$solver_out$root
 }
 
-
 # Calculate assimilation for a given cc (.$state$cc)
 # - code block common to all assimilation solvers
 # - calculates Ag/cc, determines limiting rate, calculates and returns net A
@@ -43,7 +42,6 @@ f_assimilation <- function(.) {
   Amin*.$state$cc - Amin*.$state_pars$gstar - .$state$rd
 }
   
-
 # Residual function for solver to calculate assimilation
 f_A_r_leaf <- function(., A ) {
   # combines A, rs, ri, ci & cc eqs to a single f(A), 
@@ -62,7 +60,6 @@ f_A_r_leaf <- function(., A ) {
   # calculate residual of net A
   f_assimilation(.) - A
 } 
-
 
 # same as above function but with no stomatal resistance 
 f_A_r_leaf_noRs <- function(.,A) {
@@ -105,7 +102,6 @@ f_A_r_leaf_analytical <- function(.) {
   Anet
 }
 
-
 # solves A analytically by assuming rb and ri are zero 
 f_A_r_leaf_analytical_quad <- function(.) {
   # combines A, rs, ci, cc eqs to a single f(), 
@@ -116,35 +112,35 @@ f_A_r_leaf_analytical_quad <- function(.) {
   .$state_pars$rb <- 0
   .$state_pars$ri <- 0
 
-  # correctly assign g0 if rs functions assume g0 = 0
-  g0_hold <- .$pars$g0
-  if(.$fnames$rs=='f_rs_cox1998'|.$fnames$rs=='f_rs_constantCiCa') .$pars$g0[] <- 0 
-
   # calculate coefficients of quadratic to solve A
-  assim_quad_soln <- function(., V, K ) {
+  assim_quad_soln <- function(.,V,K) {
     gsd <- get(paste0(.$fnames$rs,'_fe'))(.) / .$state$ca
     p   <- .$env$atm_press*1e-6
     a   <- p*( 1.6 - gsd*(.$state$ca + K) )
     b   <- p*gsd*( .$state$ca*(V - .$state$rd) - .$state$rd*K - V*.$state_pars$gstar ) - .$pars$g0*(.$state$ca + K) + 1.6*p*(.$state$rd - V)
     c   <- .$pars$g0*( V*(.$state$ca - .$state_pars$gstar) - .$state$rd*(K + .$state$ca) )
  
-    # return A - 1e-6 for numerical stability when A = 0 
-    quad_sol(a,b,c,'upper') + 1e-6
+    # return cc
+    A   <- quad_sol(a,b,c,'upper')
+    f_ficks_ci(., A=A, r=1.6*get(.$fnames$rs)(.,A=A) )
   }
 
-  .$state$Acg <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
-  .$state$Ajg <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
-  .$state$Apg <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
+  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
+  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
+  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
 
-  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin        <- get(.$fnames$Alim)(.) 
-  
-  # determine cc/ci based on Amin
-  # calculate rs
-  .$pars$g0[]     <- g0_hold 
-  .$state_pars$rs <- get(.$fnames$rs)(.,A=Amin)
-  .$state$cc <-.$state$ci <- f_ficks_ci(., A=Amin, r=1.6*.$state_pars$rs )
+  # maximum cc corresponds to the minimum of the limiting rates  
+  .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
     
+  # calculate net A
+  Anet <- f_assimilation(.)
+
+  # calculate rs
+  .$state_pars$rs <- get(.$fnames$rs)(.,A=Anet)
+  
+  # set ci & cc
+  .$state$cc <-.$state$ci <- f_ficks_ci(.,A=Anet, r=1.6*.$state_pars$rs )
+
   # recalculate Ag for each limiting process
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
   .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
@@ -152,9 +148,8 @@ f_A_r_leaf_analytical_quad <- function(.) {
   .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
 
   # return net A
-  Amin
+  Anet
 }
-
 
 # solves A analytically by assuming rs is equal to 1/g0 
 f_A_r0_leaf_analytical_quad <- function(.) {
@@ -171,22 +166,28 @@ f_A_r0_leaf_analytical_quad <- function(.) {
     b   <- .$state$ca + K - .$state$rd*p*r + V*p*r
     c   <- .$state$ca*(.$state$rd-V) + .$state$rd*K + V*.$state_pars$gstar 
     
-    # return A 
-    quad_sol(a,b,c,'lower')
+    # return cc
+    A   <- quad_sol(a,b,c,'lower')
+    f_ficks_ci(., A=A, r=r )
   }
 
-  .$state$Acg <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
-  .$state$Ajg <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
-  .$state$Apg <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
+  Ac_cc  <- assim_quad_soln(., V=.$state_pars$vcmaxlt, K=.$state_pars$Km )
+  Aj_cc  <- assim_quad_soln(., V=(.$state$J/4),        K=(2*.$state_pars$gstar) )
+  Ap_cc  <- assim_quad_soln(., V=(3*.$state_pars$tpu), K=(-(1+3*.$pars$Apg_alpha)*.$state_pars$gstar) )
 
-  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin        <- get(.$fnames$Alim)(.) 
+  # maximum cc corresponds to the minimum of the limiting rates  
+  .$state$cc     <- max(Ac_cc,Aj_cc,Ap_cc,na.rm=T) 
   
-  # determine cc/ci based on Amin
+  # calculate net A
+  Anet <- f_assimilation(.)
+
+  # calculate rs
   .$state_pars$rs <- r0 
-  .$state$cb <- f_ficks_ci(., A=Amin )
-  .$state$cc <-.$state$ci <- f_ficks_ci(., A=Amin, r=1.6*.$state_pars$rs )
-    
+  
+  # set ci & cb
+  .$state$cb <- f_ficks_ci(., A=Anet )
+  .$state$ci <- f_ficks_ci(., A=Anet, c=.$state$cb, r=1.6*.$state_pars$rs )
+
   # recalculate Ag for each limiting process
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
   .$state$Acg <- get(.$fnames$Acg)(.) * .$state$cc
@@ -194,9 +195,8 @@ f_A_r0_leaf_analytical_quad <- function(.) {
   .$state$Apg <- get(.$fnames$Apg)(.) * .$state$cc
 
   # return net A
-  Amin
+  Anet
 }
-
 
 # Calculate assimilation assuming zero resistance to CO2 diffusion from the atmosphere to the site of carboxylation
 f_A_r_leaf_noR <- function(.,...) {
@@ -427,23 +427,14 @@ f_jmax_power <- function(.) {
   exp(.$pars$e_ajv_25) * .$state_pars$vcmax^.$pars$e_bjv_25    
 }
 
-#f_jmax_lin <- function(.) {
-#  .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25    
-#}
-
-#f_jmax_lin_t <- function(.) {
-#  .$pars$ajv_25 <- 0.0
-#  .$pars$bjv_25 <- .$pars$a_jvt_25 + .$state$leaf_temp * .$pars$b_jvt_25
-#  .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25    
-#}
-
 f_jmax_lin <- function(.) {
-  .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25 * get(.$fnames$tcor_jmax)(.)    
+  .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25    
 }
 
-f_tcor_jmax_lin <- function(.) {
-  (.$pars$a_jvt_25 + .$pars$b_jvt_25 * .$state$leaf_temp ) /
-    (.$pars$a_jvt_25 + .$pars$b_jvt_25 * 25 )
+f_jmax_lin_t <- function(.) {
+  .$pars$ajv_25 <- 0.0
+  .$pars$bjv_25 <- .$pars$a_jvt_25 + .$state$leaf_temp * .$pars$b_jvt_25
+  .$pars$ajv_25 + .$state_pars$vcmax * .$pars$bjv_25    
 }
 
 
@@ -629,14 +620,14 @@ f_rs_cox1998_r0 <- function(.) {
 
 
 # ORCHIDEE assumption for stomatal resistance, from Yin & Struik 2009
-f_rs_yin2009 <- function(., A=.$state$A, c=.$state$ci ) {
+f_rs_yin2009 <- function(.,A=.$state$A,c=.$state$cb) {
   # This will not work with the either analytical solution (as they are currently coded) due to the A + Rd in the denominator
   # this also prevents negative values when A is negative 
   
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / (1.6*( .$pars$g0 + ( (A + .$state$rd)  / (1e6/.$env$atm_press*(.$state$ci-.$state_pars$gstar)) ) * (1/(1/(.$pars$g_a1_yin - .$pars$g_b1_yin*.$env$vpd) - 1)) ))
+  1 / ( .$pars$g0 + (A + .$state$rd) * .$env$atm_press*1e-6 / ((c-.$state_pars$gstar) * (1/(.$pars$g_a1_yin - .$pars$g_b1_yin*.$env$vpd) - 1)) )
 }
 
 f_rs_yin2009_fe <- function(.) {
@@ -725,9 +716,9 @@ f_tcor_asc_bethy <- function(., var, ... ) {
   #tcor_des <- .$fnames$tcor_des[[var]]
   if(.$fnames$tcor_des[[var]]!='f_scalar_none') print('Warning: temp scaling will not work correctly, f_tcor_asc_bethy specified with a descending temperature scaling other than f_scalar_none')
  
-  exp(-(.$state$leaf_temp-.$pars$reftemp[[var]])/10) * 
+  exp(-(.$state$leaf_temp-.$pars$Tr[[var]])/10) * 
     ( (.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$state$leaf_temp) ^ ((.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$state$leaf_temp)/(10*.$pars$b_q10_t[[var]]))    /  
-        ( (.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$pars$reftemp[[var]]) ^ ((.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$pars$reftemp[[var]])/(10*.$pars$b_q10_t[[var]])) ) )
+        ( (.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$pars$Tr[[var]]) ^ ((.$pars$a_q10_t[[var]] + .$pars$b_q10_t[[var]]*.$pars$Tr[[var]])/(10*.$pars$b_q10_t[[var]])) ) )
   
 }
 
@@ -767,9 +758,9 @@ f_tcor_asc_Q10 <- function(., var, ... ) {
   # input parameters  
   # Q10    -- factor by which rate increases for every 10 oC of temp increase  
   # Tr     -- reference temperature (oC) 
- 
+  
   q10 <- get(.$fnames$q10_func[[var]])(., var=var )
- 
+  
   q10 ^ ((.$state$leaf_temp - .$pars$reftemp[[var]])/10)
   
 }

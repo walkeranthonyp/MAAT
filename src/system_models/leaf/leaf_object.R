@@ -95,12 +95,6 @@ leaf_object <-
         lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
                   .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
         
-      } else if(.$cpars$output=='canopy') {
-        
-        lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
-                  gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb, 
-                  g =1/ (.$state_pars$rs + .$state_pars$rb) )
-        
       } else if(.$cpars$output=='full') {
         
         lout <- unlist(c(.$state, .$state_pars ))
@@ -134,7 +128,6 @@ leaf_object <-
       Alim           = 'f_lim_farquhar1980',
       vcmax          = 'f_vcmax_lin',
       jmax           = 'f_jmax_power',
-      tcor_jmax      = 'f_scalar_none',
       tpu            = 'f_tpu_lin',
       rd             = 'f_rd_lin_vcmax',
       rl_rd_scalar   = 'f_scalar_none',
@@ -161,8 +154,7 @@ leaf_object <-
       ),
       tcor_dep = list(
         tpu            = 'f_tcor_dep_dependent',
-        rd             = 'f_tcor_dep_dependent',
-        tau            = 'f_tcor_dep_dependent'
+        rd             = 'f_tcor_dep_dependent'
 	),
       deltaS   = list(  
         rd             = 'f_deltaS',
@@ -173,18 +165,15 @@ leaf_object <-
       q10_func = list(
         rd             = 'f_q10_constant',
         vcmax          = 'f_q10_constant',
-        jmax           = 'f_q10_constant',
-        tau            = 'f_q10_constant',
-        Kc             = 'f_q10_constant',
-        Ko             = 'f_q10_constant'
+        jmax           = 'f_q10_constant'
       )      
     )
     
     # leaf environment
     env <- list(
-      ca_conc   = 400,                 # (umol mol-1)
+      ca_conc   = numeric(1),          # (umol mol-1)
       o2_conc   = 0.21,                # ( mol mol-1)
-      par       = 1000,                # (umol photons m-2 s-1)
+      par       = numeric(1),          # (umol photons m-2 s-1)
       water_l   = numeric(1),          # (mm) water level relative to hollow surfwce
       sphag_l   = 0,                   # (mm) Sphagnum surface relative to hollow surfwce
       temp      = 25,                  # (oC)
@@ -416,27 +405,26 @@ leaf_object <-
       # split variable names at . 
       listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
 
-      # df subscripts for model object 
-      mss <- which(listnames[1,]==.$name)
-
-      # variable list subscripts in model object data structure 
-      vlss   <- match(listnames[2,mss], names(.[[vlist]]) )
-
-      # remove NAs in vlss from vlss and mss
-      if(any(is.na(vlss))) {
-        mss  <- mss[-which(is.na(vlss))]
-        vlss <- vlss[-which(is.na(vlss))]
-      }
-
-      # df subscripts for sublist variables (slmss) and non-sublist variables (nslmss) 
-      slss   <- which(listnames[3,mss]!='')
+      modobj <- .$name
+      # df subscripts for model object
+      moss   <- which(listnames[1,]==modobj)
+      # df subscripts for model object sublist variables (slmoss) and model object numeric variables (vlmoss) 
+      slss   <- which(listnames[3,moss]!='') 
       if(length(slss)>0) {
-        slmss  <- mss[slss] 
-        nslmss <- mss[-slss]
-        vlss   <- vlss[-slss] 
+        slmoss <- moss[slss] 
+        vlmoss <- moss[-slss] 
       } else {
-        slmss  <- NULL 
-        nslmss <- mss 
+        slmoss <- NULL 
+        vlmoss <- moss 
+      }
+      # variable list subscripts for non-sublist variable variables 
+      vlss   <- match(listnames[2,vlmoss], names(.[[vlist]]) )
+
+      # catch NAs in vlss
+      # allows variables to be passed that belong to different lists, e.g. state and env when run_leaf is called by the canopy   
+      if(any(is.na(vlss))) {
+        vlmoss <- vlmoss[-which(is.na(vlss))]
+        vlss   <- vlss[-which(is.na(vlss))]
       }
 
       # print configure setup if requested
@@ -445,9 +433,9 @@ leaf_object <-
         print('Leaf configure:', quote=F )
         print(df, quote=F )
         print(listnames, quote=F )
-        print(mss, quote=F )
-        print(slmss, quote=F )
-        print(nslmss, quote=F )
+        print(moss, quote=F )
+        print(slmoss, quote=F )
+        print(vlmoss, quote=F )
         print(vlss, quote=F )
         print(which(is.na(vlss)), quote=F )
         print(.[[vlist]], quote=F )
@@ -455,8 +443,8 @@ leaf_object <-
 
       # assign UQ variables
       #print(paste('Leaf conf:', vlist, names(df), df ))
-      if(length(slss)>0)    vapply( slmss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
-      if(length(nslmss)>0) .[[vlist]][vlss] <- df[nslmss]
+      if(length(slss)>0)   vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
+      if(length(vlmoss)>0) .[[vlist]][vlss] <- df[vlmoss]
       #print(paste(df[vlmoss],.[[vlist]][vlss])) 
     }
  

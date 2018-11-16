@@ -168,13 +168,10 @@ if(is.null(odir)) {
 }
 
 # create input/output filenames
-# initialisation file if not xml
-initf       <- if(is.null(runid))     paste(init,'R',sep='.')       else paste(init,'_',runid,'.R',sep='')
-# prefix for output files
-ofname      <- if(is.null(runid))     of_main                       else paste(of_main,runid,sep='_')
-ofname      <- if(is.null(mod_mimic)) ofname                        else paste(mod_mimic,ofname,sep='_')
-# prefix for saltelli sensitivity output files
-sofname     <- if(is.null(runid))     paste(of_main,'salt',sep='_') else paste(runid,of_main,'salt',sep='_')
+initf   <- if(is.null(runid))     paste(init,'R',sep='.')       else paste(init,'_',runid,'.R',sep='')
+ofname  <- if(is.null(runid))     of_main                       else paste(runid,of_main,sep='_')
+ofname  <- if(is.null(mod_mimic)) ofname                        else paste(ofname,mod_mimic,sep='_')
+sofname <- if(is.null(runid))     paste(of_main,'salt',sep='_') else paste(runid,of_main,'salt',sep='_')
 
 
 
@@ -268,7 +265,7 @@ if(xml) {
   # read user defined XMLs of dynamic variables
   dynamicxml   <- paste(mod_obj,'user','dynamic.xml',sep='_')
   if(file.exists(dynamicxml)) init_dynamic <- readXML(dynamicxml)
-  else                       {lid <- list(list(fnames=NULL,pars=NULL,env=NULL)); names(lid) <- mod_obj; init_dynamic <- lid } 
+  else                       {lid <- list(list(fnames=NULL,pars=NULL,env=NLL)); names(lid) <- mod_obj; init_dynamic <- lid } 
   
   # otherwise read init list R script
 } else source(initf)
@@ -286,16 +283,16 @@ out <- lapply(init_s,
               function(l) lapply( l$fnames, 
                                  function(l) if(is.list(l)) lapply(l, search_fnames, ln='static') else search_fnames(l, ln='static' )
                                  ))         
+                      #function(c1) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init static does not exist') else 'exists' ))
 print('  all static fnames requested exist',quote=F)
 
 print('',quote=F)
 print('Check dynamic fnames requested exist:',quote=F)
-if(!is.null(init_dynamic$fnames[[]])) { 
-  out <- lapply(init_dynamic, 
-                function(l) lapply(l$fnames,
-                                   function(l) if(is.list(l)) lapply(l, search_fnames, ln='dynamic') else search_fnames(l, ln='dynamic' )
-                                   ))
-}
+out <- lapply(init_dynamic, 
+              function(l) lapply(l$fnames,
+                                 function(l) if(is.list(l)) lapply(l, search_fnames, ln='dynamic') else search_fnames(l, ln='dynamic' )
+                                 ))
+                            #function(v) for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init dynamic does not exist') else return('exists') ))
 print('  all dynamic fnames requested exist',quote=F)
 
 # add init lists to wrapper
@@ -306,8 +303,8 @@ maat$init_dynamic <- init_dynamic
 print('',quote=F)
 print('Write record of static run variables:',quote=F)
 setwd(odir)
-listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=init_s)
-listtoXML(paste(ofname,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
+listtoXML(paste(runid,'setup_static.xml',sep='_'),  'static',  sublist=init_s)
+listtoXML(paste(runid,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
 
 
 

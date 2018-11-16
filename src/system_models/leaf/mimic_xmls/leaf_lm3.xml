@@ -1,7 +1,7 @@
 <default>
   <leaf>
     <fnames>
-      <gstar>'f_gstar_f1980'</gstar>
+      <gstar>'f_gstar_c1991'</gstar>
       <vcmax>'f_vcmax_constant'</vcmax>
       <tpu>'f_tpu_lin'</tpu>
       <tcor_asc>
@@ -11,6 +11,7 @@
         <Ko>'f_tcor_asc_Arrhenius'</Ko>
       </tcor_asc>
       <tcor_dep>
+        <tau>'f_tcor_dep_dependent'</tau>
         <rd>'f_tcor_dep_dependent'</rd>
       </tcor_dep>
       <etrans>'f_j_collatz1991'</etrans>
@@ -45,16 +46,17 @@
         <Ko>15</Ko>
         <tau>15</tau>
       </reftemp>
-      <ko_kc_ratio>0.21</ko_kc_ratio>
       <atref>
         <vcmax>70</vcmax>
         <Kc>15</Kc>
         <Ko>25</Ko>
+        <tau>4500</tau>
       </atref>
       <Ha>
         <vcmax>24943</vcmax>
         <Kc>49886</Kc>
         <Ko>11640</Ko>
+        <tau>-41572</tau>
       </Ha>
       <R>8.31446</R>
     </pars>

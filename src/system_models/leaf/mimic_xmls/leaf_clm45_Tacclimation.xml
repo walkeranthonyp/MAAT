@@ -3,8 +3,7 @@
     <fnames>
       <gstar>'f_gstar_constref'</gstar>
       <vcmax>'f_vcmax_clm'</vcmax>
-      <jmax>'f_jmax_lin'</jmax>
-      <tcor_jmax>'f_tcor_jmax_lin'</tcor_jmax>
+      <jmax>'f_jmax_lin_t'</jmax>
       <tpu>'f_tpu_lin'</tpu>
       <!-- increasing component of temperature scaling for biochemical rates -->
       <tcor_asc>
@@ -54,8 +53,6 @@
       <theta_j>0.7</theta_j>
       <theta_col_cj>0.98</theta_col_cj>
       <theta_col_cjp>0.95</theta_col_cjp>
-      <ajv_25>0</ajv_25>
-      <bjv_25>1.715</bjv_25>
       <a_jvt_25>2.59</a_jvt_25>      
       <b_jvt_25>-0.035</b_jvt_25>      
       <atv_25>0</atv_25>

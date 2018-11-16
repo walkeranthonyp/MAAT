@@ -15,8 +15,8 @@ library(grid)
 library(viridis)
 
 
-wd    <- '/mnt/disk2/Write_ups/MAAT/MAAT_sims4'
-ddate <- '2018-07-20' 
+wd    <- '##PDIR##'
+ddate <- '##OUTPUTDATE##' 
 wdd   <- paste0(wd,'/results/',ddate)
 
 ifile <- 'out.csv'
@@ -147,18 +147,18 @@ pdf('fig_gslim.pdf', width=width, height=width/3); trellis.par.set(gmdtpar); p3;
 ### T response Figure
 
 txlim <- c(-3,49)
-df2s1 <- subset(df2,leaf.tcor_asc.vcmax!='f_scalar_none'&leaf.tcor_des.vcmax=='f_scalar_none')
-df2s2 <- subset(df2,leaf.tcor_asc.vcmax=='f_scalar_none'&leaf.tcor_des.vcmax!='f_scalar_none')
-df2s3 <- subset(df2,leaf.tcor_asc.vcmax!='f_scalar_none'&leaf.tcor_des.vcmax!='f_scalar_none')
-df2s1$leaf.tcor_asc.vcmax <- as.factor(as.character(df2s1$leaf.tcor_asc.vcmax))
-df2s2$leaf.tcor_des.vcmax <- as.factor(as.character(df2s2$leaf.tcor_des.vcmax))
-df2s3$leaf.tcor_asc.vcmax <- as.factor(as.character(df2s3$leaf.tcor_asc.vcmax))
-df2s3$leaf.tcor_des.vcmax <- as.factor(as.character(df2s3$leaf.tcor_des.vcmax))
+df2s1 <- subset(df2,leaf.vcmax_tcor_asc!='f_scalar_none'&leaf.vcmax_tcor_des=='f_scalar_none')
+df2s2 <- subset(df2,leaf.vcmax_tcor_asc=='f_scalar_none'&leaf.vcmax_tcor_des!='f_scalar_none')
+df2s3 <- subset(df2,leaf.vcmax_tcor_asc!='f_scalar_none'&leaf.vcmax_tcor_des!='f_scalar_none')
+df2s1$leaf.vcmax_tcor_asc <- as.factor(as.character(df2s1$leaf.vcmax_tcor_asc))
+df2s2$leaf.vcmax_tcor_des <- as.factor(as.character(df2s2$leaf.vcmax_tcor_des))
+df2s3$leaf.vcmax_tcor_asc <- as.factor(as.character(df2s3$leaf.vcmax_tcor_asc))
+df2s3$leaf.vcmax_tcor_des <- as.factor(as.character(df2s3$leaf.vcmax_tcor_des))
 
-des_labs <- sapply(str_split(levels(df2$leaf.tcor_des.vcmax)[2:4],'_'), function(v) v[length(v)-1] )
+des_labs <- sapply(str_split(levels(df2$leaf.vcmax_tcor_des)[2:4],'_'), function(v) v[length(v)-1] )
 
 p4 <- 
-  xyplot(Tres~leaf.temp|leaf.tcor_des.vcmax, df2s1, groups=leaf.tcor_asc.vcmax, 
+  xyplot(Tres~leaf.temp|leaf.vcmax_tcor_des, df2s1, groups=leaf.vcmax_tcor_asc, 
          par.settings=simpleTheme(pch=c(0,20), cex=cex, col=col[1:2] ),
          auto.key=list(text=c('Arrhenius',expression(Q[10])), columns=2),
          ylab=ylabT, xlab=NULL, scales=list(alternating=F, tck=c(-0.5,0)), layout=c(1,1),
@@ -172,7 +172,7 @@ p4 <-
 p4
 
 p5 <- 
-  xyplot(Tres~leaf.temp|leaf.tcor_asc.vcmax, df2s2, groups=leaf.tcor_des.vcmax, 
+  xyplot(Tres~leaf.temp|leaf.vcmax_tcor_asc, df2s2, groups=leaf.vcmax_tcor_des, 
          par.settings=simpleTheme(pch=c(15,1,2), cex=cex, col=col2 ),
          ylab=NULL, xlab=xlabT, scales=list(alternating=F, tck=c(-0.5,0)), layout=c(1,1),
          xlim=txlim,ylim=c(0,1.35),
@@ -185,7 +185,7 @@ p5 <-
 p5
 
 p6 <- 
-  xyplot(Tres~leaf.temp|leaf.tcor_asc.vcmax, df2s3, groups=leaf.tcor_des.vcmax, 
+  xyplot(Tres~leaf.temp|leaf.vcmax_tcor_asc, df2s3, groups=leaf.vcmax_tcor_des, 
          par.settings=simpleTheme(pch=c(15,1,2), cex=cex, col=col2 ),
          auto.key=list(text=c(des_labs), columns=3),
          ylab=NULL, xlab=NULL, scales=list(alternating=F, tck=c(-0.5,0)), layout=c(2,1),

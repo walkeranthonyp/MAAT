@@ -42,8 +42,9 @@ f_cansys_bigleaf_s1992 <- function(.,k=.$state_pars$k_dirprime,...) {
   .$state$integrated$layers_Acg_lim <- if(.$leaf$state$lim==2) .$state$lai
   .$state$integrated$layers_Ajg_lim <- if(.$leaf$state$lim==3) .$state$lai
   .$state$integrated$layers_Apg_lim <- if(.$leaf$state$lim==7) .$state$lai
-  # convert reistance to conductance, minus minimum conductance, scale, add min conductance multiplied by LAI
-  .$state$integrated$gs             <- (1/.$leaf$state$rs - .$leaf$pars$g0) * fpar/k + .$leaf$pars$g0*.$state$lai 
+  # resistance - convert to conductance, minus minimum conductance, scale, add min conductance multiplied by LAI, convert back to resistance
+  # - a somewhat complicated version of eq 37f & 35 from Sellers 1992 and a conductance to resistance conversion
+  .$state$integrated$rs             <- 1 / ( (1/.$leaf$state$rs - .$leaf$pars$g0) * fpar/k + .$leaf$pars$g0*.$state$lai )
   # canopy mean values of Ci and Cc
   .$state$integrated$ci             <- .$leaf$state$ci * fpar/k / .$state$lai
   .$state$integrated$cc             <- .$leaf$state$cc * fpar/k / .$state$lai
@@ -142,10 +143,9 @@ f_cansys_multilayer <- function(.) {
   .$state$integrated$layers_Acg_lim[] <- sum(.$state$vert$layer$lim==2)
   .$state$integrated$layers_Ajg_lim[] <- sum(.$state$vert$layer$lim==3)
   .$state$integrated$layers_Apg_lim[] <- sum(.$state$vert$layer$lim==7)
-  .$state$integrated$gb[]             <- sum(.$state$vert$layer$gb) * linc 
-  .$state$integrated$gs[]             <- sum(.$state$vert$layer$gs) * linc 
-  .$state$integrated$gi[]             <- sum(.$state$vert$layer$gi) * linc 
-  .$state$integrated$g[]              <- sum(.$state$vert$layer$g)  * linc 
+  .$state$integrated$rb[]             <- 1 / sum(1/.$state$vert$layer$rb * linc )
+  .$state$integrated$rs[]             <- 1 / sum(1/.$state$vert$layer$rs * linc )
+  .$state$integrated$ri[]             <- 1 / sum(1/.$state$vert$layer$ri * linc )
   # canopy mean values
   .$state$integrated$cc[]             <- sum(.$state$vert$layer$cc) / .$state$lai * linc
   .$state$integrated$ci[]             <- sum(.$state$vert$ci) / .$state$lai * linc

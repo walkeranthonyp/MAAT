@@ -6,7 +6,7 @@
       <gstar>'f_gstar_constref'</gstar>
       <!-- calculate Vcmax at <reftemp.vcmax> -->
       <vcmax>'f_vcmax_constant'</vcmax>
-      <!-- calculate Jmax at <reftemp.jmax> -->
+      <!-- calculate Jmax at <reftemp.jmax>, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
       <jmax>'f_jmax_lin'</jmax>
       <!-- calculate TPU at <reftemp.tpu>, f(Vcmax) -->
       <tpu>'f_tpu_lin'</tpu>
@@ -139,7 +139,7 @@
       </Ha>
       <!-- Q10 for temperature sensitive parameters -->
       <q10>
-        <rd>2</rd>
+        <rd>2<rd>
       </q10>
       <!-- deactivation energy for temperature sensitive parameters -->
       <Hd>

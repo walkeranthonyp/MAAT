@@ -29,12 +29,12 @@
       <fwdw_wl_exp_b>3.254</fwdw_wl_exp_b>
     </pars>
     <env>
-      <temp>25</temp>
-      <par>1000</par>
+      <temp>0</temp>
+      <par>0</par>
       <par_dir>0</par_dir>
       <par_diff>0</par_diff>
-      <ca_conc>400</ca_conc>
-      <vpd>1</vpd>
+      <ca_conc>0</ca_conc>
+      <vpd>0</vpd>
       <clearness>1</clearness>
       <zenith>0</zenith>
       <water_td>0</water_td>
