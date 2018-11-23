@@ -1,9 +1,9 @@
 <options>
-  <gwater_rt>
-    <fnames>
+  <fnames>
+    <gwater_rt>
       <gwatersys>'c( 'f_gwatersys_daiye' )'</gwatersys>
       <rechrg>'c( 'f_rechrg_lin', 'f_rechrg_power' )'</rechrg>
       <geol>'c( 'f_geol_double', 'f_geol_single' )'</geol>
-    </fnames>
-  </gwater_rt>
+    </gwater_rt>
+  </fnames>
 </options>

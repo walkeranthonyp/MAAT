@@ -103,20 +103,18 @@ env.var       <- list(
 ###############################
 
 init_static <- list(
-  leaf = list(
-    fnames    = fnames.static,
-    pars      = pars.static,
-    env       = env.static
-  ))
+  fnames = list( leaf = fnames.static),
+  pars   = list( leaf = pars.static),
+  env    = list( leaf = env.static)
+)
 
 init_dynamic <- list(
-  leaf = list(
-    fnames    = fnames.var,
-    pars      = pars.var,
-    pars_proc = pars_proc.var,
-    pars_eval = pars_eval.var,
-    env       = env.var
-  ))
+  fnames    = list( leaf = fnames.var),
+  pars      = list( leaf = pars.var),
+  pars_proc = list( leaf = pars_proc.var),
+  pars_eval = list( leaf = pars_eval.var),
+  env       = list( leaf = env.var)
+)
 
 
 
