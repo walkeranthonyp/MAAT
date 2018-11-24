@@ -48,7 +48,6 @@
 # define lists
 fnames.static <- list(
   solver_func     = 'f_A_r_leaf',
-  gstar           = 'f_scalar_none',
   vcmax           = 'f_vcmax_constant',
   jmax            = 'f_jmax_power',
   tcor_asc = list(  
@@ -63,7 +62,6 @@ fnames.static <- list(
   ),
   rd     = 'f_rd_lin_vcmax', 
   ri     = 'f_r_zero',
-  rs     = 'f_r_zero',
   rb     = 'f_r_zero'
   )
 
