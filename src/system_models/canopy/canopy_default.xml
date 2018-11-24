@@ -1,6 +1,6 @@
 <default>
-  <canopy>
-    <fnames>
+  <fnames>
+    <canopy>
       <cansys>'f_cansys_multilayer'</cansys>
       <pars_init>'f_pars_init'</pars_init>
       <rt>'f_rt_beerslaw_goudriaan'</rt>
@@ -14,8 +14,10 @@
       <par_partition>'f_par_partition_spitters'</par_partition>
       <water_status>'f_water_status_none'</water_status>
       <fwdw>'f_fwdw_wtd_lin'</fwdw>
-    </fnames>
-    <pars>
+    </canopy>
+  </fnames>
+  <pars>
+    <canopy>
       <layers>10</layers>
       <lai>10</lai>
       <lai_max>4</lai_max>
@@ -34,8 +36,10 @@
       <fwdw_wl_sat>16</fwdw_wl_sat>
       <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>
       <fwdw_wl_exp_b>3.254</fwdw_wl_exp_b>
-    </pars>
-    <env>
+    </canopy>
+  </pars>
+  <env>
+    <canopy>
       <temp>25</temp>
       <par>1000</par>
       <par_dir>0</par_dir>
@@ -46,6 +50,6 @@
       <zenith>0</zenith>
       <water_td>0</water_td>
       <sphag_h>0</sphag_h>
-    </env>
-  </canopy>
+    </canopy>
+  </env>
 </default>

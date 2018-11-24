@@ -39,23 +39,25 @@ canopy_object <-
       # read model mimic setup
       if(!is.null(mod_mimic)&F) {
         setwd('mimic_xmls')
-        print(paste('Canopy mimic:', mod_mimic ))
+        print(paste(.$name,'mimic:', mod_mimic ))
         init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
         init_default <- fuselists(init_default,init_mimic)
         setwd('..')
       }
 
+      # assign default and mod mimic values to data structure
+      .$configure(vlist='fnames', df=unlist(init_default$fnames))
+      .$configure(vlist='pars',   df=unlist(init_default$pars))
+      .$configure(vlist='env',    df=unlist(init_default$env))
+
       # build child objects
-      setwd('../leaf')
-      source('leaf_object.R')
+      setwd(paste0('../',.$child_list[[1]]))
+      source(paste0(.$child_list[[1]],'_object.R'))
       .$leaf     <- as.proto( leaf_object$as.list() )
       rm(leaf_object, pos=1 )
-      init_child <- .$leaf$build(mod_mimic=mod_mimic)
-      .$leaf$cpars$output <- 'canopy'
+      .$leaf$build(mod_mimic=mod_mimic)
+      .$leaf$cpars$output <- .$name 
       setwd(paste0('../',.$name))
-
-      # build full init list
-      c(init_default, init_child )
     }
     
     
@@ -103,15 +105,15 @@ canopy_object <-
     output <- function(.){
     
       if(.$cpars$output=='run') {
-        c(A=.$state$integrated$A, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration)
+        c(A=.$state$integrated$A, gs=.$state$integrated$gs, rd=.$state$integrated$rd)
         
       } else if(.$cpars$output=='leaf') {
         c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-          gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA)
+          gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd, lim=NA)
         
       } else if(.$cpars$output=='all_lim') {
         c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-          gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA, 
+          gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd, lim=NA, 
           Acg_lim=.$state$integrated$Acg_lim, 
           Ajg_lim=.$state$integrated$Ajg_lim, 
           Apg_lim=.$state$integrated$Apg_lim 

@@ -29,7 +29,6 @@ leaf_object <-
     
     # build function 
     build <- function(., mod_mimic=NULL, ... ) {
-      # no expected child objects
 
       # read default model setup for highest level model
       source('../../functions/general_functions.R')
@@ -38,13 +37,16 @@ leaf_object <-
       # read model mimic setup
       if(!is.null(mod_mimic)) {
         setwd('mimic_xmls')
-        print(paste('Leaf mimic:', mod_mimic ))
+        print(paste(.$name, 'mimic:', mod_mimic ))
         init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
         init_default <- fuselists(init_default,init_mimic)
         setwd('..')
       }
 
-      init_default
+      # assign default and mod mimic values to data structure
+      .$configure(vlist='fnames', df=unlist(init_default$fnames)) 
+      .$configure(vlist='pars',   df=unlist(init_default$pars)) 
+      .$configure(vlist='env',    df=unlist(init_default$env)) 
     }
     
     
@@ -53,7 +55,7 @@ leaf_object <-
     # main run function
     
     run <- function(.) {
-
+    
       # call system model 
       get(.$fnames$leafsys)(.)
 
@@ -70,11 +72,6 @@ leaf_object <-
     # Output functions
 
     # -- returns a vector of outputs
-    # state_retrive <- function(.,snames) {
-    #   lsubs <- match(snames,names(.$state))
-    #   unlist(.$state[lsubs])
-    # }
-    
     state_retrive <- function(.,snames,state='state') {
       lsubs <- match(snames,names(.[[state]]))
       unlist(.[[state]][lsubs])
