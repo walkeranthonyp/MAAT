@@ -39,23 +39,27 @@ canopy_structure_object <-
       # read model mimic setup
       if(!is.null(mod_mimic)&F) {
         setwd('mimic_xmls')
-        print(paste('Canopy structure mimic:', mod_mimic ))
+        print(paste(.$name,'mimic:', mod_mimic ))
         init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
         init_default <- fuselists(init_default,init_mimic)
         setwd('..')
       }
 
-      # build child objects
-      setwd('../canopy')
-      source('canopy_object.R')
-      .$canopy     <- as.proto( canopy_object$as.list() )
-      rm(canopy_object, pos=1 )
-      init_child <- .$canopy$build(mod_mimic=mod_mimic)
-      .$canopy$cpars$output <- 'all_lim'
-      setwd(paste0('../',.$name))
+      # assign default and mod mimic values to data structure
+      .$configure(vlist='fnames', df=unlist(init_default$fnames))
+      .$configure(vlist='pars',   df=unlist(init_default$pars))
+      .$configure(vlist='env',    df=unlist(init_default$env))
 
-      # build full init list
-      c(init_default, init_child )
+      # build child objects
+      mod     <- .$child_list[[1]]
+      mod_obj <- paste0(mod, '_object' ) 
+      setwd(paste0('../', mod ))
+      source(paste0(mod_obj, '.R' ))
+      .[[mod]] <- as.proto( get(mod_obj)$as.list() )
+      rm(mod_obj, pos=1 )
+      .[[mod]]$build(mod_mimic=mod_mimic)
+      .[[mod]]$cpars$output <- .$name
+      setwd(paste0('../',.$name))
     }
     
     

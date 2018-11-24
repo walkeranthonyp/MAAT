@@ -1,6 +1,6 @@
 <default>
-  <canopy_structure>
-    <fnames>
+  <fnames>
+    <canopy_structure>
       <canstrctsys>'f_canstrctsys_leafdem'</canstrctsys>
       <pars_init>'f_pars_init'</pars_init>
       <lai>'f_lai_leafdem_env'</lai>
@@ -9,8 +9,10 @@
       <leafdem_vcmax0>'f_leafdem_vcmax0_constant'</leafdem_vcmax0>
       <water_status>'f_water_status_none'</water_status>
       <fwdw>'f_fwdw_wtd_lin'</fwdw>
-    </fnames>
-    <pars>
+    </canopy_structure>
+  </fnames>
+  <pars>
+    <canopy_structure>
       <canopy_cores>1</canopy_cores>
       <layers>30</layers>
       <lai>10</lai>
@@ -27,8 +29,10 @@
       <fwdw_wl_sat>16</fwdw_wl_sat>
       <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>
       <fwdw_wl_exp_b>3.254</fwdw_wl_exp_b>
-    </pars>
-    <env>
+    </canopy_structure>
+  </pars>
+  <env>
+    <canopy_structure>
       <temp>25</temp>
       <par>1000</par>
       <ca_conc>400</ca_conc>
@@ -39,6 +43,6 @@
       <lai_old>3</lai_old>
       <water_td>0</water_td>
       <sphag_h>0</sphag_h>
-    </env>
-  </canopy_structure>
+    </canopy_structure>
+  </env>
 </default>

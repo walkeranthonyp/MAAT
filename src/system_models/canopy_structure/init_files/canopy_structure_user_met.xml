@@ -1,6 +1,6 @@
 <met_data_translator>
-  <canopy_structure>
-    <env>
+  <env>
+    <canopy_structure>
       <temp>'column name of variable in metdata file'</temp>
       <par>'column name of variable in metdata file'</par>
       <ca_conc>'column name of variable in metdata file'</ca_conc>
@@ -11,6 +11,6 @@
       <lai_old>'column name of variable in metdata file'</lai_old>
       <water_td>'column name of variable in metdata file'</water_td>
       <sphag_h>'column name of variable in metdata file'</sphag_h>
-    </env>
-  </canopy_structure>
+    </canopy_structure>
+  </env>
 </met_data_translator>

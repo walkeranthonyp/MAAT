@@ -3,7 +3,7 @@
 # MAAT Canopy Structure Model - example initialisation script
 # 
 # AWalker (walkerap@ornl.gov) 
-# October 2018
+# November 2018
 #
 ################################
 
@@ -21,20 +21,20 @@
 # To setup a model object simulation,
 #  set up the following lists, for OBJ leaf and canopy:
 
-#  set static variables during runtime (init_static) by setting:
-#  - OBJ.fnames.static
-#  - OBJ.pars.static     
-#  - OBJ.env.static
+#  set static variables during runtime in init_static list by setting sublists:
+#  - fnames.OBJ.static
+#  - pars.OBJ.static     
+#  - env.OBJ.static
 
 #  set dynamic variables during runtime (init_dynamic) by setting:
-#  - OBJ.fnames.var
-#  - OBJ.pars.var     
-#  - OBJ.env.var
+#  - fnames.OBJ.var
+#  - pars.OBJ.var     
+#  - env.OBJ.var
 
 #  for a process SA two more sublists need to be added as elements to the init_dynamic lists:
 #   OBJ.pars_proc.var and OBJ.pars_eval.var, both with the same named elements as OBJ.pars.var
-#   - OBJ.pars_proc.var is a list of strings that associate each parameter with the process it is associated with, these should be one of the element names in the list init_dynamic$OBJ$fnames
-#   - OBJ.pars_eval.var is a string that once evaluated gives a vector of parameter samples  
+#   - pars_proc.OBJ.var is a list of strings that associate each parameter with the process it is associated with, these should be one of the element names in the list init_dynamic$OBJ$fnames
+#   - pars_eval.OBJ.var is a string that once evaluated gives a vector of parameter samples  
 
 
 # This script must set the values of the above 6(8) lists per model object, 
@@ -50,21 +50,18 @@
 # define lists
 leaf.fnames.static <- list(
   solver_func = 'f_A_r_leaf',
-  gstar       = 'f_scalar_none',
-  ri          = 'f_r_zero',
-  rs          = 'f_r_zero',
+  rs          = 'f_rs_medlyn2011',
   rb          = 'f_r_zero'
-  )
+)
 
 leaf.pars.static <- NULL 
 
 leaf.env.static  <- list(
-  par     = 1000,
-  temp    = 25
-  )
+  temp = 25
+)
 
 
-canopy.fnames.static <- NULL   
+canopy.fnames.static <- NULL 
 
 canopy.pars.static   <- NULL
 
@@ -94,9 +91,7 @@ leaf.pars_proc.var <- NULL
 
 leaf.pars_eval.var <- NULL
 
-leaf.env.var       <- list(
-  ca_conc = seq(50,1500,50)
-)
+leaf.env.var       <- NULL
 
 
 canopy.fnames.var    <- NULL
@@ -118,7 +113,11 @@ canopy_structure.pars_proc.var <- NULL
 
 canopy_structure.pars_eval.var <- NULL
 
-canopy_structure.env.var       <- NULL
+canopy_structure.env.var       <- list(
+  par       = c(500,1320),
+  vpd       = c(0.5,3),
+  ca_conc   = seq(50,1500,50)
+)
 
 
 
@@ -126,47 +125,49 @@ canopy_structure.env.var       <- NULL
 ###############################
 
 init_static <- list(
-  leaf = list(
-    fnames = leaf.fnames.static,
-    pars   = leaf.pars.static,
-    env    = leaf.env.static
-  ),
-  canopy = list(
-    fnames = canopy.fnames.static,
-    pars   = canopy.pars.static,
-    env    = canopy.env.static
-  ),
-  canopy_structure = list(
-    fnames = canopy_structure.fnames.static,
-    pars   = canopy_structure.pars.static,
-    env    = canopy_structure.env.static
-  )
-)
+    fnames = list(
+      leaf             = leaf.fnames.static,
+      canopy           = canopy.fnames.static,
+      canopy_structure = canopy_structure.fnames.static
+    ),
+    pars = list(
+      leaf             = leaf.pars.static,
+      canopy           = canopy.pars.static, 
+      canopy_structure = canopy_structure.pars.static
+    ),
+    env = list(
+      leaf             = leaf.env.static,
+      canopy           = canopy.env.static, 
+      canopy_structure = canopy_structure.env.static
+))
 
 init_dynamic <- list(
-  leaf = list(
-    fnames    = leaf.fnames.var,
-    pars      = leaf.pars.var,
-    pars_proc = leaf.pars_proc.var,
-    pars_eval = leaf.pars_eval.var,
-    env       = leaf.env.var
-  ),
-  canopy = list(
-    fnames    = canopy.fnames.var,
-    pars      = canopy.pars.var,
-    pars_proc = canopy.pars_proc.var,
-    pars_eval = canopy.pars_eval.var,
-    env       = canopy.env.var
-  ),
-  canopy_structure = list(
-    fnames    = canopy_structure.fnames.var,
-    pars      = canopy_structure.pars.var,
-    pars_proc = canopy_structure.pars_proc.var,
-    pars_eval = canopy_structure.pars_eval.var,
-    env       = canopy_structure.env.var
-  )
-)
+    fnames = list(
+      leaf             = leaf.fnames.var,
+      canopy           = canopy.fnames.var,
+      canopy_structure = canopy_structure.fnames.var
+    ),
+    pars = list(
+      leaf             = leaf.pars.var,
+      canopy           = canopy.pars.var,
+      canopy_structure = canopy_structure.pars.var
+    ),
+    pars_proc = list(
+      leaf             = leaf.pars_proc.var,
+      canopy           = canopy.pars_proc.var,
+      canopy_structure = canopy_structure.pars_proc.var
+    ),
+    pars_eval = list(
+      leaf             = leaf.pars_eval.var,
+      canopy           = canopy.pars_eval.var,
+      canopy_structure = canopy_structure.pars_eval.var
+    ),
+    env = list(
+      leaf             = leaf.env.var,
+      canopy           = canopy.env.var,
+      canopy_structure = canopy_structure.env.var
+))
 
 
 
-### END ####
+### END ###

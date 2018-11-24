@@ -1,6 +1,6 @@
 <options>
-  <canopy_structure>
-    <fnames>
+  <fnames>
+    <canopy_structure>
       <canstrctsys>'c( 'f_canstrctsys_leafdem' )'</canstrctsys>
       <pars_init>'c(  )'</pars_init>
       <lai>'c( 'f_lai_constant', 'f_lai_env', 'f_lai_leafdem_env', 'f_lai_sphagnum' )'</lai>
@@ -9,6 +9,6 @@
       <leafdem_vcmax0>'c( 'f_leafdem_vcmax0_constant' )'</leafdem_vcmax0>
       <water_status>'c( 'f_water_status_none', 'f_water_status_sphagnum' )'</water_status>
       <fwdw>'c( 'f_fwdw_wtd_exp', 'f_fwdw_wtd_lin' )'</fwdw>
-    </fnames>
-  </canopy_structure>
+    </canopy_structure>
+  </fnames>
 </options>
