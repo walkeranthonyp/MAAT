@@ -33,11 +33,6 @@ setwd(paste('..','system_models',mod_obj,sep='/'))
 mo <- paste0(mod_obj,'_object'); source(paste0(mo,'.R'))
 
 # create lists to convert to XML
-#l1 <- list(list(fnames = get(mo)[['fnames']],
-#                pars   = get(mo)[['pars']],
-#                env    = get(mo)[['env']]
-#              ))
-#names(l1) <- mod_obj
 l1 <- list(fnames = list(get(mo)[['fnames']]),
            pars   = list(get(mo)[['pars']]),
            env    = list(get(mo)[['env']])
@@ -50,8 +45,6 @@ names(l1$env)    <- mod_obj
 #l1[[mod_obj]][['fnames']] <- lapply(l1[[mod_obj]][['fnames']],  function(c1) paste0("'",c1,"'")
 
 # create met data list
-#l2 <- list(list(env    = get(mo)[['env']]))
-#names(l2) <- mod_obj
 l2 <- list(env = list(get(mo)[['env']]))
 names(l2$env) <- mod_obj
 l2[[1]][[1]][] <- 'column name of variable in metdata file'
@@ -62,19 +55,19 @@ mf <- paste0(mod_obj,'_functions.R');        source(mf)
 l1opt     <- l1['fnames']
 l1names   <- l1[['fnames']][[mod_obj]]
 l1names[] <- names(l1names)
-l1opt[['fnames']][[mod_obj]] <- lapply(l1names, function(c1) { 
-                                                     print('', quote=F )
-                                                     print(paste('Searching for representations of process:',c1), quote=F ) 
-                                                     c2 <- ls(pos=1, pattern=paste0('f_',c1))
-                                                     print('Found:', quote=F ) 
-                                                     print(c2, quote=F ) 
-                                                     out <- do.call('paste', lapply(as.list(c2),  function(c3) paste0("'",c3,"'",',') ) )
-                                                     out <- substr(out, 1, nchar(out)-1)
-                                                     paste('c(',out,')')
-                        })
+l1opt[['fnames']][[mod_obj]] <- 
+  lapply(l1names, function(c1) { 
+    print('', quote=F )
+    print(paste('Searching for representations of process:',c1), quote=F ) 
+    c2 <- ls(pos=1, pattern=paste0('f_',c1))
+    print('Found:', quote=F ) 
+    print(c2, quote=F ) 
+    out <- do.call('paste', lapply(as.list(c2),  function(c3) paste0("'",c3,"'",',') ) )
+    out <- substr(out, 1, nchar(out)-1)
+    paste('c(',out,')')
+  })
 
-# replace all entires in l1 with NULL for init static and dynamic
-# - this currently doesn't work, NULL values are not correctly written out to the xml
+# replace all entires in l1 with NA for init static and dynamic
 l1n <- rapply(l1, function(x) NA, how='replace' )  
 
 # convert list to XMLs
