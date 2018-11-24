@@ -124,8 +124,10 @@ wrapper_object <-
       } else {
         # not a formal SA/UQ run - factorial combination of variables specified in the vars lists  
         .$dataf$pars <- if(!is.null(.$dynamic$pars)) as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F)) else NULL
-        #print(.$dataf$pars)
-        #print(is.null(unlist(.$dynamic$pars))) 
+        print(.$dynamic$pars) 
+        print(.$dataf$pars)
+        print(.$dynamic$env) 
+        print(.$dataf$env)
       } 
       
       # calculate input matrix lengths 

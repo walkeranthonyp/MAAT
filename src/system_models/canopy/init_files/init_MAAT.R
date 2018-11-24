@@ -50,25 +50,20 @@
 # define lists
 leaf.fnames.static <- list(
   solver_func = 'f_A_r_leaf',
-  gstar       = 'f_scalar_none',
-  Kc_tcor     = 'f_scalar_none',
-  Ko_tcor     = 'f_scalar_none',
-  respiration = 'f_rd_lin_vcmax', 
-  ri          = 'f_r_zero',
-  rs          = 'f_r_zero',
   rb          = 'f_r_zero'
-  )
+)
 
 leaf.pars.static <- list(
-  atref.vcmax  = 50
-  )
+  atref = list(vcmax = 50)
+)
 
 leaf.env.static  <- list(
-  par     = 1000,
-  temp    = 25
-  )
+  temp = 25
+)
 
-canopy.fnames.static <- NULL   
+canopy.fnames.static <- list(
+  lai = 'f_lai_constant'     
+)   
 
 canopy.pars.static   <- NULL
 
@@ -91,22 +86,22 @@ leaf.pars_proc.var <- NULL
 
 leaf.pars_eval.var <- NULL
 
-leaf.env.var       <- list(
-  ca_conc = seq(50,1500,50)
-)
+leaf.env.var       <- NULL
 
 
 canopy.fnames.var    <- NULL
 
 canopy.pars.var      <- list(
-  lai_curve = c(0.1,0.3,0.5,1)
+  lai = c(1,3,5,7)
 )
 
 canopy.pars_proc.var <- NULL
 
 canopy.pars_eval.var <- NULL
 
-canopy.env.var       <- NULL
+canopy.env.var       <- list(
+  ca_conc = seq(50,1500,50)
+)
 
 
 
@@ -151,4 +146,4 @@ init_dynamic <- list(
 
 
 
-### END ####
+### END ###
