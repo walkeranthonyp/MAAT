@@ -257,12 +257,12 @@ wrapper_object <-
 
       # call next run function
       do.call( 'rbind', {
-          if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, fi=i, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=T  )
-          else                 lapply(1:.$dataf$lp, .$runp, fi=i )
+          if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=T  )
+          else                 lapply(1:.$dataf$lp, .$runp )
       })
     }
     
-    runp <- function(.,j,fi) {
+    runp <- function(.,j) {
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
       # assumes that each row of the pars matrix are independent and non-sequential
       # call rune
@@ -277,7 +277,7 @@ wrapper_object <-
 
       # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
       # returns matrix
-      if(class(out)=='array') .$stack(out) else t(out)
+      if(class(out)=='matrix') t(out) else if(class(out)=='array') .$stack(out) else as.matrix(out)
     }
     
     rune <- function(.,k) {
