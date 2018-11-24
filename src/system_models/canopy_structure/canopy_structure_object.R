@@ -93,21 +93,18 @@ canopy_structure_object <-
     # -- returns a vector of outputs
     output <- function(.){
       if(.$cpars$output=='run') {
-        c(A=.$state$integrated$A, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration)
+        c(A=.$state$integrated$A, gs=.$state$integrated$gs, rd=.$state$integrated$rd)
         
       } else if(.$cpars$output=='canopy') {
         c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-          gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA)
+          gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd )
         
       } else if(.$cpars$output=='all_lim') {
         c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-          gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA 
-          #Acg_lim=.$state$integrated$Acg_lim, 
-          #Ajg_lim=.$state$integrated$Ajg_lim, 
-          #Apg_lim=.$state$integrated$Apg_lim, 
-          #layers_Acg_lim=.$state$integrated$layers_Acg_lim, 
-          #layers_Ajg_lim=.$state$integrated$layers_Ajg_lim, 
-          #layers_Apg_lim=.$state$integrated$layers_Apg_lim
+          gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd,
+          Acg_lim=.$state$integrated$Acg_lim, 
+          Ajg_lim=.$state$integrated$Ajg_lim, 
+          Apg_lim=.$state$integrated$Apg_lim 
         )
         
       } else if(.$cpars$output=='full') {
@@ -182,10 +179,6 @@ canopy_structure_object <-
       upper_can_prop = numeric(3), 
       lower_can_prop = numeric(3), 
       
-      #mass_a  = 10,
-      #C_to_N  = 40,
-      #totalN  = 7,
-     
       # leaf demography associated traits
       leafdem_traits <- list(
         vcmax0 = numeric(3)
