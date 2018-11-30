@@ -2,7 +2,7 @@
 
 
 
-### MAAT Version 1.0 ###
+### MAAT Version 1.1 ###
 
 The multi-assumption architecture and testbed (MAAT) is a modelling framework designed to facilitate simple and rapid comparison of multiple modelling hypotheses and assumptions, i.e. ways in which to represent processes, in a systems context.
 MAAT is designed to easily specify and run large ensembles of simulations.
@@ -10,7 +10,7 @@ Ensembles can vary in process representation, parameter values, and environmenta
 Built in sensitivity analysis and uncertainty quantification (SA/UQ) can be used to assess variability in model caused output by multiple ways in which to represent processes. 
 
 The MAAT framework is a model wrapper and a model coding syntax that can be used to define a model of a system.
-The wrapper and the model system are separated and the syntax allows the wrapper to pass system-model specific information to the model without any system-model specific information contained in the wrapper. 
+The wrapper and the system model are separated and the syntax allows the wrapper to pass system-model specific information to the model without any system-model specific information contained in the wrapper. 
 All system-model specific information is contained within the system model and initialisation files. 
 This separation of wrapper and system model allows rapid development of new system models and system model components (e.g. process representations) without the need to edit the wrapper.
 
@@ -19,14 +19,22 @@ Current systems models that come packaged with the MAAT are a leaf-scale model o
 MAAT is written in R and uses the object oriented programming package 'proto' to develop the wrapper and model objects. 
 MAAT has been developed on Linux Ubuntu 16.04 and is designed to be run from the command line (and in some instances from within the R console or IDE like Rstudio).
 
+### version 1.1 ###
+
+* Structural modifications to initialisation.
+* init_MAAT.R and XMl files have had their hierarchies re-ordered, these files from v1.0 will not be compatible.
+* Adjust analytical solvers to correctly handle Collatz smoothing.
+* Canopy system model developments but not complete.
+* A number of bug fixes.  
+
 
 ### Use guidelines ### 
 
 If you want to use this code then please do!
 If you plan to publish using this code the please be respectful of other people's work and their willingness to open source their code. 
 If you are using recent modifications and code updates, please be aware that the author of these developments may not have yet published what they are intending to, please contact them to discuss.
-Older code is fine to use without co-authorship, but again there is no harm in contacting code authors to clear this.
-This is a balance, and likely no single rule really fits all situations, discussion and communication is the best policy.  
+Older code is fine to use without co-authorship, but it is rcommended that code authors be contacted.
+This is a balance, and likely no single rule really fits all situations, communicating your intentions at an early stage (i.e. during the early stages of a study before manuscript drafting) is the policy.
 
 
 ### MAAT installation ###

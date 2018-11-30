@@ -135,16 +135,16 @@ leaf_object <-
       tpu            = 'f_tpu_lin',
       rd             = 'f_rd_lin_vcmax',
       rl_rd_scalar   = 'f_scalar_none',
-      gstar          = 'f_gstar_constref',
+      gstar          = 'f_gstar_f1980',
       ri             = 'f_r_zero',
-      rs             = 'f_r_zero',
-      rb             = 'f_r_zero',
+      rs             = 'f_rs_medlyn2011',
+      rb             = 'f_rb_leafdim',
       cica_ratio     = 'f_cica_constant',             
       tcor_asc = list(
         vcmax          = 'f_tcor_asc_Arrhenius',
         jmax           = 'f_tcor_asc_Arrhenius',
         tpu            = 'f_tcor_asc_Arrhenius',
-        rd             = 'f_tcor_asc_Q10',
+        rd             = 'f_tcor_asc_Arrhenius',
         gstar          = 'f_tcor_asc_quadratic_bf1985',
         tau            = 'f_tcor_asc_Q10',
         Kc             = 'f_tcor_asc_Arrhenius',
@@ -154,12 +154,12 @@ leaf_object <-
         vcmax          = 'f_tcor_des_modArrhenius',
         jmax           = 'f_tcor_des_modArrhenius',
         tpu            = 'f_tcor_des_modArrhenius',
-        rd             = 'f_tcor_des_cox2001'
+        rd             = 'f_scalar_none'
       ),
       tcor_dep = list(
-        tpu            = 'f_tcor_dep_dependent',
-        rd             = 'f_tcor_dep_dependent',
-        tau            = 'f_tcor_dep_dependent'
+        tpu            = 'f_tcor_dep_independent',
+        rd             = 'f_tcor_dep_independent',
+        tau            = 'f_tcor_dep_independent'
 	),
       deltaS   = list(  
         rd             = 'f_deltaS',
