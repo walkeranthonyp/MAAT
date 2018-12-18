@@ -332,9 +332,9 @@ f_Apg_foley1996 <- function(., cc=.$state$cc ) {
 
 # no triose phosphate limitation
 f_Apg_none <- function(.) {
-  # returns a high value so that TPU is never limiting
+  # returns NA which is ignored in limiting rate selection functions 
   
-  9e3
+  NA
 }
 
 
