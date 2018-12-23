@@ -18,8 +18,8 @@ source('SA_functions.R')
 
 # load output dataframe from Sobol analysis
 setwd(wdd)
-AB    <- readRDS(paste(runid,'_out_salt_AB.RDS',sep=''))
-ABi   <- readRDS(paste(runid,'_out_salt_ABi.RDS',sep=''))
+AB    <- readRDS(paste0('out_',runid,'_salt_AB.RDS',sep=''))
+ABi   <- readRDS(paste0('out_',runid,'_salt_ABi.RDS',sep=''))
 
 # identify model output of interest (delta)
 delta <- which(dimnames(AB)[[4]]==delta_var)

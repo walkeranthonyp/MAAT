@@ -27,7 +27,7 @@ for( p in 1:length(n_procs) ) {
   setwd(wdd)
   
   # load data
-  fname <- paste(runid,'_out_proc_',p,sep='')
+  fname <- paste('out_',runid,'_proc_',p,sep='')
   a1    <- readRDS(paste(fname,'.RDS',sep=''))
   delta <- which(dimnames(a1)[[1]]==delta_var)
   

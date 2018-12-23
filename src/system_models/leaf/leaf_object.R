@@ -90,7 +90,7 @@ leaf_object <-
       } else if(.$cpars$output=='all_lim') {
         
         lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
-                  .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
+                  .$state_retrive(snames=c('ri','rs','rb','gstar'), state='state_pars' ) )
         
       } else if(.$cpars$output=='canopy') {
         
