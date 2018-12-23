@@ -18,8 +18,8 @@ source('SA_functions.R')
 
 # load output dataframe from Sobol analysis
 setwd(wdd)
-AB    <- readRDS(paste(runid,'_out_salt_AB.RDS',sep=''))
-ABi   <- readRDS(paste(runid,'_out_salt_ABi.RDS',sep=''))
+AB    <- readRDS(paste0('out_',runid,'_salt_AB.RDS'))
+ABi   <- readRDS(paste0('out_',runid,'_salt_ABi.RDS'))
 
 # identify model output of interest (delta)
 delta <- which(dimnames(AB)[[4]]==delta_var)
@@ -58,7 +58,7 @@ ABi    <- array(ABi, dim(ABi)[c(1:3,5)] )
 dimnames(AB)  <- dn_AB[1:3]
 dimnames(ABi) <- dn_ABi[c(1:3,5)]
 
-# Sobol for absolute values
+# Sobol
 sms   <- calc_parameter_sensitivity(AB, ABi )
 
 # save sobol analysis
@@ -68,6 +68,15 @@ saveRDS(sms, paste(runid_out,delta_var,'salt_list.RDS',sep='_') )
 # remove large data structures
 rm(list=ls(pattern='^AB'))
 gc()
+
+# create data frames of Sobol stats
+sms_df <- rbind(
+  convert_to_df(sms$incmodelscenario) ,
+  convert_to_df(sms$incmodel, s=F ) ,
+  convert_to_df(sms$incscenario, m=F ) ,
+  convert_to_df(sms$individual, m=F, s=F )
+)
+write.csv(sms_df, paste(runid_out,delta_var,'salt.csv',sep='_'), quote=F, row.names=F )
 
 
 

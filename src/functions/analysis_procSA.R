@@ -26,7 +26,7 @@ for( p in 1:length(n_procs) ) {
   setwd(wdd)
   
   # load data
-  fname <- paste(runid,'_out_proc_',p,sep='')
+  fname <- paste0('out_',runid,'_proc_',p)
   a1    <- readRDS(paste(fname,'.RDS',sep=''))
   delta <- which(dimnames(a1)[[1]]==delta_var)
   
@@ -56,14 +56,10 @@ for( p in 1:length(n_procs) ) {
 setwd(wdt)
 saveRDS(salist, paste0(paste(runid_out,delta_var,'psa_list',sep='_'),'.RDS'))
 
+# create data frames of Process stats
+salist_df <- convert_to_df_3list_proc(salist)
+write.csv(salist_df, paste(runid_out,delta_var,'psa.csv',sep='_'), quote=F, row.names=F )
 
 
 
-
-
-
-
-
-
-
-
+### END ###

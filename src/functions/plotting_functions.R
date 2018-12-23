@@ -11,9 +11,9 @@ library(viridis)
 library(lattice)
 library(latticeExtra)
 library(stringr)
-library(hexbin)
+# library(hexbin)
 library(fmsb)
-library(gamlss)
+# library(gamlss)
 
 
 
@@ -35,6 +35,8 @@ ppSA_radar <- function(df1, alphap=100, max_si=0.6,
   
   # convert to data frame
   df1 <- as.data.frame(df1)
+  
+  # print(df1)
   
   # sort colour scheme
   colors_border <- viridis(n[1])
@@ -69,45 +71,65 @@ ppSA_radar <- function(df1, alphap=100, max_si=0.6,
 
 
 # organise radar plots
-radar_plot <- function(df1, var1='type', var2=NULL, lnames=NULL, ... ) {
+radar_plot <- function(df1, var1='type', var2=NULL, lnames=NULL,
+                       index='scenario', values='sensitivity1', par='variable', ... ) {
   
-  # determine cols etc for first variable
-  var1_c <- which(names(df1)==var1)
-  var1_l <- unique(df1[,var1_c])
+  # below variables break df1 into subsets to plot on a single radar plots
+  # determine if a first subsetting variable has been given
+  if(!is.null(var1)) {
+    var1_c <- which(names(df1)==var1)
+    var1_l <- unique(df1[,var1_c])
+    print(var1_l)
+  } else {
+    var1_c <- NULL
+    var1_l <- -999
+  }
   
-  # determine if a second variable has been given
+  # determine if a second subsetting variable has been given
   if(!is.null(var2)) {
     var2_c <- which(names(df1)==var2)
-    var2_l <- unique(df1[,var2_c])
   } else {
     var2_c <- NULL
-    var2_l <- 1
+    var2_l <- -999
   }
 
+  # rename variable
+  iss <- which(names(df1)==index)
+  names(df1)[iss] <- 'ind' 
+  vss <- which(names(df1)==values)
+  names(df1)[vss] <- 'values' 
+  pss <- which(names(df1)==par)
+  names(df1)[pss] <- 'par' 
+  
   # labels
   if(is.null(lnames)) lnames <- rownames(df1[-c(1,2),])
 
   # define plot layout
-  lo <- if(var2_l[1]==1) c(length(var2_l),length(var1_l)) else c(length(var1_l),length(var2_l))
+  lo <- if(var2_l[1]==-999) c(ceiling(length(var1_l)/3),3) else c(length(var1_l),length(var2_l))
   # add space for legend
   lo[1] <- lo[1] + 1
   # define plot layouts, plot in columns first, then rows
   print(lo)
-  layout(t(matrix(1:prod(lo),ncol=lo[1])), widths=rep(2,prod(lo)), heights=c(rep(2,prod(lo)-lo[2]),rep(1,lo[2])), TRUE)
+  layout(t(matrix(1:prod(lo),ncol=lo[1])), widths=rep(2,prod(lo)), heights=c(rep(2,prod(lo)-lo[2]),rep(1,lo[2])), TRUE )
   par(mar=c(0,1,0,1), oma=c(0,0,0,0) )  
   
   # subsetting loops
   for(v1 in var1_l) {
-    df1_sub <- subset(df1,df1[,var1_c]==v1) 
+  # for(v1 in 1) {
+    if(v1!=-999) df1_sub <- subset(df1,df1[,var1_c]==v1) 
+    else      df1_sub <- df1
     
     # reget var2 labels in case there are different numbers of uniques values of var2 within each value of var1
     if(!is.null(var2)) var2_l <- unique(df1_sub[,var2_c])
     for(v2 in var2_l) {
-      
-      if(v2!=1) df1_sub2 <- subset(df1_sub,df1_sub[,var2_c]==v2) 
+
+      if(v2!=-999) df1_sub2 <- subset(df1_sub,df1_sub[,var2_c]==v2) 
       else      df1_sub2 <- df1_sub
-      df1_sub2$ind <- as.character(df1_sub2$ind)
-      df1_sub_tab  <- xtabs(values~ind+par,df1_sub2)
+      
+      print(df1_sub2)
+      # df1_sub2$ind <- as.character(df1_sub2$ind)
+      df1_sub_tab  <- xtabs(values~ind+par, df1_sub2 )
+      print(df1_sub_tab)
       
       # radar plot
       title <- if(lo[2] == 1) NULL else if(is.null(var2)) v1 else paste(v1,v2) 
