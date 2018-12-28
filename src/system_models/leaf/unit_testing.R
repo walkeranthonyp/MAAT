@@ -14,14 +14,14 @@ rm(list=ls())
 library(lattice)
 
 source('leaf_object.R')
-leaf_object$.test_leaf(verbose=F, verbose_loop=F )
+leaf_object$.test(verbose=F, verbose_loop=F )
 leaf_object$fnames
 leaf_object$state
 leaf_object$state_pars
 leaf_object$pars
 leaf_object$env
-leaf_object$.test_leaf(verbose=F, leaf.par=1000, leaf.ca_conc=1100 )
-leaf_object$.test_leaf(verbose=F, leaf.par=1000, leaf.ca_conc=1 )
+leaf_object$.test(verbose=F, leaf.par=1000, leaf.ca_conc=1100 )
+leaf_object$.test(verbose=F, leaf.par=1000, leaf.ca_conc=1 )
 
 source('leaf_object.R')
 leaf_object$.test_aci(leaf.ca_conc=seq(0.1,2000,50), verbose=F )

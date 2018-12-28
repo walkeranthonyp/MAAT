@@ -38,8 +38,8 @@ out <- wrapper_object$.test_con(mc=F, metd=F, oconf=F )
 out <- wrapper_object$.test_con(mc=T, oconf=F )
 out <- wrapper_object$.test_con(mc=F, oconf=F )
 out <- wrapper_object$.test_con(mc=F, oconf=F,
-                                  sfnames=list(leaf.vcmax_tcor_asc      = 'f_temp_scalar_Arrhenius',
-                                               leaf.jmax_tcor_asc       = 'f_temp_scalar_Arrhenius'
+                                  sfnames=list(leaf.tcor_asc.vcmax = 'f_temp_scalar_Arrhenius',
+                                               leaf.tcor_asc.jmax  = 'f_temp_scalar_Arrhenius'
                                   ),
                                   dpars=list(leaf.Ha.vcmax=c(4e4,7e4),leaf.Ha.jmax=c(1e4,7e4))
                                 )

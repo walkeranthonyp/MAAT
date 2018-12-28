@@ -947,10 +947,17 @@ wrapper_object <-
       library(lattice)
       
       # clone the model object
-      .$model <- as.proto(leaf_object$as.list(),parent=.)
-      .$model$cpars$verbose  <- F      
-      .$model$cpars$cverbose <- oconf      
-      print(.$model$output())
+      #.$model <- as.proto(leaf_object$as.list(),parent=.)
+      #.$model$cpars$verbose  <- F      
+      #.$model$cpars$cverbose <- oconf      
+      #print(.$model$output())
+      # load MAAT object(s) from source
+      mod_obj <- 'leaf' 
+      setwd(paste('system_models',mod_obj,sep='/'))
+      source(paste(mod_obj,'object.R',sep='_'))
+      # clone & build the model object
+      .$build(model=paste(mod_obj,'object',sep='_'))
+      setwd('../..')      
       
       
       # define parameters for the wrapper
@@ -964,7 +971,7 @@ wrapper_object <-
       # can load a met dataset here
       # below a trivial met dataset is created to be used as an example
       metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))      
-      metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))      
+      #metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))      
       if(metd) .$dataf$met <- metdata
       else     { .$model$env$par <- 1000; .$model$env$ca_conc <- 400 } 
 
@@ -1116,25 +1123,12 @@ wrapper_object <-
       mod_obj <- 'canopy'
        
       # source directory
-      #setwd('system_models/canopy')
-      #source('canopy_object.R')
       setwd(paste('system_models',mod_obj,sep='/'))
       source(paste(mod_obj,'object.R',sep='_'))
       # clone & build the model object
-      init_default <- .$build(model=paste(mod_obj,'object',sep='_') )
+      .$build(model=paste(mod_obj,'object',sep='_') )
       setwd('../..') 
   
-      # load MAAT object(s) from source
-      #setwd(paste('system_models',mod_obj,sep='/'))
-      #source(paste(mod_obj,'object.R',sep='_'))
-      # clone & build the model object
-      #init_default <- .$build(model=paste(mod_obj,'object',sep='_'), mod_mimic=mod_mimic )
-      #setwd('../..')      
-  
-      # clone the model object
-      #.$model      <- as.proto(canopy_object$as.list(),parent=.)
-      #.$model$leaf <- as.proto(leaf_object$as.list(),parent=.$model)      
-
       # define parameters for the model
       .$model$pars$verbose       <- verbose      
       .$model$leaf$pars$cverbose <- verbose      
@@ -1192,7 +1186,7 @@ wrapper_object <-
       setwd(paste('system_models',mod_obj,sep='/'))
       source(paste(mod_obj,'object.R',sep='_'))
       # clone & build the model object
-      init_default <- .$build(model=paste(mod_obj,'object',sep='_'), mod_mimic=mod_mimic )
+      .$build(model=paste(mod_obj,'object',sep='_'), mod_mimic=mod_mimic )
       setwd('../..')      
       
       # define control parameters 
@@ -1205,11 +1199,12 @@ wrapper_object <-
       
       ### Define the static parameters and model functions  
       ###############################
-      init_default$leaf$env$ca_conc <- 400
-      init_default$leaf$env$par     <- 2000
-      init_default$leaf$env$vpd     <- 50 
-      init_default$leaf$env$temp    <- 25
-      .$init_static <- init_default
+      init_static = list( leaf = list( env = list()))
+      init_static$leaf$env$ca_conc <- 400
+      init_static$leaf$env$par     <- 2000
+      init_static$leaf$env$vpd     <- 50 
+      init_static$leaf$env$temp    <- 25
+      .$init_static <- init_static 
       
       ### Define the parameters and model functions that are to be varied 
       ###############################
@@ -1252,7 +1247,7 @@ wrapper_object <-
       setwd('system_models/leaf')
       source('leaf_object.R')
       # clone & build the model object
-      init_default <- .$build(model='leaf_object')
+      .$build(model='leaf_object')
       setwd('../..')
       
       library(lattice)
@@ -1329,7 +1324,7 @@ wrapper_object <-
       setwd('system_models/leaf')
       source('leaf_object.R')
       # clone & build the model object
-      init_default <- .$build(model='leaf_object')
+      .$build(model='leaf_object')
       setwd('../..')
       library(lattice)
       
