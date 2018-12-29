@@ -54,19 +54,25 @@ system_model_object <-
     # Variables etc
     
     # function names
-    fnames <- list()
+    fnames     <- list()
     
-    # leaf environment
-    env <- list()
+    # functions
+    #fns        <- proto(.=system_model_object)
+    
+    # environment
+    env        <- list()
 
-    # leaf state
-    state <- list()
+    # state
+    state      <- list()
     
-    #leaf parameters
-    pars   <- list()
+    # state parameters
+    state_pars <- list()
+    
+    # parameters
+    pars       <- list()
     
     # run control parameters
-    cpars <- list()
+    cpars      <- list()
     
     
     

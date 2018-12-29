@@ -33,6 +33,15 @@ build_no_child <- function(., mod_mimic=NULL, ... ) {
   .$configure(vlist='fnames', df=unlist(init_default$fnames)) 
   .$configure(vlist='pars',   df=unlist(init_default$pars)) 
   .$configure(vlist='env',    df=unlist(init_default$env)) 
+
+  # generate methods list within object
+  .$fns <- proto(envir=., expr = {
+      fns = list()
+  })
+
+  # assign methods to methods list
+  .$fns$test <- function(.) print(.$fnames$sys)
+  .$fns$sys  <- get(.$fnames$sys)
 }
 
 
@@ -43,7 +52,8 @@ build_no_child <- function(., mod_mimic=NULL, ... ) {
 run <- function(.) {
  
   # call system model 
-  get(.$fnames$sys)(.)
+  .$fns$test()
+  .$fns$sys()
 
   # print to screen
   if(.$cpars$verbose) print(.$state)
