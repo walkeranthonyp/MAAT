@@ -24,7 +24,7 @@ out <- wrapper_object$.test_simple(metd=T)
 
 source('wrapper_object.R')
 out <- wrapper_object$.test(mc=F, metd=F, oconf=F )
-out <- wrapper_object$.test(mc=T, oconf=F )
+wrout <- wrapper_object$.test(mc=T, oconf=F )
 out <- wrapper_object$.test(mc=F, oconf=F )
 
 library(lattice)

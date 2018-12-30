@@ -16,7 +16,7 @@
 
 build_no_child <- function(., mod_mimic=NULL, ... ) {
 
-  # read default model setup for highest level model
+  # read default model setup 
   source('../../functions/general_functions.R')
   init_default <- readXML(paste(.$name,'default.xml',sep='_'))
  
@@ -35,13 +35,25 @@ build_no_child <- function(., mod_mimic=NULL, ... ) {
   .$configure(vlist='env',    df=unlist(init_default$env)) 
 
   # generate methods list within object
-  .$fns <- proto(envir=., expr = {
-      fns = list()
-  })
+  #.$fns <- proto(envir=., expr = {
+  #   fns = list()
+  #})
 
   # assign methods to methods list
-  .$fns$test <- function(.) print(.$fnames$sys)
-  .$fns$sys  <- get(.$fnames$sys)
+  #.$fns$test <- function(.) print(.$fnames$sys)
+  #.$fns$sys  <- get(.$fnames$sys)
+  flist <- rapply(.$fnames, function(c) get(c), how='replace' )
+  .$fns <- as.proto(flist, parent=. )
+  vapply(names(.$fns), function(n) {
+    if(is.list(.$fns[[n]])) .$fns[[n]] <- as.proto(.$fns[[n]], parent=. );
+    numeric(0)  
+  }, FUN.VALUE=numeric(0) )
+
+  # leaf specific fns assignment
+  .$fns$assimilation <- f_assimilation
+  .$fns$rs_fe        <- get(paste0(.$fnames$rs,'_fe'))
+  .$fns$rs_r0        <- get(paste0(.$fnames$rs,'_r0'))
+  .$fns$puniroot     <- puniroot
 }
 
 
@@ -52,7 +64,7 @@ build_no_child <- function(., mod_mimic=NULL, ... ) {
 run <- function(.) {
  
   # call system model 
-  .$fns$test()
+  #.$fns$test()
   .$fns$sys()
 
   # print to screen
