@@ -21,7 +21,7 @@ f_none <- function(.) {
 f_R_Brent_solver <- function(.) {
   if(.super$cpars$verbose_loop) print(.super$env) 
 
-  .super$solver_out <- .$fns$puniroot(.$solver_func, interval=c(-0.002765326,50.1234), extendInt='downX' )
+  .super$solver_out <- .$puniroot(.$solver_func, interval=c(-0.002765326,50.1234), extendInt='downX' )
   .super$solver_out$root
 }
 
@@ -32,12 +32,12 @@ f_R_Brent_solver <- function(.) {
 f_assimilation <- function(.) {
  
   # calculate Ag / cc for each limiting process
-  .super$state$Acg     <- .$fns$Acg()
-  .super$state$Ajg     <- .$fns$Ajg()
-  .super$state$Apg     <- .$fns$Apg()
+  .super$state$Acg     <- .$Acg()
+  .super$state$Ajg     <- .$Ajg()
+  .super$state$Apg     <- .$Apg()
   
   # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin <- .$fns$Alim() 
+  Amin <- .$Alim() 
   
   # calculate & return net A
   Amin*.super$state$cc - Amin*.super$state_pars$gstar - .super$state$rd
@@ -55,12 +55,12 @@ f_A_r_leaf <- function(., A, ... ) {
   # total resistance of a set of resistors in series is simply their sum 
   # assumes boundary layer and stomatal resistance terms are in h2o units
   # assumes mesophyll resistance is in co2 units
-  .super$state$cc <- .super$fns$gas_diff(A, r=( 1.4*.super$state_pars$rb + 1.6*.super$fns$rs(A=A,c=.super$fns$gas_diff(A)) + .super$state_pars$ri ) )
+  .super$state$cc <- .$gas_diff(A, r=( 1.4*.super$state_pars$rb + 1.6*.$rs(A=A,c=.$gas_diff(A)) + .super$state_pars$ri ) )
   
   #print(c(A,f_assimilation(.)))
   
   # calculate residual of net A
-  .$fns$assimilation() - A
+  .$assimilation() - A
 } 
 
 
@@ -70,10 +70,10 @@ f_A_r_leaf_noRs <- function(.,A) {
   # calculate cc from ca, rb, and ri
   # assumes boundary layer resistance is in h2o units
   # assumes mesophyll resistance is in co2 units
-  .super$state$cc <- .super$fns$gas_diff(A, r=( 1.4*.super$state_pars$rb + .super$state_pars$ri ) )
+  .super$state$cc <- .$gas_diff(A, r=( 1.4*.super$state_pars$rb + .super$state_pars$ri ) )
   
   # calculate residual of net A
-  .$fns$assimilation() - A
+  .$assimilation() - A
 }
 
 
@@ -91,12 +91,12 @@ f_A_r_leaf_analytical <- function(.) {
   
   # calculate cb, ci & cc
   .super$state$cb      <- .super$state$ca
-  fe                   <- .$fns$rs_fe() 
+  fe                   <- .$rs_fe() 
   .super$state$ci      <- .super$state$ca * (1 - (1.6 / fe) )
   .super$state$cc      <- .super$state$ci 
  
   # calculate net A
-  Anet <- .$fns$assimilation()
+  Anet <- .$assimilation()
   
   # calculate rs
   .super$state_pars$rs <- .super$state$ca / (fe * Anet * .super$env$atm_press*1e-6) 
@@ -121,8 +121,8 @@ f_A_r_leaf_analytical_quad <- function(.) {
   if(.super$fnames$rs=='f_rs_cox1998'|.super$fnames$rs=='f_rs_constantCiCa') .super$pars$g0[] <- 0 
 
   # calculate coefficients of quadratic to solve A
-  assim_quad_soln <- function(., V, K ) {
-    gsd <- .$fns$rs_fe() / .super$state$ca 
+  .$assim_quad_soln <- function(., V, K ) {
+    gsd <- .$rs_fe() / .super$state$ca 
     #gsd <- get(paste0(.super$fnames$rs,'_fe'))(.) / .super$state$ca
     p   <- .super$env$atm_press*1e-6
     a   <- p*( 1.6 - gsd*(.super$state$ca + K) )
@@ -133,24 +133,24 @@ f_A_r_leaf_analytical_quad <- function(.) {
     quad_sol(a,b,c,'upper') + 1e-6
   }
 
-  .super$state$Acg <- assim_quad_soln(., V=.super$state_pars$vcmaxlt, K=.super$state_pars$Km )
-  .super$state$Ajg <- assim_quad_soln(., V=(.super$state$J/4),        K=(2*.super$state_pars$gstar) )
-  .super$state$Apg <- assim_quad_soln(., V=(3*.super$state_pars$tpu), K=(-(1+3*.super$pars$Apg_alpha)*.super$state_pars$gstar) )
+  .super$state$Acg <- .$assim_quad_soln(V=.super$state_pars$vcmaxlt, K=.super$state_pars$Km )
+  .super$state$Ajg <- .$assim_quad_soln(V=(.super$state$J/4),        K=(2*.super$state_pars$gstar) )
+  .super$state$Apg <- .$assim_quad_soln(V=(3*.super$state_pars$tpu), K=(-(1+3*.super$pars$Apg_alpha)*.super$state_pars$gstar) )
 
   # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin        <- .super$fns$Alim() 
+  Amin        <- .$Alim() 
   
   # determine cc/ci based on Amin
   # calculate rs
   .super$pars$g0[]     <- g0_hold 
-  .super$state_pars$rs <- .super$fns$rs(A=Amin)
-  .super$state$cc <-.super$state$ci <- .$fns$gas_diff(A=Amin, r=1.6*.super$state_pars$rs )
+  .super$state_pars$rs <- .$rs(A=Amin)
+  .super$state$cc <-.super$state$ci <- .$gas_diff(A=Amin, r=1.6*.super$state_pars$rs )
     
   # recalculate Ag for each limiting process
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
-  .super$state$Acg <- .super$fns$Acg() * .super$state$cc
-  .super$state$Ajg <- .super$fns$Ajg() * .super$state$cc
-  .super$state$Apg <- .super$fns$Apg() * .super$state$cc
+  .super$state$Acg <- .$Acg() * .super$state$cc
+  .super$state$Ajg <- .$Ajg() * .super$state$cc
+  .super$state$Apg <- .$Apg() * .super$state$cc
 
   # return net A
   Amin
@@ -163,10 +163,10 @@ f_A_r0_leaf_analytical_quad <- function(.) {
   # combines all rate limiting processes
 
   #r0 <- get(paste0(.$fnames$rs,'_r0'))(.) 
-  r0 <- .$fns$rs_r0() 
+  r0 <- .$rs_r0() 
 
   # calculate coefficients of quadratic to solve A
-  assim_quad_soln <- function(.,V,K) {
+  .$assim_quad_soln <- function(.,V,K) {
     r   <- 1.4*.super$state_pars$rb + 1.6*r0 + .super$state_pars$ri
     p   <- .super$env$atm_press*1e-6
     a   <- -p*r
@@ -177,12 +177,12 @@ f_A_r0_leaf_analytical_quad <- function(.) {
     quad_sol(a,b,c,'lower')
   }
 
-  .super$state$Acg <- assim_quad_soln(., V=.super$state_pars$vcmaxlt, K=.super$state_pars$Km )
-  .super$state$Ajg <- assim_quad_soln(., V=(.super$state$J/4),        K=(2*.super$state_pars$gstar) )
-  .super$state$Apg <- assim_quad_soln(., V=(3*.super$state_pars$tpu), K=(-(1+3*.super$pars$Apg_alpha)*.super$state_pars$gstar) )
+  .super$state$Acg <- .$assim_quad_soln(V=.super$state_pars$vcmaxlt, K=.super$state_pars$Km )
+  .super$state$Ajg <- .$assim_quad_soln(V=(.super$state$J/4),        K=(2*.super$state_pars$gstar) )
+  .super$state$Apg <- .$assim_quad_soln(V=(3*.super$state_pars$tpu), K=(-(1+3*.super$pars$Apg_alpha)*.super$state_pars$gstar) )
 
   # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin        <- .super$fns$Alim() 
+  Amin        <- .$Alim() 
   
   # determine cc/ci based on Amin
   .super$state_pars$rs <- r0 
@@ -191,9 +191,9 @@ f_A_r0_leaf_analytical_quad <- function(.) {
     
   # recalculate Ag for each limiting process
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
-  .super$state$Acg <- .super$fns$Acg() * .super$state$cc
-  .super$state$Ajg <- .super$fns$Ajg() * .super$state$cc
-  .super$state$Apg <- .super$fns$Apg() * .super$state$cc
+  .super$state$Acg <- .$Acg() * .super$state$cc
+  .super$state$Ajg <- .$Ajg() * .super$state$cc
+  .super$state$Apg <- .$Apg() * .super$state$cc
 
   # return net A
   Amin
@@ -211,7 +211,7 @@ f_A_r_leaf_noR <- function(.,...) {
   .super$state$cc <- .super$state$ca
   
   # calculate net A
-  .$fns$assimilation()
+  .$assimilation()
 }
 
 
@@ -326,7 +326,7 @@ f_Apg_foley1996 <- function(., cc=.super$state$cc ) {
   else {
     # calculate limiting cycle of Acg and Ajg
     .super$state$Apg <- NA
-    amin <- .super$fns$Alim(.) 
+    amin <- .$Alim(.) 
 
     (3*.super$state_pars$tpult + amin) / cc
   }
@@ -440,7 +440,7 @@ f_jmax_power <- function(.) {
 #}
 
 f_jmax_lin <- function(.) {
-  .super$pars$ajv_25 + .super$state_pars$vcmax * .super$pars$bjv_25 * .super$fns$tcor_jmax(.)    
+  .super$pars$ajv_25 + .super$state_pars$vcmax * .super$pars$bjv_25 * .$tcor_jmax(.)    
 }
 
 f_tcor_jmax_lin <- function(.) {
@@ -524,7 +524,7 @@ f_rs_medlyn2011 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / (.super$pars$g0 + .$fns$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
+  1 / (.super$pars$g0 + .$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
 }
 
 f_rs_medlyn2011_fe <- function(.) {
@@ -543,7 +543,7 @@ f_rs_leuning1995 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1  h2o
 
-  1 / (.super$pars$g0 + .$fns$rs_fe(c=c) * A * .super$env$atm_press*1e-6 / c)  
+  1 / (.super$pars$g0 + .$rs_fe(c=c) * A * .super$env$atm_press*1e-6 / c)  
 }
 
 f_rs_leuning1995_fe <- function(., c=.super$state$cb ) {
@@ -563,7 +563,7 @@ f_rs_ball1987 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / (.super$pars$g0 + .$fns$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
+  1 / (.super$pars$g0 + .$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
 }
 
 f_rs_ball1987_fe <- function(.) {
@@ -583,14 +583,14 @@ f_rs_constantCiCa <- function(., A=.super$state$A, c=.super$state$cb ) {
   # output in m2s mol-1 h2o
 
   # set Ci:Ca ratio
-  .super$state_pars$cica_chi <- .super$fns$cica_ratio()
+  .super$state_pars$cica_chi <- .$cica_ratio()
   
-  1 / (.$fns$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
+  1 / (.$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
 }
 
 f_rs_constantCiCa_fe <- function(.) {
   # f(e) component of rs for constant Ci:Ca   
-  .super$state_pars$cica_chi <- .super$fns$cica_ratio(.)
+  .super$state_pars$cica_chi <- .$cica_ratio(.)
   1.6 / (1 - .super$state_pars$cica_chi)
 }
 
@@ -610,7 +610,7 @@ f_rs_cox1998 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / (.$fns$rs_fe(c=c) * A * .super$env$atm_press*1e-6 / c)
+  1 / (.$rs_fe(c=c) * A * .super$env$atm_press*1e-6 / c)
 }
 
 f_rs_cox1998_fe <- function(., c=.super$state$cb ) {
@@ -719,7 +719,7 @@ f_scalar_none <- function(...) {
 # temperature scaling is independent of vcmax
 f_tcor_dep_independent <- function(., var ) {
 
-  .super$fns$tcor_asc[[var]](., var=var ) * .super$fns$tcor_des[[var]](., var=var )
+  .[[paste('tcor_asc',var,sep='.')]](., var=var ) * .[[paste('tcor_des',var,sep='.')]](., var=var )
 }
 
 # temperature dependence functions that cannot be separated into ascending and decending components
@@ -770,7 +770,7 @@ f_tcor_asc_Q10 <- function(., var, ... ) {
   # Q10    -- factor by which rate increases for every 10 oC of temp increase  
   # Tr     -- reference temperature (oC) 
  
-  q10 <- .super$fns$q10_func[[var]](., var=var )
+  q10 <- .[[paste('q10_func',var,sep='.')]](., var=var )
  
   q10 ^ ((.super$state$leaf_temp - .super$pars$reftemp[[var]])/10)
   
@@ -800,7 +800,7 @@ f_tcor_des_modArrhenius <- function(., var, ... ) {
   Trk <- .super$pars$reftemp[[var]] + 273.15
   Tsk <- .super$state$leaf_temp + 273.15
   
-  deltaS <- .super$fns$deltaS[[var]](., var=var )
+  deltaS <- .[[paste('deltaS',var,sep='.')]](., var=var )
   
   (1 + exp((Trk*deltaS-.super$pars$Hd[[var]]) / (Trk*.super$pars$R)) ) / 
     (1 + exp((Tsk*deltaS-.super$pars$Hd[[var]]) / (Tsk*.super$pars$R)) )  
@@ -819,7 +819,7 @@ f_tcor_des_collatz1991 <- function(., var, ... ) {
   Tsk <- .super$state$leaf_temp + 273.15
   
   # get deltaS
-  deltaS <- .super$fns$deltaS[[var]](var=var)
+  deltaS <- .$deltaS[[var]](var=var)
   
   1 / ( 1 + exp((Tsk*deltaS-.super$pars$Hd[[var]]) / (Tsk*.super$pars$R)) )
 }
@@ -892,14 +892,14 @@ f_gstar_f1980 <- function(., ... ) {
 f_gstar_constref <- function(.) {
   # this will probably not give the correct response to a change in atmospheric pressure
   
-  .super$pars$atref$gstar * .super$fns$tcor_asc$gstar('gstar') 
+  .super$pars$atref$gstar * .[['tcor_asc.gstar']]('gstar') 
 }
 
 # calcualtes gstar at leaftemp from tau
 f_gstar_c1991 <- function(.) {
   # takes a defined ref temperature value of tau and scales to leaf temp
   
-  .super$state_pars$tau <- .super$pars$atref$tau * .super$fns$tcor_asc$tau(var='tau', q10_func='f_q10_constant' )
+  .super$state_pars$tau <- .super$pars$atref$tau * .[['tcor_asc.tau']](., var='tau', q10_func='f_q10_constant' )
   .super$state$oi/(2*.super$state_pars$tau)   
 }
 

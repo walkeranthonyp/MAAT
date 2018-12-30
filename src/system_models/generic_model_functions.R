@@ -42,12 +42,14 @@ build_no_child <- function(., mod_mimic=NULL, ... ) {
   # assign methods to methods list
   #.$fns$test <- function(.) print(.$fnames$sys)
   #.$fns$sys  <- get(.$fnames$sys)
-  flist <- rapply(.$fnames, function(c) get(c), how='replace' )
+  #flist <- rapply(.$fnames, function(c) get(c), how='replace' )
+  #.$fns <- as.proto(flist, parent=. )
+  #vapply(names(.$fns), function(n) {
+  #  if(is.list(.$fns[[n]])) .$fns[[n]] <- as.proto(.$fns[[n]], parent=. );
+  #  numeric(0)  
+  #}, FUN.VALUE=numeric(0) )
+  flist <- as.list(rapply(.$fnames, function(c) get(c) ))
   .$fns <- as.proto(flist, parent=. )
-  vapply(names(.$fns), function(n) {
-    if(is.list(.$fns[[n]])) .$fns[[n]] <- as.proto(.$fns[[n]], parent=. );
-    numeric(0)  
-  }, FUN.VALUE=numeric(0) )
 
   # leaf specific fns assignment
   .$fns$assimilation <- f_assimilation
