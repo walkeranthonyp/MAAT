@@ -30,32 +30,9 @@ build_no_child <- function(., mod_mimic=NULL, ... ) {
   }
 
   # assign default and mod mimic values to data structure
-  .$configure(vlist='fnames', df=unlist(init_default$fnames)) 
+  .$configure(vlist='fnames', df=unlist(init_default$fnames), init=T ) 
   .$configure(vlist='pars',   df=unlist(init_default$pars)) 
   .$configure(vlist='env',    df=unlist(init_default$env)) 
-
-  # generate methods list within object
-  #.$fns <- proto(envir=., expr = {
-  #   fns = list()
-  #})
-
-  # assign methods to methods list
-  #.$fns$test <- function(.) print(.$fnames$sys)
-  #.$fns$sys  <- get(.$fnames$sys)
-  #flist <- rapply(.$fnames, function(c) get(c), how='replace' )
-  #.$fns <- as.proto(flist, parent=. )
-  #vapply(names(.$fns), function(n) {
-  #  if(is.list(.$fns[[n]])) .$fns[[n]] <- as.proto(.$fns[[n]], parent=. );
-  #  numeric(0)  
-  #}, FUN.VALUE=numeric(0) )
-  flist <- as.list(rapply(.$fnames, function(c) get(c) ))
-  .$fns <- as.proto(flist, parent=. )
-
-  # leaf specific fns assignment
-  .$fns$assimilation <- f_assimilation
-  .$fns$rs_fe        <- get(paste0(.$fnames$rs,'_fe'))
-  .$fns$rs_r0        <- get(paste0(.$fnames$rs,'_r0'))
-  .$fns$puniroot     <- puniroot
 }
 
 
@@ -117,7 +94,7 @@ output <- function(.){
 # configure functions
 ###########################################################################
 
-configure_no_child <- function(., vlist, df, o=T ) {
+configure_no_child <- function(., vlist, df, init=F ) {
   # This function is called from any of the run functions, or during model initialisation
   # - sets the values within vlist (i.e. .$fnames / .$pars / .$env / .$state ) to the values passed in df 
 
@@ -139,12 +116,13 @@ configure_no_child <- function(., vlist, df, o=T ) {
   # df subscripts for sublist variables (slmss) and non-sublist variables (nslmss) 
   slss   <- which(listnames[3,mss]!='')
   if(length(slss)>0) {
-    slmss  <- mss[slss] 
-    nslmss <- mss[-slss]
-    vlss   <- vlss[-slss] 
+    slmss   <- mss[slss] 
+    nslmss  <- mss[-slss]
+    nslvlss <- vlss[-slss] 
   } else {
-    slmss  <- NULL 
-    nslmss <- mss 
+    slmss   <- NULL 
+    nslmss  <- mss 
+    nslvlss <- vlss 
   }
 
   # print configure setup if requested
@@ -163,9 +141,35 @@ configure_no_child <- function(., vlist, df, o=T ) {
 
   # assign UQ variables
   #print(paste(.$name,'conf:', vlist, names(df), df ))
+  #print(paste(df[nslmss],.[[vlist]][nslvlss])) 
+  #print(paste(df[slmss], .[[vlist]][slvlss])) 
   if(length(slss)>0)    vapply( slmss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
-  if(length(nslmss)>0) .[[vlist]][vlss] <- df[nslmss]
-  #print(paste(df[vlmoss],.[[vlist]][vlss])) 
+  if(length(nslmss)>0) .[[vlist]][nslvlss] <- df[nslmss]
+  
+  # assign methods to methods list
+  if(vlist=='fnames') {
+    # assign all methods to methods list
+    if(init) {
+      flist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
+      .$fns <- as.proto(flist, parent=. )
+   
+      # leaf specific methods assignment (for methods not included in fnames)
+      if(.$name=='leaf') {
+        .$fns$assimilation <- f_assimilation
+        .$fns$puniroot     <- puniroot
+        .$fns$rs_fe        <- get(paste0(.$fnames$rs,'_fe'), pos=1 )
+        .$fns$rs_r0        <- get(paste0(.$fnames$rs,'_r0'), pos=1 )
+      }        
+    } else {
+      flist <- unlist(.$fnames[vlss])
+      for(n in flist) .$fns[[n]] <- get(n, pos=1 )
+      # leaf specific methods assignment (for methods not included in fnames)
+      if(.$name=='leaf'&any(flist=='rs')) {
+        .$fns$rs_fe        <- get(paste0(.$fnames$rs,'_fe'), pos=1 )
+        .$fns$rs_r0        <- get(paste0(.$fnames$rs,'_r0'), pos=1 )
+      }        
+    }
+  }
 }
  
 
