@@ -164,24 +164,13 @@ sofname     <- if(is.null(runid))     paste(of_main,'salt',sep='_') else paste(r
 ### start program
 
 ##################################
-# load MAAT wrapper from source
+# Clone and build the maat wrapper and model object
+
 setwd(srcdir)
 source('wrapper_object.R')
-# load MAAT object(s) from source
-setwd(paste('system_models',mod_obj,sep='/'))
-mod_object <- paste(mod_obj,'object',sep='_')
-source(paste0(mod_object,'.R'))
-
-
-
-##################################
-# Configure the MAAT wrapper
-
-# clone and build the maat wrapper and model object
 maat         <- as.proto(wrapper_object$as.list()) 
-maat$build(model=mod_object, mod_mimic=mod_mimic )
+maat$build(mod_obj=mod_obj, mod_mimic=mod_mimic )
 rm(wrapper_object)
-rm(mod_object)
 
 # factorial analysis over-rides UQ analysis
 if(!uq) factorial <- T

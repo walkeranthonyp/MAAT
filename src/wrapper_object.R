@@ -29,9 +29,14 @@ wrapper_object <-
     model <- NULL    
     
     # build function
-    build <- function(., model, ... ) {
-      .$model <- as.proto(get(model)$as.list())
+    build <- function(., mod_obj, ... ) {
+      setwd(paste('system_models', mod_obj, sep='/' ))
+      mod_obj <- paste(mod_obj, 'object', sep='_' )
+      source(paste0(mod_obj, '.R' ))
+      .$model <- as.proto(get(mod_obj)$as.list())
       .$model$build(...)
+      rm(mod_obj)
+      setwd('../..')
     }
     
     # clean function to reset object
@@ -884,12 +889,10 @@ wrapper_object <-
     .test_simple <- function(., metd=F, mc=F, pr=4, oconf=F ) {
       
       # source directory
-      setwd('system_models/leaf')
-      source('leaf_object.R')
-      setwd('../..')
+      mod_obj <- 'leaf' 
+      .$build(mod_obj=mod_obj)
       
-      # clone the model object
-      .$model <- as.proto(leaf_object$as.list(),parent=.)
+      # verbose params
       .$model$pars$verbose  <- F      
       .$model$pars$cverbose <- oconf      
       print(.$model$output())
@@ -939,26 +942,11 @@ wrapper_object <-
     # general factorial test, with or without metdata
     .test <- function(.,metd=T,mc=T,pr=4,oconf=F) {
       
-      # source directory
-      setwd('system_models/leaf')
-      source('leaf_object.R')
-      setwd('../..')
-      
       library(lattice)
       
-      # clone the model object
-      #.$model <- as.proto(leaf_object$as.list(),parent=.)
-      #.$model$cpars$verbose  <- F      
-      #.$model$cpars$cverbose <- oconf      
-      #print(.$model$output())
-      # load MAAT object(s) from source
+      # build wrapper and the model object
       mod_obj <- 'leaf' 
-      setwd(paste('system_models',mod_obj,sep='/'))
-      source(paste(mod_obj,'object.R',sep='_'))
-      # clone & build the model object
-      .$build(model=paste(mod_obj,'object',sep='_'))
-      setwd('../..')      
-      
+      .$build(mod_obj=mod_obj)
       
       # define parameters for the wrapper
       .$wpars$multic       <- mc  # multicore the ensemble
@@ -1074,13 +1062,11 @@ wrapper_object <-
                           )
                           ) {
       
-      # source directory
-      setwd('system_models/leaf')
-      source('leaf_object.R')
-      setwd('../..')
-      
-      # clone the model object
-      .$model <- as.proto(leaf_object$as.list(),parent=.)
+      # build wrapper and the model object
+      mod_obj <- 'leaf' 
+      .$build(mod_obj=mod_obj)
+     
+      # verbose parameters 
       .$model$cpars$verbose  <- F      
       .$model$cpars$cverbose <- oconf      
       
@@ -1120,14 +1106,9 @@ wrapper_object <-
     # general factorial test with canopy object, with or without metdata
     .test_can <- function(., metd=T, mc=T, pr=4, verbose=F ) {
      
+      # build wrapper and the model object
       mod_obj <- 'canopy'
-       
-      # source directory
-      setwd(paste('system_models',mod_obj,sep='/'))
-      source(paste(mod_obj,'object.R',sep='_'))
-      # clone & build the model object
-      .$build(model=paste(mod_obj,'object',sep='_') )
-      setwd('../..') 
+      .$build(mod_obj=mod_obj)
   
       # define parameters for the model
       .$model$pars$verbose       <- verbose      
@@ -1182,20 +1163,16 @@ wrapper_object <-
     # simple test of init_function & model mimic set up 
     .test_mimic <- function(., mod_mimic='clm45_non_Tacclimation', mod_obj='leaf', metd=F, mc=F, pr=4, oconf=F ) {
       
-      # load MAAT object(s) from source
-      setwd(paste('system_models',mod_obj,sep='/'))
-      source(paste(mod_obj,'object.R',sep='_'))
-      # clone & build the model object
-      .$build(model=paste(mod_obj,'object',sep='_'), mod_mimic=mod_mimic )
-      setwd('../..')      
+      # build wrapper and the model object
+      .$build(mod_obj=mod_obj)
       
       # define control parameters 
       .$model$cpars$verbose  <- F      
       .$model$cpars$cverbose <- oconf      
-      .$wpars$multic       <- mc  # multicore the ensemble
-      .$wpars$procs        <- pr  # number of cores to use if above is true
-      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
-      .$wpars$unit_testing <- F   # tell the wrapper to run init function 
+      .$wpars$multic         <- mc  # multicore the ensemble
+      .$wpars$procs          <- pr  # number of cores to use if above is true
+      .$wpars$UQ             <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
+      .$wpars$unit_testing   <- F   # tell the wrapper to run init function 
       
       ### Define the static parameters and model functions  
       ###############################
@@ -1243,23 +1220,20 @@ wrapper_object <-
     # test function for Ye method Sobol process sensitivity analysis
     .test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
       
-      # source directory
-      setwd('system_models/leaf')
-      source('leaf_object.R')
-      # clone & build the model object
-      .$build(model='leaf_object')
-      setwd('../..')
-      
       library(lattice)
+      
+      # build wrapper and the model object
+      mod_obj <- 'leaf'
+      .$build(mod_obj=mod_obj)
       
       # define control parameters
       .$model$pars$verbose  <- F      
       .$model$pars$cverbose <- oconf      
-      .$wpars$multic       <- mc   # multicore the ensemble
-      .$wpars$procs        <- pr   # number of cores to use if above is true
-      .$wpars$UQ           <- T    # run a UQ/SA style ensemble 
-      .$wpars$UQtype       <- 'ye' # Ye style SA ensemble 
-      .$wpars$unit_testing <- T    # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
+      .$wpars$multic        <- mc   # multicore the ensemble
+      .$wpars$procs         <- pr   # number of cores to use if above is true
+      .$wpars$UQ            <- T    # run a UQ/SA style ensemble 
+      .$wpars$UQtype        <- 'ye' # Ye style SA ensemble 
+      .$wpars$unit_testing  <- T    # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
       
       ### Define static variables 
       ###############################
@@ -1320,13 +1294,11 @@ wrapper_object <-
     # test function for Saltelli method Sobol parametric sensitivity analysis
     .test_saltelli <- function(., metd=F, mc=T, pr=4, oconf=F, n=3, eval_strings=T ) {
       
-      # source directory
-      setwd('system_models/leaf')
-      source('leaf_object.R')
-      # clone & build the model object
-      .$build(model='leaf_object')
-      setwd('../..')
       library(lattice)
+      
+      # build wrapper and the model object
+      mod_obj <- 'leaf'
+      .$build(mod_obj=mod_obj)
       
       # define control parameters
       .$model$pars$verbose  <- F      
