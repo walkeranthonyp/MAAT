@@ -333,40 +333,6 @@ convert_to_df_3list <- function(list1) {
                       convert_to_df_1list(l,m=j,s=i), j=j ))))
 }
 
-# covert stacked data frame to table for latex table output
-sens_table <- function(df1) {
-  s1    <- unstack(df1, sensitivity1~variable)
-  tm    <- apply(as.matrix(unstack(df1, mean~variable)),1,mean)
-  #tm_sd <- apply(as.matrix(unstack(df1, mean~vriable)),1,function(v) var(v)^0.5)
-  tv    <- apply(as.matrix(unstack(df1, variance~variable)),1,mean)
-  scen  <- unstack(df1, scenario~variable)[,1]
-  df2   <- data.frame(scenario=scen, mean=tm, variance=tv, s1 )
-  if(any(names(df1)=='model')) {
-    mod  <- unstack(df1, model~variable)[,1]
-    df2  <- data.frame(model=mod, df2 )
-  }
-  df2
-} 
-
-# add environmetal variables to sensitivity output matrix
-add_scenario_values <- function(df1) {
-  dfe <- df1['scenario']
-  if(!is.null(evar1)&!is.null(evar2)) {
-    dfe <- cbind(dfe,dfe)
-    names(dfe) <- c(evar1name, evar2name )
-    dfe1 <- dfe
-    for(r in 1:length(dfe[,1])) dfe1[r,] <- if(dfe[r,1]>0) cbind(evar1,evar2)[dfe[r,1],] else rep('int',2)
-  } else if(!is.null(evar1)) {
-    names(dfe) <- evar1name
-    dfe1 <- dfe
-    for(r in 1:length(dfe[,1])) dfe1[r,] <- if(dfe[r,]>0) evar1[dfe[r,]] else 'int'
-  } 
-  df1 <- df1[-which(names(df1)=='scenario')]
-  df1 <- data.frame(dfe1, round(df1,2) )
-  if(any(names(df1)=='model')) df1$model[df1$model<0] <- 'int'
-  df1
-}
-
 
 
 ### END ###
