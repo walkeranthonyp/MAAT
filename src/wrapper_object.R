@@ -380,7 +380,7 @@ wrapper_object <-
       .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)  
 
       # if doing DREAM MCMC, run static part of algorithm
-      # NOT SURE THAT THIS GOES HERE? OR EVEN IF AN INIT FXN IS NECESSARY??????
+# is this the best place for this to go???
       .$static_dream()
 
       # run MCMC 
@@ -396,10 +396,12 @@ wrapper_object <-
     run_mcmc <- function(.,j) {
       # runs in serial as each step depends on the previous step
       # call runp_mcmc
-    
+ 
+# need a switch or something for running DE-MC versus DREAM???
+   
       # generate proposal matrix
       # .$gen_proposal_demc(j=j)   
-      .$gen_proposal_dream(j=j, R, CR, p_CR, n_CR)    
+      .$gen_proposal_dream(j=j)    
 
       # evaluate model for proposal on each chain
       .$dataf$out[]  <- 
@@ -412,14 +414,14 @@ wrapper_object <-
       lklihood <- get(.$fnames$proposal_lklihood)(.)   
       
       # accept / reject proposals on each chain 
-      # .$proposal_accept(j=j, lklihood)
-      .$proposal_accept_dream(j=j,lklihood,J,jump,std_state,n_id)
+      # .$proposal_accept(j=j,lklihood)
+      .$proposal_accept_dream(j=j,lklihood)
 
-      # INSERT function call to handle outlier chains here (???)
+      # INSERT function call to handle outlier chains here
 
-      # INSERT function call to test for convergence here (???) 
+      # INSERT function call to test for convergence here
 
-      # INSERT other code here for subprograms called during burn-in (???)
+      # INSERT other code here for subprograms called during burn-in
 
       # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function   
       numeric(0) 
@@ -505,19 +507,17 @@ wrapper_object <-
       # preallocate memory space for algorithmic variables
     
       .$mcmc$J             <- numeric(.$mcmc$n_CR)
-# .$mcmc$id            <-
       .$mcmc$n_id          <- numeric(.$mcmc$n_CR)
       .$mcmc$CR            <- numeric(.$mcmc$n_CR)
       .$mcmc$p_CR          <- numeric(.$mcmc$n_CR)
       .$mcmc$R             <- matrix(data=0,nrow=.$dataf$lp,ncol=.$dataf$lp-1)
       .$mcmc$current_state <- matrix(data=0,nrow=.$dataf$lp,ncol=.$mcmc$d)
       .$mcmc$p_state       <- numeric(.$dataf$lp)
-# i think this is the correct vector length
-      .$mcmc$std_state     <- numeric(.$dataf$lp)
+      .$mcmc$std_state     <- numeric(.$mcmc$d)
       .$mcmc$jump          <- matrix(data=0,nrow=.$dataf$lp,ncol=.$mcmc$d)
       
       # index of chains for Differential Evolution
-      for (kk in 1:.$dataf$lp) R[kk, ] <- setdiff(1:.$dataf$lp,kk)
+      for (kk in 1:.$dataf$lp) .$mcmc$R[kk, ] <- setdiff(1:.$dataf$lp,kk)
 
       # crossover values
       .$mcmc$CR[] <- 1:.$mcmc$n_CR / .$mcmc$n_CR
@@ -530,17 +530,17 @@ wrapper_object <-
     # generate proposal using DREAM algorithm
     gen_proposal_dream <- function(.,j) {
       
-# do [ ] go here or not????
-# do i need to preallocate jump in static_dream fxn???? 
+# do [ ] go here or not?
+# do I need to preallocate jump in static_dream fxn since it is reset to zero every iteration? 
 # is there a more efficient way to reset jump components to zero?
 
       # reset matrix of jump vectors to zero
       .$mcmc$jump[] <- matrix(data=0,nrow=.$dataf$lp,ncol=.$mcmc$d)
       
-# do [ ] go here or not????
+# do [ ] go here or not?
 # do i need to prallocate current_state in static_dream fxn???
 
-      # current state (mcmc_chains number of samples of a d-variate distribution)
+      # current state ('mcmc_chains' number of samples of a d-variate distribution)
       .$mcmc$ current_state[] <- matrix(.$dataf$pars_array[,,j],nrow=.$dataf$lp,ncol=.$mcmc$d)
 
       # boundary handling
@@ -552,7 +552,7 @@ wrapper_object <-
 
       # dynamic part of DREAM algorithm
 
-# do i need to preallocate space for draw variable????
+# do i need to preallocate space for draw variable?
 
       # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
       draw <- apply(matrix(runif((.$dataf$lp-1)*.$dataf$lp),.$dataf$lp-1,.$dataf$lp), 2, function(v) sort(v,index.return=T)$ix)
@@ -562,29 +562,30 @@ wrapper_object <-
       # create a .$dataf$lp x 1 matrix of continuous uniform random values between -c_rand and c_rand
       lambda <- matrix(runif(.$dataf$lp*1,-.$mcmc$c_rand,.$mcmc$c_rand),.$dataf$lp)
     
-# do square brackets go here????
+# do square brackets go here?
 
       # compute standard deviation of each dimension (ie,compute standard deviation of each column of current_state matrix)
       # normalized by mcmc_chains-1
       .$mcmc$std_state[] <- apply(.$mcmc$current_state,2,sd)
     
-      # NOTE can vectorize this inner for-loop to improve computational efficiency!!!!!!!
+# can vectorize this inner for-loop to improve computational efficiency, but i am not really sure how to do that?
      
       # create proposals
 
       for (ii in 1:.$dataf$lp) {
         
          # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
-         D <- sample(1:delta,1,replace=T)
+         D <- sample(1:.$mcmc$delta,1,replace=T)
       
          # extract vectors a and b not equal to ii
-         a <- R[ii,draw[1:D,ii]]
-         b <- R[ii,draw[(D+1):(2*D),ii]]
+         a <- .$mcmc$R[ii,draw[1:D,ii]]
+         b <- .$mcmc$R[ii,draw[(D+1):(2*D),ii]]
       
 # do [ ] go here????
 
          # select index of crossover value (weighted sample with replacement)
-         .$mcmc$id[] <- sample(1:.$mcmc$n_CR,1,replace=T,prob=.$mcmc$p_CR)
+#         .$mcmc$id[] <- sample(1:.$mcmc$n_CR,1,replace=T,prob=.$mcmc$p_CR)
+          .$mcmc$id <- sample(1:.$mcmc$n_CR,1,replace=T,prob=.$mcmc$p_CR)
       
          # draw d values from uniform distribution between 0 and 1
          zz <- runif(.$mcmc$d)
@@ -612,10 +613,10 @@ wrapper_object <-
          .$mcmc$jump[ii,A] <- .$mcmc$c_ergod*rnorm(d_star)+(1+lambda[ii])*gamma*sum((.$mcmc$current_state[a,A]-.$mcmc$current_state[b,A]),dim=1)
       
          # compute proposal of ii-th chain
-         .$dataf$pars[ii,1:d] <- .$mcmc$current_state[ii,1:d] + .$mcmc$jump[ii,1:d]
+         .$dataf$pars[ii,1:.$mcmc$d] <- .$mcmc$current_state[ii,1:.$mcmc$d] + .$mcmc$jump[ii,1:.$mcmc$d]
          
          # more boundardy handling
-         for (jj in 1:d) {
+         for (jj in 1:.$mcmc$d) {
            # boundary handling for minumum
            if (.$dataf$pars[ii,jj] < minn[jj]) {
              .$dataf$pars[ii,jj] <- minn[jj]
@@ -641,6 +642,8 @@ wrapper_object <-
 
         # compute Metropolis acceptance probability
         alpha <- min(1,exp(lklihood[qq]-.$mcmc$p_state[qq]))
+
+# I feel like this block of code is clunky; is there a way to make it better?
       
         # determine if p_acc is larger than random number drawn from uniform distribution on interval [0,1]
         if (alpha > runif(1,min=0,max=1)) {
@@ -648,7 +651,7 @@ wrapper_object <-
           .$mcmc$current_state[qq,1:.$mcmc$d] <- .$dataf$pars[qq,1:.$mcmc$d]
           .$mcmc$p_state[qq] <- lklihood[qq]
           # append accepted current_state and probability density to storage data frames
-          .$dataf$pars_array[qq,1:.$mcmc$d,j+1] <- current_state[qq,1:.$mcmc$d]
+          .$dataf$pars_array[qq,1:.$mcmc$d,j+1] <- .$mcmc$current_state[qq,1:.$mcmc$d]
           .$dataf$pars_lklihood[qq,j+1] <- .$mcmc$p_state[qq]
         } else {
           # set jump back to zero for p_CR
@@ -658,11 +661,18 @@ wrapper_object <-
           .$dataf$pars_lklihood[qq,j+1] <- .$dataf$pars_lklihood[qq,j]
         }
  
+# not necessary in core DREAM code?
+
         # update jump distance crossover index
         .$mcmc$J[.$mcmc$id] <- .$mcmc$J[.$mcmc$id]+sum((.$mcmc$jump[qq,1:.$mcmc$d]/.$mcmc$std_state)^2)
+
+# not necessary in core DREAM code?
       
         # number of times index crossover is used
         .$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id]+1
+
+# error: object 'accept' not being found
+# either need to change this part of code or the if/else loop above
 
         out_n <- .$wpars$mcmc_maxiter/2
         if (j > out_n) 
@@ -670,11 +680,15 @@ wrapper_object <-
 
       }
     
+# not sure why this is in Vrugt's Matlab code, but it makes algorithm as written not work
+# prompts a divide by zero situation
+# resulting in error in drawing a sample: NA in probability vector
+
       # update selection probability of crossover
-      if (j<(.$wpars$mcmc_maxiter/10)) {
-        .$mcmc$p_CR <- .$mcmc$J / .$mcmc$n_id
-        .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
-      }
+      # if (j<(.$wpars$mcmc_maxiter/10)) {
+      #  .$mcmc$p_CR <- .$mcmc$J / .$mcmc$n_id
+      #  .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
+      # }
 
     }
  
@@ -1095,8 +1109,7 @@ wrapper_object <-
       p_gamma       = 0.2,            # probability of unit jump rate (probability gamma = 1)
       n_CR          = 3,              # number of crossover values      
       d             = numeric(1),     # number of parameters (dimensionality of problem)
-# i'm not sure whether this is a scalar numeric(1) or a vector numeric()????      
-      id            = numeric(),      #
+      id            = numeric(1),     # index of crossover values
       J             = numeric(),      # vector of length n_CR
       n_id          = numeric(),      # vector of lenght n_CR          
       R             = matrix(),       # index of chains for Differential Evolution
