@@ -1,11 +1,13 @@
 <default>
-  <gwater_rt>
-    <fnames>
+  <fnames>
+    <gwater_rt>
       <gwatersys>'f_gwatersys_daiye'</gwatersys>
       <rechrg>'f_rechrg_lin'</rechrg>
       <geol>'f_trans_single'</geol>
-    </fnames>
-    <pars>
+    </gwater_rt>
+  </fnames>
+  <pars>
+    <gwater_rt>
       <nx>21</nx>
       <K>15</K>
       <K1>20</K1>
@@ -14,11 +16,13 @@
       <b>0.15</b>
       <L>10000</L>
       <out_hsub>13</out_hsub>
-    </pars>
-    <env>
+    </gwater_rt>
+  </pars>
+  <env>
+    <gwater_rt>
       <h1>180</h1>
       <h2>100</h2>
       <precip>1524</precip>
-    </env>
-  </gwater_rt>
+    </gwater_rt>
+  </env>
 </default>

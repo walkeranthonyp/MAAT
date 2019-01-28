@@ -1,6 +1,6 @@
 <default>
-  <leaf>
-    <fnames>
+  <fnames>
+    <leaf>
       <gstar>'f_gstar_c1991'</gstar>
       <vcmax>'f_vcmax_constant'</vcmax>
       <tpu>'f_tpu_lin'</tpu>
@@ -33,8 +33,10 @@
       <solver>'f_A_r_leaf_analytical'</solver>
       <solver_func>'f_A_r_leaf'</solver_func>
       <Alim>'f_lim_collatz1991'</Alim>
-    </fnames>
-    <pars>
+    </leaf>
+  </fnames>
+  <pars>
+    <leaf>
       <diag>F</diag>
       <a>0.85</a>
       <f>0.36</f>
@@ -77,10 +79,12 @@
         <vcmax>0.3</vcmax>
       </exp_cox>
       <R>8.31446</R>
-    </pars>
-    <env>
+    </leaf>
+  </pars>
+  <env>
+    <leaf>
       <o2_conc>0.21</o2_conc>
       <atm_press>101325</atm_press>
-    </env>
-  </leaf>
+    </leaf>
+  </env>
 </default>

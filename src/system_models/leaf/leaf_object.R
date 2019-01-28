@@ -29,7 +29,6 @@ leaf_object <-
     
     # build function 
     build <- function(., mod_mimic=NULL, ... ) {
-      # no expected child objects
 
       # read default model setup for highest level model
       source('../../functions/general_functions.R')
@@ -38,13 +37,16 @@ leaf_object <-
       # read model mimic setup
       if(!is.null(mod_mimic)) {
         setwd('mimic_xmls')
-        print(paste('Leaf mimic:', mod_mimic ))
+        print(paste(.$name, 'mimic:', mod_mimic ))
         init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
         init_default <- fuselists(init_default,init_mimic)
         setwd('..')
       }
 
-      init_default
+      # assign default and mod mimic values to data structure
+      .$configure(vlist='fnames', df=unlist(init_default$fnames)) 
+      .$configure(vlist='pars',   df=unlist(init_default$pars)) 
+      .$configure(vlist='env',    df=unlist(init_default$env)) 
     }
     
     
@@ -53,7 +55,7 @@ leaf_object <-
     # main run function
     
     run <- function(.) {
-      
+     
       # call system model 
       get(.$fnames$leafsys)(.)
 
@@ -70,11 +72,6 @@ leaf_object <-
     # Output functions
 
     # -- returns a vector of outputs
-    # state_retrive <- function(.,snames) {
-    #   lsubs <- match(snames,names(.$state))
-    #   unlist(.$state[lsubs])
-    # }
-    
     state_retrive <- function(.,snames,state='state') {
       lsubs <- match(snames,names(.[[state]]))
       unlist(.[[state]][lsubs])
@@ -138,16 +135,16 @@ leaf_object <-
       tpu            = 'f_tpu_lin',
       rd             = 'f_rd_lin_vcmax',
       rl_rd_scalar   = 'f_scalar_none',
-      gstar          = 'f_gstar_constref',
+      gstar          = 'f_gstar_f1980',
       ri             = 'f_r_zero',
-      rs             = 'f_r_zero',
-      rb             = 'f_r_zero',
+      rs             = 'f_rs_medlyn2011',
+      rb             = 'f_rb_leafdim',
       cica_ratio     = 'f_cica_constant',             
       tcor_asc = list(
         vcmax          = 'f_tcor_asc_Arrhenius',
         jmax           = 'f_tcor_asc_Arrhenius',
         tpu            = 'f_tcor_asc_Arrhenius',
-        rd             = 'f_tcor_asc_Q10',
+        rd             = 'f_tcor_asc_Arrhenius',
         gstar          = 'f_tcor_asc_quadratic_bf1985',
         tau            = 'f_tcor_asc_Q10',
         Kc             = 'f_tcor_asc_Arrhenius',
@@ -157,12 +154,12 @@ leaf_object <-
         vcmax          = 'f_tcor_des_modArrhenius',
         jmax           = 'f_tcor_des_modArrhenius',
         tpu            = 'f_tcor_des_modArrhenius',
-        rd             = 'f_tcor_des_cox2001'
+        rd             = 'f_scalar_none'
       ),
       tcor_dep = list(
-        tpu            = 'f_tcor_dep_dependent',
-        rd             = 'f_tcor_dep_dependent',
-        tau            = 'f_tcor_dep_dependent'
+        tpu            = 'f_tcor_dep_independent',
+        rd             = 'f_tcor_dep_independent',
+        tau            = 'f_tcor_dep_independent'
 	),
       deltaS   = list(  
         rd             = 'f_deltaS',

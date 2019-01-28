@@ -33,17 +33,20 @@ template_object <-
 
       # read default model setup for highest level model
       init_default <- readXML(paste(.$name,'default.xml',sep='_'))
-     
+
       # read model mimic setup
       if(!is.null(mod_mimic)) {
         setwd('mimic_xmls')
-        print(paste('template mimic:', mod_mimic ))
+        print(paste(.$name, 'mimic:', mod_mimic ))
         init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
         init_default <- fuselists(init_default,init_mimic)
         setwd('..')
       }
 
-      init_default
+      # assign default and mod mimic values to data structure
+      .$configure(vlist='fnames', df=unlist(init_default$fnames))
+      .$configure(vlist='pars',   df=unlist(init_default$pars))
+      .$configure(vlist='env',    df=unlist(init_default$env))
     }
     
     
