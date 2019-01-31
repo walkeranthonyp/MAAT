@@ -22,7 +22,8 @@ library(fmsb)
 
 # radar plot
 ppSA_radar <- function(df1, alphap=100, max_si=0.6,
-                       title='Test Radar SA', printleg=T, vnames=par_names, lnames=NULL,
+                       # title='Test Radar SA', 
+                       printleg=T, vnames=par_names, lnames=NULL,
                        ... ) {
   
   # can pass arguments like:
@@ -51,7 +52,8 @@ ppSA_radar <- function(df1, alphap=100, max_si=0.6,
 
   # plot radar
   radarchart( df1, axistype=0, maxmin=T,
-              title=title,
+              # title=title,
+              ...,
               # custom polygon
               pcol=colors_border,
               pfcol=colors_poly,
@@ -73,7 +75,7 @@ ppSA_radar <- function(df1, alphap=100, max_si=0.6,
 # organise radar plots
 radar_plot <- function(df1, var1='type', var2=NULL, lnames=NULL,
                        index='scenario', values='sensitivity1', par='variable',
-                       add_space=0, ... ) {
+                       add_space=0, title_yn=T, leg_ncol=NULL, ... ) {
   
   # below variables break df1 into subsets to plot on a single radar plots
   # determine if a first subsetting variable has been given
@@ -112,8 +114,9 @@ radar_plot <- function(df1, var1='type', var2=NULL, lnames=NULL,
   lmat <- 
     if(add_space > 0) t(matrix(1:prod(lo),ncol=lo[1]))[c(3:(2+add_space),1,2),]
     else              t(matrix(1:prod(lo),ncol=lo[1]))
-  layout(lmat, widths=rep(2,prod(lo)), heights=c(rep(2,prod(lo)-lo[2]),rep(1,lo[2])), TRUE )
-  par(mar=c(0,1,0,1), oma=c(0,0,0,0) )  
+  leg_height <- if(!is.null(leg_ncol)) 1/leg_ncol else 1
+  layout(lmat, widths=rep(2,prod(lo)), heights=c(rep(2,prod(lo)-lo[2]),rep(leg_height,lo[2])), TRUE )
+  par(mar=c(0,0,0,1), oma=c(0,0,0,0) )  
   
   # subsetting loops
   for(v1 in var1_l) {
@@ -141,8 +144,9 @@ radar_plot <- function(df1, var1='type', var2=NULL, lnames=NULL,
       # print(df1_sub_tab)
       
       # radar plot
-      title <- if(lo[2] == 1) NULL else if(is.null(var2)) v1 else paste(v1,v2) 
-      ppSA_radar(df1_sub_tab, title=paste('\n',title), printleg=F, ... )
+      title <- if(!title_yn | (lo[2] == 1) ) NULL else if(is.null(var2)) v1 else paste(v1,v2)
+      if(!is.null(title)) title <- paste('\n',title)
+      ppSA_radar(df1_sub_tab, title=title, printleg=F, ... )
     }      
   }
   
@@ -151,11 +155,14 @@ radar_plot <- function(df1, var1='type', var2=NULL, lnames=NULL,
     plot(1, type="n", xlab="", ylab="", xlim=c(0, 10), ylim=c(0, 10), axes=FALSE, ann=FALSE )
 
     if(!is.null(l)) {
-      n    <- length(l)
-      ncol <- if(n>12) ceiling(n/12) else 1
+      n        <- length(l)
+      leg_ncol <- if(is.null(leg_ncol)) ceiling(n/12) else leg_ncol
+      print(leg_ncol)
       colors_border <- viridis(n[1])
-      legend(x=1, y=9, legend = l, bty = "n", ncol=ncol, 
-             pch=20 , col=colors_border , text.col = "grey", cex=1, pt.cex=1)
+      # legend(x=0, y=9, legend = l, bty = "n", ncol=leg_ncol, 
+      #        pch=20 , col=colors_border , text.col = "grey", cex=1, pt.cex=1)
+      legend(x='top', legend = l, bty = "n", ncol=leg_ncol, 
+             pch=20 , col=colors_border , text.col = "grey", cex=acex, pt.cex=1)
     }
   }
 }
@@ -211,23 +218,26 @@ plot_SA_4orless <- function(yv, xv, cv1=NULL, cv2=NULL, gv=NULL,
 plot_SA_modvar <- function(yv, xv, cv1=NULL, cv2=NULL, pv=panel.violin,
                            lout = c(3,1), bxw = c(100,0.1), gls = seq(0,25,5),
                            scales_x = NULL,
-                           xlim = NULL, ylim= NULL, xlab=NULL, ylab=NULL, ... ) {
+                           ylim= NULL, xlab=NULL, ylab=NULL, ... ) {
   
-  form <- 
+  form <- { 
     if(is.null(cv1))      (yv ~ xv) 
-    else if(is.null(cv2)) (yv ~ xv | cv1)
-    else                  (yv ~ xv | cv1 * cv2)
+    else if(is.null(cv2)) (yv ~ xv | cv1 )
+    else                  (yv ~ xv | cv1 * cv2) }
   
-  scales_arg <- 
+  scales_arg <- {
     if(!is.null(scales_x)) list(tck=c(-0.5,0),alternating=F,x=scales_x) 
     else                   list(tck=c(-0.5,0),alternating=F) 
+  }
   
   if(is.numeric(xv)) {
     
     xyplot(form ,
-           xlim=xlim, ylim=ylim, xlab=xlab, ylab=ylab,
-           scales=scales_arg, layout=lout, 
-           strip=strip.custom(fg='grey90', bg='grey90', par.strip.text=list(cex=0.8), var.name=expression(I), strip.levels=c(T,T) ),
+           ... ,
+           # xlim=xlim,
+           ylim=ylim, xlab=xlab, ylab=ylab,
+           scales=scales_arg, layout=lout,
+           strip=strip.custom(fg='grey90', bg='grey90', par.strip.text=list(cex=0.8*acex), var.name=expression(I), strip.levels=c(T,T) ),
            panel=function(..., box.width=bxw ){
              panel.abline(h=gls, col='gray90' )
              pv(..., horizontal=F, col = "lightblue", varwidth = FALSE, box.width = box.width[1] )
@@ -236,19 +246,16 @@ plot_SA_modvar <- function(yv, xv, cv1=NULL, cv2=NULL, pv=panel.violin,
            par.settings = list(box.rectangle=list(col='black'), box.umbrella=list(alpha=0,col='black',lty=1),
                                plot.symbol = list(pch='.', cex = 0.1))
     )
-    
+
   } else {
     
     bxw[1] <- bxw[1] / 100
     bwplot(form ,
-           # xlim=xlim, 
            ylim=ylim, xlab=xlab, ylab=ylab,
            scales=scales_arg, layout=lout, 
            strip=strip.custom(fg='grey90', bg='grey90', par.strip.text=list(cex=0.8), var.name=expression(I), strip.levels=c(T,T) ),
            panel=function(..., box.width=bxw ){
              panel.abline(h=gls, col='gray90' )
-             # pv(..., horizontal=F, col = "lightblue", varwidth = FALSE, box.width = box.width[1] )
-             # panel.bwplot(..., horizontal=F, col = 'black', coef=100, cex=0.8, pch='|', fill='gray', box.width = prod(box.width) )
              pv(..., col = "lightblue", varwidth = FALSE, box.width = box.width[1] )
              panel.bwplot(..., col = 'black', coef=100, cex=0.8, pch='|', fill='gray', box.width = prod(box.width) )
            },
