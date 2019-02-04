@@ -94,7 +94,7 @@ f_A_r_leaf_analytical <- function(.) {
   fe              <- get(paste0(.$fnames$rs,'_fe') )(.) 
   .$state$ci      <- .$state$ca * (1 - (1.6 / fe) )
   .$state$cc      <- .$state$ci 
-  
+ 
   # calculate net A
   Anet <- f_assimilation(.)
   
@@ -332,9 +332,9 @@ f_Apg_foley1996 <- function(., cc=.$state$cc ) {
 
 # no triose phosphate limitation
 f_Apg_none <- function(.) {
-  # returns a high value so that TPU is never limiting
+  # returns NA which is ignored in limiting rate selection functions 
   
-  9e3
+  NA
 }
 
 
@@ -546,7 +546,8 @@ f_rs_leuning1995 <- function(., A=.$state$A, c=.$state$cb ) {
 }
 
 f_rs_leuning1995_fe <- function(., c=.$state$cb ) {
-  # f(e) component of rs from Leuning 1995   
+  # f(e) component of rs from Leuning 1995  
+
   .$pars$g1_leuning / ( (1 - .$state_pars$gamma/c) * (1 + .$env$vpd/.$pars$d0) )  
 }
 

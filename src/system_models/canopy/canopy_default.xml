@@ -1,18 +1,23 @@
 <default>
-  <canopy>
-    <fnames>
+  <fnames>
+    <canopy>
       <cansys>'f_cansys_multilayer'</cansys>
       <pars_init>'f_pars_init'</pars_init>
       <rt>'f_rt_beerslaw_goudriaan'</rt>
       <scale_n>'f_scale_n_CLMuniform'</scale_n>
+      <scale_vcmax>'f_scale_vcmax_beerslaw'</scale_vcmax>
+      <vcmax0>'f_vcmax0_constant'</vcmax0>
+      <k_vcmax>'f_k_vcmax_constant'</k_vcmax>
       <scale_ca>'f_scale_ca_uniform'</scale_ca>
       <scale_vpd>'f_scale_vpd_uniform'</scale_vpd>
       <lai>'f_lai_constant'</lai>
       <par_partition>'f_par_partition_spitters'</par_partition>
       <water_status>'f_water_status_none'</water_status>
       <fwdw>'f_fwdw_wtd_lin'</fwdw>
-    </fnames>
-    <pars>
+    </canopy>
+  </fnames>
+  <pars>
+    <canopy>
       <layers>10</layers>
       <lai>10</lai>
       <lai_max>4</lai_max>
@@ -20,15 +25,21 @@
       <leaf_cores>1</leaf_cores>
       <G>0.5</G>
       <can_clump>1</can_clump>
-      <k_layer>0</k_layer>
+      <k_layer>0.5</k_layer>
       <alb_soil>0.15</alb_soil>
       <leaf_reflectance>0.075</leaf_reflectance>
+      <vcmax0>35</vcmax0>
+      <k_vcmax>0.2</k_vcmax>
+      <k_vcmax_expa>-2.43</k_vcmax_expa>
+      <k_vcmax_expb>0.00963</k_vcmax_expb>
       <fwdw_wl_slope>-0.022</fwdw_wl_slope>
       <fwdw_wl_sat>16</fwdw_wl_sat>
       <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>
       <fwdw_wl_exp_b>3.254</fwdw_wl_exp_b>
-    </pars>
-    <env>
+    </canopy>
+  </pars>
+  <env>
+    <canopy>
       <temp>25</temp>
       <par>1000</par>
       <par_dir>0</par_dir>
@@ -39,6 +50,6 @@
       <zenith>0</zenith>
       <water_td>0</water_td>
       <sphag_h>0</sphag_h>
-    </env>
-  </canopy>
+    </canopy>
+  </env>
 </default>

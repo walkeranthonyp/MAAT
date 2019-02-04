@@ -21,20 +21,20 @@
 # To setup a model object simulation,
 #  set up the following lists, for OBJ leaf and canopy:
 
-#  set static variables during runtime (init_static) by setting:
-#  - OBJ.fnames.static
-#  - OBJ.pars.static     
-#  - OBJ.env.static
+#  set static variables during runtime in init_static list by setting sublists:
+#  - fnames.OBJ.static
+#  - pars.OBJ.static     
+#  - env.OBJ.static
 
 #  set dynamic variables during runtime (init_dynamic) by setting:
-#  - OBJ.fnames.var
-#  - OBJ.pars.var     
-#  - OBJ.env.var
+#  - fnames.OBJ.var
+#  - pars.OBJ.var     
+#  - env.OBJ.var
 
 #  for a process SA two more sublists need to be added as elements to the init_dynamic lists:
 #   OBJ.pars_proc.var and OBJ.pars_eval.var, both with the same named elements as OBJ.pars.var
-#   - OBJ.pars_proc.var is a list of strings that associate each parameter with the process it is associated with, these should be one of the element names in the list init_dynamic$OBJ$fnames
-#   - OBJ.pars_eval.var is a string that once evaluated gives a vector of parameter samples  
+#   - pars_proc.OBJ.var is a list of strings that associate each parameter with the process it is associated with, these should be one of the element names in the list init_dynamic$OBJ$fnames
+#   - pars_eval.OBJ.var is a string that once evaluated gives a vector of parameter samples  
 
 
 # This script must set the values of the above 6(8) lists per model object, 
@@ -50,25 +50,20 @@
 # define lists
 leaf.fnames.static <- list(
   solver_func = 'f_A_r_leaf',
-  gstar       = 'f_scalar_none',
-  Kc_tcor     = 'f_scalar_none',
-  Ko_tcor     = 'f_scalar_none',
-  respiration = 'f_rd_lin_vcmax', 
-  ri          = 'f_r_zero',
-  rs          = 'f_r_zero',
   rb          = 'f_r_zero'
-  )
+)
 
 leaf.pars.static <- list(
-  atref.vcmax  = 50
-  )
+  atref = list(vcmax = 50)
+)
 
 leaf.env.static  <- list(
-  par     = 1000,
-  temp    = 25
-  )
+  temp = 25
+)
 
-canopy.fnames.static <- NULL   
+canopy.fnames.static <- list(
+  lai = 'f_lai_constant'     
+)   
 
 canopy.pars.static   <- NULL
 
@@ -91,22 +86,22 @@ leaf.pars_proc.var <- NULL
 
 leaf.pars_eval.var <- NULL
 
-leaf.env.var       <- list(
-  ca_conc = seq(50,1500,50)
-)
+leaf.env.var       <- NULL
 
 
 canopy.fnames.var    <- NULL
 
 canopy.pars.var      <- list(
-  lai_curve = c(0.1,0.3,0.5,1)
+  lai = c(1,3,5,7)
 )
 
 canopy.pars_proc.var <- NULL
 
 canopy.pars_eval.var <- NULL
 
-canopy.env.var       <- NULL
+canopy.env.var       <- list(
+  ca_conc = seq(50,1500,50)
+)
 
 
 
@@ -114,33 +109,41 @@ canopy.env.var       <- NULL
 ###############################
 
 init_static <- list(
-  leaf = list(
-    fnames = leaf.fnames.static,
-    pars   = leaf.pars.static,
-    env    = leaf.env.static
-  ),
-  canopy = list(
-    fnames = canopy.fnames.static,
-    pars   = canopy.pars.static,
-    env    = canopy.env.static
-  ))
+    fnames = list(
+      leaf   = leaf.fnames.static,
+      canopy = canopy.fnames.static
+    ),
+    pars = list(
+      leaf   = leaf.pars.static,
+      canopy = canopy.pars.static 
+    ),
+    env = list(
+      leaf   = leaf.env.static,
+      canopy = canopy.env.static 
+))
 
 init_dynamic <- list(
-  leaf = list(
-    fnames    = leaf.fnames.var,
-    pars      = leaf.pars.var,
-    pars_proc = leaf.pars_proc.var,
-    pars_eval = leaf.pars_eval.var,
-    env       = leaf.env.var
-  ),
-  canopy = list(
-    fnames    = canopy.fnames.var,
-    pars      = canopy.pars.var,
-    pars_proc = canopy.pars_proc.var,
-    pars_eval = canopy.pars_eval.var,
-    env       = canopy.env.var
-  ))
+    fnames = list(
+      leaf  = leaf.fnames.var,
+      canopy = canopy.fnames.var
+    ),
+    pars = list(
+      leaf   = leaf.pars.var,
+      canopy = canopy.pars.var
+    ),
+    pars_proc = list(
+      leaf   = leaf.pars_proc.var,
+      canopy = canopy.pars_proc.var
+    ),
+    pars_eval = list(
+      leaf = leaf.pars_eval.var,
+      canopy = canopy.pars_eval.var
+    ),
+    env = list(
+      leaf   = leaf.env.var,
+      canopy = canopy.env.var
+))
 
 
 
-### END ####
+### END ###

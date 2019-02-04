@@ -1,11 +1,11 @@
 <default>
-  <leaf>
-    <fnames>
+  <fnames>
+    <leaf>
       <gstar>'f_gstar_constref'</gstar>
       <vcmax>'f_vcmax_clm'</vcmax>
       <jmax>'f_jmax_lin'</jmax>
       <tpu>'f_tpu_lin'</tpu>
-            <!-- increasing component of temperature scaling for biochemical rates -->
+      <!-- increasing component of temperature scaling for biochemical rates -->
       <tcor_asc>
         <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
         <jmax>'f_tcor_asc_Arrhenius'</jmax>
@@ -45,8 +45,10 @@
       <solver>'f_R_Brent_solver'</solver>
       <solver_func>'f_A_r_leaf'</solver_func>
       <Alim>'f_lim_collatz1991'</Alim>
-    </fnames>
-    <pars>
+    </leaf>
+  </fnames>
+  <pars>
+    <leaf>
       <diag>F</diag>
       <a>0.85</a>
       <f>0.15</f>
@@ -106,10 +108,12 @@
         <tpu>485</tpu>
       </deltaS>
       <R>8.31446</R>
-    </pars>
-    <env>
+    </leaf>
+  </pars>
+  <env>
+    <leaf>
       <o2_conc>0.21</o2_conc>
       <atm_press>101325</atm_press>
-    </env>
-  </leaf>
+    </leaf>
+  </env>
 </default>

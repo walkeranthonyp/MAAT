@@ -1,7 +1,7 @@
 <default>
   <fnames>
     <leaf>
-      <leafsys>'f_leafsys_enzymek'</leafsys>
+      <leafsys>NA</leafsys>
       <solver_func>'f_A_r_leaf'</solver_func>
       <solver>'f_R_Brent_solver'</solver>
       <Acg>'f_Acg_farquhar1980'</Acg>
@@ -16,16 +16,16 @@
       <tpu>'f_tpu_lin'</tpu>
       <rd>'f_rd_lin_vcmax'</rd>
       <rl_rd_scalar>'f_scalar_none'</rl_rd_scalar>
-      <gstar>'f_gstar_f1980'</gstar>
+      <gstar>'f_gstar_constref'</gstar>
       <ri>'f_r_zero'</ri>
-      <rs>'f_rs_medlyn2011'</rs>
-      <rb>'f_rb_leafdim'</rb>
+      <rs>'f_r_zero'</rs>
+      <rb>'f_r_zero'</rb>
       <cica_ratio>'f_cica_constant'</cica_ratio>
       <tcor_asc>
         <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
         <jmax>'f_tcor_asc_Arrhenius'</jmax>
         <tpu>'f_tcor_asc_Arrhenius'</tpu>
-        <rd>'f_tcor_asc_Arrhenius'</rd>
+        <rd>'f_tcor_asc_Q10'</rd>
         <gstar>'f_tcor_asc_quadratic_bf1985'</gstar>
         <tau>'f_tcor_asc_Q10'</tau>
         <Kc>'f_tcor_asc_Arrhenius'</Kc>
@@ -35,12 +35,12 @@
         <vcmax>'f_tcor_des_modArrhenius'</vcmax>
         <jmax>'f_tcor_des_modArrhenius'</jmax>
         <tpu>'f_tcor_des_modArrhenius'</tpu>
-        <rd>'f_scalar_none'</rd>
+        <rd>'f_tcor_des_cox2001'</rd>
       </tcor_des>
       <tcor_dep>
-        <tpu>'f_tcor_dep_independent'</tpu>
-        <rd>'f_tcor_dep_independent'</rd>
-        <tau>'f_tcor_dep_independent'</tau>
+        <tpu>'f_tcor_dep_dependent'</tpu>
+        <rd>'f_tcor_dep_dependent'</rd>
+        <tau>'f_tcor_dep_dependent'</tau>
       </tcor_dep>
       <deltaS>
         <rd>'f_deltaS'</rd>

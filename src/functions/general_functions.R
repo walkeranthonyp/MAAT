@@ -86,18 +86,20 @@ listtoXML <- function(fname,name,...) {
   
   rec <- function(node, sublist) {
     for(i in 1:length(sublist)) {
-      child <- newXMLNode(names(sublist)[i], parent=node)
-      
-      if (typeof(sublist[[i]]) == "list") {
-        if(is.null(names(sublist[[i]]))) {
-          #warning(paste(fname,names(sublist)[i],'list or sublist defined with no named elements, likely an empty list'))
-          sublist[[i]] <- NA
-          names(sublist[[i]]) <- 'nada'
+      if(!is.null(unlist(sublist[[i]]))) {
+        child <- newXMLNode(names(sublist)[i], parent=node)
+        
+        if (typeof(sublist[[i]]) == "list") {
+          if(is.null(names(sublist[[i]]))) {
+            #warning(paste(fname,names(sublist)[i],'list or sublist defined with no named elements, likely an empty list'))
+            sublist[[i]] <- NA
+            names(sublist[[i]]) <- 'nada'
+          }
+          rec(child, sublist[[i]]) 
         }
-        rec(child, sublist[[i]]) 
-      }
-      else {
-        xmlValue(child) <- if(class(sublist[[i]])=='character') paste0("'",sublist[[i]],"'") else sublist[[i]]
+        else {
+          xmlValue(child) <- if(class(sublist[[i]])=='character') paste0("'",sublist[[i]],"'") else sublist[[i]]
+        }
       }
     }
   }  

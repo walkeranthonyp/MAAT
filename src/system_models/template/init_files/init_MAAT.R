@@ -77,23 +77,19 @@ env.var <- list()
 ###############################
 
 init_static <- list(
-  template = list(
-    fnames    = fnames.static,
-    pars      = pars.static,
-    env       = env.static
-  ))
+  fnames = list( template = fnames.static),
+  pars   = list( template = pars.static),
+  env    = list( template = env.static)
+)
 
 init_dynamic <- list(
-  template = list(
-    fnames    = fnames.var,
-    pars      = pars.var,
-    pars_proc = pars_proc.var,
-    pars_eval = pars_eval.var,
-    env       = env.var
-  ))
+  fnames    = list( template = fnames.var),
+  pars      = list( template = pars.var),
+  pars_proc = list( template = pars_proc.var),
+  pars_eval = list( template = pars_eval.var),
+  env       = list( template = env.var)
+)
 
 
 
-
-
-
+### END ###

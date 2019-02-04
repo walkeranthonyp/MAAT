@@ -69,9 +69,9 @@ wrapper_object <-
       ########################################
 
       # initialise model with static variables
-      if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=t(as.matrix(.$static$fnames,stringsAsFactors=F))[1,] ) else if(!.$wpars$unit_testing) stop('Static fnames not defined')
-      if(!is.null(.$static$pars))   .$model$configure(vlist='pars',   df=t(as.matrix(.$static$pars,stringsAsFactors=F))[1,]   ) else if(!.$wpars$unit_testing) stop('Static pars not defined')
-      if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=t(as.matrix(.$static$env,stringsAsFactors=F))[1,]    ) else if(!.$wpars$unit_testing) stop('Static env not defined')      
+      if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=.$static$fnames ) 
+      if(!is.null(.$static$pars))   .$model$configure(vlist='pars',   df=.$static$pars   ) 
+      if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=.$static$env    ) 
 
       # create matrices of runtime variables  
       ######################################
@@ -310,12 +310,12 @@ wrapper_object <-
 
       # call next run function
       do.call( 'rbind', {
-          if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, fi=i, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=T  )
-          else                 lapply(1:.$dataf$lp, .$runp, fi=i )
+          if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lf)), mc.preschedule=T  )
+          else                 lapply(1:.$dataf$lp, .$runp )
       })
     }
     
-    runp <- function(.,j,fi) {
+    runp <- function(.,j) {
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
       # assumes that each row of the pars matrix are independent and non-sequential
       # call rune
@@ -330,7 +330,7 @@ wrapper_object <-
 
       # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
       # returns matrix
-      if(class(out)=='array') .$stack(out) else t(out)
+      if(class(out)=='matrix') t(out) else if(class(out)=='array') .$stack(out) else as.matrix(out)
     }
     
     rune <- function(.,k) {
@@ -921,76 +921,45 @@ wrapper_object <-
     ###########################################################################
     # initialisation function
 
-    # prefix name of model object to variable names
     # this flattens the object|variable hierarchy in the list structure
     # allowing single run matrices that contain variables for multiple model objects
     # each line of the matrix is passed to the configure function in the model object
-    # the model object name in the variable name allows the configure function to correctly parse the variable.        
     init <- function(.) {
 
-      # combines sublists in list l into l and names them '<sublistnameinl.variablenameinsublist>' 
-      # i.e. removes list|sublist hierarchy and retains this information in the variable name
-      # prefixes the names of the resulting list with '<modobj>.' 
-      comb_init_list <- function(., l, modobj ) {
-        if(sum(is.null(l))==length(l)|is.null(l)) NULL
-        else {
-          # check for any sublists in v 
-          slss <- vapply(l, is.list, logical(1))
-          if(any(slss)) {
-            l1 <- l[which(!slss)]
-  
-            for(ss in which(slss)) {
-              names(l[[ss]]) <- paste0(names(l[ss]),'.',names(l[[ss]]))
-              l1 <- c(l1,l[[ss]])
-            }
-          } else l1 <- l
-
-          names(l1) <- paste(modobj, names(l1), sep='.' ) 
-          l1 
-        }
-      }
-     
       # setup list names for assignment 
-      mos    <- c(.$model$name, unlist(.$model$child_list) )
       type   <- c('static', 'dynamic')
       vlists <- c('fnames', 'pars', 'env' )
-      
-      for( mo in mos ) {
-        for( t in type ) {
-          for( vl in vlists ) {
-            # input variables
-            varlist <- .[[paste0('init_',t)]][[mo]][[vl]]
- 
-            # assign variables to wrapper, prefix variable names with the name of the model object that they belong to 
-            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(l=varlist, modobj=mo ) 
-                            else                     c(.[[t]][[vl]], comb_init_list(l=varlist, modobj=mo ) )
-          }
+     
+      # assign standard input lists to wrapper data structure 
+      for( t in type ) {
+        for( vl in vlists ) {
+          # input variables
+          .[[t]][[vl]] <- 
+            if(t == 'static') unlist(.[[paste0('init_',t)]][[vl]])
+            else if(t == 'dynamic' & !is.null(unlist(.[[paste0('init_',t)]][[vl]])) ) 
+              lapply(rapply(.[[paste0('init_',t)]][[vl]], enquote, how="unlist" ), eval )        
         }
-      
-        # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
-        if(.$wpars$UQ) {
-          if(is.null(.$init_dynamic[[mo]]$pars)&!is.null(.$init_dynamic[[mo]]$pars_eval)) .$wpars$eval_strings <- T
-          t <- 'dynamic'
+      }
+    
+      # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
+      if(.$wpars$UQ) {
+        if(is.null(unlist(.$init_dynamic$pars))&!is.null(unlist(.$init_dynamic$pars_eval))) .$wpars$eval_strings <- T
+        t <- 'dynamic'
 
-          if(.$wpars$eval_strings) {
-            vl      <- 'pars_eval'
-            varlist <- .[[paste0('init_',t)]][[mo]][[vl]]
-            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(l=varlist, modobj=mo ) 
-                            else                      c(.[[t]][[vl]], comb_init_list(l=varlist, modobj=mo ) )
-          }
-  
-          if(.$wpars$UQtype=='ye') {
-            vl      <- 'pars_proc'
-            varlist <- .[[paste0('init_',t)]][[mo]][[vl]]
-            .[[t]][[vl]] <- if(is.null(.[[t]][[vl]])) comb_init_list(l=varlist, modobj=mo ) 
-                            else                     c(.[[t]][[vl]], comb_init_list(l=varlist, modobj=mo ) )
+        if(.$wpars$eval_strings) {
+          vl   <- 'pars_eval'
+          if(!is.null(unlist(.[[paste0('init_',t)]][[vl]]))) 
+            .[[t]][[vl]] <- lapply(rapply(.[[paste0('init_',t)]][[vl]], enquote, how="unlist" ), eval )        
+        }
 
-            #for( vn in names(vars) ) if( !any(vn==names(.[['init_dynamic']][[mo]][['pars_eval']])) )
-            for( vn in names(.$dynamic$pars_proc) ) if( !any(vn==names(.[['init_dynamic']][[mo]][['pars_eval']])) )
-              stop(paste('\n Input variable:', vn, 'in pars_proc, not found in: pars_eval list.',
-                         '\n The proc_pars input list must contain exactly the same parameter names as pars_eval input list.',
-                         '\n The proc_pars is required to assign a parameter to a process as part of a process sensitivity analysis.'))
-          }
+        if(.$wpars$UQtype=='ye') {
+          vl   <- 'pars_proc'
+          if(!is.null(unlist(.[[paste0('init_',t)]][[vl]]))) 
+            .[[t]][[vl]] <- lapply(rapply(.[[paste0('init_',t)]][[vl]], enquote, how="unlist" ), eval )        
+          for( vn in names(.[[t]][[vl]]) ) if( !any(vn==names(.[[t]][['pars_eval']])) )
+            stop(paste('\n Variable:', vn, 'in pars_proc, not found in: pars_eval list.',
+                       '\n The proc_pars input list must contain exactly the same parameter names as the pars_eval input list.',
+                       '\n The proc_pars is required to assign a parameter to a process as part of a process sensitivity analysis.'))
         }
       }
     }
@@ -1004,8 +973,7 @@ wrapper_object <-
     init_dynamic <- NULL
     
     # static variables
-    # all expected to be of class 'list'
-    # each list in the below list comprise a single string or numeric value for each variable, labelled by the variable name
+    # each element in the below list is a character or numeric vector to overwrite default initialisation values
     static <- list( 
       fnames = NULL,
       pars   = NULL,
@@ -1013,7 +981,7 @@ wrapper_object <-
     )
     
     # dynamic variables
-    # all expected to be of class 'list'
+    # all elements expected to be of class 'list'
     # each list in the 'dynamic' list comprise vectors of the values for each variable, 
     # each element of the list is labelled by the variable name prefixed by the name of the model object that the variable belongs to
     # each of these lists is expanded, often factorially by expand.grid, and placed into the below list of dataframes

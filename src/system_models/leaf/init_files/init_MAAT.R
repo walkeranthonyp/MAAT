@@ -48,7 +48,6 @@
 # define lists
 fnames.static <- list(
   solver_func     = 'f_A_r_leaf',
-  gstar           = 'f_scalar_none',
   vcmax           = 'f_vcmax_constant',
   jmax            = 'f_jmax_power',
   tcor_asc = list(  
@@ -63,7 +62,6 @@ fnames.static <- list(
   ),
   rd     = 'f_rd_lin_vcmax', 
   ri     = 'f_r_zero',
-  rs     = 'f_r_zero',
   rb     = 'f_r_zero'
   )
 
@@ -105,20 +103,18 @@ env.var       <- list(
 ###############################
 
 init_static <- list(
-  leaf = list(
-    fnames    = fnames.static,
-    pars      = pars.static,
-    env       = env.static
-  ))
+  fnames = list( leaf = fnames.static),
+  pars   = list( leaf = pars.static),
+  env    = list( leaf = env.static)
+)
 
 init_dynamic <- list(
-  leaf = list(
-    fnames    = fnames.var,
-    pars      = pars.var,
-    pars_proc = pars_proc.var,
-    pars_eval = pars_eval.var,
-    env       = env.var
-  ))
+  fnames    = list( leaf = fnames.var),
+  pars      = list( leaf = pars.var),
+  pars_proc = list( leaf = pars_proc.var),
+  pars_eval = list( leaf = pars_eval.var),
+  env       = list( leaf = env.var)
+)
 
 
 

@@ -1,6 +1,6 @@
 <met_data_translator>
-  <leaf>
-    <env>
+  <env>
+    <leaf>
       <ca_conc>'column name of variable in metdata file'</ca_conc>
       <o2_conc>'column name of variable in metdata file'</o2_conc>
       <par>'column name of variable in metdata file'</par>
@@ -11,6 +11,6 @@
       <rh>'column name of variable in metdata file'</rh>
       <atm_press>'column name of variable in metdata file'</atm_press>
       <wind>'column name of variable in metdata file'</wind>
-    </env>
-  </leaf>
+    </leaf>
+  </env>
 </met_data_translator>

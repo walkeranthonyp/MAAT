@@ -28,6 +28,9 @@ f_lai_sphagnum_lin <- function(.) {
 # Light Scaling
 ################################
 
+# partitioned par passed as an environmental variable
+f_par_partition_env <- function(.) print('/nExpects direct and diffuse PAR passed as environment variables/n')
+
 # partition direct and diffuse radiation
 f_par_partition_spitters <- function(.) {
    #calculate diffuse irradiance (from Spitters et al 1986; and de Jong 1980)
@@ -70,19 +73,23 @@ f_pars_init <- function(.) {
   
   # extinction coefficents of direct diffuse radiation, assuming leaves are optically black   
   # these account for both canopy clumping and solar zenith angle, also informed by Bodin & Franklin 2012 GMD  
-  .$state_pars$G_dir       <- .$pars$G * .$pars$can_clump
-  .$state_pars$k_dir       <- .$state_pars$G_dir / cos(.$env$zenith)
+  .$state_pars$G_dir[]       <- .$pars$G * .$pars$can_clump
+  .$state_pars$k_dir[]       <- .$state_pars$G_dir / cos(.$env$zenith)
 
   # this is the k_dir assuming light is coming from all points of the hemisphere (i.e. solar zenith angle between 0 and pi/2)
-  .$state_pars$k_diff      <- .$state_pars$G_dir / (2/pi)
+  .$state_pars$k_diff[]      <- .$state_pars$G_dir / (2/pi)
 
   # transmittance equals reflectance
-  .$state_pars$lscattering <- 2 * .$pars$leaf_reflectance
+  .$state_pars$lscattering[] <- 2 * .$pars$leaf_reflectance
 
   # adjustment of k to account for scattering, i.e. that leaves are not optically black
-  .$state_pars$m           <- (1.0-.$state_pars$lscattering)^0.5
-  .$state_pars$k_dirprime  <- .$state_pars$m * .$state_pars$k_dir
-  .$state_pars$k_diffprime <- .$state_pars$m * .$state_pars$k_diff
+  .$state_pars$m[]           <- (1.0-.$state_pars$lscattering)^0.5
+  .$state_pars$k_dirprime[]  <- .$state_pars$m * .$state_pars$k_dir
+  .$state_pars$k_diffprime[] <- .$state_pars$m * .$state_pars$k_diff
+
+  # calculate Vcmax0 and extinction coefficient for Vcmax
+  .$state$vcmax0[]           <- get(.$fnames$vcmax0)(.)
+  .$state_pars$k_vcmax[]     <- get(.$fnames$k_vcmax)(.)
 }
 
 
@@ -90,13 +97,13 @@ f_pars_init <- function(.) {
 # - these need to be a number of different but similar functions that allow all the commonly used implementations of Beer's Law
 # - e.g. accounting for diffuse light, adjusting k by m or not, etc.
 
-# Beer's law direct light
+# Beer's law - from Sellers (1992) and citing Goudriaan (1977) 
 f_rt_beerslaw_goudriaan <- function(.,l) {
   # calculates direct beam light attenuation through the canopy
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
   
-  .$state$vert$sun$apar[]     <- .$state_pars$k_dir * .$env$par * exp(-.$state_pars$k_dir*(l-.$pars$k_layer))
+  .$state$vert$sun$apar[]     <- (1 - .$state_pars$lscattering) * .$state_pars$k_dir * .$env$par * exp(-.$state_pars$k_dirprime*l)
   .$state$vert$sun$fraction[] <- 1.0 
 }
 
@@ -107,7 +114,7 @@ f_rt_beerslaw <- function(.,l) {
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
   
-  .$state$vert$sun$apar[]     <- .$env$par * exp(-.$state_pars$k_dir*(l-.$pars$k_layer))
+  .$state$vert$sun$apar[]     <- (1 - .$state_pars$lscattering) * .$env$par * exp(-.$state_pars$k_dir*l)
   .$state$vert$sun$fraction[] <- 1.0 
 }
 
@@ -117,10 +124,6 @@ f_rt_goudriaan <- function(.,l) {
   # as described in Walker et al. (2017) New Phyt, supplement; from Spitters 1986 and Wang 2003 Func.Plant Biol.     
   # all below values are for visible wavelengths 
 
-  # set leaf absorptance to 1 as this scheme already accounts for leaf scattering
-  # as currently implemented this will permanently alter a for a whole ensemble simulation
-  .$leaf$pars$a <- 1.0
-  
   # calculate albedos
   # after Wang 2003
   alb_h                     <- (1-.$state_pars$m)/(1+.$state_pars$m)
@@ -162,6 +165,31 @@ f_scale_n_beerslaw <- function(.,l) {
   .$state$totalN * exp(-.$state_pars$k_dir*l) /  sum(exp(-.$state_pars$k_dir*1:.$state$lai))  
 }
 
+
+# Vcmax Scaling
+################################
+
+f_vcmax0_constant <- function(.) {
+  .$leaf$fnames$vcmax <- 'f_vcmax_constant'
+  .$pars$vcmax0
+}
+
+# Use Beer's Law to scale leaf vcmax through the canopy 
+f_scale_vcmax_beerslaw <- function(.,l) {
+  # for use with a multilayer phototsynthesis scheme
+  
+  .$state$vcmax0 * exp(-.$state_pars$k_vcmax*l) 
+}
+
+f_scale_vcmax_uniform <- function(., layers ) {
+  rep(.$state$vcmax0, length(layers) ) 
+}
+
+f_k_vcmax_constant  <- function(.) .$pars$k_vcmax
+
+f_k_vcmax_lloyd2012 <- function(.) {
+   exp( .$pars$k_vcmax_expa + .$pars$k_vcmax_expb*.$state$vcmax0 )
+}
 
 
 # Canopy Environment 

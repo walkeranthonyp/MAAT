@@ -2,7 +2,7 @@
 
 
 
-### MAAT Version 1.0 ###
+### MAAT Version 1.1 ###
 
 The multi-assumption architecture and testbed (MAAT) is a modelling framework designed to facilitate simple and rapid comparison of multiple modelling hypotheses and assumptions, i.e. ways in which to represent processes, in a systems context.
 MAAT is designed to easily specify and run large ensembles of simulations.
@@ -10,7 +10,7 @@ Ensembles can vary in process representation, parameter values, and environmenta
 Built in sensitivity analysis and uncertainty quantification (SA/UQ) can be used to assess variability in model caused output by multiple ways in which to represent processes. 
 
 The MAAT framework is a model wrapper and a model coding syntax that can be used to define a model of a system.
-The wrapper and the model system are separated and the syntax allows the wrapper to pass system-model specific information to the model without any system-model specific information contained in the wrapper. 
+The wrapper and the system model are separated and the syntax allows the wrapper to pass system-model specific information to the model without any system-model specific information contained in the wrapper. 
 All system-model specific information is contained within the system model and initialisation files. 
 This separation of wrapper and system model allows rapid development of new system models and system model components (e.g. process representations) without the need to edit the wrapper.
 
@@ -19,17 +19,25 @@ Current systems models that come packaged with the MAAT are a leaf-scale model o
 MAAT is written in R and uses the object oriented programming package 'proto' to develop the wrapper and model objects. 
 MAAT has been developed on Linux Ubuntu 16.04 and is designed to be run from the command line (and in some instances from within the R console or IDE like Rstudio).
 
+### version 1.1 ###
+
+* Structural modifications to initialisation.
+* init_MAAT.R and XMl files have had their hierarchies re-ordered, these files from v1.0 will not be compatible.
+* Adjust analytical solvers to correctly handle Collatz smoothing.
+* Canopy system model developments but not complete.
+* A number of bug fixes.  
+
 
 ### Use guidelines ### 
 
 If you want to use this code then please do!
 If you plan to publish using this code the please be respectful of other people's work and their willingness to open source their code. 
 If you are using recent modifications and code updates, please be aware that the author of these developments may not have yet published what they are intending to, please contact them to discuss.
-Older code is fine to use without co-authorship, but again there is no harm in contacting code authors to clear this.
-This is a balance, and likely no single rule really fits all situations, discussion and communication is the best policy.  
+Older code is fine to use without co-authorship, but it is rcommended that code authors be contacted.
+This is a balance, and likely no single rule really fits all situations, communicating your intentions at an early stage (i.e. during the early stages of a study before manuscript drafting) is the policy.
 
 
-### MAAT set up ###
+### MAAT installation ###
 
 * Fork this repo and then clone your fork to your local machine. 
 
@@ -49,6 +57,10 @@ Make sure RStudio is closed before opening the unit testing script as this will 
 cd ./src/system_models/<modelobject>/
 rstudio unit_testing.R
 ```
+or in a Mac terminal
+```bash
+open -na Rstudio unit_testing.R
+```
 where `<modelobject>` is the name of the system model to be tested.
 The unit testing script can be run line by line to run a number of tests of the model objects. 
 An example from the leaf model object `unit_testing.R` script to run an ACi curve: 
@@ -61,15 +73,23 @@ The MAAT wrapper can also be tested to ensure the wrapper is working correctly a
 cd ./src/
 rstudio unit_testing.R
 ```
+or in a Mac terminal
+```bash
+open -na Rstudio unit_testing.R
+```
 
-
-* Set up a MAAT project:
+### Run simulations with MAAT ###
+* Set up a MAAT project.
+A MAAT project is a directory on your hard drive where multiple related MAAT simulations can be defined, run, and have output stored.
+These project directories (as many as you like can be set up) are isolated from the source code. 
+For beginners with git, DO NOT set up a MAAT project in the source code directory. 
+To set up a new project run the following command from within the maat source code directory on your machine:
 ```bash 
 ./run_scripts/setup_MAAT_project.bs <modelobject> <projectpath>
 ```
 where `<modelobject>` is the name of the system model to be used in the project and `<projectpath>` is the full path of where the project is to be set up.
 The lowest level directory in the path will be created if it does not already exist.
-Run the above command with `leaf` as `<modelobject>` and your prefered path to set up the MAAT project. 
+The first time you set up a MAAT project try running the above command with `leaf` as `<modelobject>` and your prefered path to set up a test case MAAT project. 
 Change directory to the project directory and a simple instance of MAAT can be run:  
 ```bash
 cd <projectpath>
@@ -84,7 +104,7 @@ Once the above steps have been completed and MAAT is working without error, the 
 A MAAT ensemble is defined by the process representations, the parameter values, and the environmental variables that a user defines. 
 These values can be defined as static, i.e. values that are invariant across the whole ensemble, or dynamic values i.e. values that are varied across the ensemble. 
 The values of the static variables and dynamic variables are defined by the user as either lists in an R script `init_MAAT.R` or as separate XML files `init_user_static.xml` and `init_user_dynamic.xml`. 
-These are expected to be found in the highest level project directory. So that multiple simulations can be run from within the same project, these initialisation file names and be appended with `_<runid>` where `<runid>` is a character string that identifies the particular ensemble. 
+These are expected to be found in the highest level project directoryi, i.e. `<projectpath>`. So that multiple simulations can be run from within the same project, these initialisation file names and be appended with `_<runid>` where `<runid>` is a character string that identifies the particular ensemble. 
 For example, you can create a new init file, edit it, and then rerun MAAT with the runid as the first argument to the call script.
 Assuming you are still in the project directory:
 ```bash
