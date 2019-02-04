@@ -3,7 +3,8 @@
     <fnames>
       <gstar>'f_gstar_constref'</gstar>
       <vcmax>'f_vcmax_lin'</vcmax>
-      <jmax>'f_jmax_lin_t'</jmax>
+      <jmax>'f_jmax_lin'</jmax>
+      <tcor_jmax>'f_tcor_jmax_lin'</tcor_jmax>
       <!-- increasing component of temperature scaling for biochemical rates -->
       <tcor_asc>
         <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
@@ -11,7 +12,7 @@
         <gstar>'f_tcor_asc_Arrhenius'</gstar>
         <Kc>'f_tcor_asc_Arrhenius'</Kc>
         <Ko>'f_tcor_asc_Arrhenius'</Ko>
-        <rd>'f_temp_scalar_bethy'</rd>
+        <rd>'f_tcor_asc_bethy'</rd>
       </tcor_asc>
       <tcor_des>
         <vcmax>'f_tcor_des_modArrhenius'</vcmax>
@@ -44,8 +45,10 @@
       <f>0.44</f>
       <avn_25>8.31</avn_25>
       <bvn_25>9.11</bvn_25>
-      <ajv_25>29</ajv_25>
-      <bjv_25>1.63</bjv_25>
+      <!-- ajv_25>29</ajv_25 -->
+      <!-- bjv_25>1.63</bjv_25 -->
+      <ajv_25>0</ajv_25>
+      <bjv_25>1.715</bjv_25>
       <a_jvt_25>2.59</a_jvt_25>      
       <b_jvt_25>-0.035</b_jvt_25>      
       <cica_chi>0.87</cica_chi>

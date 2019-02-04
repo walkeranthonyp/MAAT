@@ -51,7 +51,7 @@ canopy_object <-
       .$leaf     <- as.proto( leaf_object$as.list() )
       rm(leaf_object, pos=1 )
       init_child <- .$leaf$build(mod_mimic=mod_mimic)
-      .$leaf$cpars$output <- 'all_lim'
+      .$leaf$cpars$output <- 'canopy'
       setwd(paste0('../',.$name))
 
       # build full init list
@@ -64,8 +64,8 @@ canopy_object <-
     # main run function
     
     run <- function(.) {
-      if(.$cpars$verbose) print('canopy_run')
-      
+      if(.$cpars$verbose) print('canopy run()')
+     
       # initialise canopy
       .$state$lai <- get(.$fnames$lai)(.) # this also could point to a higher level plant object  
       get(.$fnames$pars_init)(.)
@@ -103,11 +103,11 @@ canopy_object <-
         
       } else if(.$cpars$output=='leaf') {
         c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-          ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA)
+          gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA)
         
       } else if(.$cpars$output=='all_lim') {
         c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-          ri=.$state$integrated$ri, rs=.$state$integrated$rs, respiration=.$state$integrated$respiration, lim=NA, 
+          gi=.$state$integrated$gi, gs=.$state$integrated$gs, respiration=.$state$integrated$respiration, lim=NA, 
           Acg_lim=.$state$integrated$Acg_lim, 
           Ajg_lim=.$state$integrated$Ajg_lim, 
           Apg_lim=.$state$integrated$Apg_lim, 
@@ -162,12 +162,12 @@ canopy_object <-
     
     # Environment
     env <- list(
-      temp      = numeric(1),      
-      par       = numeric(1),      
+      temp      = 25,      
+      par       = 1000,      
       par_dir   = numeric(1),      
       par_diff  = numeric(1),      
-      ca_conc   = numeric(1),
-      vpd       = numeric(1),
+      ca_conc   = 400,
+      vpd       = 1,
       clearness = 1,
       zenith    = 0,
       water_td  = numeric(1),
@@ -215,9 +215,10 @@ canopy_object <-
           respiration = numeric(1),
           ci          = numeric(1),
           cc          = numeric(1),
-          rb          = numeric(1),
-          rs          = numeric(1),
-          ri          = numeric(1),
+          gb          = numeric(1),
+          gs          = numeric(1),
+          gi          = numeric(1),
+          g           = numeric(1),
           lim         = numeric(1)
         ),
         shade = list( 
@@ -227,9 +228,10 @@ canopy_object <-
           respiration = numeric(1),
           ci          = numeric(1),
           cc          = numeric(1),
-          rb          = numeric(1),
-          rs          = numeric(1),
-          ri          = numeric(1),
+          gb          = numeric(1),
+          gs          = numeric(1),
+          gi          = numeric(1),
+          g           = numeric(1),
           lim         = numeric(1)
         ),
         layer = list( 
@@ -238,9 +240,10 @@ canopy_object <-
           respiration = numeric(1),
           ci          = numeric(1),
           cc          = numeric(1),
-          rb          = numeric(1),
-          rs          = numeric(1),
-          ri          = numeric(1),
+          gb          = numeric(1),
+          gs          = numeric(1),
+          gi          = numeric(1),
+          g           = numeric(1),
           lim         = numeric(1)
         )
       ),
@@ -257,9 +260,10 @@ canopy_object <-
         cb             = numeric(1),        # canopy mean boundary layer CO2                   (Pa)
         ci             = numeric(1),        # canopy mean leaf internal CO2                    (Pa) 
         cc             = numeric(1),        # canopy mean chloroplast CO2                      (Pa)
-        rb             = numeric(1),        # canopy boundary resistance                       (m2s mol-1)
-        rs             = numeric(1),        # canopy stomatal resistance                       (m2s mol-1) 
-        ri             = numeric(1),        # canopy leaf internal resistance                  (m2s mol-1)
+        gb             = numeric(1),        # canopy leaf boundary conductance                 (mol H2O m-2 s-1)
+        gs             = numeric(1),        # canopy stomatal conductance                      (mol H2O m-2 s-1)
+        gi             = numeric(1),        # canopy leaf internal conductance                 (mol CO2 m-2 s-1)
+        g              = numeric(1),        # canopy total conductance                         (mol H2O m-2 s-1)
         respiration    = numeric(1)         # canopy respiration rate                          (umol m-2s-1)        
       )
     )
@@ -278,60 +282,58 @@ canopy_object <-
     
     configure <- function(., vlist, df, o=T ) {
       # This function is called from any of the run functions, or during model initialisation
-      # - sets the values within .$fnames, .$pars, .$env, .$state to the values passed in df 
+      # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df 
 
-      ## split model from variable name in df names 
-      #prefix <- vapply( strsplit(names(df), '.', fixed=T ), function(cv) cv[1], 'character' )
       # split variable names at . 
       listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
 
-      modobj <- .$name
-      #dfss   <- which(prefix==modobj)
-      #vlss   <- match(names(df)[dfss], paste0(modobj,'.',names(.[[vlist]])) )
-      # df subscripts for model object
-      moss   <- which(listnames[1,]==modobj)
-      # df subscripts for model object sublist variables (slmoss) and model object numeric variables (vlmoss) 
-      slss   <- which(listnames[3,moss]!='') 
-      if(length(slss)>0) {
-        slmoss <- moss[slss] 
-        vlmoss <- moss[-slss] 
-      } else {
-        slmoss <- NULL 
-        vlmoss <- moss 
-      }
-      # variable list subscripts for numeric variables 
-      vlss   <- match(listnames[2,vlmoss], names(.[[vlist]]) )
+      # df subscripts for model object 
+      mss <- which(listnames[1,]==.$name)
 
-      # catch NAs in vlss
+      # variable list subscripts in model object data structure 
+      vlss   <- match(listnames[2,mss], names(.[[vlist]]) )
+
+      # remove NAs in vlss from vlss and mss
       if(any(is.na(vlss))) {
-        #dfss <- dfss[-which(is.na(vlss))]
-        #vlss <- vlss[-which(is.na(vlss))]
-        vlmoss <- vlmoss[-which(is.na(vlss))]
-        vlss   <- vlss[-which(is.na(vlss))]
+        mss  <- mss[-which(is.na(vlss))]
+        vlss <- vlss[-which(is.na(vlss))]
       }
 
-      if(.$cpars$verbose) {
-        print('',quote=F)
-        print('Canopy configure:',quote=F)
+      # df subscripts for sublist variables (slmss) and non-sublist variables (nslmss) 
+      slss   <- which(listnames[3,mss]!='')
+      if(length(slss)>0) {
+        slmss  <- mss[slss] 
+        nslmss <- mss[-slss]
+        vlss   <- vlss[-slss] 
+      } else {
+        slmss  <- NULL 
+        nslmss <- mss 
+      }
+
+      # print configure setup if requested
+      if(.$cpars$cverbose&o) {
+        print('', quote=F )
+        print('Leaf configure:', quote=F )
         print(df, quote=F )
         print(listnames, quote=F )
-        print(moss, quote=F )
-        print(slmoss, quote=F )
-        print(vlmoss, quote=F )
+        print(mss, quote=F )
+        print(slmss, quote=F )
+        print(nslmss, quote=F )
         print(vlss, quote=F )
         print(which(is.na(vlss)), quote=F )
         print(.[[vlist]], quote=F )
       }
-    
+
       # assign UQ variables
-      #if(any(prefix==modobj)) .[[vlist]][vlss] <- df[dfss]
-      if(length(slss)>0)   vapply( slmoss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
-      if(length(vlmoss)>0) .[[vlist]][vlss] <- df[vlmoss]
+      #print(paste('Leaf conf:', vlist, names(df), df ))
+      if(length(slss)>0)    vapply( slmss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
+      if(length(nslmss)>0) .[[vlist]][vlss] <- df[nslmss]
+      #print(paste(df[vlmoss],.[[vlist]][vlss])) 
 
       # call child (leaf) assign 
       #print(paste('conf:',vlist, names(df), df, length(moss) ))
-      if(any(listnames[1,]!=modobj)) {
-        dfc <- if(length(moss)>0) df[-moss] else df 
+      if(any(listnames[1,]!=.$name)) {
+        dfc <- if(length(moss)>0) df[-which(listnames[1,]==.$name)] else df 
         vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=dfc )
       }     
       #if(any(prefix!=modobj)) vapply( .$child_list, .$child_configure , 1, vlist=vlist, df=df[-dfss] )     
