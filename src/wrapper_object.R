@@ -47,8 +47,6 @@ wrapper_object <-
 
     run   <- function(.,verbose=T) {
       
-print(.$wpars$UQtype)     
-    
       # Initialise 
       if(!.$wpars$unit_testing) {
         if(.$wpars$UQtype=='ye'|.$wpars$UQtype=='mcmc') .$wpars$eval_strings <- T
