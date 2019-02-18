@@ -41,12 +41,14 @@ wrapper_object <-
       gc()
     }
     
-    
+   
     ###########################################################################
     # Main run function
 
     run   <- function(.,verbose=T) {
       
+print(.$wpars$UQtype)     
+    
       # Initialise 
       if(!.$wpars$unit_testing) {
         if(.$wpars$UQtype=='ye'|.$wpars$UQtype=='mcmc') .$wpars$eval_strings <- T
@@ -78,10 +80,10 @@ wrapper_object <-
       # expand the fnames and driving variables lists into matrices 
       .$dataf$fnames  <- if(!is.null(.$dynamic$fnames)) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
       .$dataf$env     <- if(!is.null(.$dynamic$env))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
-      
+
       # if an SA/UQ run
       if(.$wpars$UQ) {
-          
+            
         # if Saltelli style Sobol
         if(.$wpars$UQtype=='saltelli') {
           
@@ -100,12 +102,12 @@ wrapper_object <-
           
           # remove potentially large pars list 
           .$dynamic$pars   <- lapply(.$dynamic$pars, function(e) numeric(1) )        
-
-        # Ye et al process SA method 
+        
+	# Ye et al process SA method 
         } else if(.$wpars$UQtype=='ye') {
           
           # need a minimum of >1 processes
-          if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sesitivity analysis')
+          if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sensitivity analysis')
           
           # check input dynamic$pars* are same length
           test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
@@ -116,7 +118,8 @@ wrapper_object <-
           
           # check input dynamic$pars* elements have same names
           # - to be done
-        }         
+                 
+        }
          
         # if MCMC 
         if(.$wpars$UQtype=='mcmc') {
@@ -124,7 +127,7 @@ wrapper_object <-
           # sample parameters from character string code snippets to generate initial proposal from priors 
           n <- .$wpars$mcmc_chains
           .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-
+       
           # create pars / proposal matrix 
           .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
           #print(.$dynamic$pars)
@@ -132,13 +135,13 @@ wrapper_object <-
          
           # create accepted proposal array 
           .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
- 
+       
           # create accepted proposal likelihood matrix 
           .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter ) 
- 
+       
           # remove initialisation pars list 
           .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )        
-
+       
         } else {
           stop(paste('wrapper: no method for SA/UQ type',.$wpars$UQtype))
         }
