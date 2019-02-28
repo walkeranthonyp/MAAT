@@ -496,7 +496,7 @@ f_r_zero <- function(., ... ) {
   0
 }
 
-f_r_zero_fe <- function(., ... ) {
+f_rs_constant_fe <- f_r_zero_fe <- function(., ... ) {
   0
 }
 
@@ -507,7 +507,7 @@ f_r_zero_r0 <- function(., ... ) {
 
 # stomata
 # stomatal resistances are all assumed to be in h2o units 
-f_rs_constant <- function(., ... ) {
+f_rs_constant_r0 <- f_rs_constant <- function(., ... ) {
   # output in m2s mol-1 h2o
 
   # this currently doesn't work with the solver.

@@ -22,7 +22,7 @@ f_leafsys_enzymek <- function(.) {
   .$state$oi <- .$env$o2_conc * .$env$atm_press * 1e-3
   # leaf temperature
   .$state$leaf_temp <- .$env$temp               
-  # RH from VPD
+  # RH from VPD - needs a switch somehow
   .$env$rh   <- f_rh_from_vpd(.)
 
   # calculate state parameters
@@ -72,8 +72,14 @@ f_leafsys_enzymek <- function(.) {
       .$state$transition <- transition_cc(.)
     }
     
-    # calculate assimilation 
+    # calculate assimilation
+    if(.$fnames$rs=='f_rs_constant') {
+      # temporarily rename solver function that calculates A when rs is a constant 
+      solver <- .$fnames$solver
+      .$fnames$solver <- 'f_A_r0_leaf_analytical_quad'
+    }  
     .$state$A       <- get(.$fnames$solver)(.)      
+ 
     # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
     .$state$lim     <- c(2,3,7)[which(c(.$state$Acg,.$state$Ajg,.$state$Apg)==min(c(.$state$Acg,.$state$Ajg,.$state$Apg),na.rm=T))]       
  
@@ -94,7 +100,7 @@ f_leafsys_enzymek <- function(.) {
       if( .$state$A<0 | .$state$cc<0 | .$state_pars$rs<0 ) {
 
         # perhaps write this flag into the leaf object
-        #print(paste('negative values loop'))
+        print(paste('solver returned negative value of A, cc, or rs; recalculate assuming rs = r0'))
 
         # temporarily rename solver function 
         solver <- .$fnames$solver
@@ -105,10 +111,10 @@ f_leafsys_enzymek <- function(.) {
         # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
         .$state$lim     <- c(2,3,7)[which(c(.$state$Acg,.$state$Ajg,.$state$Apg)==min(c(.$state$Acg,.$state$Ajg,.$state$Apg),na.rm=T))]       
    
-        #.$fnames$solver_func <- solver 
         .$fnames$solver <- solver 
     }}
 
+    if(.$fnames$rs=='f_rs_constant') .$fnames$solver <- solver 
     #print(.$leaf$fnames)
     #print(.$leaf$state_pars)
  
