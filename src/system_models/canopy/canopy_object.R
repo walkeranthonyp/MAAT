@@ -120,7 +120,7 @@ canopy_object <-
         )
         
       } else if(.$cpars$output=='full') {
-        c(.$state$integrated, .$state_pars)
+        c(unlist(.$state$integrated), unlist(.$state_pars))
 
       } else if(.$cpars$output=='leaf_dem') {
         vapply(.$state$vert$layer, function(v) v, .$state$vert$layer[[1]] )

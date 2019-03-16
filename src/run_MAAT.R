@@ -101,7 +101,7 @@ xml          <- F
 # initialisation data file name if not an XML
 init         <- 'init_MAAT' 
 
-# run i.d. - used as suffix/prefix for in/out files
+# run i.d. - used as suffix/label for in/out files
 runid        <- NULL 
 
 # basic output file name
@@ -307,6 +307,7 @@ if(!is.null(metdata)) {
   if(file.exists(metdata)&!kill) {
     print(metdata, quote=F )
     metdf <- read.csv(metdata,strip.white=T)  
+    print(head(metdf), quote=F )
     
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML 
     # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML 
