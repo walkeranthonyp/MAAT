@@ -134,6 +134,9 @@ wrapper_object <-
           # create accepted proposal array 
           .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
        
+          # create proposal storage array (store all proposals, not just accepted ones)
+	  .$dataf$prop_storage <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
+          
           # create accepted proposal likelihood matrix 
           .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter ) 
        
@@ -380,6 +383,9 @@ wrapper_object <-
       .$dataf$pars_array[,,1]   <- .$dataf$pars
       .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)  
 
+      # add to prop storage array
+      .$dataf$prop_storage[,,1] <- .$dataf$pars
+
       # if doing DREAM MCMC, run static part of algorithm
       .$static_dream()
 
@@ -389,7 +395,7 @@ wrapper_object <-
       # BURN-IN: if convergence has not been reached, re-run MCMC
 
       # write output from MCMC
-      write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
+      write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc, prop_storage=.$dataf$prop_storage), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
     }
     
     # This wrapper function is called from a vapply function to iterate / step chains in an MCMC
@@ -530,6 +536,7 @@ wrapper_object <-
       # vector that stores how many times crossover value indices are used
       # initialized to 1's in order to avoid numeric issues
       .$mcmc$n_id[] <- rep(1,.$mcmc$n_CR)
+      #.$mcmc$n_id[] <- rep(0,.$mcmc$n_CR)
     }
 
     # generate proposal using DREAM algorithm
@@ -642,6 +649,8 @@ wrapper_object <-
           # append accepted current_state and probability density to storage data frames
           .$dataf$pars_array[qq,1:.$mcmc$d,j+1] <- .$mcmc$current_state[qq,1:.$mcmc$d]
           .$dataf$pars_lklihood[qq,j+1] <- .$mcmc$p_state[qq]
+	  # store generated proposal (regardless of whether accepted or not)
+	  .$dataf$prop_storage[qq,1:.$mcmc$d,j+1] <- .$dataf$pars[qq,1:.$mcmc$d]
         } else {
           accept <- FALSE
           # set jump back to zero for p_CR
@@ -649,6 +658,8 @@ wrapper_object <-
           # repeat previous current_state and probability density in storage data frames
           .$dataf$pars_array[qq,1:.$mcmc$d,j+1] <- .$dataf$pars_array[qq,1:.$mcmc$d,j]
           .$dataf$pars_lklihood[qq,j+1] <- .$dataf$pars_lklihood[qq,j]
+	  # store generated proposal (regardless of whether accepted or not)
+	  .$dataf$prop_storage[qq,1:.$mcmc$d,j+1] <- .$dataf$pars[qq,1:.$mcmc$d]
         }
  
         # update jump distance crossover index
@@ -679,7 +690,7 @@ wrapper_object <-
     }
 
     # test for convergence using the R-statistic convergence diagnostic of Gelman and Rubin  
-    chain_convergence <- function(.) {
+    chain_converge <- function(.) {
     }    
 
 ######################################################################################################################################################
@@ -1002,7 +1013,7 @@ wrapper_object <-
     
     # input/output matrices and dataframes
     # with an associated length for input matrices
-    dataf  <- list( 
+    dataf <- list( 
       # variables matrices - created during runtime 
       fnames        = NULL,
       fnamesB       = NULL,
@@ -1010,6 +1021,7 @@ wrapper_object <-
       parsB         = NULL,
       pars_lklihood = NULL,
       pars_array    = NULL,
+      prop_storage  = NULL,
       env           = NULL,
       met           = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example 
       # row length of above matrices
@@ -1054,10 +1066,13 @@ wrapper_object <-
     # parameters specific to the DREAM MCMC algorithm
     mcmc <- list(
       delta         = 3,              # number chain pair proposal
-      c_rand        = 0.1,            # randomization
+      c_rand        = 0.01,            # randomization
+      #c_rand        = 0.1,            # randomization
       c_ergod       = 1e-12,          # ergodicicty
       p_gamma       = 0.2,            # probability of unit jump rate (probability gamma = 1)
+      # p_gamma       = 1.0,            # probability of unit jump rate (probability gamma = 1)
       n_CR          = 3,              # number of crossover values      
+      # n_CR          = 1,              # number of crossover values      
       d             = numeric(1),     # number of parameters (dimensionality of problem)
       id            = numeric(1),     # index of crossover values
       J             = numeric(),      # vector of length n_CR
