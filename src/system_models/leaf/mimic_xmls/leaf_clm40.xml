@@ -1,6 +1,6 @@
 <default>
-  <leaf>
-    <fnames>
+  <fnames>
+    <leaf>
       <gstar>'f_gstar_f1980'</gstar>
       <vcmax>'f_vcmax_clm'</vcmax>
       <tcor_asc>
@@ -17,6 +17,11 @@
       <deltaS>
         <vcmax>'f_deltaS_constant'</vcmax>
       </deltaS>
+      <q10_func>
+        <vcmax>'f_q10_constant'</vcmax>
+        <Kc>'f_q10_constant'</Kc>
+        <Ko>'f_q10_constant'</Ko>
+      </q10_func>
       <etrans>'f_j_collatz1991'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
@@ -28,8 +33,10 @@
       <solver>'f_R_Brent_solver'</solver>
       <solver_func>'f_A_r_leaf'</solver_func>
       <Alim>'f_lim_farquhar1980'</Alim>
-    </fnames>
-    <pars>
+    </leaf>
+  </fnames>
+  <pars>
+    <leaf>
       <diag>F</diag>
       <a>0.85</a>
       <f>0.52</f>
@@ -68,9 +75,11 @@
         <Kc>2.1</Kc>
         <Ko>1.2</Ko>
       </q10>
-    </pars>
-    <env>
+    </leaf>
+  </pars>
+  <env>
+    <leaf>
       <o2_conc>0.209</o2_conc>
-    </env>
-  </leaf>
+    </leaf>
+  </env>
 </default>

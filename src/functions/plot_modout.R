@@ -13,9 +13,9 @@ source('plotting_functions.R')
 
 # load data
 setwd(wdd)
-fname <- paste(runid,'out','salt','AB',sep='_')
+fname <- paste('out',runid,'salt','AB',sep='_')
 AB    <- readRDS(paste(fname,'.RDS',sep=''))
-fname <- paste(runid,'out','salt','AB','dataf',sep='_')
+fname <- paste('out',runid,'salt','AB','dataf',sep='_')
 l1    <- readRDS(paste(fname,'.RDS',sep=''))
 
 # calculate response in AB and ABi arrays

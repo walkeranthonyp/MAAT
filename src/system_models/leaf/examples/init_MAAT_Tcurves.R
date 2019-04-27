@@ -47,29 +47,29 @@
 
 # define lists
 fnames.static <- list(
-  solver          = 'f_A_r_leaf_analytical',
-  gstar           = 'f_scalar_none',
+  solver  = 'f_A_r_leaf_analytical',
+  gstar   = 'f_scalar_none',
   tcor_asc = list(
-  	Kc         = 'f_scalar_none',
-  	Ko 		   = 'f_scalar_none',
-  	vcmax  	   = 'f_scalar_none',
-  	jmax   	   = 'f_scalar_none'
+  	Kc     = 'f_scalar_none',
+  	Ko 		 = 'f_scalar_none',
+  	vcmax  = 'f_scalar_none',
+  	jmax   = 'f_scalar_none'
   ),
     tcor_des = list(
   	vcmax  = 'f_scalar_none',
   	jmax   = 'f_scalar_none'
   ),
-  vcmax           = 'f_vcmax_constant',
-  jmax            = 'f_jmax_lin',
-  rd     		  = 'f_rd_lin_vcmax', 
-  ri              = 'f_r_zero',
-  rb              = 'f_r_zero',
-  rs              = 'f_rs_medlyn2011'
+  vcmax = 'f_vcmax_constant',
+  jmax  = 'f_jmax_lin',
+  rd    = 'f_rd_lin_vcmax', 
+  ri    = 'f_r_zero',
+  rb    = 'f_r_zero',
+  rs    = 'f_rs_medlyn2011'
 )
 
 pars.static <- list(
   atref = list(vcmax  = 50),
-  diag         = T
+  diag  = T
   )
 
 env.static  <- list(
@@ -87,24 +87,23 @@ env.static  <- list(
 
 # define lists
 fnames.var <- list(
-  vcmax_tcor_asc  = c('f_scalar_none','f_tcor_asc_Q10','f_tcor_asc_Arrhenius'),
-  vcmax_tcor_des  = c('f_scalar_none','f_tcor_des_modArrhenius','f_tcor_des_collatz1991','f_tcor_des_cox2001')
+  tcor_asc = list(vcmax = c('f_scalar_none','f_tcor_asc_Q10','f_tcor_asc_Arrhenius')),
+  tcor_des = list(vcmax = c('f_scalar_none','f_tcor_des_modArrhenius','f_tcor_des_collatz1991','f_tcor_des_cox2001'))
 )
 
 pars.var      <- list(
-  reftemp.vcmax = 25,         # reference temperature at which Vcmax scalar = 1         (oC) 
-  # Ha.vcmax      = 69830,      # activation energy of Vcmax                              (J mol-1)
-  Ha.vcmax      = 54000,      # activation energy of Vcmax                              (J mol-1)
-  Hd.vcmax      = 200000,     # deactivation energy of Vcmax                            (J mol-1)
-  Topt.vcmax    = 32,         # temperature optimum of Vcmax                            (oC)
-  deltaS.vcmax  = numeric(1), # 
-  q10.vcmax     = 2,          # Q10 of Vcmax                                            (-)
-  tupp_cox.vcmax= 36,         # upper leaf T for Vcmax temp scaling from Cox 2001       (oC)
-  tlow_cox.vcmax= -20,        # lower leaf T for Vcmax temp scaling from Cox 2001       (oC)
-  exp_cox.vcmax = 0.3,        # exponent for Vcmax temp scaling from Cox 2001           (-)
-  gstar_bf_a    = 0.012,      # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
-  gstar_bf_b    = 1.68,       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
-  gstar_bf_c    = 42.7        # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
+  reftemp    = list(vcmax = 25),          # reference temperature at which Vcmax scalar = 1         (oC) 
+  Ha         = list(vcmax = 54000),       # activation energy of Vcmax                              (J mol-1)
+  Hd         = list(vcmax = 200000),      # deactivation energy of Vcmax                            (J mol-1)
+  Topt       = list(vcmax = 32),          # temperature optimum of Vcmax                            (oC)
+  deltaS     = list(vcmax  = numeric(1)), # 
+  q10        = list(vcmax = 2),           # Q10 of Vcmax                                            (-)
+  tupp_cox   = list(vcmax= 36),           # upper leaf T for Vcmax temp scaling from Cox 2001       (oC)
+  tlow_cox   = list(vcmax= -20),          # lower leaf T for Vcmax temp scaling from Cox 2001       (oC)
+  exp_cox    = list(vcmax = 0.3),         # exponent for Vcmax temp scaling from Cox 2001           (-)
+  gstar_bf_a = 0.012,                     # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
+  gstar_bf_b = 1.68,                      # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
+  gstar_bf_c = 42.7                       # quadratic temperature dependence of gamma star from Brooks & Farquhar 1985 
 )
 
 pars_proc.var <- NA
@@ -121,20 +120,18 @@ env.var <- list(
 ###############################
 
 init_static <- list(
-  leaf = list(
-    fnames    = fnames.static,
-    pars      = pars.static,
-    env       = env.static
-  ))
+  fnames = list( leaf = fnames.static),
+  pars   = list( leaf = pars.static),
+  env    = list( leaf = env.static)
+)
 
 init_dynamic <- list(
-  leaf = list(
-    fnames    = fnames.var,
-    pars      = pars.var,
-    pars_proc = pars_proc.var,
-    pars_eval = pars_eval.var,
-    env       = env.var
-  ))
+  fnames    = list( leaf = fnames.var),
+  pars      = list( leaf = pars.var),
+  pars_proc = list( leaf = pars_proc.var),
+  pars_eval = list( leaf = pars_eval.var),
+  env       = list( leaf = env.var)
+)
 
 
 

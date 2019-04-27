@@ -1,6 +1,6 @@
 <options>
-  <leaf>
-    <fnames>
+  <fnames>
+    <leaf>
       <leafsys>'c( 'f_leafsys_enzymek' )'</leafsys>
       <solver_func>'c(  )'</solver_func>
       <solver>'c(  )'</solver>
@@ -11,7 +11,8 @@
       <gas_diff>'c(  )'</gas_diff>
       <Alim>'c(  )'</Alim>
       <vcmax>'c( 'f_vcmax_clm', 'f_vcmax_constant', 'f_vcmax_lin' )'</vcmax>
-      <jmax>'c( 'f_jmax_constant', 'f_jmax_lin', 'f_jmax_lin_t', 'f_jmax_power' )'</jmax>
+      <jmax>'c( 'f_jmax_constant', 'f_jmax_lin', 'f_jmax_power' )'</jmax>
+      <tcor_jmax>'c( 'f_tcor_jmax_lin' )'</tcor_jmax>
       <tpu>'c( 'f_tpu_constant', 'f_tpu_lin' )'</tpu>
       <rd>'c( 'f_rd_constant', 'f_rd_lin_N', 'f_rd_lin_vcmax', 'f_rd_lin_vcmax_t' )'</rd>
       <rl_rd_scalar>'c(  )'</rl_rd_scalar>
@@ -25,6 +26,6 @@
       <tcor_dep>'c( 'f_tcor_dep_dependent', 'f_tcor_dep_independent' )'</tcor_dep>
       <deltaS>'c( 'f_deltaS', 'f_deltaS_constant', 'f_deltaS_lin_t' )'</deltaS>
       <q10_func>'c(  )'</q10_func>
-    </fnames>
-  </leaf>
+    </leaf>
+  </fnames>
 </options>

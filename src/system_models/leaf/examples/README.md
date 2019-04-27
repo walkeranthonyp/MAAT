@@ -41,11 +41,11 @@ Options that have been hard coded into the the above `call_*.bs` script is the r
 
 
 * Generate figures from MAAT output.
-From the project directory open `plot_figures.R` using your favorite text editor (e.g. vim) or IDE (e.g. RStudio).
+From the project directory open `analysis_figures.R` using your favorite text editor (e.g. vim) or IDE (e.g. RStudio).
 There are a number of configurable options but the only one needed is to set the date on which the ensemble was run replace `##OUTPUTDATE##` in `odate <- '##OUTPUTDATE##'` on line 19 with the ensemble run date in YYYY-MM-DD format.
 The figures can then be run from the command line with:
 ```bash
-Rscript plot_figures.R
+Rscript analysis_figures.R
 ```  
 This will generate the photosynthesis figures in Walker et al. manuscript submitted to GMD.
 These will be placed in the `tables` and `plots` subdirectories of the results directory: `<projectpath>/results/#OUTPUTDATE#`.

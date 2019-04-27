@@ -1,13 +1,14 @@
 <options>
-  <leaf>
-    <fnames>
+  <fnames>
+    <leaf>
       <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
       f_gstar_constref will get a specified value at 25 and scale according to gstar_tcor, f_gstar_c1991 calculates from tau the CO2:O2 specificity ratio -->
       <gstar>'f_gstar_constref'</gstar>
       <!-- calculate Vcmax at <reftemp.vcmax> -->
       <vcmax>'f_vcmax_constant'</vcmax>
       <!-- calculate Jmax at <reftemp.jmax>, f(Vcmax), f_jmax_lin_t allows for temperature scaling of JV ratio based on Kattge & Knorr 2007 -->
-      <jmax>'f_jmax_lin_t'</jmax>
+      <jmax>'f_jmax_lin'</jmax>
+      <tcor_jmax>'f_tcor_jmax_lin'</tcor_jmax>
       <!-- increasing component of temperature scaling for biochemical rates -->
       <tcor_asc>
         <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
@@ -58,8 +59,10 @@
       <solver_func>'f_A_r_leaf'</solver_func>
       <!-- selection of limiting rate function, straight miniimum Farquhar 1980 or smoothed Collatz 1991 -->
       <Alim>'f_lim_farquhar1980'</Alim>
-    </fnames>
-    <pars>
+    </leaf>
+  </fnames>
+  <pars>
+    <leaf>
       <!-- fraction of incident light absorbed by leaf, 0-1 -->
       <a>0.84</a>
       <!-- fraction of absorbed light not absorbed by light harvesting complexes, 0-1
@@ -69,7 +72,7 @@
       <theta_j>0.7</theta_j>
       <!-- intercept & slope of Jmax25 to Vcmax25 area linear relationship -->
       <ajv_25>0</ajv_25>
-      <bjv_25>1.67</bjv_25>
+      <bjv_25>1.715</bjv_25>
       <!-- intercept & slope of Jmax25:Vcmax25 ratio to leaf temperature linear relationship -->
       <a_jvt_25>2.59</a_jvt_25>      
       <b_jvt_25>-0.035</b_jvt_25>      
@@ -132,10 +135,12 @@
         <vcmax>-1.07</vcmax>
         <jmax>-0.75</jmax>
       </b_deltaS_t>
-    </pars>
-    <env>
+    </leaf>
+  </pars>
+  <env>
+    <leaf>
       <!-- atmospheric O2 concentration -->
       <o2_conc>0.21</o2_conc>
-    </env>
-  </leaf>
+    </leaf>
+  </env>
 </options>

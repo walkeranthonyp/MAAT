@@ -166,10 +166,13 @@ if(is.null(odir)) {
 }
 
 # create input/output filenames
-initf   <- if(is.null(runid))     paste(init,'R',sep='.')       else paste(init,'_',runid,'.R',sep='')
-ofname  <- if(is.null(runid))     of_main                       else paste(runid,of_main,sep='_')
-ofname  <- if(is.null(mod_mimic)) ofname                        else paste(ofname,mod_mimic,sep='_')
-sofname <- if(is.null(runid))     paste(of_main,'salt',sep='_') else paste(runid,of_main,'salt',sep='_')
+# initialisation file if not xml
+initf       <- if(is.null(runid))     paste(init,'R',sep='.')       else paste(init,'_',runid,'.R',sep='')
+# prefix for output files
+ofname      <- if(is.null(runid))     of_main                       else paste(of_main,runid,sep='_')
+ofname      <- if(is.null(mod_mimic)) ofname                        else paste(mod_mimic,ofname,sep='_')
+# prefix for saltelli sensitivity output files
+sofname     <- if(is.null(runid))     paste(of_main,'salt',sep='_') else paste(runid,of_main,'salt',sep='_')
 
 
 
@@ -192,9 +195,7 @@ source(paste0(mod_object,'.R'))
 
 # clone and build the maat wrapper and model object
 maat         <- as.proto(wrapper_object$as.list()) 
-#init_default <- maat$build(model=mod_object)
-init_default <- maat$build(model=mod_object, mod_mimic=mod_mimic )
-#print(init_default)
+maat$build(model=mod_object, mod_mimic=mod_mimic )
 rm(wrapper_object)
 rm(mod_object)
 
@@ -231,21 +232,6 @@ maat$model$cpars$output  <- mod_out
 
 
 ##################################
-# Read object(s)'s defaults 
-
-## read default model setup for highest level model
-#init_default <- readXML(paste(mod_obj,'default.xml',sep='_'))
-#
-## read model mimic setup
-#if(!is.null(mod_mimic)) {
-#  setwd('mimic_xmls')
-#  init_mimic   <- readXML(paste(mod_obj,'_',mod_mimic,'.xml',sep=''))
-#  init_default <- fuselists(init_default,init_mimic) 
-#}
-
-
-
-##################################
 # Initialise the MAAT wrapper
 
 # load init xml's or list from init R script 
@@ -256,19 +242,19 @@ if(xml) {
   
   # read user defined XMLs of static variables
   staticxml   <- paste(mod_obj,'user','static.xml',sep='_')
-  if(file.exists(staticxml)) init_static <- readXML(staticxml)
-  else                       {lis <- list(list(fnames=NULL,pars=NULL,env=NULL)); names(lis) <- mod_obj; init_static <- lis } 
+  init_static <- if(file.exists(staticxml)) readXML(staticxml) else list(NULL)
   
   # read user defined XMLs of dynamic variables
   dynamicxml   <- paste(mod_obj,'user','dynamic.xml',sep='_')
-  if(file.exists(dynamicxml)) init_dynamic <- readXML(dynamicxml)
-  else                       {lid <- list(list(fnames=NULL,pars=NULL,env=NLL)); names(lid) <- mod_obj; init_dynamic <- lid } 
-  
+  init_dynamic <- if(file.exists(dynamicxml)) readXML(dynamicxml) else list(NULL)
+
+  # convert NAs to NULLs
+  init_static  <- rapply(init_static,  function(x) if(is.na(x)) NULL else x, how='replace' )   
+  init_dynamic <- rapply(init_dynamic, function(x) if(is.na(x)) NULL else x, how='replace' )   
+
   # otherwise read init list R script
 } else source(initf)
 
-# combine default values with user defined static values
-init_s <- if(exists('init_static')) fuselists(init_default,init_static) else init_default
 
 # check process representation functions specified in input exist 
 search_fnames <-  function(v, ln ) {
@@ -276,32 +262,29 @@ search_fnames <-  function(v, ln ) {
 } 
 print('',quote=F)
 print('Check static fnames requested exist:',quote=F)
-out <- lapply(init_s, 
-              function(l) lapply( l$fnames, 
-                                 function(l) if(is.list(l)) lapply(l, search_fnames, ln='static') else search_fnames(l, ln='static' )
-                                 ))         
-                      #function(c1) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init static does not exist') else 'exists' ))
+out <- lapply(init_static$fnames,
+         function(l) lapply(l, function(l1) if(is.list(l1)) lapply(l1, search_fnames, ln='static') else search_fnames(l1, ln='static' )) )
 print('  all static fnames requested exist',quote=F)
 
 print('',quote=F)
 print('Check dynamic fnames requested exist:',quote=F)
-out <- lapply(init_dynamic, 
-              function(l) lapply(l$fnames,
-                                 function(l) if(is.list(l)) lapply(l, search_fnames, ln='dynamic') else search_fnames(l, ln='dynamic' )
-                                 ))
-                            #function(v) for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop('The function: ',c1,' , specified in init dynamic does not exist') else return('exists') ))
+if(!is.null(unlist(init_dynamic$fnames))) { 
+  out <- lapply(init_dynamic$fnames,
+           function(l) lapply(l, function(l1) if(is.list(l1)) lapply(l1, search_fnames, ln='dynamic') else search_fnames(l1, ln='dynamic' )) )
+}
 print('  all dynamic fnames requested exist',quote=F)
 
+
 # add init lists to wrapper
-maat$init_static  <- init_s
+maat$init_static  <- init_static
 maat$init_dynamic <- init_dynamic
 
 # output static parameters used in simulation
 print('',quote=F)
 print('Write record of static run variables:',quote=F)
 setwd(odir)
-listtoXML(paste(runid,'setup_static.xml',sep='_'),  'static',  sublist=init_s)
-listtoXML(paste(runid,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
+listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=init_static)
+listtoXML(paste(ofname,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
 
 
 
@@ -317,7 +300,8 @@ if(!is.null(metdata)) {
   if(file.exists(paste0(mod_obj,'_user_met.xml'))) {
     met_trans <- readXML(paste0(mod_obj,'_user_met.xml'))
     # met_trans <- evalXMLlist(met_trans)
-    if(any(names(met_trans)==mod_obj)) met_trans <- met_trans[[which(names(met_trans)==mod_obj)]]$env
+    #if(any(names(met_trans)==mod_obj)) met_trans <- met_trans[[which(names(met_trans)==mod_obj)]]$env
+    if(any(names(met_trans$env)==mod_obj)) met_trans <- met_trans$env[[which(names(met_trans$env)==mod_obj)]]
     else {
       print('',quote=F)
       print('Met translator file:',quote=F)
@@ -344,6 +328,7 @@ if(!is.null(metdata)) {
   if(file.exists(metdata)&!kill) {
     print(metdata, quote=F )
     metdf <- read.csv(metdata,strip.white=T)  
+    print(head(metdf), quote=F )
     
     ###################################
     # add eval data to model object - total hack for now   

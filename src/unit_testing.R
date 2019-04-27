@@ -16,6 +16,7 @@
 # Wrapper
 # Leaf
 rm(list=ls())
+if (! file.exists('~/tmp')) dir.create('~/tmp',recursive=TRUE)
 
 source('wrapper_object.R')
 out <- wrapper_object$.test_simple()

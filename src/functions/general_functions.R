@@ -11,8 +11,8 @@ library(XML)
 
 
 #####################################################
-write_to_file <- function(df,ofile,app=F,type='csv') {
-  if(type=='csv') write.table(format(df,width=12),paste(ofile,'.csv',sep=''),quote=F,row.names=F,col.names=!app,sep=',',append=app)  
+write_to_file <- function(df, ofile, app=F, type='csv' ) {
+  if(type=='csv')      write.table(format(df,width=12), paste(ofile,'.csv',sep=''), quote=F, row.names=F, col.names=!app, sep=',', append=app )  
   else if(type=='rds') saveRDS(df,paste(ofile,'RDS',sep='.'))
   else print(paste('No methods for output file format:',type))
 } 
@@ -86,18 +86,20 @@ listtoXML <- function(fname,name,...) {
   
   rec <- function(node, sublist) {
     for(i in 1:length(sublist)) {
-      child <- newXMLNode(names(sublist)[i], parent=node)
-      
-      if (typeof(sublist[[i]]) == "list") {
-        if(is.null(names(sublist[[i]]))) {
-          #warning(paste(fname,names(sublist)[i],'list or sublist defined with no named elements, likely an empty list'))
-          sublist[[i]] <- NA
-          names(sublist[[i]]) <- 'nada'
+      if(!is.null(unlist(sublist[[i]]))) {
+        child <- newXMLNode(names(sublist)[i], parent=node)
+        
+        if (typeof(sublist[[i]]) == "list") {
+          if(is.null(names(sublist[[i]]))) {
+            #warning(paste(fname,names(sublist)[i],'list or sublist defined with no named elements, likely an empty list'))
+            sublist[[i]] <- NA
+            names(sublist[[i]]) <- 'nada'
+          }
+          rec(child, sublist[[i]]) 
         }
-        rec(child, sublist[[i]]) 
-      }
-      else {
-        xmlValue(child) <- if(class(sublist[[i]])=='character') paste0("'",sublist[[i]],"'") else sublist[[i]]
+        else {
+          xmlValue(child) <- if(class(sublist[[i]])=='character') paste0("'",sublist[[i]],"'") else sublist[[i]]
+        }
       }
     }
   }  
@@ -163,13 +165,17 @@ fuselists <- function(mainlist,sublist) {
 
 #####################################################
 # write Latex doc
-write_Latex <- function(obj,fname,func=write_list_Latex,call=F,...) {
+write_Latex <- function(obj, fname, func=write_list_Latex, call=F, landscape=F, ... ) {
   fnamec <- paste0(fname,'.tex')
   
+  # if(landscape) write("\\documentclass[10pt,landscape]{article}",fnamec)
+  # else          write("\\documentclass[10pt]{article}",fnamec)
   write("\\documentclass[10pt]{article}",fnamec)
+  if(landscape) write("\\usepackage[margin=0.75in,landscape]{geometry}",fnamec,append=T)
   write("\\usepackage{booktabs}",fnamec,append=T)
   write("\\usepackage{placeins}",fnamec,append=T)
-#   write("\\usepackage[section]{placeins}",fname,append=T)
+  write("\\usepackage{longtable}",fnamec,append=T)
+  #   write("\\usepackage[section]{placeins}",fname,append=T)
   write("\\begin{document}",fnamec,append=T)
 
   func(obj, fnamec, ... )
@@ -183,28 +189,29 @@ write_Latex <- function(obj,fname,func=write_list_Latex,call=F,...) {
 
 
 #####################################################
-write_table_Latex <- function(sub,fname,cnames=NULL,rnames=NULL,capname=NULL) {
+write_table_Latex <- function(sub, fname, cnames=NULL, rnames=NULL, capname=NULL, ... ) {
   if(!is.null(cnames)) colnames(combtable)  <- cnames
-  print.xtable.apw(sub,cap=capname,file=fname,append=T,include.rownames=!is.null(rnames))      
+  print.xtable.apw(sub, cap=capname, file=fname, append=T, include.rownames=!is.null(rnames), ... )      
 }
 
 
 #####################################################
-write_tablelist_Latex <- function(slist,fname,cnames=NULL,rnames=NULL,capname=NULL) {
+write_tablelist_Latex <- function(slist, fname, cnames=NULL, rnames=NULL, capname=NULL, ... ) {
   for(i in 1:length(slist)) {
-    write_table_Latex(slist[[i]],fname,capname=capname[i])
+    write_table_Latex(slist[[i]], fname, capname=capname[i], ... )
   }
 }
 
 
 #####################################################
 # write list recursively
-write_list_Latex <- function(sublist,fname) {
+write_list_Latex <- function(sublist, fname, ... ) {
   for(i in 1:length(sublist)) {
       if(typeof(sublist[[i]]) == "list") {
-        write_list_Latex(sublist[[i]],fname)
+        write_list_Latex(sublist[[i]], fname, ... )
       } else {
-        if(class(sublist[[i]]) == "numeric") print.xtable.apw(t(as.matrix(sublist[[i]])),cap=names(sublist)[1],file=fname,append=T) else print.xtable.apw(sublist[[i]],cap=names(sublist)[1],file=fname,append=T) 
+        if(class(sublist[[i]]) == "numeric") print.xtable.apw(t(as.matrix(sublist[[i]])), cap=names(sublist)[1], file=fname, append=T, ... ) 
+        else                                 print.xtable.apw(sublist[[i]], cap=names(sublist)[1], file=fname, append=T, ... ) 
       } 
 
   }
@@ -239,10 +246,10 @@ write_list_Latex_comb <- function(sublist,fname,cnames=NULL,rnames=NULL,...) {
 
 
 #####################################################
-print.xtable.apw <- function(x,cap=NULL,...){
+print.xtable.apw <- function(x, cap=NULL, ... ){
   
   print(xtable(x,caption=cap,...),
-        floating=T,
+        # floating=T,
         caption.placement='top',
         hline.after=NULL,
         add.to.row=list(pos=list(-1,0, nrow(x)),
@@ -251,7 +258,43 @@ print.xtable.apw <- function(x,cap=NULL,...){
                           '\\midrule\n',
                           '\\bottomrule\n')),
         table.placement='h',
-        ...)
+        ... )
+}
+
+
+#####################################################
+# covert stacked data frame to table for latex table output
+sens_table <- function(df1) {
+  s1    <- unstack(df1, sensitivity1~variable)
+  tm    <- apply(as.matrix(unstack(df1, mean~variable)),1,mean)
+  tv    <- apply(as.matrix(unstack(df1, variance~variable)),1,mean)
+  scen  <- unstack(df1, scenario~variable)[,1]
+  df2   <- data.frame(scenario=scen, mean=tm, variance=tv, s1 )
+  if(any(names(df1)=='model')) {
+    mod  <- unstack(df1, model~variable)[,1]
+    df2  <- data.frame(model=mod, df2 )
+  }
+  df2
+} 
+
+
+# add environmetal variables to sensitivity output matrix
+add_scenario_values <- function(df1) {
+  dfe <- df1['scenario']
+  if(!is.null(evar1)&!is.null(evar2)) {
+    dfe <- cbind(dfe,dfe)
+    names(dfe) <- c(evar1name, evar2name )
+    dfe1 <- dfe
+    for(r in 1:length(dfe[,1])) dfe1[r,] <- if(dfe[r,1]>0) cbind(evar1,evar2)[dfe[r,1],] else rep('int',2)
+  } else if(!is.null(evar1)) {
+    names(dfe) <- evar1name
+    dfe1 <- dfe
+    for(r in 1:length(dfe[,1])) dfe1[r,] <- if(dfe[r,]>0) evar1[dfe[r,]] else 'int'
+  } 
+  df1 <- df1[-which(names(df1)=='scenario')]
+  df1 <- data.frame(dfe1, round(df1,2) )
+  if(any(names(df1)=='model')) df1$model[df1$model<0] <- 'int'
+  df1
 }
 
 

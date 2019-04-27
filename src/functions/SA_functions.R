@@ -108,7 +108,36 @@ redsamp_psa <- function(nsamp, a1, ... ) {
   calc_process_sensitivity(a1[ss2,,ss1,,drop=F])$sensitivity
 } 
 
+# functions to convert Process SA list output into a dataframes
+convert_to_df_1list_proc1 <- function(onelist, s=NA, proc=NA ) {
+  df1 <- unlist(onelist)
+  data.frame( scenario=s, variable=proc, t(df1) )
+}
 
+convert_to_df_3list_proc <- function(list1) {
+  df1 <-
+    do.call('rbind',
+      lapply(1:length(list1), function(j, l1=list1[[j]] ) 
+        do.call('rbind',
+          lapply(1:length(l1), function(i, l=l1[[i]], j ) 
+          convert_to_df_1list_proc1(l,s=i,proc=names(list1)[j]), j=j ))))
+  names(df1)[3:7] <- c('mean','variance','sd','partial_variance','sensitivity1') 
+  
+  # calculate weighted mean sensitivities across scenarios
+  ls    <- length(unique(df1$scenario))
+  pscen <- rep(1/ls,ls) 
+  df1p  <- subset(df1,scenario==1) 
+  df1p$scenario <- -1
+  for(p in levels(df1$variable)) {
+    df1s <- subset(df1,variable==p)
+    df1p[which(df1p$variable==p),3:7] <- apply(as.matrix(df1s[,3:7]), 2, function(v) sum(v*pscen) )
+  }
+
+  # calculate integrated sensitvity 
+  df1p$sensitivity1 <- df1p$partial_variance / df1p$variance 
+
+  rbind(df1,df1p)
+}
 
 
 
@@ -136,18 +165,18 @@ calc_parameter_sensitivity <- function(AB, ABi) {
   # - creates a weighted average across list elements from a Sobol list 
   # - same dimensions as the list dimensions of ABi
   average_list <- function(inlist,prob) {
-    total_var <- sum( sapply(inlist,function(l) l$Tvar[2]) * prob)
+    total_var <- sum( sapply(inlist, function(l) l$Tvar[2]) * prob)
     olist <- 
       list(
         Tvar = c(
-          mean        = sum( sapply(inlist,function(l) l$Tvar[1]) * prob),
+          mean        = sum( sapply(inlist, function(l) l$Tvar[1]) * prob),
           total_var   = total_var,
           total_sd    = total_var^0.5
         ),
-        pvar          = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob)),
-        pe            = apply( sapply(inlist,function(l) l$pe)   ,1,function(v) sum(v*prob)),
-        sensitivity1  = apply( sapply(inlist,function(l) l$pvar) ,1,function(v) sum(v*prob))/total_var,
-        sensitivityT  = apply( sapply(inlist,function(l) l$pe)   ,1,function(v) sum(v*prob))/total_var
+        pvar          = apply( sapply(inlist, function(l) l$pvar) , 1, function(v) sum(v*prob) ),
+        pe            = apply( sapply(inlist, function(l) l$pe)   , 1, function(v) sum(v*prob) ),
+        sensitivity1  = apply( sapply(inlist, function(l) l$pvar) , 1, function(v) sum(v*prob) )/total_var,
+        sensitivityT  = apply( sapply(inlist, function(l) l$pe)   , 1, function(v) sum(v*prob) )/total_var
       )
     
     # name parameter vectors
@@ -262,7 +291,6 @@ func_sobol_sensitivity <- function(ABout,ABiout) {
   list(Tvar=Tvar,pvar=v_t - (vv/(2*sn)),pe=ev/(2*sn),sensitivity1=si,sensitivityT=st)
 }
 
-
 # call resampling and parameter SA recalculation function
 # - designed to be called from a vapply function
 boot_sa <- function(nsamp, bootn, k, ... ) {
@@ -276,7 +304,39 @@ redsamp_sa <- function(nsamp, AB, ABi, model=1, env=1, ... ) {
   calc_parameter_sensitivity(AB[,,c(ss1,ss2),drop=F], ABi[,,ss1,,drop=F] )$individual[[model]][[env]]$sensitivity1
 } 
 
+# functions to convert Sobol SA list output into a dataframes
+convert_to_df <- function(list1, m=T, s=T ) {
+  if(m&s) convert_to_df_1list(list1)
+  else if(m|s) convert_to_df_2list(list1, m=m )
+  else convert_to_df_3list(list1)
+}
+
+convert_to_df_1list <- function(onelist, m=-1, s=-1 ) {
+  df1 <- 
+    suppressWarnings(
+      data.frame( model=m, scenario=s, variable=names(onelist$sensitivity1), mean=onelist$Tvar[1], variance=onelist$Tvar[2], 
+                  vapply(onelist[2:5], function(v) v, numeric(length(onelist$pvar))) )
+    )
+  names(df1)[6:7] <- c('partial_variance','partial_mean')
+  df1
+}
+
+convert_to_df_2list <- function(list1, m ) {
+  do.call('rbind',
+          lapply(1:length(list1), function(i,l=list1[[i]]) 
+            if(m) convert_to_df_1list(l,s=i)
+            else  convert_to_df_1list(l,m=i)
+          ))
+}
+
+convert_to_df_3list <- function(list1) {
+  do.call('rbind',
+          lapply(1:length(list1), function(j, l1=list1[[j]] ) 
+            do.call('rbind',
+                    lapply(1:length(l1), function(i, l=l1[[i]], j ) 
+                      convert_to_df_1list(l,m=j,s=i), j=j ))))
+}
 
 
 
-
+### END ###

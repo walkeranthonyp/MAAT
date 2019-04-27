@@ -77,23 +77,19 @@ env.var <- list()
 ###############################
 
 init_static <- list(
-  gwater_rt = list(
-    fnames    = fnames.static,
-    pars      = pars.static,
-    env       = env.static
-  ))
+  fnames = list( gwater_rt = fnames.static),
+  pars   = list( gwater_rt = pars.static),
+  env    = list( gwater_rt = env.static)
+)
 
 init_dynamic <- list(
-  gwater_rt = list(
-    fnames    = fnames.var,
-    pars      = pars.var,
-    pars_proc = pars_proc.var,
-    pars_eval = pars_eval.var,
-    env       = env.var
-  ))
+  fnames    = list( gwater_rt = fnames.var),
+  pars      = list( gwater_rt = pars.var),
+  pars_proc = list( gwater_rt = pars_proc.var),
+  pars_eval = list( gwater_rt = pars_eval.var),
+  env       = list( gwater_rt = env.var)
+)
 
 
 
-
-
-
+### END ###
