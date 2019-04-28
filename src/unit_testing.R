@@ -103,7 +103,7 @@ wrapper_object$wpars
 # MCMC linear regression test
 source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg()
-out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=10000)
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=5000)
 out[[3]]
 dim(out[[2]])
 df1 <- data.frame(lklihood=as.vector(t(out[[2]])), chain=rep(1:dim(out[[2]])[1],each=dim(out[[2]])[2]) )
