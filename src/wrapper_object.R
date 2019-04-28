@@ -41,7 +41,7 @@ wrapper_object <-
       gc()
     }
     
-    
+   
     ###########################################################################
     # Main run function
 
@@ -78,10 +78,10 @@ wrapper_object <-
       # expand the fnames and driving variables lists into matrices 
       .$dataf$fnames  <- if(!is.null(.$dynamic$fnames)) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
       .$dataf$env     <- if(!is.null(.$dynamic$env))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
-      
+
       # if an SA/UQ run
       if(.$wpars$UQ) {
-          
+            
         # if Saltelli style Sobol
         if(.$wpars$UQtype=='saltelli') {
           
@@ -100,12 +100,12 @@ wrapper_object <-
           
           # remove potentially large pars list 
           .$dynamic$pars   <- lapply(.$dynamic$pars, function(e) numeric(1) )        
-
-        # Ye et al process SA method 
+        
+	# Ye et al process SA method 
         } else if(.$wpars$UQtype=='ye') {
           
           # need a minimum of >1 processes
-          if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sesitivity analysis')
+          if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sensitivity analysis')
           
           # check input dynamic$pars* are same length
           test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
@@ -116,7 +116,8 @@ wrapper_object <-
           
           # check input dynamic$pars* elements have same names
           # - to be done
-        }         
+                 
+        }
          
         # if MCMC 
         if(.$wpars$UQtype=='mcmc') {
@@ -124,7 +125,7 @@ wrapper_object <-
           # sample parameters from character string code snippets to generate initial proposal from priors 
           n <- .$wpars$mcmc_chains
           .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-
+       
           # create pars / proposal matrix 
           .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
           #print(.$dynamic$pars)
@@ -132,13 +133,18 @@ wrapper_object <-
          
           # create accepted proposal array 
           .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
- 
+       
+          # this is not necessary for plotting; just being used for debugging
+          # eventually: get rid of this to save memory
+	  # create proposal storage array (store all proposals, not just accepted ones)
+	  .$dataf$prop_storage <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
+          
           # create accepted proposal likelihood matrix 
           .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter ) 
- 
+       
           # remove initialisation pars list 
           .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )        
-
+       
         } else {
           stop(paste('wrapper: no method for SA/UQ type',.$wpars$UQtype))
         }
@@ -383,21 +389,33 @@ wrapper_object <-
       .$dataf$pars_array[,,1]   <- .$dataf$pars
       .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)  
 
+      # add to prop storage array
+      .$dataf$prop_storage[,,1] <- .$dataf$pars
+
+      # if doing DREAM MCMC, run static part of algorithm
+      .$static_dream()
+
       # run MCMC 
       vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
+ 
+      # eventually: insert burn-in procedure here
+      # BURN-IN: if convergence has not been reached, re-run MCMC
 
       # write output from MCMC
-      write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
+      write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc, prop_storage=.$dataf$prop_storage), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
     }
     
     # This wrapper function is called from a vapply function to iterate / step chains in an MCMC
     run_mcmc <- function(.,j) {
       # runs in serial as each step depends on the previous step
       # call runp_mcmc
-    
+ 
+      # insert switch for user to choose between DE-MC and DREAM
+   
       # generate proposal matrix
-      .$gen_proposal_demc(j=j)   
-    
+      # .$gen_proposal_demc(j=j)   
+      .$gen_proposal_dream(j=j)    
+
       # evaluate model for proposal on each chain
       .$dataf$out[]  <- 
         do.call( 'rbind', {
@@ -406,14 +424,20 @@ wrapper_object <-
         })
    
       # calculate likelihood of proposals on each chain
+      # likelihood function is the same for both DE-MC and DREAM algorithms
       lklihood <- get(.$fnames$proposal_lklihood)(.)   
       
       # accept / reject proposals on each chain 
-      .$proposal_accept(j=j, lklihood )
+      # this first accept function is for the DE-MC algorithm
+      # .$proposal_accept(j=j,lklihood)
+      .$proposal_accept_dream(j=j,lklihood)
 
-      # test for convergence every x iterations
-      #
- 
+      # future work: insert function call to handle outlier chains here
+
+      # future work: insert function call to test for convergence here
+
+      # future work: other code here for subprograms called during burn-in (i.e., delayed rejection option and other add-ons to DREAM algorithm)
+
       # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function   
       numeric(0) 
     }
@@ -432,7 +456,6 @@ wrapper_object <-
       vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
     }
    
-   
     # generate proposal using DE-MC algorithm  
     gen_proposal_demc <- function(.,j) {
       # number of data points to be used in boundary handling
@@ -448,6 +471,7 @@ wrapper_object <-
       d <- ncol(.$dataf$pars)  
       # scaling factor
       gamma_star <- 2.38 / sqrt(d + d)
+      # b-value should be small comparted to width of target distribution
       b <- 0.01
       # evaluate for each chain
       for (ii in 1:.$dataf$lp) {
@@ -471,7 +495,7 @@ wrapper_object <-
       }
     } 
 
-    # calculate proposal acceptance using the Metropolis ratio  
+    # calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
     proposal_accept <- function(., j, lklihood ) {
       # perform Metropolis accept/reject step
       metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j])
@@ -486,62 +510,196 @@ wrapper_object <-
           .$dataf$out_mcmc[kk,,(j-out_n)] <- if(accept | j==out_n+1) .$dataf$out[kk,]      else .$dataf$out_mcmc[kk,,(j-out_n-1)]    
       }
     }   
- 
-    # calculate convergence using the R-statistic convergence diagnostic of Gelman and Rubin  
-    chain_convergence <- function(.) {
-      # calculate the R-statistic convergence diagnostic
-      # for more information, refer to: Gelman, A. and D.R. Rubin, 1992. 
-      # Inference from Iterative Simulation Using Multiple Sequences, 
-      # Statistical Science, Volume 7, Issue 4, 457-472.
-      # Function based on Matlab code originally written by Jasper A. Vrugt
-      # Los Alamos National Lab, August 2007
-      
-      # compute the dimensions of Sequences 3D array (n=evaluations/chain, nry=parameters, m=chains)
-      # make sure it is not dimensions of the preallocated array, but the dimensions of the already calculated
+   
+######################################################################################################################################################
 
-      # if (n < 10) {
-        # set R-statistic to a large value
-      # } else {  
-        # compute the mean of the chains
+    # static part of DREAM algorithm 
+    static_dream <- function(.) {
         
-        # take mean of elements of Sequences along the first array dimension
-        # return vectors iterated meanSeq[ , ,1:chains]
-        # reshape meanSeq vectors into meanSeq matrices (chains-by-parameters)
+      # number of parameters being estimated
+      .$mcmc$d <- ncol(.$dataf$pars)
+
+      # preallocate memory space for algorithmic variables
     
-        # might need transpose to get chains by pars
-        meanSeq <- apply(.$pars_array, 1:2, mean )
+      .$mcmc$J             <- numeric(.$mcmc$n_CR)
+      .$mcmc$n_id          <- numeric(.$mcmc$n_CR)
+      .$mcmc$CR            <- numeric(.$mcmc$n_CR)
+      .$mcmc$p_CR          <- numeric(.$mcmc$n_CR)
+      .$mcmc$R             <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$dataf$lp - 1)
+      .$mcmc$current_state <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$mcmc$d)
+      .$mcmc$p_state       <- numeric(.$dataf$lp)
+      .$mcmc$std_state     <- numeric(.$mcmc$d)
+      .$mcmc$jump          <- matrix(data=0,nrow=.$dataf$lp,ncol=.$mcmc$d)
+      .$mcmc$draw          <- matrix(data=0,nrow=.$dataf$lp-1,ncol=.$dataf$lp)
+      .$mcmc$lambda        <- matrix(data=0,nrow=.$dataf$lp,ncol=1)
       
-        # compute the variance between the means of the chains
+      # index of chains for Differential Evolution
+      for (kk in 1:.$dataf$lp) .$mcmc$R[kk, ] <- setdiff(1:.$dataf$lp, kk)
 
-        # B <- n * var(meanSeq)
-        # return row vector (1-by-parameters) containing variances corresponding to each column
+      # crossover values
+      .$mcmc$CR[] <- 1:.$mcmc$n_CR / .$mcmc$n_CR
 
-        # calculate variance of the various chains
+      # selection probability of crossover values
+      .$mcmc$p_CR[] <- rep(1, .$mcmc$n_CR) / .$mcmc$n_CR
+     
+      # vector that stores how many times crossover value indices are used
+      # initialized to 1's in order to avoid numeric issues
+      .$mcmc$n_id[] <- rep(1, .$mcmc$n_CR)
+      # originally initialized to 0's in Vrugt's algorithm
+      #.$mcmc$n_id[] <- rep(0, .$mcmc$n_CR)
+    }
 
-        # for (zz in 1:.$dataf:lp) {
-          # varSeq[zz, ] <- var(Sequences[ , ,zz])
-          # return (chains-by-parameters) matrix
-        # }
+    # generate proposal using DREAM algorithm
+    gen_proposal_dream <- function(., j) {
+      
+      # reset matrix of jump vectors to zero
+      .$mcmc$jump[] <- matrix(data = 0)
+      
+      # current state ('mcmc_chains' number of samples of a d-variate distribution)
+      .$mcmc$current_state[] <- matrix(.$dataf$pars_array[ , , j], nrow = .$dataf$lp, ncol = .$mcmc$d)
+
+      # NOTE, this chunk is a repeat of DE-MC code
+      # boundary handling
+      # number of data points to be used in boundary handling
+      n <- 1000
+      .$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)) )
+      minn <- unlist(lapply(.$dynamic$pars_bndhndling,min))
+      maxn <- unlist(lapply(.$dynamic$pars_bndhndling,max))
+
+      # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
+      .$mcmc$draw[] <- apply(matrix(runif((.$dataf$lp - 1) * .$dataf$lp), .$dataf$lp - 1, .$dataf$lp), 2, function(v) sort(v, index.return = T)$ix)
+  
+      # create a .$dataf$lp x 1 matrix of continuous uniform random values between -c_rand and c_rand
+      .$mcmc$lambda[] <- matrix(runif(.$dataf$lp * 1, -.$mcmc$c_rand, .$mcmc$c_rand), .$dataf$lp)
+    
+      # compute standard deviation of each dimension (ie,compute standard deviation of each column of current_state matrix)
+      .$mcmc$std_state[] <- apply(.$mcmc$current_state, 2, sd)
+    
+      # NOTE vectorize this inner for-loop to improve computational efficiency, but this is non-trivial     
+      # create proposals
+      for (ii in 1:.$dataf$lp) {
         
-        # compute average of within-chain variance
-        
-        # W <- mean(varSeq)
-        # return (1-by-parameters) vector
+         # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
+         D <- sample(1:.$mcmc$delta,1,replace=T)
+      
+         # extract vectors a and b not equal to ii
+         a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
+         b <- .$mcmc$R[ii, .$mcmc$draw[(D + 1):(2 * D), ii]]
+      
+         # select index of crossover value (weighted sample with replacement)
+         .$mcmc$id <- sample(1:.$mcmc$n_CR, 1, replace = T, prob = .$mcmc$p_CR)
+      
+         # draw d values from uniform distribution between 0 and 1
+         zz <- runif(.$mcmc$d)
+      
+         # derive subset A of selected dimensions
+         A <- which(zz < .$mcmc$CR[.$mcmc$id])
+      
+         #  how many dimensions are sampled
+         d_star <- length(A)
+      
+         # make sure that A contains at least one value
+         if (d_star == 0) A <- which.min(zz); d_star <- 1
+      
+         # calculate jump rate
+         gamma_d <- 2.38 / sqrt(2 * D * d_star)
 
-        # estimate the target variance
+         # NOTE maybe there is a way to consolidate this  chunk of code more efficiently      
+         # select gamma
+         temp1 <- c(gamma_d, 1)
+         temp2 <- c(1 - .$mcmc$p_gamma, .$mcmc$p_gamma)
+         gamma <- sample(temp1, 1, replace = T, prob = temp2)
+      
+         # compute jump differential evolution of ii-th chain
+         .$mcmc$jump[ii, A] <- .$mcmc$c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[a, A] - .$mcmc$current_state[b, A]), dim = 1)
+      
+         # compute proposal of ii-th chain
+         .$dataf$pars[ii,1:.$mcmc$d] <- .$mcmc$current_state[ii, 1:.$mcmc$d] + .$mcmc$jump[ii, 1:.$mcmc$d]
 
-        # sigma2 <- ((n-1)/n) * W + (1/n) * B
-        # return (1-by-paremeters) vector
+         # NOTE, this chunk is a repeat of DE-MC code
+         # more boundardy handling
+         for (jj in 1:.$mcmc$d) {
+           # boundary handling for minumum
+           if (.$dataf$pars[ii, jj] < minn[jj]) {
+             .$dataf$pars[ii, jj] <- minn[jj]
+           } 
+           # boundary handling for maximum
+           if (.$dataf$pars[ii, jj] > maxn[jj]) {
+             .$dataf$pars[ii, jj] <- maxn[jj]
+           } 
+         }
 
-        # compute the R-statistic convergence diagnostic
-        # R_stat <- sqrt((m+1)/m * sigma2/W - (n-1)/m/n)
-        # return (1-by-parameters) vector
-      # } 
-      # maybe include a break?
-      # the MCMC method is considers converged if the R-stat for all parameters < 1.2        
-    }   
+      }
+
+    } 
+    
+    # proposal acceptance function for the DREAM algorithm
+    # in the future: could probably consolidate this with the acceptance function for the DE-MC algorithm
+    proposal_accept_dream <- function(., j, lklihood) {
+
+      # likelihood of current state
+      .$mcmc$p_state[] <- .$dataf$pars_lklihood[ ,j] 
+
+      for (qq in 1:.$dataf$lp) {
+
+        # compute Metropolis acceptance probability
+        alpha <- min(1, exp(lklihood[qq] - .$mcmc$p_state[qq]))
+
+        # in the future: figure out how to make this clunky block of code prettier      
+        # determine if p_acc is larger than random number drawn from uniform distribution on interval [0,1]
+        if (alpha > runif(1, min = 0, max = 1)) {
+          # if true, accept the proposal
+          accept <- TRUE
+          .$mcmc$current_state[qq, 1:.$mcmc$d] <- .$dataf$pars[qq, 1:.$mcmc$d]
+          .$mcmc$p_state[qq] <- lklihood[qq]
+          # append accepted current_state and probability density to storage data frames
+          .$dataf$pars_array[qq, 1:.$mcmc$d, j + 1] <- .$mcmc$current_state[qq, 1:.$mcmc$d]
+          .$dataf$pars_lklihood[qq, j + 1] <- .$mcmc$p_state[qq]
+	  # store generated proposal (regardless of whether accepted or not)
+	  .$dataf$prop_storage[qq, 1:.$mcmc$d, j + 1] <- .$dataf$pars[qq, 1:.$mcmc$d]
+        } else {
+          accept <- FALSE
+          # set jump back to zero for p_CR
+          .$mcmc$jump[qq, 1:.$mcmc$d] <- 0
+          # repeat previous current_state and probability density in storage data frames
+          .$dataf$pars_array[qq, 1:.$mcmc$d, j + 1] <- .$dataf$pars_array[qq, 1:.$mcmc$d, j]
+          .$dataf$pars_lklihood[qq, j + 1] <- .$dataf$pars_lklihood[qq, j]
+	  # store generated proposal (regardless of whether accepted or not)
+	  .$dataf$prop_storage[qq, 1:.$mcmc$d, j + 1] <- .$dataf$pars[qq, 1:.$mcmc$d]
+        }
  
+        # update jump distance crossover index
+        .$mcmc$J[.$mcmc$id] <- .$mcmc$J[.$mcmc$id] + sum((.$mcmc$jump[qq, 1:.$mcmc$d] / .$mcmc$std_state)^2)
+
+        # number of times index crossover is used
+        .$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id] + 1
+
+        # NOTE this chunck is a reapeat of DE-MC code
+        out_n <- .$wpars$mcmc_maxiter / 2
+        if (j > out_n) 
+          .$dataf$out_mcmc[qq, ,(j - out_n)] <- if(accept | j == out_n + 1) .$dataf$out[qq, ] else .$dataf$out_mcmc[qq, , (j - out_n - 1)]  
+
+      }
+    
+      # update selection probability of crossover
+      # altered original algorithm here to account for numerical issues
+      if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
+        .$mcmc$p_CR <- .$mcmc$J / .$mcmc$n_id
+        .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
+      }
+
+    }
  
+    # subprogram for detection and correction of outlier chains
+    # outlier_check <- function(.) {
+    # }
+
+    # test for convergence using the R-statistic convergence diagnostic of Gelman and Rubin  
+    # chain_converge <- function(.) {
+    # }    
+
+######################################################################################################################################################
+
     # for ABi array for Sobol SA using Saltelli method
     ###########################################################################
     
@@ -860,7 +1018,7 @@ wrapper_object <-
     
     # input/output matrices and dataframes
     # with an associated length for input matrices
-    dataf  <- list( 
+    dataf <- list( 
       # variables matrices - created during runtime 
       fnames        = NULL,
       fnamesB       = NULL,
@@ -868,6 +1026,7 @@ wrapper_object <-
       parsB         = NULL,
       pars_lklihood = NULL,
       pars_array    = NULL,
+      prop_storage  = NULL,
       env           = NULL,
       met           = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example 
       # row length of above matrices
@@ -905,9 +1064,35 @@ wrapper_object <-
       mcmc_burnin  = 0.5,         # MCMC proportion of maxiter burn in to discard in posterior 
       mcmc_thin    = 0.1,         # MCMC chain thinning proportion 
       mcmc_thin_obs= 1,           # MCMC observation thinning proportion 
+      mcmc_homosced= F,           # MCMC option for homoscedastic error
       unit_testing = F
     )
-    
+ 
+    # parameters specific to the DREAM MCMC algorithm
+    mcmc <- list(
+      delta         = 3,              # number chain pair proposal
+      c_rand        = 0.01,           # randomization
+      # c_rand        = 0.1,            # randomization (default value)
+      c_ergod       = 1e-12,          # ergodicicty
+      p_gamma       = 0.2,            # probability of unit jump rate (probability gamma = 1) (default value)
+      # p_gamma       = 0.4,          
+      n_CR          = 3,              # number of crossover values (default value)      
+      # n_CR          = 1,              # number of crossover values      
+      d             = numeric(1),     # number of parameters (dimensionality of problem)
+      id            = numeric(1),     # index of crossover values
+      J             = numeric(),      # vector of length n_CR
+      n_id          = numeric(),      # vector of lenght n_CR          
+      R             = matrix(),       # index of chains for Differential Evolution
+      CR            = numeric(),      # crossover values
+      p_CR          = numeric(),      # select probability for crossover
+      jump          = matrix(),       # matrix of jump vectors for Differential Evolution
+      current_state = matrix(),       # current state of Markov chains
+      p_state       = numeric(),      # probability density of current state matrix
+      std_state     = numeric(),      # standard deviation of each sampling dimension
+      draw          = matrix(),       # permutation matrix
+      lambda        = matrix()        # matrix of uniform random values between -c_rand and c_rand
+    )
+   
     fnames <- list(
       proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
     )   
@@ -1708,6 +1893,9 @@ wrapper_object <-
         mcmc_test.proposal4  = 'runif(n,-1,1)'
       )
 
+      # define ofname
+      .$ofname <- 'mcmc_mixture_test'
+
       # Run MCMC 
       st <- system.time(
         .$run()
@@ -1724,7 +1912,7 @@ wrapper_object <-
     }  
     
     # test function for MCMC parameter estimation in a linear regression 
-    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=4, mcmc_maxiter=3,
+    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=7, mcmc_homosced=T, mcmc_maxiter=3,
                                   x=1:10, a_mu=-25, b_mu=25, a_sd=1, b_sd=1, standard_err=0.5 ) {
       
       # source directory
@@ -1740,14 +1928,15 @@ wrapper_object <-
       .$model$pars$cverbose <- F      
       .$model$fnames$mcmc_testsys <- 'f_mcmc_testsys_regression'      
       .$model$fnames$reg_func     <- 'f_reg_func_linear'      
-      .$wpars$multic       <- mc           # multicore the ensemble
-      .$wpars$procs        <- pr           # number of cores to use if above is true
-      .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
-      .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
-      .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
-      .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
+      .$wpars$multic        <- mc            # multicore the ensemble
+      .$wpars$procs         <- pr            # number of cores to use if above is true
+      .$wpars$UQ            <- T             # run a UQ/SA style ensemble 
+      .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble 
+      .$wpars$mcmc_chains   <- mcmc_chains   # MCMC number of chains 
+      .$wpars$mcmc_homosced <- mcmc_homosced # MCMC homoscedastic error
+      .$wpars$mcmc_maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain 
       .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared_se'  # MCMC likelihood function 
-      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
+      .$wpars$unit_testing  <- T             # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
 
       # set problem specific parameters
       .$model$pars$syn_a_mu <- a_mu      
