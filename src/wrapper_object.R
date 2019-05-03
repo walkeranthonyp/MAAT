@@ -132,14 +132,13 @@ wrapper_object <-
           #print(.$dynamic$pars)
           #print(.$dataf$pars)
          
+	  # create proposal storage array (store all proposals, not just accepted ones)
+          # this is not necessary for output; just used for debugging
+	  .$dataf$prop_storage  <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
+          
           # create accepted proposal array 
           .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
        
-          # this is not necessary for plotting; just being used for debugging
-          # eventually: get rid of this to save memory
-	  # create proposal storage array (store all proposals, not just accepted ones)
-	  .$dataf$prop_storage <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
-          
           # create accepted proposal likelihood matrix 
           .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter ) 
        
@@ -218,6 +217,8 @@ wrapper_object <-
         .$dataf$out <- matrix(0, .$dataf$lp, .$dataf$lm)
 
         # initialise output array
+        # APW: is this effectively assuming a burn-in of 50 %?
+        #      if so we need to align with the burn-in input parameters  
         .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
      
 	# call run function
@@ -377,10 +378,6 @@ wrapper_object <-
       # placeholder for setting boundary handling limits 
       boundary_handling_set(.) 
 
-      #print('here')
-      #print(.$dataf$pars)
-      #print(dim(.$dataf$out))
-
       # evaluate model over initial proposals derived from prior
       #print(do.call('rbind',lapply(1:.$dataf$lp, .$runp_mcmc )))
       .$dataf$out[]  <- 
@@ -396,7 +393,7 @@ wrapper_object <-
       # add to proposal storage array
       .$dataf$prop_storage[,,1] <- .$dataf$pars
 
-      # if doing DREAM MCMC, run static part of algorithm
+      # if DREAM MCMC, run static part of algorithm
       if(.$wpars$mcmc_type=='dream') .$static_dream()
 
       # run MCMC 
@@ -404,6 +401,7 @@ wrapper_object <-
  
       # eventually: insert burn-in procedure here
       # BURN-IN: if convergence has not been reached, re-run MCMC
+      # APW: need to align this with the above outut array specification
 
       # write output from MCMC
       if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp') }
@@ -415,8 +413,6 @@ wrapper_object <-
     run_mcmc <- function(.,j) {
       # runs in serial as each step depends on the previous step
       # call runp_mcmc
-      #print(j) 
-      # insert switch for user to choose between DE-MC and DREAM
    
       # generate proposal matrix
       get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j )   

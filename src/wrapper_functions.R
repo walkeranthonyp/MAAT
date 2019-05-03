@@ -27,6 +27,10 @@ boundary_handling <- function(., ii, jj ) {
   else if (.$dataf$pars[ii,jj] > .$mcmc$boundary_max[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_max[jj]
 }   
    
+
+
+# DEMC functions
+################################
    
 # generate proposal using DE-MC algorithm  
 proposal_generate_demc <- function(.,j) {
@@ -43,18 +47,22 @@ proposal_generate_demc <- function(.,j) {
   d <- ncol(.$dataf$pars)  
   gamma_star <- 2.38 / sqrt(d + d)
   # b-value should be small compared to width of target distribution
-  # what is the name of this b parameter? 
+  # APW: does this b parameter have a name? 
   b  <- 0.01
   R1 <- 0
   R2 <- 0
+   
   # evaluate for each chain
   for (ii in 1:.$dataf$lp) {
+   
     # randomly select two different numbers R1 and R2 unequal to j
     # from a uniform distribution without replacement
     while ((R1 == 0) | (R1 == ii))               R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
     while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
+   
     # draw random number from uniform distribution on interval (-b,b)
     uniform_r <- runif(1,min=(-b),max=b)
+   
     # evaluate for each parameter value
     for (jj in 1:d) {
       # generate proposal via Differential Evolution
@@ -81,14 +89,18 @@ proposal_accept_demc <- function(., j, lklihood ) {
   # Metropolis ratio 
   metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j])
   alpha        <- pmin(1,metrop_ratio)
+
   for(kk in 1:.$dataf$lp) {
+
     # accept if Metropolis ratio > random number from uniform distribution on interval (0,1) 
     accept <- log(alpha[kk]) > log(runif(1,min=0,max=1))
+
     .$dataf$pars_array[kk,,j+1]   <- if(accept) .$dataf$pars[kk,] else .$dataf$pars_array[kk,,j]    
     .$dataf$pars_lklihood[kk,j+1] <- if(accept) lklihood[kk]      else .$dataf$pars_lklihood[kk,j]    
     #print(c(kk, accept))
     #print(c(.$dataf$pars_array[kk,,j+1], .$dataf$pars[kk,], .$dataf$pars_array[kk,,j] ))   
     out_n <- .$wpars$mcmc_maxiter/2       
+
     if (j > out_n) 
       .$dataf$out_mcmc[kk,,(j-out_n)] <- if(accept | j==out_n+1) .$dataf$out[kk,] else .$dataf$out_mcmc[kk,,(j-out_n-1)]    
 #APW: check this once decided on j indexing - is j correctly specified given the many j+1 s?
@@ -98,8 +110,10 @@ proposal_accept_demc <- function(., j, lklihood ) {
 }   
    
    
-######################################################################################################################################################
 
+# DREAM functions
+################################
+   
 # static part of DREAM algorithm 
 static_dream <- function(.) {
     
@@ -135,8 +149,9 @@ static_dream <- function(.) {
   #.$mcmc$n_id[] <- rep(0, .$mcmc$n_CR)
 }
 
+
 # generate proposal using DREAM algorithm
-proposal_generate_dream <- function(., j) {
+proposal_generate_dream <- function(., j ) {
   
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- matrix(data = 0)
@@ -221,6 +236,7 @@ proposal_generate_dream <- function(., j) {
   }
 } 
 
+
 # proposal acceptance function for the DREAM algorithm
 # in the future: could probably consolidate this with the acceptance function for the DE-MC algorithm
 proposal_accept_dream <- function(., j, lklihood) {
@@ -228,6 +244,7 @@ proposal_accept_dream <- function(., j, lklihood) {
   # likelihood of current state
   .$mcmc$p_state[] <- .$dataf$pars_lklihood[ ,j] 
 
+  # APW: change this iteration counter to kk for consistency with 
   for (qq in 1:.$dataf$lp) {
 
     # compute Metropolis acceptance probability
@@ -236,24 +253,34 @@ proposal_accept_dream <- function(., j, lklihood) {
     # in the future: figure out how to make this clunky block of code prettier      
     # determine if p_acc is larger than random number drawn from uniform distribution on interval [0,1]
     if (alpha > runif(1, min = 0, max = 1)) {
-      # if true, accept the proposal
+
+      # accept the proposal
       accept <- TRUE
+
       .$mcmc$current_state[qq, 1:.$mcmc$d] <- .$dataf$pars[qq, 1:.$mcmc$d]
       .$mcmc$p_state[qq] <- lklihood[qq]
+
       # append accepted current_state and probability density to storage data frames
       .$dataf$pars_array[qq, 1:.$mcmc$d, j + 1] <- .$mcmc$current_state[qq, 1:.$mcmc$d]
       .$dataf$pars_lklihood[qq, j + 1] <- .$mcmc$p_state[qq]
-	  # store generated proposal (regardless of whether accepted or not)
-	  .$dataf$prop_storage[qq, 1:.$mcmc$d, j + 1] <- .$dataf$pars[qq, 1:.$mcmc$d]
+
+      # store generated proposal (regardless of whether accepted or not)
+      .$dataf$prop_storage[qq, 1:.$mcmc$d, j + 1] <- .$dataf$pars[qq, 1:.$mcmc$d]
+
     } else {
+
+      # reject the proposal
       accept <- FALSE
+
       # set jump back to zero for p_CR
       .$mcmc$jump[qq, 1:.$mcmc$d] <- 0
+
       # repeat previous current_state and probability density in storage data frames
       .$dataf$pars_array[qq, 1:.$mcmc$d, j + 1] <- .$dataf$pars_array[qq, 1:.$mcmc$d, j]
       .$dataf$pars_lklihood[qq, j + 1] <- .$dataf$pars_lklihood[qq, j]
-	  # store generated proposal (regardless of whether accepted or not)
-	  .$dataf$prop_storage[qq, 1:.$mcmc$d, j + 1] <- .$dataf$pars[qq, 1:.$mcmc$d]
+
+      # store generated proposal (regardless of whether accepted or not)
+      .$dataf$prop_storage[qq, 1:.$mcmc$d, j + 1] <- .$dataf$pars[qq, 1:.$mcmc$d]
     }
  
     # update jump distance crossover index
@@ -262,11 +289,12 @@ proposal_accept_dream <- function(., j, lklihood) {
     # number of times index crossover is used
     .$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id] + 1
 
-    # NOTE this chunck is a reapeat of DE-MC code
+    # NOTE this chunk is a reapeat of DE-MC code
+    # APW: can either move to mcmc function in wrapper (would require an accept vector)
+    #      or, create a function that is called here 
     out_n <- .$wpars$mcmc_maxiter / 2
     if (j > out_n) 
       .$dataf$out_mcmc[qq, ,(j - out_n)] <- if(accept | j == out_n + 1) .$dataf$out[qq, ] else .$dataf$out_mcmc[qq, , (j - out_n - 1)]  
-
   }
 
   # update selection probability of crossover
@@ -275,24 +303,21 @@ proposal_accept_dream <- function(., j, lklihood) {
     .$mcmc$p_CR <- .$mcmc$J / .$mcmc$n_id
     .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
   }
-
 }
  
 # function for detection and correction of outlier chains
-# outlier_check <- function(.) {
-# }
+#outlier_check <- function(.) {
+#}
 
 # test for convergence using the R-statistic convergence diagnostic of Gelman and Rubin  
-# chain_converge <- function(.) {
-# }    
+#chain_converge <- function(.) {
+#}    
 
-######################################################################################################################################################
 
 
 # Likelihood functions
 ################################
 
-# calculate proposal likelihood 
 # expects model output to be probability - as in the output from the mixture model
 f_proposal_lklihood_log <- function(.) {
   log(.$dataf$out)
