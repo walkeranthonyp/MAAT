@@ -75,25 +75,20 @@ env.var <- list()
 
 ### Combine the functions, parameters, and environment static and variable lists into a single list 
 ###############################
-
 init_static <- list(
-  test_mcmc = list(
-    fnames    = fnames.static,
-    pars      = pars.static,
-    env       = env.static
-  ))
+  fnames = list( mcmc_test = fnames.static),
+  pars   = list( mcmc_test = pars.static),
+  env    = list( mcmc_test = env.static)
+)
 
 init_dynamic <- list(
-  test_mcmc = list(
-    fnames    = fnames.var,
-    pars      = pars.var,
-    pars_proc = pars_proc.var,
-    pars_eval = pars_eval.var,
-    env       = env.var
-  ))
+  fnames    = list( mcmc_test = fnames.var),
+  pars      = list( mcmc_test = pars.var),
+  pars_proc = list( mcmc_test = pars_proc.var),
+  pars_eval = list( mcmc_test = pars_eval.var),
+  env       = list( mcmc_test = env.var)
+)
 
 
 
-
-
-
+### END ###

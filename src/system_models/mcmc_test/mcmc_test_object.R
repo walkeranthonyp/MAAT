@@ -26,8 +26,8 @@ mcmc_test_object <-
     # no expected child objects
     
     # build function
-    build <- function(.) {
-      as.proto(.$as.list())
+    build <- function(., ... ) {
+      #as.proto(.$as.list())
     }
     
     
@@ -177,7 +177,7 @@ mcmc_test_object <-
     # Test functions
     # - not copied when the object is cloned
 
-    .test_mixture <- function(.,verbose=T,verbose_loop=T) {
+    .test_mixture <- function(., verbose=F, verbose_loop=F ) {
       
       if(verbose) {
         str(.)
@@ -192,7 +192,7 @@ mcmc_test_object <-
       .$run()
     }
 
-    .test_linreg <- function(.,verbose=T,verbose_loop=T) {
+    .test_linreg <- function(., verbose=F, verbose_loop=F ) {
                   
       
       if(verbose) {

@@ -222,6 +222,7 @@ maat$wpars$UQ            <- uq
 maat$wpars$n             <- psa_n       
 maat$wpars$coef_var      <- coef_var       
 maat$wpars$nmult         <- salt_nmult       
+maat$wpars$mcmc_type     <- mcmc_type       
 maat$wpars$mcmc_chains   <- mcmc_chains       
 maat$wpars$mcmc_maxiter  <- mcmc_maxiter       
 maat$wpars$mcmc_burnin   <- mcmc_burnin       
