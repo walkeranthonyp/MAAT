@@ -200,7 +200,7 @@ wrapper_object <-
       # MCMC run
       } else if(.$wpars$UQ&.$wpars$UQtype=='mcmc') {
          
-        # if an MCMC and no met dataset has been specified, stop
+        # if an MCMC and more than one model output has been specified, stop
         if(length(.$dataf$mout)!=1) stop('No current method to run MCMC with multiple model outputs')
 
         # if observation subsampling specified - currently evenly spaced subsampling
@@ -374,6 +374,9 @@ wrapper_object <-
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
       if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
 
+      # placeholder for setting boundary handling limits 
+      boundary_handling_set(.) 
+
       #print('here')
       #print(.$dataf$pars)
       #print(dim(.$dataf$out))
@@ -396,8 +399,6 @@ wrapper_object <-
       # if doing DREAM MCMC, run static part of algorithm
       if(.$wpars$mcmc_type=='dream') .$static_dream()
 
-      # placeholder for setting boundary handling limits 
-
       # run MCMC 
       vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
  
@@ -419,10 +420,6 @@ wrapper_object <-
    
       # generate proposal matrix
       get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j )   
-      #gen_proposal_demc(., j=j )   
-      #gen_proposal_dream(., j=j )    
-      #.$gen_proposal_demc(j=j)   
-      #.$gen_proposal_dream(j=j)    
 
       # evaluate model for proposal on each chain
       .$dataf$out[]  <- 
@@ -438,10 +435,6 @@ wrapper_object <-
       # accept / reject proposals on each chain 
       # this first accept function is for the DE-MC algorithm
       get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )   
-      #proposal_accept_demc(., j=j, lklihood )
-      #proposal_accept_dream(., j=j, lklihood )
-      #.$proposal_accept_demc(j=j, lklihood )
-      #.$proposal_accept_dream(j=j,lklihood)
 
       # future work: insert function call to handle outlier chains here
 
@@ -838,8 +831,10 @@ wrapper_object <-
       unit_testing = F
     )
  
-    # parameters specific to the DREAM MCMC algorithm
+    # parameters specific to the DREAM (mostly) MCMC algorithm
     mcmc <- list(
+      boundary_max  = numeric(1),     # max parameter prior values - for boundary handling
+      boundary_min  = numeric(1),     # min parameter prior values - for boundary handling
       delta         = 3,              # number chain pair proposal
       c_rand        = 0.01,           # randomization
       # c_rand        = 0.1,            # randomization (default value)
@@ -1733,8 +1728,8 @@ wrapper_object <-
 
       # define priors
       .$dynamic$pars_eval <- list(
-        mcmc_test.a  = 'runif(n,-30,30)',
-        mcmc_test.b  = 'runif(n,-30,30)'
+        mcmc_test.a  = 'runif(n,-20,20)',
+        mcmc_test.b  = 'runif(n,-20,20)'
       )
 
       # define ofname
@@ -1754,7 +1749,6 @@ wrapper_object <-
       hist <- histogram(.$dataf$pars_array) 
       list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, hist=hist ) 
     }  
-    
     
  
 ###########################################################################

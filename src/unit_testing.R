@@ -106,14 +106,21 @@ wrapper_object$wpars
 
 # MCMC linear regression test
 source('wrapper_object.R')
-out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=200)
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=150)
 #out <- wrapper_object$.test_mcmc_linreg(mc=T, pr=4, mcmc_chains=8, mcmc_maxiter=1000 )
 out[[3]]
 dim(out[[2]])
 df1 <- data.frame(lklihood=as.vector(t(out[[2]])), chain=rep(1:dim(out[[2]])[1],each=dim(out[[2]])[2]) )
 xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) , df1, groups=chain, auto.key=T, type='l' )
 xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) | chain , df1, auto.key=T, type='l' )
-
+names(out)
+dim(out$pars_array)
+histogram(as.numeric(out$pars_array[,1,]))
+histogram(as.numeric(out$pars_array[,2,]))
+class(out$pars_array[,2,])
+as.numeric(out$pars_array[,2,])
+wrapper_object$mcmc$boundary_min
+wrapper_object$mcmc$boundary_max
 
 wrapper_object$dynamic
 wrapper_object$dataf$pars

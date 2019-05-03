@@ -11,20 +11,20 @@
 # MCMC functions
 ################################
 
-par_set_boundary_handling <- function(.) {
-  # number of data points to be used in boundary handling
-  # this doesn't need to be done every iteration - can be done at the beginning of the MCMC and maxes and mins stored
+# set parameter boundaries from prior distributions
+boundary_handling_set <- function(.) {
+  # number of samples to be used in boundary handling
   n <- 1000
-  .$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-  .$minn <- unlist(lapply(.$dynamic$pars_bndhndling,min))
-  .$maxn <- unlist(lapply(.$dynamic$pars_bndhndling,max))
+  boundary_sample <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+  .$mcmc$boundary_min <- unlist(lapply(boundary_sample,min))
+  .$mcmc$boundary_max <- unlist(lapply(boundary_sample,max))
+  rm(boundary_sample) 
 }
 
-
-par_boundary_handling <- function(., ii, jj ) {
-  # boundary handling for minumum
-  if       (.$dataf$pars[ii,jj] < .$minn[jj]) .$dataf$pars[ii,jj] <- .$minn[jj]
-  else if (.$dataf$pars[ii,jj] > maxn[jj]) .$dataf$pars[ii,jj] <- .$maxn[jj]
+# restrict parameter proposals that are beyond the boundary
+boundary_handling <- function(., ii, jj ) {
+  if      (.$dataf$pars[ii,jj] < .$mcmc$boundary_min[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_min[jj]
+  else if (.$dataf$pars[ii,jj] > .$mcmc$boundary_max[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_max[jj]
 }   
    
    
@@ -33,10 +33,10 @@ proposal_generate_demc <- function(.,j) {
 
   # number of data points to be used in boundary handling
   # this doesn't need to be done every iteration - can be done at the beginning of the MCMC and maxes and mins stored
-  n <- 1000
-  .$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-  minn <- unlist(lapply(.$dynamic$pars_bndhndling,min))
-  maxn <- unlist(lapply(.$dynamic$pars_bndhndling,max))
+  #n <- 1000
+  #.$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+  #minn <- unlist(lapply(.$dynamic$pars_bndhndling,min))
+  #maxn <- unlist(lapply(.$dynamic$pars_bndhndling,max))
    
   # Metropolis sampling
   # scaling factor
@@ -60,15 +60,16 @@ proposal_generate_demc <- function(.,j) {
       # generate proposal via Differential Evolution
       .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j] + gamma_star * (.$dataf$pars_array[R1,jj,j] - .$dataf$pars_array[R2,jj,j]) + uniform_r
 
-# can call boundary handling function here
-      # boundary handling for minumum
-      if (.$dataf$pars[ii,jj] < minn[jj]) {
-        .$dataf$pars[ii,jj] <- minn[jj]
-      }
-      # boundary handling for maximum
-      if (.$dataf$pars[ii,jj] > maxn[jj]) {
-        .$dataf$pars[ii,jj] <- maxn[jj]
-      } 
+      # call boundary handling function here
+      boundary_handling(., ii, jj ) 
+#      # boundary handling for minumum
+#      if (.$dataf$pars[ii,jj] < minn[jj]) {
+#        .$dataf$pars[ii,jj] <- minn[jj]
+#      }
+#      # boundary handling for maximum
+#      if (.$dataf$pars[ii,jj] > maxn[jj]) {
+#        .$dataf$pars[ii,jj] <- maxn[jj]
+#      } 
     }
   }
 } 
@@ -147,10 +148,10 @@ proposal_generate_dream <- function(., j) {
   # NOTE, this chunk is a repeat of DE-MC code
   # boundary handling
   # number of data points to be used in boundary handling
-  n <- 1000
-  .$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)) )
-  minn <- unlist(lapply(.$dynamic$pars_bndhndling,min))
-  maxn <- unlist(lapply(.$dynamic$pars_bndhndling,max))
+  #n <- 1000
+  #.$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)) )
+  #minn <- unlist(lapply(.$dynamic$pars_bndhndling,min))
+  #maxn <- unlist(lapply(.$dynamic$pars_bndhndling,max))
 
   # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
   .$mcmc$draw[] <- apply(matrix(runif((.$dataf$lp - 1) * .$dataf$lp), .$dataf$lp - 1, .$dataf$lp), 2, function(v) sort(v, index.return = T)$ix)
@@ -165,57 +166,58 @@ proposal_generate_dream <- function(., j) {
   # create proposals
   for (ii in 1:.$dataf$lp) {
     
-     # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
-     D <- sample(1:.$mcmc$delta,1,replace=T)
-  
-     # extract vectors a and b not equal to ii
-     a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
-     b <- .$mcmc$R[ii, .$mcmc$draw[(D + 1):(2 * D), ii]]
-  
-     # select index of crossover value (weighted sample with replacement)
-     .$mcmc$id <- sample(1:.$mcmc$n_CR, 1, replace = T, prob = .$mcmc$p_CR)
-  
-     # draw d values from uniform distribution between 0 and 1
-     zz <- runif(.$mcmc$d)
-  
-     # derive subset A of selected dimensions
-     A <- which(zz < .$mcmc$CR[.$mcmc$id])
-  
-     #  how many dimensions are sampled
-     d_star <- length(A)
-  
-     # make sure that A contains at least one value
-     if (d_star == 0) A <- which.min(zz); d_star <- 1
-  
-     # calculate jump rate
-     gamma_d <- 2.38 / sqrt(2 * D * d_star)
+    # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
+    D <- sample(1:.$mcmc$delta,1,replace=T)
+ 
+    # extract vectors a and b not equal to ii
+    a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
+    b <- .$mcmc$R[ii, .$mcmc$draw[(D + 1):(2 * D), ii]]
+ 
+    # select index of crossover value (weighted sample with replacement)
+    .$mcmc$id <- sample(1:.$mcmc$n_CR, 1, replace = T, prob = .$mcmc$p_CR)
+ 
+    # draw d values from uniform distribution between 0 and 1
+    zz <- runif(.$mcmc$d)
+ 
+    # derive subset A of selected dimensions
+    A <- which(zz < .$mcmc$CR[.$mcmc$id])
 
-     # NOTE maybe there is a way to consolidate this  chunk of code more efficiently      
-     # select gamma
-     temp1 <- c(gamma_d, 1)
-     temp2 <- c(1 - .$mcmc$p_gamma, .$mcmc$p_gamma)
-     gamma <- sample(temp1, 1, replace = T, prob = temp2)
-  
-     # compute jump differential evolution of ii-th chain
-     .$mcmc$jump[ii, A] <- .$mcmc$c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[a, A] - .$mcmc$current_state[b, A]), dim = 1)
-  
-     # compute proposal of ii-th chain
-     .$dataf$pars[ii,1:.$mcmc$d] <- .$mcmc$current_state[ii, 1:.$mcmc$d] + .$mcmc$jump[ii, 1:.$mcmc$d]
+    #  how many dimensions are sampled
+    d_star <- length(A)
+ 
+    # make sure that A contains at least one value
+    if (d_star == 0) A <- which.min(zz); d_star <- 1
+ 
+    # calculate jump rate
+    gamma_d <- 2.38 / sqrt(2 * D * d_star)
 
-     # NOTE, this chunk is a repeat of DE-MC code
-     # APW: replace with boundary handling function 
-     # more boundardy handling
-     for (jj in 1:.$mcmc$d) {
-       # boundary handling for minumum
-       if (.$dataf$pars[ii, jj] < minn[jj]) {
-         .$dataf$pars[ii, jj] <- minn[jj]
-       } 
-       # boundary handling for maximum
-       if (.$dataf$pars[ii, jj] > maxn[jj]) {
-         .$dataf$pars[ii, jj] <- maxn[jj]
-       } 
-     }
+    # NOTE maybe there is a way to consolidate this  chunk of code more efficiently      
+    # select gamma
+    temp1 <- c(gamma_d, 1)
+    temp2 <- c(1 - .$mcmc$p_gamma, .$mcmc$p_gamma)
+    gamma <- sample(temp1, 1, replace = T, prob = temp2)
 
+    # compute jump differential evolution of ii-th chain
+    .$mcmc$jump[ii, A] <- .$mcmc$c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[a, A] - .$mcmc$current_state[b, A]), dim = 1)
+ 
+    # compute proposal of ii-th chain
+    .$dataf$pars[ii,1:.$mcmc$d] <- .$mcmc$current_state[ii, 1:.$mcmc$d] + .$mcmc$jump[ii, 1:.$mcmc$d]
+
+    # call boundary handling function here
+    boundary_handling(., ii, jj ) 
+    # NOTE, this chunk is a repeat of DE-MC code
+    # APW: replace with boundary handling function 
+    # more boundardy handling
+    #for (jj in 1:.$mcmc$d) {
+    #  # boundary handling for minumum
+    #  if (.$dataf$pars[ii, jj] < minn[jj]) {
+    #    .$dataf$pars[ii, jj] <- minn[jj]
+    #  } 
+    #  # boundary handling for maximum
+    #  if (.$dataf$pars[ii, jj] > maxn[jj]) {
+    #    .$dataf$pars[ii, jj] <- maxn[jj]
+    #  } 
+    #}
   }
 } 
 
