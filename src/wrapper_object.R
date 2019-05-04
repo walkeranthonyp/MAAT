@@ -184,7 +184,7 @@ wrapper_object <-
       # print summary of maat setup
       .$print_data()
       .$print_data(otype='run')
-      print(.$dataf$lm)
+      #print(.$dataf$lm)
 
 
       # run model ensemble
@@ -397,6 +397,7 @@ wrapper_object <-
       if(.$wpars$mcmc_type=='dream') .$static_dream()
 
       # run MCMC 
+      print(.$mcmc$p_CR)
       vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
  
       # eventually: insert burn-in procedure here
@@ -429,7 +430,6 @@ wrapper_object <-
       lklihood <- get(.$fnames$proposal_lklihood)(.)   
       
       # accept / reject proposals on each chain 
-      # this first accept function is for the DE-MC algorithm
       get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )   
 
       # future work: insert function call to handle outlier chains here
@@ -808,6 +808,7 @@ wrapper_object <-
     
     # parameters specific to the wrapper object
     wpars <- list(
+      unit_testing = F,
       multic       = F,           # multicore the simulation
       procs        = 6,           # number of processors to use if multic = T
       cverbose     = F,           # write configuration output during runtime 
@@ -824,21 +825,21 @@ wrapper_object <-
       mcmc_thin    = 0.1,         # MCMC chain thinning proportion 
       mcmc_thin_obs= 1,           # MCMC observation thinning proportion 
       mcmc_homosced= F,           # MCMC option for homoscedastic error
-      unit_testing = F
+      #APW: I moved these as they are run parameters set at the beginning of a run while the others in mcmc are set during a run 
+      mcmc_delta   = 3,           # MCMC DREAM number chain pair proposal
+      mcmc_c_rand  = 0.01,        # MCMC DREAM randomization
+      #mcmc_c_rand  = 0.1,         # MCMC DREAM randomization (default value)
+      mcmc_c_ergod = 1e-12,       # MCMC DREAM ergodicicty
+      mcmc_p_gamma = 0.2,  #APW: which is default for p_gamma?       # MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
+      #mcmc_p_gamma = 0.4,         # MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)   
+      mcmc_n_CR    = 3            # MCMC DREAM number of crossover values (default value)      
+      #mcmc_n_CR    = 1            # MCMC DREAM number of crossover values      
     )
  
     # parameters specific to the DREAM (mostly) MCMC algorithm
     mcmc <- list(
       boundary_max  = numeric(1),     # max parameter prior values - for boundary handling
       boundary_min  = numeric(1),     # min parameter prior values - for boundary handling
-      delta         = 3,              # number chain pair proposal
-      c_rand        = 0.01,           # randomization
-      # c_rand        = 0.1,            # randomization (default value)
-      c_ergod       = 1e-12,          # ergodicicty
-      p_gamma       = 0.2,            # probability of unit jump rate (probability gamma = 1) (default value)
-      # p_gamma       = 0.4,          
-      n_CR          = 3,              # number of crossover values (default value)      
-      # n_CR          = 1,              # number of crossover values      
       d             = numeric(1),     # number of parameters (dimensionality of problem)
       id            = numeric(1),     # index of crossover values
       J             = numeric(),      # vector of length n_CR
@@ -1594,8 +1595,9 @@ wrapper_object <-
       list(AB=.$output_saltelli_AB(), ABi=.$output_saltelli_ABi() )
     }    
     
+    
     # test function for MCMC parameter estimation using mixture model with tri-modal distribution 
-    .test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_chains=8, mcmc_maxiter=100 ) {
+    .test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='demc', mcmc_chains=8, mcmc_maxiter=100 ) {
      
       ### currently does not work with multicoring,
       ### probably due to assignment to . datastructure during the forked processes 
@@ -1608,19 +1610,23 @@ wrapper_object <-
       init_default <- .$build(model='mcmc_test_object')
       setwd('../..')
       library(lattice)
-      
+     
+      # redefine mc if mc=T
+      if(mc) {mc <- F; print('mc specified as T but does not work in unit testing with current MAAT config, redefining mc as F') }
+ 
       # define control parameters
-      .$model$pars$verbose  <- F      
-      .$model$pars$cverbose <- F      
+      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
+      .$model$pars$verbose <- F      
+      .$model$pars$cverbose<- F      
       .$model$mcmc_testsys <- 'f_mcmc_testsys_mixture'      
       .$wpars$multic       <- mc           # multicore the ensemble
       .$wpars$procs        <- pr           # number of cores to use if above is true
       .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
       .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
+      .$wpars$mcmc_type    <- mcmc_type    # MCMC type, 'demc' or 'dream' 
       .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
       .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
       .$fnames$proposal_lklihood <- 'f_proposal_lklihood_log'  # MCMC likelihood function 
-      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
 
       # set problem specific parameters
       .$model$pars$mu1   <- -5      
@@ -1628,9 +1634,9 @@ wrapper_object <-
       .$model$pars$mu3   <- 5      
      
       # met dataf must be non-NULL
-      metdummy           <- matrix(1,1,1)
-      colnames(metdummy) <- 'mcmc_test.dummy'
-      .$dataf$met        <- metdummy
+      #metdummy           <- matrix(1,1,1)
+      #colnames(metdummy) <- 'mcmc_test.dummy'
+      #.$dataf$met        <- metdummy
 
       # define priors
 #      # number of parameters in proposal
@@ -1679,7 +1685,7 @@ wrapper_object <-
     
     
     # test function for MCMC parameter estimation in a linear regression 
-    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_chains=7, mcmc_homosced=T, mcmc_maxiter=3,
+    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_type='demc', mcmc_chains=7, mcmc_homosced=T, mcmc_maxiter=3,
                                   x=1:10, a_mu=-25, b_mu=25, a_sd=1, b_sd=1, standard_err=0.5 ) {
       
       # source directory
@@ -1690,7 +1696,11 @@ wrapper_object <-
       setwd('../..')
       library(lattice)
       
+      # redefine mc if mc=T
+      if(mc) {mc <- F; print('mc specified as T but does not work in unit testing with current MAAT config, redefining mc as F') }
+ 
       # define control parameters
+      .$wpars$unit_testing  <- T             # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
       .$model$pars$verbose  <- F      
       .$model$pars$cverbose <- F      
       .$model$fnames$mcmc_testsys <- 'f_mcmc_testsys_regression'      
@@ -1699,11 +1709,11 @@ wrapper_object <-
       .$wpars$procs         <- pr            # number of cores to use if above is true
       .$wpars$UQ            <- T             # run a UQ/SA style ensemble 
       .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble 
+      .$wpars$mcmc_type     <- mcmc_type     # MCMC type, 'demc' or 'dream' 
       .$wpars$mcmc_chains   <- mcmc_chains   # MCMC number of chains 
       .$wpars$mcmc_homosced <- mcmc_homosced # MCMC homoscedastic error
       .$wpars$mcmc_maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain 
       .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared_se'  # MCMC likelihood function 
-      .$wpars$unit_testing  <- T             # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
 
       # set problem specific parameters
       .$model$pars$syn_a_mu <- a_mu      

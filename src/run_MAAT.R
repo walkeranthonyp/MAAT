@@ -101,6 +101,16 @@ mcmc_thin     <- 0.1
 mcmc_thin_obs <- 1
 # MCMC option to assume homoscedastic error in measured observations (else, heteroscedastic)
 mcmc_homosced <- F
+# MCMC DREAM number chain pair proposal
+mcmc_delta    <- 3,         
+# MCMC DREAM randomization
+mcmc_c_rand   <- 0.01        
+# MCMC DREAM ergodicicty
+mcmc_c_ergod  <- 1e-12      
+# MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
+mcmc_p_gamma  <- 0.2 
+# MCMC DREAM number of crossover values (default value)      
+mcmc_n_CR     <- 3           
 
 # run options
 # meteorological data file name
@@ -222,6 +232,11 @@ maat$wpars$UQ            <- uq
 maat$wpars$n             <- psa_n       
 maat$wpars$coef_var      <- coef_var       
 maat$wpars$nmult         <- salt_nmult       
+maat$wpars$eval_strings  <- eval_strings       
+maat$model$cpars$verbose <- F
+maat$model$cpars$output  <- mod_out
+
+# define MCMC run parameters
 maat$wpars$mcmc_type     <- mcmc_type       
 maat$wpars$mcmc_chains   <- mcmc_chains       
 maat$wpars$mcmc_maxiter  <- mcmc_maxiter       
@@ -229,9 +244,11 @@ maat$wpars$mcmc_burnin   <- mcmc_burnin
 maat$wpars$mcmc_thin     <- mcmc_thin       
 maat$wpars$mcmc_thin_obs <- mcmc_thin_obs       
 maat$wpars$mcmc_homosced <- mcmc_homosced
-maat$wpars$eval_strings  <- eval_strings       
-maat$model$cpars$verbose <- F
-maat$model$cpars$output  <- mod_out
+maat$wpars$mcmc_delta    <- mcmc_delta  
+maat$wpars$mcmc_c_rand   <- mcmc_c_rand  
+maat$wpars$mcmc_c_ergod  <- mcmc_c_ergod 
+maat$wpars$mcmc_p_gamma  <- mcmc_p_gamma
+maat$wpars$mcmc_n_CR     <- mcmc_n_CR   
 
 
 
@@ -303,8 +320,6 @@ if(!is.null(metdata)) {
   setwd(pdir)
   if(file.exists(paste0(mod_obj,'_user_met.xml'))) {
     met_trans <- readXML(paste0(mod_obj,'_user_met.xml'))
-    # met_trans <- evalXMLlist(met_trans)
-    #if(any(names(met_trans)==mod_obj)) met_trans <- met_trans[[which(names(met_trans)==mod_obj)]]$env
     if(any(names(met_trans$env)==mod_obj)) met_trans <- met_trans$env[[which(names(met_trans$env)==mod_obj)]]
     else {
       print('',quote=F)
@@ -377,6 +392,78 @@ if(!is.null(metdata)) {
 
 
 ##################################
+# Load evaluation  dataset
+# - not used unless specified
+
+#kill <- F
+#if(!is.null(evaldata)) {
+#  # read user defined eval data translator
+#  setwd(pdir)
+#  if(file.exists(paste0(mod_obj,'_user_eval.xml'))) {
+#    eval_trans <- readXML(paste0(mod_obj,'_user_eval.xml'))
+#    if(any(names(eval_trans$state)==mod_obj)) eval_trans <- eval_trans$env[[which(names(eval_trans$state)==mod_obj)]]
+#    else {
+#      print('',quote=F)
+#      print('Evaluation data translator file:',quote=F)
+#      print(paste0(mod_obj,'_user_eval.xml'),quote=F)
+#      print('does not contain list for:',quote=F)
+#      print(mod_obj,quote=F)      
+#      stop()
+#    }
+#      
+#  } else {
+#    print('',quote=F)
+#    print('Evaluation data translator file:',quote=F)
+#    print(paste0(mod_obj,'_user_eval.xml'),quote=F)
+#    print('does not exist in:',quote=F)
+#    print(pdir,quote=F)
+#    stop()
+#  }
+#
+#  # read eval data file
+#  if(is.null(evaldir)) evaldir <- mdir
+#  print('', quote=F )
+#  print('Eval data directory & filename:' , quote=F )
+#  print(evaldir, quote=F )
+#  setwd(evaldir)
+#  if(file.exists(evaldata)&!kill) {
+#    print(evaldata, quote=F )
+#    evaldf <- read.csv(evaldata,strip.white=T)  
+#    print(head(evaldf), quote=F )
+#    
+#    ###################################
+#    # add eval data to model object - total hack for now   
+#    #maat$dataf$obs    <- metdf$GPP.PAR.ecor.real    
+#    #maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se 
+#    ###################################
+#
+#    # order met data in metfile according to that specified in the <mod_obj>_user_met.XML 
+#    # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML 
+#    cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
+#    evaldf <- evaldf[,cols] 
+#        
+#    # check met and eval data sets are of same length 
+#    
+#    # add to MAAT object - is this expected as 
+#    maat$dataf$obs <- evaldf 
+#      
+#    # remove met data file  
+#    rm(evaldf)
+#      
+#  } else {
+#    print('',quote=F)
+#    print('Eval data file:',quote=F)
+#    print(evaldata,quote=F)
+#    print('does not exist in:',quote=F)
+#    print(evaldir,quote=F)
+#    stop()  
+#  }
+#  setwd(pdir)
+#}
+
+
+
+##################################
 ###  Run MAAT
 
 # run factorial MAAT, this is a standard setup combining variables in factorial
@@ -407,7 +494,7 @@ if(factorial) {
 
 
 
-### run Ye algorithm for process sensitivity  analysis if requested
+# run Ye algorithm for process sensitivity  analysis if requested
 if(procSA&uq) {
   maat$model$pars$verbose  <- F
   maat$wpars$UQtype <- 'ye'
@@ -430,7 +517,7 @@ if(procSA&uq) {
 
 
 
-### run Saltelli algorithm for Sobol sensitivity  analysis if requested
+# run Saltelli algorithm for Sobol sensitivity  analysis if requested
 if(salt&uq) {
   maat$model$pars$verbose  <- F
   maat$wpars$UQtype <- 'saltelli'
@@ -452,7 +539,7 @@ if(salt&uq) {
   gc()
 }
 
-### run MCMC algorithm parameter estimation if requested
+# run MCMC algorithm parameter estimation if requested
 if(mcmc&uq) {
   maat$model$pars$verbose  <- F
   maat$wpars$UQtype <- 'mcmc'
