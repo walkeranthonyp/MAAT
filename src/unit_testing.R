@@ -108,7 +108,7 @@ wrapper_object$wpars
 # MCMC linear regression test
 source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=150)
-out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=50, mcmc_type='dream' )
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=100, mcmc_type='dream' )
 #out <- wrapper_object$.test_mcmc_linreg(mc=T, pr=4, mcmc_chains=8, mcmc_maxiter=1000 )
 out[[3]]
 dim(out[[2]])

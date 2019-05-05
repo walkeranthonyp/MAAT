@@ -397,8 +397,9 @@ wrapper_object <-
       if(.$wpars$mcmc_type=='dream') .$static_dream()
 
       # run MCMC 
-      print(.$mcmc$p_CR)
-      vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
+      #print(.$mcmc$p_CR)
+      #vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
+      vapply(2:(.$wpars$mcmc_maxiter), .$run_mcmc, numeric(0) )
  
       # eventually: insert burn-in procedure here
       # BURN-IN: if convergence has not been reached, re-run MCMC
