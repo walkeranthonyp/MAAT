@@ -39,6 +39,9 @@
 ##################################
 # command line options and defaults
 
+# model object to use, any directory name in the src/system_models directory 
+mod_obj <- NULL
+
 # directory paths - set these on the command line or modify these here
 # source directory (full path)
 # - must be added (here or as a commandline option to this script) before model will run
@@ -52,9 +55,6 @@ mdir    <- NULL
 edir    <- NULL
 # output data directory (full path)
 odir    <- NULL
-
-# model object to use, currently leaf or gwater_rt
-mod_obj <- NULL
 
 # wrapper object options
 # multicore the ensemble
@@ -115,6 +115,12 @@ mcmc_n_CR     <- 3
 # run options
 # meteorological data file name
 metdata       <- NULL
+
+# evaluation data file name
+evaldata      <- NULL 
+
+# load standard error from evaluation data file (T/F)
+evalse        <- F 
 
 # pass code snippets as strings to generate parameter samples, see init_MAAT.R and wrapper for use
 eval_strings  <- F
@@ -363,7 +369,7 @@ if(!is.null(metdata)) {
 
     # if time variable specified put it first and don't rename it
     if('time'%in%names(met_trans)) {
-      tcol  <- which(names(met_trans)=='time')
+      tcol      <- which(names(met_trans)=='time')
       metdf <- metdf[, c(tcol,c(1:length(metdf))[-tcol]) ]
 
       # rename to maat variables as defined in <mod_obj>_user_met.XML and prefix with the model object for compatibility with the configure function
@@ -393,74 +399,84 @@ if(!is.null(metdata)) {
 
 
 ##################################
-# Load evaluation  dataset
+# Load evaluation dataset
 # - not used unless specified
 
-#kill <- F
-#if(!is.null(evaldata)) {
-#  # read user defined eval data translator
-#  setwd(pdir)
-#  if(file.exists(paste0(mod_obj,'_user_eval.xml'))) {
-#    eval_trans <- readXML(paste0(mod_obj,'_user_eval.xml'))
-#    if(any(names(eval_trans$state)==mod_obj)) eval_trans <- eval_trans$env[[which(names(eval_trans$state)==mod_obj)]]
-#    else {
-#      print('',quote=F)
-#      print('Evaluation data translator file:',quote=F)
-#      print(paste0(mod_obj,'_user_eval.xml'),quote=F)
-#      print('does not contain list for:',quote=F)
-#      print(mod_obj,quote=F)
-#      stop()
-#    }
-#
-#  } else {
-#    print('',quote=F)
-#    print('Evaluation data translator file:',quote=F)
-#    print(paste0(mod_obj,'_user_eval.xml'),quote=F)
-#    print('does not exist in:',quote=F)
-#    print(pdir,quote=F)
-#    stop()
-#  }
-#
-#  # read eval data file
-#  if(is.null(evaldir)) evaldir <- mdir
-#  print('', quote=F )
-#  print('Eval data directory & filename:' , quote=F )
-#  print(evaldir, quote=F )
-#  setwd(evaldir)
-#  if(file.exists(evaldata)&!kill) {
-#    print(evaldata, quote=F )
-#    evaldf <- read.csv(evaldata,strip.white=T)
-#    print(head(evaldf), quote=F )
-#
-#    ###################################
-#    # add eval data to model object - total hack for now
-#    #maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
-#    #maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
-#    ###################################
-#
-#    # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
-#    # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML
-#    cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
-#    evaldf <- evaldf[,cols]
-#
-#    # check met and eval data sets are of same length
-#
-#    # add to MAAT object - is this expected as
-#    maat$dataf$obs <- evaldf
-#
-#    # remove met data file
-#    rm(evaldf)
-#
-#  } else {
-#    print('',quote=F)
-#    print('Eval data file:',quote=F)
-#    print(evaldata,quote=F)
-#    print('does not exist in:',quote=F)
-#    print(evaldir,quote=F)
-#    stop()
-#  }
-#  setwd(pdir)
-#}
+kill <- F
+if(!is.null(evaldata)&F) {
+  # read user defined eval data translator
+  setwd(pdir)
+  if(file.exists(paste0(mod_obj,'_user_eval.xml'))) {
+    eval_trans <- readXML(paste0(mod_obj,'_user_eval.xml'))
+    if(any(names(eval_trans$state)==mod_obj)) eval_trans <- eval_trans$env[[which(names(eval_trans$state)==mod_obj)]]
+    else {
+      print('',quote=F)
+      print('Evaluation data translator file:',quote=F)
+      print(paste0(mod_obj,'_user_eval.xml'),quote=F)
+      print('does not contain list for:',quote=F)
+      print(mod_obj,quote=F)      
+      stop()
+    }
+      
+  } else {
+    print('',quote=F)
+    print('Evaluation data translator file:',quote=F)
+    print(paste0(mod_obj,'_user_eval.xml'),quote=F)
+    print('does not exist in:',quote=F)
+    print(pdir,quote=F)
+    stop()
+  }
+
+  # read eval data file
+  if(is.null(edir)) edir <- mdir
+  print('', quote=F )
+  print('Eval data directory & filename:' , quote=F )
+  print(edir, quote=F )
+  setwd(edir)
+
+  if(evaldata=='met') evaldata <- metdata
+  if(file.exists(evaldata)&!kill) {
+    print(evaldata, quote=F )
+    evaldf   <- read.csv(evaldata,strip.white=T)  
+    print(head(evaldf), quote=F )
+
+    # check met and eval data sets are of same length 
+    if(dim(maat$dataf$met)[2]!=dim(evaldf)[2]) 
+      stop(paste('Eval data not same length as met data: check equal length of files:', evaldata, metdata ))  
+    
+    # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML 
+    # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML 
+    cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
+    evaldf <- evaldf[,cols] 
+        
+    # add to MAAT object
+    maat$dataf$obs <- evaldf 
+   
+    # Read standard error for eval data  
+    if(evalse) {   
+      print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"'
+ 
+      # extract se data 
+      cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
+      evaldfse <- evaldf[,cols] 
+      
+      # add to MAAT object
+      maat$dataf$obsse <- evaldfse 
+    }
+  
+    # remove eval data file  
+    rm(evaldf)
+      
+  } else {
+    print('',quote=F)
+    print('Eval data file:',quote=F)
+    print(evaldata,quote=F)
+    print('does not exist in:',quote=F)
+    print(evaldir,quote=F)
+    stop()  
+  }
+  setwd(pdir)
+}
 
 
 

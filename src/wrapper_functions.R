@@ -511,6 +511,7 @@ proposal_accept_dream <- function(., j, lklihood) {
 
 # expects model output to be probability - as in the output from the mixture model
 f_proposal_lklihood_log <- function(.) {
+  # derive log density   
   log(.$dataf$out)
 
   # print(paste0('model likelihood = ', log(.$dataf$out)))
@@ -521,6 +522,7 @@ f_proposal_lklihood_log <- function(.) {
 
 # standard error probability density function with iid error residuals
 f_proposal_lklihood_ssquared <- function(.) {
+
   # number of measured data points
   obs_n <- length(.$dataf$obs)
 
@@ -542,7 +544,8 @@ f_proposal_lklihood_ssquared <- function(.) {
 # standard error probability density function with iid error residuals
 # this function incorporates measurement errors
 f_proposal_lklihood_ssquared_se <- function(.) {
-  # read in measurement error and remove zeros from measurement error
+
+  # read in measurement error and remove zeros from measurement error  
   sspos <- which(.$dataf$obsse > 1e-9)
 
   # number of measured data points (that do not have zero uncertainty)
@@ -558,7 +561,6 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   # calculate sum of squared error
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
 
-  # derive log density
   # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
   -(obs_n/2)*log(2*pi) - sum(log(obsse)) - 0.5*SSR
 }

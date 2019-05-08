@@ -1,0 +1,13 @@
+<eval_data_translator>
+  <state>
+    <canopy>
+      <lai>'column name of variable in evaldata file'</lai>
+      <mass_a>'column name of variable in evaldata file'</mass_a>
+      <C_to_N>'column name of variable in evaldata file'</C_to_N>
+      <totalN>'column name of variable in evaldata file'</totalN>
+      <vcmax0>'column name of variable in evaldata file'</vcmax0>
+      <vert>'column name of variable in evaldata file'</vert>
+      <integrated>'column name of variable in evaldata file'</integrated>
+    </canopy>
+  </state>
+</eval_data_translator>

@@ -49,6 +49,11 @@ l2 <- list(env = list(get(mo)[['env']]))
 names(l2$env) <- mod_obj
 l2[[1]][[1]][] <- 'column name of variable in metdata file'
 
+# create eval data list
+l3 <- list(state = list(get(mo)[['state']]))
+names(l3$state) <- mod_obj
+l3[[1]][[1]][] <- 'column name of variable in evaldata file'
+
 # read all options
 mf <- paste0(mod_obj,'_system_functions.R'); source(mf)
 mf <- paste0(mod_obj,'_functions.R');        source(mf)
@@ -72,16 +77,17 @@ l1n <- rapply(l1, function(x) NA, how='replace' )
 
 # convert list to XMLs
 print('', quote=F )
-listtoXML(paste(mod_obj,'default.xml',sep='_'), 'default',  sublist=l1 )
-listtoXML(paste(mod_obj,'options.xml',sep='_'), 'options',  sublist=l1opt )
+#listtoXML(paste(mod_obj,'default.xml',sep='_'), 'default',  sublist=l1 )
+#listtoXML(paste(mod_obj,'options.xml',sep='_'), 'options',  sublist=l1opt )
 setwd('init_files')
-listtoXML(paste(mod_obj,'user_static.xml',sep='_'),  'static',               sublist=l1n )
-listtoXML(paste(mod_obj,'user_dynamic.xml',sep='_'), 'dynamic',              sublist=l1n )
-listtoXML(paste(mod_obj,'user_met.xml',sep='_'),     'met_data_translator',  sublist=l2 )
+#listtoXML(paste(mod_obj,'user_static.xml',sep='_'),  'static',               sublist=l1n )
+#listtoXML(paste(mod_obj,'user_dynamic.xml',sep='_'), 'dynamic',              sublist=l1n )
+#listtoXML(paste(mod_obj,'user_met.xml',sep='_'),     'met_data_translator',  sublist=l2 )
+listtoXML(paste(mod_obj,'user_eval.xml',sep='_'),    'eval_data_translator', sublist=l3 )
 
 # open options XML to add labels by hand 
 setwd('..')
-file.edit(paste(mod_obj,'options.xml',sep='_'))
+#file.edit(paste(mod_obj,'options.xml',sep='_'))
 
 
 
