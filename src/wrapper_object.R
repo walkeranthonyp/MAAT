@@ -1598,7 +1598,11 @@ wrapper_object <-
     
     
     # test function for MCMC parameter estimation using mixture model with tri-modal distribution 
-    .test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='demc', mcmc_chains=8, mcmc_maxiter=100 ) {
+    .test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='demc', 
+                                   mcmc_chains=8, mcmc_maxiter=100,
+                                   mu_vector=c(-8,0,6),
+                                   sd_vector=c(1,1,1)
+                                   ) {
      
       ### currently does not work with multicoring,
       ### probably due to assignment to . datastructure during the forked processes 
@@ -1630,15 +1634,13 @@ wrapper_object <-
       .$fnames$proposal_lklihood <- 'f_proposal_lklihood_log'  # MCMC likelihood function 
 
       # set problem specific parameters
-      .$model$pars$mu1   <- -5      
-      .$model$pars$mu2   <- 0      
-      .$model$pars$mu3   <- 5      
+      .$model$pars$mu1   <- mu_vector[1]      
+      .$model$pars$mu2   <- mu_vector[2]     
+      .$model$pars$mu3   <- mu_vector[3]      
+      .$model$pars$sd1   <- sd_vector[1]      
+      .$model$pars$sd2   <- sd_vector[2]     
+      .$model$pars$sd3   <- sd_vector[3]      
      
-      # met dataf must be non-NULL
-      #metdummy           <- matrix(1,1,1)
-      #colnames(metdummy) <- 'mcmc_test.dummy'
-      #.$dataf$met        <- metdummy
-
       # define priors
 #      # number of parameters in proposal
 #      np  <- 4
@@ -1659,11 +1661,12 @@ wrapper_object <-
 #      print('priors', quote=F )
 #      print(priors,quote=F)
 
+      # APW: is this the standard prior used for thise test?
       .$dynamic$pars_eval <- list(
         mcmc_test.proposal1  = 'runif(n,-10,0)',
         mcmc_test.proposal2  = 'runif(n,  0,10)',
         mcmc_test.proposal3  = 'runif(n,-10,10)',
-        mcmc_test.proposal4  = 'runif(n,-1,1)'
+        mcmc_test.proposal4  = 'runif(n,-10,10)'
       )
 
       # define ofname
@@ -1687,7 +1690,10 @@ wrapper_object <-
     
     # test function for MCMC parameter estimation in a linear regression 
     .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_type='demc', mcmc_chains=7, mcmc_homosced=T, mcmc_maxiter=3,
-                                  x=1:10, a_mu=-25, b_mu=25, a_sd=1, b_sd=1, standard_err=0.5 ) {
+                                  x=1:10, a_mu=-25, b_mu=25, a_sd=1, b_sd=1, standard_err=0.5,
+                                  mcmc_test.a  = 'runif(n,-30,30)',
+                                  mcmc_test.b  = 'runif(n,-30,30)'
+                                  ) {
       
       # source directory
       setwd('system_models/mcmc_test')
@@ -1731,12 +1737,12 @@ wrapper_object <-
       .$model$pars$b       <- rnorm(length(x), .$model$pars$syn_b_mu, .$model$pars$syn_b_sd )
       .$model$env$linreg_x <- x
       .$dataf$obs          <- get(.$model$fnames$reg_func)(.$model)
-      .$dataf$obsse        <- rnorm(length(x), mean = 0, sd = standard_err) 
+      .$dataf$obsse        <- abs(rnorm(length(x), mean = 0, sd = standard_err)) 
 
       # define priors
       .$dynamic$pars_eval <- list(
-        mcmc_test.a  = 'runif(n,-20,20)',
-        mcmc_test.b  = 'runif(n,-20,20)'
+        mcmc_test.a  = mcmc_test.a,
+        mcmc_test.b  = mcmc_test.b
       )
 
       # define ofname
