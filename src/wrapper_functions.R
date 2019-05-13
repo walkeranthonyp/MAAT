@@ -193,9 +193,11 @@ proposal_generate_dream <- function(., j ) {
     d_star <- length(A)
  
     # make sure that A contains at least one value
-    if (d_star == 0) A <- which.min(zz)
-    d_star <- 1
- 
+    if (d_star == 0) {
+      A <- which.min(zz)
+      d_star <- 1
+    } 
+
     # calculate jump rate
     gamma_d <- 2.38 / sqrt(2 * D * d_star)
 
