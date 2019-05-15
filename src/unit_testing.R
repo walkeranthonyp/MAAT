@@ -9,7 +9,7 @@
 
 
 
-### Load model scripts 
+### Load model scripts
 ###############################
 
 
@@ -85,23 +85,41 @@ wrapper_object$dataf$pars
 
 # MCMC Mixture test
 source('wrapper_object.R')
-out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=10, mcmc_type='demc')
-out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=500, mcmc_type='dream' )
-# weird fail when maxiter is 5 - one more than the number of pars (total iterations are max - 1 due to an initial proposal eval before iteration loop starts) 
-#out <- wrapper_object$.test_mcmc_mixture(mc=T, pr=4, mcmc_chains=8, mcmc_maxiter=100 ) ### fails multicoring
-df1 <- data.frame(lklihood=as.vector(t(out[[2]])), chain=rep(1:dim(out[[2]])[1],each=dim(out[[2]])[2]) )
-xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) , df1, groups=chain, auto.key=T, type='l' )
-names(out)
-update(out[[3]],breaks=50)
+# ALJ: test DE-MC algorithm with mixture model
+out <- wrapper_object$.test_mcmc_mixture(mcmc_type = 'demc',
+                                         mcmc_maxiter = 10,
+                                         mcmc_chains = 10,
+                                         mc = F,
+                                         pr = 4,
+                                         mu_vector = c(-8, 0, 8),
+                                         sd_vector = c(1, 1, 1),
+                                         height_vector = c(0.3, 0.3, 0.3),
+                                         mixture_scale = 1e10
+                                         )
+# ALJ: would like to be able to read proposal distribution range in as input parameter here?
+# ALJ: histogram of posterior parameter distributions
+hist(out$pars_array,
+     breaks = 200,
+     col = 'darkmagenta',
+     border = 'darkmagenta',
+     xlab = 'Mixture Model Parameters',
+     main = 'Posterior (Target) Parameter Distributions for Mixture Model')
+# out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=500, mcmc_type='dream' )
+# weird fail when maxiter is 5 - one more than the number of pars (total iterations are max - 1 due to an initial proposal eval before iteration loop starts)
+# out <- wrapper_object$.test_mcmc_mixture(mc=T, pr=4, mcmc_chains=8, mcmc_maxiter=100 ) ### fails multicoring
+# df1 <- data.frame(lklihood=as.vector(t(out[[2]])), chain=rep(1:dim(out[[2]])[1],each=dim(out[[2]])[2]) )
+# xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) , df1, groups=chain, auto.key=T, type='l' )
+# names(out)
+# update(out[[3]],breaks=50)
 # doesn't appear to be fuinding the solution
-
-wrapper_object$dynamic
-wrapper_object$dataf$pars
+# wrapper_object$dynamic
+wrapper_object$dynamic$pars_eval
+# wrapper_object$dataf$pars
 wrapper_object$model$pars
-wrapper_object$dataf$pars_array[,,1]
-wrapper_object$dataf$pars_lklihood
-wrapper_object$dataf$pars_array
-wrapper_object$dataf$pars_lklihood
+# wrapper_object$dataf$pars_array[,,1]
+# wrapper_object$dataf$pars_lklihood
+# wrapper_object$dataf$pars_array
+# wrapper_object$dataf$pars_lklihood
 wrapper_object$wpars
 
 
@@ -109,7 +127,7 @@ wrapper_object$wpars
 source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=150)
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=150, mcmc_type='dream' )
-out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=150,   
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=150,
                                         mcmc_test.a ='runif(n,-20,20)',
                                         mcmc_test.b ='runif(n,-20,20)')
 #out <- wrapper_object$.test_mcmc_linreg(mc=T, pr=4, mcmc_chains=8, mcmc_maxiter=1000 )
