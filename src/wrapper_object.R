@@ -409,7 +409,7 @@ wrapper_object <-
 
       # ALJ: commented this out to get mixture model unit testing working on my Mac
       # if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp') }
-      # write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc, prop_storage=.$dataf$prop_storage), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
+      write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc, prop_storage=.$dataf$prop_storage), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
       # if(.$wpars$unit_testing) setwd(hd)
     }
 
@@ -1679,7 +1679,7 @@ wrapper_object <-
         mcmc_test.proposal3  = 'runif(n,-10,10)',
         mcmc_test.proposal4  = 'runif(n,-10,10)'
       )
- 
+
       # define ofname
       .$ofname <- 'mcmc_mixture_test'
 
