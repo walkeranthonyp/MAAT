@@ -87,14 +87,14 @@ wrapper_object$dataf$pars
 source('wrapper_object.R')
 # ALJ: test DE-MC algorithm with mixture model
 out <- wrapper_object$.test_mcmc_mixture(mcmc_type = 'demc',
-                                         mcmc_maxiter = 10,
-                                         mcmc_chains = 10,
+                                         mcmc_maxiter = 10000,
+                                         mcmc_chains = 8,
                                          mc = F,
                                          pr = 4,
                                          mu_vector = c(-8, 0, 8),
                                          sd_vector = c(1, 1, 1),
-                                         height_vector = c(0.3, 0.3, 0.3),
-                                         mixture_scale = 1e10
+                                         height_vector = c(0.1, 0.3, 0.6),
+                                         mixture_scale = 1e12
                                          )
 # ALJ: would like to be able to read proposal distribution range in as input parameter here?
 # ALJ: histogram of posterior parameter distributions
