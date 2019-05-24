@@ -76,6 +76,8 @@ proposal_generate_demc <- function(., j ) {
 # calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
 proposal_accept_demc <- function(., j, lklihood ) {
 
+  print(paste0('iteration = ',j))
+  
   # Metropolis ratio
   metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
   alpha        <- pmin(1,metrop_ratio)

@@ -126,11 +126,18 @@ wrapper_object <-
           # sample parameters from character string code snippets to generate initial proposal from priors
           n <- .$wpars$mcmc_chains
           .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-
+# ALJ: this is where priors are generated
+# print(paste0('you are here: n = ',n))
+# print('.$dynamic$pars_eval = ')
+# print(.$dynamic$pars_eval)
+print('.$dynamic$pars = ')
+print(.$dynamic$pars)
           # create pars / proposal matrix
           .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
-          #print(.$dynamic$pars)
-          #print(.$dataf$pars)
+print('.$dynamic$pars = ')
+print(.$dynamic$pars)
+print('.$dataf$pars = ')
+print(.$dataf$pars)
 
 	  # create proposal storage array (store all proposals, not just accepted ones)
           # this is not necessary for output; just used for debugging
@@ -1673,11 +1680,12 @@ wrapper_object <-
       # APW: is this the standard prior used for thise test?
       # ALJ: the prior is dependent on the user-specified mu's and sd's
       #      so theoretically the prior should be changed with each run
+      # ALJ: these current prior ranges work well for mu=<-8,0,8> and sd=<1,1,1>
       .$dynamic$pars_eval <- list(
-        mcmc_test.proposal1  = 'runif(n,-10,10)',
-        mcmc_test.proposal2  = 'runif(n,-10,10)',
-        mcmc_test.proposal3  = 'runif(n,-10,10)',
-        mcmc_test.proposal4  = 'runif(n,-10,10)'
+        mcmc_test.proposal1  = 'runif(n,-20,20)',
+        mcmc_test.proposal2  = 'runif(n,-20,20)',
+        mcmc_test.proposal3  = 'runif(n,-20,20)',
+        mcmc_test.proposal4  = 'runif(n,-20,20)'
       )
 
       # define ofname
