@@ -56,6 +56,8 @@ proposal_generate_demc <- function(., j ) {
   # evaluate for each chain
   for (ii in 1:.$dataf$lp) {
 
+#print(paste0('iteration = ', j, ', chain = ', ii))
+
     # randomly select two different numbers R1 and R2 unequal to j
     # from a uniform distribution without replacement
     while ((R1 == 0) | (R1 == ii))               R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
@@ -67,8 +69,12 @@ proposal_generate_demc <- function(., j ) {
       .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
 
       # call boundary handling function
-      boundary_handling(., ii, jj )
+#      boundary_handling(., ii, jj )
     }
+
+#print('proposal generated = ')
+#print(.$dataf$pars[ii, ])
+#print('')
   }
 }
 
@@ -76,8 +82,6 @@ proposal_generate_demc <- function(., j ) {
 # calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
 proposal_accept_demc <- function(., j, lklihood ) {
 
-  print(paste0('iteration = ',j))
-  
   # Metropolis ratio
   metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
   alpha        <- pmin(1,metrop_ratio)
@@ -338,6 +342,9 @@ proposal_accept_dream <- function(., j, lklihood) {
 # expects model output to be probability - as in the output from the mixture model
 f_proposal_lklihood_log <- function(.) {
   log(.$dataf$out)
+#print('model likelihood = ')
+#print(log(.$dataf$out))
+#return(log(.$dataf$out))
 }
 
 

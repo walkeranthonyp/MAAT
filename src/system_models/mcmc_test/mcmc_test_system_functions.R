@@ -25,6 +25,9 @@ f_mcmc_testsys_mixture <- function(.) {
 
   # return combined probability
   .$state$mixture_p[] <- sum(prod(p1) + prod(p2) + prod(p3))
+#print('model evalution = ')
+#print(.$state$mixture_p[])
+#return(.$state$mixture_p[])
 }
 
 
