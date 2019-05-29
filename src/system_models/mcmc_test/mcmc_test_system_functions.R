@@ -23,12 +23,21 @@ f_mcmc_testsys_mixture <- function(.) {
   print("")
 
   # calculate proposal probability for each of the three distributions
-  p1 <- .$pars$mixture_scale * .$pars$height1 * dnorm(x_proposal, .$pars$mu1, .$pars$sd1 )
-  p2 <- .$pars$mixture_scale * .$pars$height2 * dnorm(x_proposal, .$pars$mu2, .$pars$sd2 )
-  p3 <- .$pars$mixture_scale * .$pars$height3 * dnorm(x_proposal, .$pars$mu3, .$pars$sd3 )
+  # p1 <- .$pars$mixture_scale * .$pars$height1 * dnorm(x_proposal, .$pars$mu1, .$pars$sd1 )
+  # p2 <- .$pars$mixture_scale * .$pars$height2 * dnorm(x_proposal, .$pars$mu2, .$pars$sd2 )
+  # p3 <- .$pars$mixture_scale * .$pars$height3 * dnorm(x_proposal, .$pars$mu3, .$pars$sd3 )
 
   # return combined probability
-  .$state$mixture_p[] <- sum(prod(p1) + prod(p2) + prod(p3))
+  # .$state$mixture_p[] <- sum(prod(p1) + prod(p2) + prod(p3))
+
+  # ALJ: alternatively...
+  # calculate proposal probability for each of the three distributions
+  p1 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu1, .$pars$sd1 )
+  p2 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu2, .$pars$sd2 )
+  p3 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu3, .$pars$sd3 )
+  
+  # return combined probability
+  .$state$mixture_p[] <- sum(.$pars$height1 * prod(p1) + .$pars$height2 * prod(p2) + .$pars$height3 * prod(p3))
 
   print(paste0('model evalution = ', .$state$mixture_p[]))
   #print(.$state$mixture_p[])

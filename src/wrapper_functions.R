@@ -47,28 +47,48 @@ proposal_generate_demc <- function(., j ) {
   b_rand  <- 0.01
   # ALJ: made uniform_r a vector and pulled it outside for-loop
   # draw vector of random numbers from uniform distribution on interval (-b_rand, b_rand)
-  uniform_r <- runif(d,min=(-b_rand),max=b_rand)
+  #uniform_r <- runif(d,min=(-b_rand),max=b_rand)
+  # ALJ: NEED TO TRY creating uniform_r as just a randomly drawn scalar value
+  # temporarily hardcode uniform_r
+  # uniform_r <- rep(-0.000378, d)
+  uniform_r <- runif(1,min=(-b_rand),max=b_rand)
+  print("uniform_r = ")
+  print(uniform_r)
+  print("")
+
+  # ALJ: NEED TO TRY moving R1 and R2 iniitalization to 0 inside the for-loop
   # ALJ: index for 1st randomly chosen chain used in proposal generation
-  R1 <- 0
+  # R1 <- 0
   # ALJ: index for 2nd randomly chosen chain used in proposal generation
-  R2 <- 0
+  # R2 <- 0
 
   # evaluate for each chain
   for (ii in 1:.$dataf$lp) {
 
     # randomly select two different numbers R1 and R2 unequal to j
     # from a uniform distribution without replacement
+    R1 <- 0
+    R2 <- 0
+
     while ((R1 == 0) | (R1 == ii))               R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
     while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
 
-    print(paste0('iteration = ', j, ', chain = ', ii)))
-    print("R1 = ")
+    # temporarily hardcode R1 and R2
+    #R1 <- 6
+    #R2 <- 5
+
+    print(paste0('iteration = ', j, ', chain = ', ii))
+    print(paste0("R1 = ", R1, ", R2 = ", R2))
 
     # evaluate for each parameter
     for (jj in 1:d) {
 
+      # print(paste0('iteration = ', j, ', chain = ', ii))
+      # print(paste0("R1 = ", R1, ", R2 = ", R2))
+
       # generate proposal via Differential Evolution
-      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
+      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
+      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
 
       # call boundary handling function
       # boundary_handling(., ii, jj )
@@ -77,7 +97,7 @@ proposal_generate_demc <- function(., j ) {
     #print('proposal generated = ')
     #print(.$dataf$pars[ii, ])
     #print('')
-    
+
   }
 }
 
