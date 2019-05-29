@@ -56,25 +56,28 @@ proposal_generate_demc <- function(., j ) {
   # evaluate for each chain
   for (ii in 1:.$dataf$lp) {
 
-#print(paste0('iteration = ', j, ', chain = ', ii))
-
     # randomly select two different numbers R1 and R2 unequal to j
     # from a uniform distribution without replacement
     while ((R1 == 0) | (R1 == ii))               R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
     while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
 
+    print(paste0('iteration = ', j, ', chain = ', ii)))
+    print("R1 = ")
+
     # evaluate for each parameter
     for (jj in 1:d) {
+
       # generate proposal via Differential Evolution
       .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
 
       # call boundary handling function
-#      boundary_handling(., ii, jj )
+      # boundary_handling(., ii, jj )
     }
 
-#print('proposal generated = ')
-#print(.$dataf$pars[ii, ])
-#print('')
+    #print('proposal generated = ')
+    #print(.$dataf$pars[ii, ])
+    #print('')
+    
   }
 }
 

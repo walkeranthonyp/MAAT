@@ -126,35 +126,45 @@ wrapper_object <-
           # sample parameters from character string code snippets to generate initial proposal from priors
           n <- .$wpars$mcmc_chains
           .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-# ALJ: this is where priors are generated
-# print(paste0('you are here: n = ',n))
-# print('.$dynamic$pars_eval = ')
-# print(.$dynamic$pars_eval)
-# print('.$dynamic$pars = ')
-# print(.$dynamic$pars)
+
+          # ALJ: this is where priors are generated
+          #print(paste0('you are here: n = ',n))
+          #print('.$dynamic$pars_eval = ')
+          #print(.$dynamic$pars_eval)
+          #print('.$dynamic$pars = ')
+          #print(.$dynamic$pars)
           # create pars / proposal matrix
           .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
-# print('.$dynamic$pars = ')
-# print(.$dynamic$pars)
-# print('the old .$dataf$pars = ')
-# print(.$dataf$pars)
-prop1 <- c(-3.025713, -10.229722, 12.641141, -17.417058, 14.566888, -18.288043, -14.322998, -12.046245)
-prop2 <- c(-12.352044, -3.408665, -16.810229, 13.432576, 13.417450, 3.343700, 11.389111, 16.566423)
-prop3 <- c(-9.094940, 8.740721, 19.675105, -12.056877, 4.474560, 7.950890, -2.869459, -19.069999)
-prop4 <- c(19.85179440, -13.19979593, 5.96230085, 1.71096734, -2.76975878, 0.05153623, 10.6824132, -10.56140135)
-.$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
-# ALJ: not sure if this is the best place to hardcode the initial "iteration/proposal" generated from prior distirbution???
-#print('model parameters and algorithmic parameters')
-#print(.$dynamic$pars_eval)
-#print(.$model$pars)
-#print(.$wpars)
-#print('')
-#print('hard-coded .$dataf$pars = ')
-#print(.$dataf$pars)
-#print('')
-	  # create proposal storage array (store all proposals, not just accepted ones)
+          # print('.$dynamic$pars = ')
+          # print(.$dynamic$pars)
+          # print('the old .$dataf$pars = ')
+          # print(.$dataf$pars)
+          #prop1 <- c(-3.025713, -10.229722, 12.641141, -17.417058, 14.566888, -18.288043, -14.322998, -12.046245)
+          #prop2 <- c(-12.352044, -3.408665, -16.810229, 13.432576, 13.417450, 3.343700, 11.389111, 16.566423)
+          #prop3 <- c(-9.094940, 8.740721, 19.675105, -12.056877, 4.474560, 7.950890, -2.869459, -19.069999)
+          #prop4 <- c(19.85179440, -13.19979593, 5.96230085, 1.71096734, -2.76975878, 0.05153623, 10.6824132, -10.56140135)
+          prop1 <- c(7.631916, -5.999289, -5.734941, 1.769624, -1.128974, -1.065893, 9.091345, -9.570053)
+          prop2 <- c(-8.955127, -2.165650, 8.288627, 8.335986, -9.420836, -6.112619, -4.796342, 8.128561)
+          prop3 <- c(-2.757425, -1.311214, -9.983908, -6.061901, -3.076935, 8.934289, -3.041526, -7.045019)
+          prop4 <- c(-1.34255731, 9.40670570, -0.04198163, -9.75718401, -0.40205049, -4.26300878, 6.56454083, -0.24169656)
+          .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
+          # ALJ: not sure if this is the best place to hardcode the initial "iteration/proposal" generated from prior distirbution???
+          #print('model parameters and algorithmic parameters')
+          #print(.$dynamic$pars_eval)
+          #print(.$model$pars)
+          #print(.$wpars)
+          #print('')
+          #print('hard-coded .$dataf$pars = ')
+          #print(.$dataf$pars)
+          #print('')
+          colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
+          # print(">>> OUTPUT STARTS HERE >>>")
+          print("initial propopsals derived from priors = ")
+          print(.$dataf$pars)
+
+	        # create proposal storage array (store all proposals, not just accepted ones)
           # this is not necessary for output; just used for debugging
-	  .$dataf$prop_storage  <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
+	        .$dataf$prop_storage  <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
 
           # create accepted proposal array
           .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
@@ -223,15 +233,15 @@ prop4 <- c(19.85179440, -13.19979593, 5.96230085, 1.71096734, -2.76975878, 0.051
         if(length(.$dataf$mout)!=1) stop('No current method to run MCMC with multiple model outputs')
 
         # if observation subsampling specified - currently evenly spaced subsampling
-#        if(.$wpars$mcmc_thin_obs < 1.0) {
-#          if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value:', .$wpars$mcmc_thin_obs )
-#          thin <- floor( 1 / .$wpars$mcmc_thin_obs )
-#          oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
-#          .$dataf$met   <- .$dataf$met[oss,]
-#          .$dataf$obs   <- .$dataf$obs[oss]
-#          #.$dataf$obsse <- .$dataf$obsse[oss]
-#          .$dataf$lm    <- dim(.$dataf$met)[1]
-#        }
+        if(.$wpars$mcmc_thin_obs < 1.0) {
+          if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value:', .$wpars$mcmc_thin_obs )
+          thin <- floor( 1 / .$wpars$mcmc_thin_obs )
+          oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
+          .$dataf$met   <- .$dataf$met[oss,]
+          .$dataf$obs   <- .$dataf$obs[oss]
+          #.$dataf$obsse <- .$dataf$obsse[oss]
+          .$dataf$lm    <- dim(.$dataf$met)[1]
+        }
 
         # initialise output matrix
         .$dataf$out <- matrix(0, .$dataf$lp, .$dataf$lm)
@@ -241,7 +251,7 @@ prop4 <- c(19.85179440, -13.19979593, 5.96230085, 1.71096734, -2.76975878, 0.051
         #      if so we need to align with the burn-in input parameters
         .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
 
-	# call run function
+	      # call run function
         if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
         else                 lapply( 1:.$dataf$lf, .$runf_mcmc )
 
@@ -409,19 +419,21 @@ prop4 <- c(19.85179440, -13.19979593, 5.96230085, 1.71096734, -2.76975878, 0.051
       # add to pars array and calculate likelihood of initial proposal
       .$dataf$pars_array[,,1]   <- .$dataf$pars
       .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)
-#print(paste0('i = ', i))
-#print('inital model evaluation = ')
-#print(.$dataf$pars)
-#print(.$dataf$pars_array[ , , 1])
-#print('likelihood of initial model evaluation = ')
-#print(.$dataf$pars_lklihood[,1])
-#print('You are here!')
-#print('.$dataf$pars_array = ')
-#print(.$dataf$pars_array[ , , 1])
-#print(.$dataf$pars_array)
-#print('.$dataf$pars_lklihood = ')
-#print(.$dataf$pars_lklihood[ ,1])
-#print(.$dataf$pars_lklihood)
+
+      #print(paste0('i = ', i))
+      #print('inital model evaluation = ')
+      #print(.$dataf$pars)
+      #print(.$dataf$pars_array[ , , 1])
+      #print('likelihood of initial model evaluation = ')
+      #print(.$dataf$pars_lklihood[,1])
+      #print('You are here!')
+      #print('.$dataf$pars_array = ')
+      #print(.$dataf$pars_array[ , , 1])
+      #print(.$dataf$pars_array)
+      #print('.$dataf$pars_lklihood = ')
+      #print(.$dataf$pars_lklihood[ ,1])
+      #print(.$dataf$pars_lklihood)
+
       # add to proposal storage array
       .$dataf$prop_storage[,,1] <- .$dataf$pars
 
