@@ -50,8 +50,8 @@ proposal_generate_demc <- function(., j ) {
   #uniform_r <- runif(d,min=(-b_rand),max=b_rand)
   # ALJ: NEED TO TRY creating uniform_r as just a randomly drawn scalar value
   # temporarily hardcode uniform_r
-#  uniform_r <- rep(-0.000378, d)
-  uniform_r <- runif(1,min=(-b_rand),max=b_rand)
+  uniform_r <- rep(-0.000378, d)
+  # uniform_r <- runif(1,min=(-b_rand),max=b_rand)
   print("uniform_r = ")
   print(uniform_r)
   print("")
@@ -74,8 +74,8 @@ proposal_generate_demc <- function(., j ) {
     while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
 
     # temporarily hardcode R1 and R2
-#    R1 <- 6
-#    R2 <- 5
+    R1 <- 6
+    R2 <- 5
 
     print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
     print(paste0("R1 = ", R1, ", R2 = ", R2))
@@ -87,8 +87,8 @@ proposal_generate_demc <- function(., j ) {
       # print(paste0("R1 = ", R1, ", R2 = ", R2))
 
       # generate proposal via Differential Evolution
-#      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
-       .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
+      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
+      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
 
       # call boundary handling function
       # boundary_handling(., ii, jj )
