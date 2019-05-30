@@ -50,7 +50,7 @@ proposal_generate_demc <- function(., j ) {
   #uniform_r <- runif(d,min=(-b_rand),max=b_rand)
   # ALJ: NEED TO TRY creating uniform_r as just a randomly drawn scalar value
   # temporarily hardcode uniform_r
-  # uniform_r <- rep(-0.000378, d)
+#  uniform_r <- rep(-0.000378, d)
   uniform_r <- runif(1,min=(-b_rand),max=b_rand)
   print("uniform_r = ")
   print(uniform_r)
@@ -74,10 +74,10 @@ proposal_generate_demc <- function(., j ) {
     while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
 
     # temporarily hardcode R1 and R2
-    #R1 <- 6
-    #R2 <- 5
+#    R1 <- 6
+#    R2 <- 5
 
-    print(paste0('iteration = ', j, ', chain = ', ii))
+    print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
     print(paste0("R1 = ", R1, ", R2 = ", R2))
 
     # evaluate for each parameter
@@ -87,8 +87,8 @@ proposal_generate_demc <- function(., j ) {
       # print(paste0("R1 = ", R1, ", R2 = ", R2))
 
       # generate proposal via Differential Evolution
-      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
-      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
+#      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
+       .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
 
       # call boundary handling function
       # boundary_handling(., ii, jj )
@@ -107,7 +107,14 @@ proposal_accept_demc <- function(., j, lklihood ) {
 
   # Metropolis ratio
   metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
+
+  print(paste0('Metropolis ratio = ', metrop_ratio))
+  print('>>>>')
+
   alpha        <- pmin(1,metrop_ratio)
+
+  print(paste0('alpha = ', alpha))
+  print('>>>>')
 
   # evaluate for each chain
   # APW: change this iteration counter to ii for consistency
@@ -118,6 +125,9 @@ proposal_accept_demc <- function(., j, lklihood ) {
     # APW: should this be inside or outside of the loop, ie could draw a random outside the loop
     # ALJ: put this outside for-loop and index accept
     accept <- log(alpha[ii]) > log(runif(1,min=0,max=1))
+
+    print(paste0('accept = ', accept))
+    print('>>>>')
 
     .$dataf$pars_array[ii,,j]   <- if(accept) .$dataf$pars[ii,] else .$dataf$pars_array[ii,,j-1]
     .$dataf$pars_lklihood[ii,j] <- if(accept) lklihood[ii]      else .$dataf$pars_lklihood[ii,j-1]
@@ -365,9 +375,10 @@ proposal_accept_dream <- function(., j, lklihood) {
 # expects model output to be probability - as in the output from the mixture model
 f_proposal_lklihood_log <- function(.) {
   log(.$dataf$out)
-#print('model likelihood = ')
-#print(log(.$dataf$out))
-#return(log(.$dataf$out))
+
+  print(paste0('model likelihood = ', log(.$dataf$out)))
+
+  return(log(.$dataf$out))
 }
 
 
