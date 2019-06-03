@@ -51,6 +51,7 @@ proposal_generate_demc <- function(., j ) {
   # ALJ: NEED TO TRY creating uniform_r as just a randomly drawn scalar value
   # temporarily hardcode uniform_r
   uniform_r <- rep(-0.000378, d)
+  # ALJ: like below is how uniform_r is in the original r-script
   # uniform_r <- runif(1,min=(-b_rand),max=b_rand)
   print("uniform_r = ")
   print(uniform_r)
@@ -109,11 +110,23 @@ proposal_accept_demc <- function(., j, lklihood ) {
   metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
 
   print(paste0('Metropolis ratio = ', metrop_ratio))
+  # print(length(metrop_ratio))
   print('>>>>')
 
-  alpha        <- pmin(1,metrop_ratio)
+  alpha        <- pmin(1, metrop_ratio)
 
-  print(paste0('alpha = ', alpha))
+  # ALJ: maybe try computing alpha this way (more numerically comprehensive)
+  # ALJ: if this change needs to be made, make the code prettier
+  # alpha <- numeric(.$dataf$lp)
+  # for (q in 1:.$dataf$lp) {
+  #  if (.$dataf$pars_lklihood[ ,j-1] > 0) {
+  #    alpha[q] <- min(1, metrop_ratio[q])
+  #  } else {
+  #    alpha[q] <- 1
+  #  }
+  # }
+
+  print(paste0('old alpha = ', alpha))
   print('>>>>')
 
   # evaluate for each chain
@@ -121,10 +134,21 @@ proposal_accept_demc <- function(., j, lklihood ) {
   # ALJ: changed kk to ii
   for(ii in 1:.$dataf$lp) {
 
+    # ALJ: maybe try putting alpha here
+    #if (.$dataf$pars_lklihood[ ,j-1] > 0) {
+    #  alpha[ii] <- min(1, metrop_ratio)
+    #} else {
+    #  alpha[ii] <- 1
+    #}
+
+    print(paste0(' new alpha = ', alpha))
+    print('>>>>')
+
     # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
     # APW: should this be inside or outside of the loop, ie could draw a random outside the loop
     # ALJ: put this outside for-loop and index accept
-    accept <- log(alpha[ii]) > log(runif(1,min=0,max=1))
+    # accept <- log(alpha[ii]) > log(runif(1,min=0,max=1))
+    accept <- log(alpha[ii]) > log(0.843332)
 
     print(paste0('accept = ', accept))
     print('>>>>')
@@ -134,7 +158,9 @@ proposal_accept_demc <- function(., j, lklihood ) {
     #print(c(ii, accept))
     #print(c(.$dataf$pars_array[ii,,j], .$dataf$pars[ii,], .$dataf$pars_array[ii,,j-1] ))
 
-    out_n <- .$wpars$mcmc_maxiter/2
+    # ALJ: temporarily getting rid of burn-in for debugging purposes
+    # out_n <- .$wpars$mcmc_maxiter/2
+    out_n <- 0
     if (j > out_n)
       .$dataf$out_mcmc[ii,,(j-out_n)] <- if(accept | j==out_n+1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
 # APW: not a huge deal, but this is not quite right in the case where j==out_n+1 but not accepted as it adds the output from the rejected proposal

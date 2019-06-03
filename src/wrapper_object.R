@@ -249,7 +249,9 @@ wrapper_object <-
         # initialise output array
         # APW: is this effectively assuming a burn-in of 50 %?
         #      if so we need to align with the burn-in input parameters
-        .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
+        # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
+        # ALJ: getting rid of burn-in for debugging purposes
+        .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
 
 	      # call run function
         if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
@@ -475,8 +477,8 @@ wrapper_object <-
       # calculate likelihood of proposals on each chain
       # likelihood function is independent of DE-MC or DREAM algorithms
       lklihood <- get(.$fnames$proposal_lklihood)(.)
-#print('likelihood = ')
-#print(lklihood)
+      # print('likelihood = ')
+      # print(lklihood)
 
       # accept / reject proposals on each chain
       get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )
@@ -847,7 +849,7 @@ wrapper_object <-
       # output matrices / arrays
       mout          = NULL,         # example model output vector, for setting up vapply functions
       out           = NULL,         # output matrix
-      out_mcmc    = NULL,         # output array
+      out_mcmc      = NULL,         # output array
       out_saltelli  = NULL,         # saltelli output list
       # observation matrices /dataframes
       obs           = NULL,         # a vector/matrix of observations against which to valiadate/ calculate likelihood of model
