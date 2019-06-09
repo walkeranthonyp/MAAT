@@ -34,6 +34,23 @@ leaf_object$configure_sublist <- configure_sublist
 leaf_object$run_met           <- run_met  
 
 
+# function to configure unique elements of the object 
+####################################
+leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
+  if(init) {
+    .$fns$assimilation        <- f_assimilation
+    .$fns$puniroot            <- puniroot
+    .$fns$assim_no_resistance <- f_A_r_leaf_noR
+    .$fns$transition_cc       <- transition_cc
+  }
+
+  if(any(names(flist)=='rs')) {
+   .$fns$rs_fe <- get(paste0(.$fnames$rs,'_fe'), pos=1 )
+   .$fns$rs_r0 <- get(paste0(.$fnames$rs,'_r0'), pos=1 )
+  }
+}
+
+
 
 # assign object variables 
 ###########################################################################
@@ -375,6 +392,16 @@ leaf_object$output <- function(.){
 # test functions
 #######################################################################        
 
+leaf_object$configure_test <- function(.) {
+  
+  # configure methods
+  fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
+  .$fns   <- as.proto(fnslist, parent=. ) 
+  source('../../functions/general_functions.R')
+  .$configure_unique(init=T, flist=unlist(.$fnames) )
+
+}
+
 leaf_object$.test <- function(., verbose=T, verbose_loop=T, leaf.par=1000, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
   
   if(verbose) {
@@ -392,7 +419,8 @@ leaf_object$.test <- function(., verbose=T, verbose_loop=T, leaf.par=1000, leaf.
   
   .$env$par     <- leaf.par
   .$env$ca_conc <- leaf.ca_conc
-  
+
+  .$configure_test()
   .$run()
 }
 
@@ -411,14 +439,17 @@ leaf_object$.test_solverFunc <- function(., verbose=T, verbose_loop=T,
   .$fnames$solver_func <- 'f_A_r_leaf'
   .$pars$g0            <- 0.01 
   
+  # configure methods
+  .$configure_test()
+
   # initialise the model without running the solution by setting PAR to zero  
   .$env$ca_conc        <- leaf.ca_conc
   .$env$par            <- 0 
   .$run()
 
   # calculate electron transport rate
-  .$env$par            <- leaf.par
-  .$state$J <- get(.$fnames$etrans)(.)
+  .$env$par <- leaf.par
+  .$state$J <- .$fns$etrans()
 
   if(verbose) {
     print(.$fnames)
@@ -426,10 +457,11 @@ leaf_object$.test_solverFunc <- function(., verbose=T, verbose_loop=T,
     print(.$env)
   }
 
-  # run the residual function iwithin a loop
+  # run the residual function within a loop
   out <- numeric(length(sinput))
   for( i in 1:length(sinput) ) {
-    out[i] <- f_A_r_leaf(., A=sinput[i] )
+    #out[i] <- f_A_r_leaf(., A=sinput[i] )
+    out[i] <- .$fns$solver_func(A=sinput[i])
   }
 
   # output
@@ -456,6 +488,10 @@ leaf_object$.test_tscalar <- function(., leaf.temp=0:50, leaf.par=c(1000), leaf.
   .$fnames$solver_func <- 'f_A_r_leaf'
   .$fnames$solver      <- 'f_R_Brent_solver'
   
+  # configure methods
+  .$configure_test()
+
+  # configure met data and run
   .$dataf     <- list()
   .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par','leaf.temp')))      
   .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
@@ -483,6 +519,10 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
   .$fnames$rb          <- rb
   .$fnames$rs          <- rs
   
+  # configure methods
+  .$configure_test()
+
+  # configure met data and run
   .$dataf     <- list()
   .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
   .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
@@ -516,10 +556,13 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
   .$fnames$solver_func <- 'f_A_r_leaf'
   .$fnames$solver      <- 'f_R_Brent_solver'
   
-  .$dataf     <- list()
-  .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))
-  
-  .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+  # configure methods
+  .$configure_test()
+
+  # configure met data and run
+  .$dataf          <- list()
+  .$dataf$met      <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))
+  .$dataf$out      <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
   .$dataf$out_full <- cbind(.$dataf$met,.$dataf$out)
   
   p1 <- xyplot(A~cc,.$dataf$out_full,subset=leaf.par==1010,abline=0,groups=unlist(lim),
@@ -564,20 +607,24 @@ leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011', leaf.par=c
   #.$fnames$rb           <- 'f_r_zero'
   .$pars$rb             <- leaf.rb
   
+  # configure met data 
   .$dataf     <- list()
   .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
   
   if(!ana_only) {
     .$fnames$solver <- 'f_R_Brent_solver'
+    .$configure_test()
     .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
     num_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver )
   }
 
   .$fnames$solver <- 'f_A_r_leaf_analytical'
+  .$configure_test()
   .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
   ana_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver)
 
   .$fnames$solver <- 'f_A_r_leaf_analytical_quad'
+  .$configure_test()
   .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
   ana_soln        <- rbind(ana_soln,  cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver) )
 
@@ -647,10 +694,12 @@ leaf_object$.test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_j_farquharwon
   .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
   
   .$fnames$Alim <- 'f_lim_farquhar1980'
+  .$configure_test()
   .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
   Fout          <- cbind(.$dataf$met,.$dataf$out,Alim='F1980')
   
   .$fnames$Alim <- 'f_lim_collatz1991'
+  .$configure_test()
   .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
   Cout          <- cbind(.$dataf$met,.$dataf$out,Alim='C1991')
   

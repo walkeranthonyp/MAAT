@@ -69,8 +69,8 @@ f_leafsys_enzymek <- function(.) {
     # diagnostic calculations
     if(.super$pars$diag) {
       # these need assigning in fns
-      .super$state$A_noR      <- f_A_r_leaf_noR(.)
-      .super$state$transition <- transition_cc(.)
+      .super$state$A_noR      <- .$fns$assim_no_resistance()
+      .super$state$transition <- .$fns$transition_cc()
     }
     
     # calculate assimilation 

@@ -81,11 +81,12 @@ system_model_object <-
 
     configure <- function(.) {}
  
-    
     # configure a list variable 
     configure_sublist <- function(.) {}
 
-    
+    # configure a list variable 
+    configure_unique <- function(.) {NULL}
+
     run_met <- function(.) {}
     
     

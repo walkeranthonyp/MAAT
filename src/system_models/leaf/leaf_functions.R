@@ -166,7 +166,7 @@ f_A_r0_leaf_analytical_quad <- function(.) {
   r0 <- .$rs_r0() 
 
   # calculate coefficients of quadratic to solve A
-  .$assim_quad_soln <- function(.,V,K) {
+  .$assim_quad_soln <- function(., V, K, r0 ) {
     r   <- 1.4*.super$state_pars$rb + 1.6*r0 + .super$state_pars$ri
     p   <- .super$env$atm_press*1e-6
     a   <- -p*r
@@ -177,9 +177,9 @@ f_A_r0_leaf_analytical_quad <- function(.) {
     quad_sol(a,b,c,'lower')
   }
 
-  .super$state$Acg <- .$assim_quad_soln(V=.super$state_pars$vcmaxlt, K=.super$state_pars$Km )
-  .super$state$Ajg <- .$assim_quad_soln(V=(.super$state$J/4),        K=(2*.super$state_pars$gstar) )
-  .super$state$Apg <- .$assim_quad_soln(V=(3*.super$state_pars$tpu), K=(-(1+3*.super$pars$Apg_alpha)*.super$state_pars$gstar) )
+  .super$state$Acg <- .$assim_quad_soln(V=.super$state_pars$vcmaxlt, K=.super$state_pars$Km, r0=r0 )
+  .super$state$Ajg <- .$assim_quad_soln(V=(.super$state$J/4),        K=(2*.super$state_pars$gstar), r0=r0 )
+  .super$state$Apg <- .$assim_quad_soln(V=(3*.super$state_pars$tpu), K=(-(1+3*.super$pars$Apg_alpha)*.super$state_pars$gstar), r0=r0 )
 
   # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
   Amin        <- .$Alim() 
@@ -590,7 +590,7 @@ f_rs_constantCiCa <- function(., A=.super$state$A, c=.super$state$cb ) {
 
 f_rs_constantCiCa_fe <- function(.) {
   # f(e) component of rs for constant Ci:Ca   
-  .super$state_pars$cica_chi <- .$cica_ratio(.)
+  .super$state_pars$cica_chi <- .$cica_ratio()
   1.6 / (1 - .super$state_pars$cica_chi)
 }
 
@@ -819,7 +819,7 @@ f_tcor_des_collatz1991 <- function(., var, ... ) {
   Tsk <- .super$state$leaf_temp + 273.15
   
   # get deltaS
-  deltaS <- .$deltaS[[var]](var=var)
+  deltaS <- .[[paste('deltaS',var,sep='.')]](., var=var )
   
   1 / ( 1 + exp((Tsk*deltaS-.super$pars$Hd[[var]]) / (Tsk*.super$pars$R)) )
 }

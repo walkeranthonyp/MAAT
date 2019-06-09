@@ -150,24 +150,17 @@ configure_no_child <- function(., vlist, df, init=F ) {
   if(vlist=='fnames') {
     # assign all methods to methods list
     if(init) {
-      flist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
-      .$fns <- as.proto(flist, parent=. )
+      fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
+      .$fns   <- as.proto(fnslist, parent=. )
+      # specific methods assignment (for methods not included in fnames)
+      .$configure_unique(init=T, flist=unlist(.$fnames) ) 
    
-      # leaf specific methods assignment (for methods not included in fnames)
-      if(.$name=='leaf') {
-        .$fns$assimilation <- f_assimilation
-        .$fns$puniroot     <- puniroot
-        .$fns$rs_fe        <- get(paste0(.$fnames$rs,'_fe'), pos=1 )
-        .$fns$rs_r0        <- get(paste0(.$fnames$rs,'_r0'), pos=1 )
-      }        
     } else {
       flist <- unlist(.$fnames[vlss])
       for(n in flist) .$fns[[n]] <- get(n, pos=1 )
-      # leaf specific methods assignment (for methods not included in fnames)
-      if(.$name=='leaf'&any(flist=='rs')) {
-        .$fns$rs_fe        <- get(paste0(.$fnames$rs,'_fe'), pos=1 )
-        .$fns$rs_r0        <- get(paste0(.$fnames$rs,'_r0'), pos=1 )
-      }        
+      # specific methods assignment (for methods not included in fnames)
+      .$configure_unique(flist=flist) 
+   
     }
   }
 }
