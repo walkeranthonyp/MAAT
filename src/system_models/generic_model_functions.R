@@ -157,7 +157,10 @@ configure_no_child <- function(., vlist, df, init=F ) {
    
     } else {
       flist <- unlist(.$fnames[vlss])
-      for(n in flist) .$fns[[n]] <- get(n, pos=1 )
+      for(n in 1:length(flist)) {
+        .$fns[[names(flist[n])]]              <- get(flist[n], pos=1 )
+        environment(.$fns[[names(flist[n])]]) <- .$fns
+      } 
       # specific methods assignment (for methods not included in fnames)
       .$configure_unique(flist=flist) 
    

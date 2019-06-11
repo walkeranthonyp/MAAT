@@ -56,6 +56,7 @@ f_leafsys_enzymek <- function(.) {
   # calculate physiological state
   # electron transport rate
   .super$state$J <- .$etrans()
+  print('here 2')
   # respiration
   .super$state$rd  <- .super$state_pars$rd * .[['tcor_dep.rd']](.,'rd')
  
