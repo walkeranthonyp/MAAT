@@ -50,7 +50,7 @@ proposal_generate_demc <- function(., j ) {
   uniform_r <- runif(d,min=(-b_rand),max=b_rand)
   # ALJ: NEED TO TRY creating uniform_r as just a randomly drawn scalar value
   # temporarily hardcode uniform_r
-  # uniform_r <- rep(-0.000378, d)
+  uniform_r <- rep(-0.000378, d)
   # ALJ: like below is how uniform_r is in the original r-script
   # uniform_r <- runif(1,min=(-b_rand),max=b_rand)
   print("uniform_r = ")
@@ -75,8 +75,8 @@ proposal_generate_demc <- function(., j ) {
     while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
 
     # temporarily hardcode R1 and R2
-    #R1 <- 6
-    #R2 <- 5
+    R1 <- 6
+    R2 <- 5
 
     print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
     print(paste0("R1 = ", R1, ", R2 = ", R2))
@@ -147,8 +147,8 @@ proposal_accept_demc <- function(., j, lklihood ) {
     # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
     # APW: should this be inside or outside of the loop, ie could draw a random outside the loop
     # ALJ: put this outside for-loop and index accept
-    accept <- log(alpha[ii]) > log(runif(1,min=0,max=1))
-    # accept <- log(alpha[ii]) > log(0.843332)
+    # accept <- log(alpha[ii]) > log(runif(1,min=0,max=1))
+    accept <- log(alpha[ii]) > log(0.843332)
 
     print(paste0('accept = ', accept))
     print('>>>>')
