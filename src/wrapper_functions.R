@@ -83,8 +83,8 @@ proposal_generate_demc <- function(., j ) {
   # uniform_r <- .$mcmc$uniform_r_seed[j, ii]
   uniform_r <- .$mcmc$uniform_r_seed[j, 1:.$dataf$lp]
 
-  print("uniform_r = ")
-  print(uniform_r)
+  # print("uniform_r = ")
+  # print(uniform_r)
 
   # ALJ: NEED TO TRY moving R1 and R2 iniitalization to 0 inside the for-loop
   # ALJ: index for 1st randomly chosen chain used in proposal generation
@@ -104,17 +104,17 @@ proposal_generate_demc <- function(., j ) {
     while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
 
     # temporarily hardcode R1 and R2
-    #R1 <- 6
-    #R2 <- 5
+    # R1 <- 6
+    # R2 <- 5
 
     print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
-    print(paste0("R1 = ", R1, ", R2 = ", R2))
+    # print(paste0("R1 = ", R1, ", R2 = ", R2))
 
     # evaluate for each parameter
     for (jj in 1:d) {
 
-      # print(paste0('iteration = ', j, ', chain = ', ii))
-      # print(paste0("R1 = ", R1, ", R2 = ", R2))
+      #print(paste0('iteration = ', j, ', chain = ', ii))
+      #print(paste0("R1 = ", R1, ", R2 = ", R2))
 
       # generate proposal via Differential Evolution
       .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
@@ -124,8 +124,8 @@ proposal_generate_demc <- function(., j ) {
       # boundary_handling(., ii, jj )
     }
 
-    #print('proposal generated = ')
-    #print(.$dataf$pars[ii, ])
+    print('proposal generated = ')
+    print(.$dataf$pars[ii, ])
     #print('')
 
   }
@@ -138,29 +138,35 @@ proposal_accept_demc <- function(., j, lklihood ) {
   # Metropolis ratio
   metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
 
+  # print(paste0('likelihood of proposal = ', lklihood))
+  # print(paste0('likelihood of current chain = ', .$dataf$pars_lklihood[ ,j-1]))
+
+  # print(paste0('dim of .$dataf$pars_lklihood ' = dim(.$dataf$pars_lklihood)))
+
   # print(paste0('Metropolis ratio = ', metrop_ratio))
   # print(length(metrop_ratio))
 
-  alpha        <- pmin(1, metrop_ratio)
+  # alpha        <- pmin(1, metrop_ratio)
 
   # ALJ: maybe try computing alpha this way (more numerically comprehensive)
   # ALJ: if this change needs to be made, make the code prettier
-  # alpha <- numeric(.$dataf$lp)
-  # for (q in 1:.$dataf$lp) {
-  #  if (.$dataf$pars_lklihood[ ,j-1] > 0) {
-  #    alpha[q] <- min(1, metrop_ratio[q])
-  #  } else {
-  #    alpha[q] <- 1
-  #  }
-  # }
+  alpha <- numeric(.$dataf$lp)
+  for (q in 1:.$dataf$lp) {
+    if (.$dataf$pars_lklihood[q, j-1] > 0) {
+      alpha[q] <- min(1, metrop_ratio[q])
+    } else {
+      alpha[q] <- 1
+    }
+   }
 
-  # print(paste0('old alpha = ', alpha))
+  # print('alpha = ')
+  # print(alpha)
 
   # (3) set the seed for runif(1) value chosen in accept/reject step
   # runif_val <- .$mcmc$runif_seed[j, ii]
   runif_val <- .$mcmc$runif_seed[j, 1:.$dataf$lp]
-  print('runif_val = ')
-  print(runif_val)
+  # print('runif_val = ')
+  # print(runif_val)
 
   # print(paste0('length of alpha = ', length(alpha)))
   # print(paste0('type of alpha = ', typeof(alpha)))
@@ -198,7 +204,7 @@ proposal_accept_demc <- function(., j, lklihood ) {
     # print('accept = ')
     # print(accept)
 
-    print(paste0('accept = ', accept))
+    # print(paste0('accept = ', accept))
 
     .$dataf$pars_array[ii,,j]   <- if(accept) .$dataf$pars[ii,] else .$dataf$pars_array[ii,,j-1]
     .$dataf$pars_lklihood[ii,j] <- if(accept) lklihood[ii]      else .$dataf$pars_lklihood[ii,j-1]
