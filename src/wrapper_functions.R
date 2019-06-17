@@ -8,6 +8,31 @@
 
 
 
+# set seed functions
+################################
+
+# setting the seed to reproduce sequences of quasi-random numbers
+
+# (1) set the seed for uniform_r generation
+set_seed1 <- function(.) {
+  set.seed(1703)
+  .$mcmc$uniform_r_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
+  .$mcmc$uniform_r_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = -0.01, max = 0.01)
+}
+
+# (2) set the seed for R1 and R2 general_functions
+set_seed2 <- function(.) {
+  set.seed(4050)
+}
+
+
+# (3) set the seed for runif(1) value chosen in accept/reject step
+set_seed3 <- function(.) {
+  set.seed(1337)
+  .$mcmc$runif_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
+  .$mcmc$runif_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = 0, max = 1)
+}
+
 # MCMC functions
 ################################
 
@@ -47,15 +72,19 @@ proposal_generate_demc <- function(., j ) {
   b_rand  <- 0.01
   # ALJ: made uniform_r a vector and pulled it outside for-loop
   # draw vector of random numbers from uniform distribution on interval (-b_rand, b_rand)
-  uniform_r <- runif(d,min=(-b_rand),max=b_rand)
+  # uniform_r <- runif(d,min=(-b_rand),max=b_rand)
   # ALJ: NEED TO TRY creating uniform_r as just a randomly drawn scalar value
   # temporarily hardcode uniform_r
-  uniform_r <- rep(-0.000378, d)
+  # uniform_r <- rep(-0.000378, d)
   # ALJ: like below is how uniform_r is in the original r-script
   # uniform_r <- runif(1,min=(-b_rand),max=b_rand)
+
+  # (1) set the seed for uniform_r generation
+  # uniform_r <- .$mcmc$uniform_r_seed[j, ii]
+  uniform_r <- .$mcmc$uniform_r_seed[j, 1:.$dataf$lp]
+
   print("uniform_r = ")
   print(uniform_r)
-  print("")
 
   # ALJ: NEED TO TRY moving R1 and R2 iniitalization to 0 inside the for-loop
   # ALJ: index for 1st randomly chosen chain used in proposal generation
@@ -75,8 +104,8 @@ proposal_generate_demc <- function(., j ) {
     while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
 
     # temporarily hardcode R1 and R2
-    R1 <- 6
-    R2 <- 5
+    #R1 <- 6
+    #R2 <- 5
 
     print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
     print(paste0("R1 = ", R1, ", R2 = ", R2))
@@ -109,9 +138,8 @@ proposal_accept_demc <- function(., j, lklihood ) {
   # Metropolis ratio
   metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
 
-  print(paste0('Metropolis ratio = ', metrop_ratio))
+  # print(paste0('Metropolis ratio = ', metrop_ratio))
   # print(length(metrop_ratio))
-  print('>>>>')
 
   alpha        <- pmin(1, metrop_ratio)
 
@@ -126,13 +154,25 @@ proposal_accept_demc <- function(., j, lklihood ) {
   #  }
   # }
 
-  print(paste0('old alpha = ', alpha))
-  print('>>>>')
+  # print(paste0('old alpha = ', alpha))
+
+  # (3) set the seed for runif(1) value chosen in accept/reject step
+  # runif_val <- .$mcmc$runif_seed[j, ii]
+  runif_val <- .$mcmc$runif_seed[j, 1:.$dataf$lp]
+  print('runif_val = ')
+  print(runif_val)
+
+  # print(paste0('length of alpha = ', length(alpha)))
+  # print(paste0('type of alpha = ', typeof(alpha)))
+  # print(paste0('length of runif_val = ', length(runif_val)))
+  # print(paste0('type of runif_val = ', typeof(runif_val)))
 
   # evaluate for each chain
   # APW: change this iteration counter to ii for consistency
   # ALJ: changed kk to ii
   for(ii in 1:.$dataf$lp) {
+
+    print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
 
     # ALJ: maybe try putting alpha here
     #if (.$dataf$pars_lklihood[ ,j-1] > 0) {
@@ -141,17 +181,24 @@ proposal_accept_demc <- function(., j, lklihood ) {
     #  alpha[ii] <- 1
     #}
 
-    print(paste0(' new alpha = ', alpha))
-    print('>>>>')
+    # print(paste0(' new alpha = ', alpha))
 
     # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
     # APW: should this be inside or outside of the loop, ie could draw a random outside the loop
     # ALJ: put this outside for-loop and index accept
     # accept <- log(alpha[ii]) > log(runif(1,min=0,max=1))
-    accept <- log(alpha[ii]) > log(0.843332)
+
+    # temporarily hard-code runif-value for debugging
+    # accept <- log(alpha[ii]) > log(0.843332)
+
+    # (3) set the seed for runif(1) value chosen in accept/reject step
+    accept <- log(alpha[ii]) > log(runif_val[ii])
+
+    # print(paste0('length of accept = ', length(accept)))
+    # print('accept = ')
+    # print(accept)
 
     print(paste0('accept = ', accept))
-    print('>>>>')
 
     .$dataf$pars_array[ii,,j]   <- if(accept) .$dataf$pars[ii,] else .$dataf$pars_array[ii,,j-1]
     .$dataf$pars_lklihood[ii,j] <- if(accept) lklihood[ii]      else .$dataf$pars_lklihood[ii,j-1]
@@ -402,7 +449,7 @@ proposal_accept_dream <- function(., j, lklihood) {
 f_proposal_lklihood_log <- function(.) {
   log(.$dataf$out)
 
-  print(paste0('model likelihood = ', log(.$dataf$out)))
+  # print(paste0('model likelihood = ', log(.$dataf$out)))
 
   return(log(.$dataf$out))
 }

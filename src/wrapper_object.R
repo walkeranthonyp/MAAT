@@ -439,6 +439,16 @@ wrapper_object <-
       # add to proposal storage array
       .$dataf$prop_storage[,,1] <- .$dataf$pars
 
+      # (1) set the seed for uniform_r generation
+      .$set_seed1()
+
+      # (3) set the seed for runif(1) value chosen in accept/reject step
+      .$set_seed3()
+
+      # (2) set the seed for R1 and R2 random draw
+      # calling this one last so it will be the seed when R1 and R2 are being drawn
+      .$set_seed2()
+
       # if DREAM MCMC, run static part of algorithm
       if(.$wpars$mcmc_type=='dream') .$static_dream()
 
@@ -903,7 +913,9 @@ wrapper_object <-
       p_state       = numeric(),      # probability density of current state matrix
       std_state     = numeric(),      # standard deviation of each sampling dimension
       draw          = matrix(),       # permutation matrix
-      lambda        = matrix()        # matrix of uniform random values between -c_rand and c_rand
+      lambda        = matrix(),       # matrix of uniform random values between -c_rand and c_rand
+      uniform_r_seed= matrix(),       # debugging; setting seed for RNG
+      runif_seed    = matrix()        # debugging: setting seed for RNG
     )
 
     fnames <- list(
