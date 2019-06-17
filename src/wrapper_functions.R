@@ -81,7 +81,8 @@ proposal_generate_demc <- function(., j ) {
 
   # (1) set the seed for uniform_r generation
   # uniform_r <- .$mcmc$uniform_r_seed[j, ii]
-  uniform_r <- .$mcmc$uniform_r_seed[j, 1:.$dataf$lp]
+  # uniform_r <- .$mcmc$uniform_r_seed[j, 1:.$dataf$lp]
+  # uniform_r <- rep(.$mcmc$uniform_r_seed[j, ii], d)
 
   # print("uniform_r = ")
   # print(uniform_r)
@@ -94,6 +95,9 @@ proposal_generate_demc <- function(., j ) {
 
   # evaluate for each chain
   for (ii in 1:.$dataf$lp) {
+
+    # (1) set the seed for uniform_r generation
+    uniform_r <- rep(.$mcmc$uniform_r_seed[j, ii], d)
 
     # randomly select two different numbers R1 and R2 unequal to j
     # from a uniform distribution without replacement
@@ -108,7 +112,17 @@ proposal_generate_demc <- function(., j ) {
     # R2 <- 5
 
     print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
-    # print(paste0("R1 = ", R1, ", R2 = ", R2))
+
+    #print('.$dataf$pars_array = ')
+    #print(.$dataf$pars_array)
+
+    #print(paste0('dim of .$dataf$pars_array = ', dim(.$dataf$pars_array)))
+
+    #print(paste0('dim of .$dataf$pars = ', dim(.$dataf$pars)))
+
+    #print(paste0('j = ', j))
+
+    #print(paste0("R1 = ", R1, ", R2 = ", R2))
 
     # evaluate for each parameter
     for (jj in 1:d) {
@@ -117,8 +131,13 @@ proposal_generate_demc <- function(., j ) {
       #print(paste0("R1 = ", R1, ", R2 = ", R2))
 
       # generate proposal via Differential Evolution
+      # restructure this a bit for setting the seed
+      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[j]
+      # this one below is the original
       .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
       # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
+
+      # print(paste0('uniform_r = ', uniform_r[jj]))
 
       # call boundary handling function
       # boundary_handling(., ii, jj )
