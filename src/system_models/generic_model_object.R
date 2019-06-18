@@ -56,7 +56,7 @@ system_model_object <-
     # function names
     fnames     <- list()
     
-    # functions
+    # functions - created as a child proto object during first call to configure  
     #fns        <- proto(.=system_model_object)
     
     # environment

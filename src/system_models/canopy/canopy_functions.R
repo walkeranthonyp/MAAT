@@ -11,13 +11,13 @@
 # LAI
 ################################
 
-f_lai_constant <- function(.) .$pars$lai
+f_lai_constant <- function(.) .super$pars$lai
 
 f_lai_sphagnum <- function(.) {
   # calculate sphagnum 'lai' as a logistic function of water table depth
   b <- 0.1
     
-  .$pars$lai_max*b / (b + exp(.$pars$lai_curve*(.$env$water_td-.$env$sphag_h)/10) )
+  .super$pars$lai_max*b / (b + exp(.super$pars$lai_curve*(.super$env$water_td-.super$env$sphag_h)/10) )
 }
 
 
@@ -33,32 +33,32 @@ f_par_partition_spitters <- function(.) {
 
 #   if(subd_par) {
      # hourly data
-     deJong_R <- 0.847 - 1.61*cos(.$env$zenith) + 1.04*cos(.$env$zenith)^2
+     deJong_R <- 0.847 - 1.61*cos(.super$env$zenith) + 1.04*cos(.super$env$zenith)^2
      deJong_K <- (1.47-deJong_R)/1.66
-     if(.$env$clearness<0.22) {
+     if(.super$env$clearness<0.22) {
        diffprop <- 1.0
-     } else if(.$env$clearness<0.35) {
-       diffprop <- 1.0-6.4*(.$env$clearness-0.22)^2
-     } else if(.$env$clearness<deJong_K) {
-       diffprop <- 1.47-1.66*.$env$clearness
+     } else if(.super$env$clearness<0.35) {
+       diffprop <- 1.0-6.4*(.super$env$clearness-0.22)^2
+     } else if(.super$env$clearness<deJong_K) {
+       diffprop <- 1.47-1.66*.super$env$clearness
      } else
        diffprop <- deJong_R
 #   } else {
 #
 #     # daily data
-#     if(.$env$clearness<0.07) {
+#     if(.super$env$clearness<0.07) {
 #       diffprop <- 1.0
-#     } else if(.$env$clearness<0.35) {
-#       diffprop <- 1.0-2.3*(.$env$clearness-0.07)^2
-#     } else if(.$env$clearness<0.75) {
-#       diffprop <- 1.33-1.46*.$env$clearness
+#     } else if(.super$env$clearness<0.35) {
+#       diffprop <- 1.0-2.3*(.super$env$clearness-0.07)^2
+#     } else if(.super$env$clearness<0.75) {
+#       diffprop <- 1.33-1.46*.super$env$clearness
 #     } else
 #       diffprop <- 0.23
 #     }
 #   }
 
-   .$env$par_diff[] <- .$env$par*diffprop
-   .$env$par_dir[]  <- .$env$par - .$env$par_diff
+   .super$env$par_diff[] <- .super$env$par*diffprop
+   .super$env$par_dir[]  <- .super$env$par - .super$env$par_diff
 
 }
 
@@ -69,23 +69,23 @@ f_pars_init <- function(.) {
   
   # extinction coefficents of direct diffuse radiation, assuming leaves are optically black   
   # these account for both canopy clumping and solar zenith angle, also informed by Bodin & Franklin 2012 GMD  
-  .$state_pars$G_dir[]       <- .$pars$G * .$pars$can_clump
-  .$state_pars$k_dir[]       <- .$state_pars$G_dir / cos(.$env$zenith)
+  .super$state_pars$G_dir[]       <- .super$pars$G * .super$pars$can_clump
+  .super$state_pars$k_dir[]       <- .super$state_pars$G_dir / cos(.super$env$zenith)
 
   # this is the k_dir assuming light is coming from all points of the hemisphere (i.e. solar zenith angle between 0 and pi/2)
-  .$state_pars$k_diff[]      <- .$state_pars$G_dir / (2/pi)
+  .super$state_pars$k_diff[]      <- .super$state_pars$G_dir / (2/pi)
 
   # transmittance equals reflectance
-  .$state_pars$lscattering[] <- 2 * .$pars$leaf_reflectance
+  .super$state_pars$lscattering[] <- 2 * .super$pars$leaf_reflectance
 
   # adjustment of k to account for scattering, i.e. that leaves are not optically black
-  .$state_pars$m[]           <- (1.0-.$state_pars$lscattering)^0.5
-  .$state_pars$k_dirprime[]  <- .$state_pars$m * .$state_pars$k_dir
-  .$state_pars$k_diffprime[] <- .$state_pars$m * .$state_pars$k_diff
+  .super$state_pars$m[]           <- (1.0-.super$state_pars$lscattering)^0.5
+  .super$state_pars$k_dirprime[]  <- .super$state_pars$m * .super$state_pars$k_dir
+  .super$state_pars$k_diffprime[] <- .super$state_pars$m * .super$state_pars$k_diff
 
   # calculate Vcmax0 and extinction coefficient for Vcmax
-  .$state$vcmax0[]           <- get(.$fnames$vcmax0)(.)
-  .$state_pars$k_vcmax[]     <- get(.$fnames$k_vcmax)(.)
+  .super$state$vcmax0[]           <- get(.$fnames$vcmax0)(.)
+  .super$state_pars$k_vcmax[]     <- get(.$fnames$k_vcmax)(.)
 }
 
 
@@ -99,8 +99,8 @@ f_rt_beerslaw_goudriaan <- function(.,l) {
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
   
-  .$state$vert$sun$apar[]     <- (1 - .$state_pars$lscattering) * .$state_pars$k_dir * .$env$par * exp(-.$state_pars$k_dirprime*l)
-  .$state$vert$sun$fraction[] <- 1.0 
+  .super$state$vert$sun$apar[]     <- (1 - .super$state_pars$lscattering) * .super$state_pars$k_dir * .super$env$par * exp(-.super$state_pars$k_dirprime*l)
+  .super$state$vert$sun$fraction[] <- 1.0 
 }
 
 
@@ -110,8 +110,8 @@ f_rt_beerslaw <- function(.,l) {
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
   
-  .$state$vert$sun$apar[]     <- (1 - .$state_pars$lscattering) * .$env$par * exp(-.$state_pars$k_dir*l)
-  .$state$vert$sun$fraction[] <- 1.0 
+  .super$state$vert$sun$apar[]     <- (1 - .super$state_pars$lscattering) * .super$env$par * exp(-.super$state_pars$k_dir*l)
+  .super$state$vert$sun$fraction[] <- 1.0 
 }
 
 
@@ -122,26 +122,26 @@ f_rt_goudriaan <- function(.,l) {
 
   # calculate albedos
   # after Wang 2003
-  alb_h                     <- (1-.$state_pars$m)/(1+.$state_pars$m)
-  .$state_pars$alb_dir_can  <- alb_h*2*.$state_pars$k_dir / (.$state_pars$k_dir + .$state_pars$k_diff)
-  .$state_pars$alb_diff_can <- 4 * .$state_pars$G_dir * alb_h *
-    ( .$state_pars$G_dir * (log(.$state_pars$G_dir)-log(.$state_pars$G_dir+.$state_pars$k_diff)) / .$state_pars$k_diff^2 + 1/.$state_pars$k_diff)
+  alb_h                     <- (1-.super$state_pars$m)/(1+.super$state_pars$m)
+  .super$state_pars$alb_dir_can  <- alb_h*2*.super$state_pars$k_dir / (.super$state_pars$k_dir + .super$state_pars$k_diff)
+  .super$state_pars$alb_diff_can <- 4 * .super$state_pars$G_dir * alb_h *
+    ( .super$state_pars$G_dir * (log(.super$state_pars$G_dir)-log(.super$state_pars$G_dir+.super$state_pars$k_diff)) / .super$state_pars$k_diff^2 + 1/.super$state_pars$k_diff)
 
-  .$state_pars$alb_dir      <- .$state_pars$alb_dir_can  + (.$pars$alb_soil-.$state_pars$alb_dir_can)  * exp(-2*.$state_pars$k_dirprime  * .$state$lai)
-  .$state_pars$alb_diff     <- .$state_pars$alb_diff_can + (.$pars$alb_soil-.$state_pars$alb_diff_can) * exp(-2*.$state_pars$k_diffprime * .$state$lai)
+  .super$state_pars$alb_dir      <- .super$state_pars$alb_dir_can  + (.super$pars$alb_soil-.super$state_pars$alb_dir_can)  * exp(-2*.super$state_pars$k_dirprime  * .super$state$lai)
+  .super$state_pars$alb_diff     <- .super$state_pars$alb_diff_can + (.super$pars$alb_soil-.super$state_pars$alb_diff_can) * exp(-2*.super$state_pars$k_diffprime * .super$state$lai)
   
   # calculate absorbed direct & diffuse radiation  
-  qshade <- (1-.$state_pars$alb_diff)    * .$env$par_diff * .$state_pars$k_diffprime * exp(-.$state_pars$k_diffprime*l) + 
-            (1-.$state_pars$alb_dir)     * .$env$par_dir  * .$state_pars$k_dirprime  * exp(-.$state_pars$k_dirprime*l) - 
-            (1-.$state_pars$lscattering) * .$env$par_dir  * .$state_pars$k_dir       * exp(-.$state_pars$k_dir*l)
+  qshade <- (1-.super$state_pars$alb_diff)    * .super$env$par_diff * .super$state_pars$k_diffprime * exp(-.super$state_pars$k_diffprime*l) + 
+            (1-.super$state_pars$alb_dir)     * .super$env$par_dir  * .super$state_pars$k_dirprime  * exp(-.super$state_pars$k_dirprime*l) - 
+            (1-.super$state_pars$lscattering) * .super$env$par_dir  * .super$state_pars$k_dir       * exp(-.super$state_pars$k_dir*l)
   qshade <- ifelse(qshade<0, 0, qshade)
   
-  .$state$vert$shade$apar[] <- qshade
-  .$state$vert$sun$apar[]   <- (1-.$state_pars$lscattering)*.$state_pars$k_dir*.$env$par_dir + .$state$vert$shade$apar
+  .super$state$vert$shade$apar[] <- qshade
+  .super$state$vert$sun$apar[]   <- (1-.super$state_pars$lscattering)*.super$state_pars$k_dir*.super$env$par_dir + .super$state$vert$shade$apar
   
   # calculate fraction sunlit vs shaded leaves
-  .$state$vert$sun$fraction[]   <- exp(-.$state_pars$k_dir*l)
-  .$state$vert$shade$fraction[] <- 1 - .$state$vert$sun$fraction
+  .super$state$vert$sun$fraction[]   <- exp(-.super$state_pars$k_dir*l)
+  .super$state$vert$shade$fraction[] <- 1 - .super$state$vert$sun$fraction
 
 }
 
@@ -151,14 +151,14 @@ f_rt_goudriaan <- function(.,l) {
 ################################
 
 f_scale_n_CLMuniform <- function(.,l) {
-  rep( (.$state$mass_a/ceiling(.$state$lai)) / .$state$C_to_N, length(l) ) 
+  rep( (.super$state$mass_a/ceiling(.super$state$lai)) / .super$state$C_to_N, length(l) ) 
 }
 
 # Use Beer's Law to scale leaf N through the canopy
 f_scale_n_beerslaw <- function(.,l) {
   # for use with a multilayer phototsynthesis scheme
   
-  .$state$totalN * exp(-.$state_pars$k_dir*l) /  sum(exp(-.$state_pars$k_dir*1:.$state$lai))  
+  .super$state$totalN * exp(-.super$state_pars$k_dir*l) /  sum(exp(-.super$state_pars$k_dir*1:.super$state$lai))  
 }
 
 
@@ -166,25 +166,25 @@ f_scale_n_beerslaw <- function(.,l) {
 ################################
 
 f_vcmax0_constant <- function(.) {
-  .$leaf$fnames$vcmax <- 'f_vcmax_constant'
-  .$pars$vcmax0
+  .super$leaf$fnames$vcmax <- 'f_vcmax_constant'
+  .super$pars$vcmax0
 }
 
 # Use Beer's Law to scale leaf vcmax through the canopy 
 f_scale_vcmax_beerslaw <- function(.,l) {
   # for use with a multilayer phototsynthesis scheme
   
-  .$state$vcmax0 * exp(-.$state_pars$k_vcmax*l) 
+  .super$state$vcmax0 * exp(-.super$state_pars$k_vcmax*l) 
 }
 
 f_scale_vcmax_uniform <- function(., layers ) {
-  rep(.$state$vcmax0, length(layers) ) 
+  rep(.super$state$vcmax0, length(layers) ) 
 }
 
-f_k_vcmax_constant  <- function(.) .$pars$k_vcmax
+f_k_vcmax_constant  <- function(.) .super$pars$k_vcmax
 
 f_k_vcmax_lloyd2012 <- function(.) {
-   exp( .$pars$k_vcmax_expa + .$pars$k_vcmax_expb*.$state$vcmax0 )
+   exp( .super$pars$k_vcmax_expa + .super$pars$k_vcmax_expb*.super$state$vcmax0 )
 }
 
 
@@ -193,23 +193,23 @@ f_k_vcmax_lloyd2012 <- function(.) {
 
 # Ca
 f_scale_ca_uniform <- function(., layers ) {
-  rep(.$env$ca_conc, length(layers) ) 
+  rep(.super$env$ca_conc, length(layers) ) 
 }
 
 # VPD
 f_scale_vpd_uniform <- function(., layers ) {
-  rep(.$env$vpd, length(layers) ) 
+  rep(.super$env$vpd, length(layers) ) 
 }
 
 
 # Canopy/Leaf water status  
 ################################
 
-f_water_status_none <- function(.) .$leaf$state$fwdw_ratio <- NA
+f_water_status_none <- function(.) .super$leaf$state$fwdw_ratio <- NA
 
 # set sphagnum water status
 f_water_status_sphagnum <- function(.) {
-  .$leaf$state$fwdw_ratio <- get(.$fnames$fwdw)(.) 
+  .super$leaf$state$fwdw_ratio <- get(.$fnames$fwdw)(.) 
 }
 
 
@@ -219,16 +219,16 @@ f_water_status_sphagnum <- function(.) {
 # Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
 f_fwdw_wtd_lin <- function(.) {
   
-  if((.$env$water_td - .$env$sphag_h) > 0) .$pars$fwdw_wl_sat 
-  else .$pars$fwdw_wl_sat + .$pars$fwdw_wl_slope * -(.$env$water_td - .$env$sphag_h) 
+  if((.super$env$water_td - .super$env$sphag_h) > 0) .super$pars$fwdw_wl_sat 
+  else .super$pars$fwdw_wl_sat + .super$pars$fwdw_wl_slope * -(.super$env$water_td - .super$env$sphag_h) 
 }
 
 # Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
 f_fwdw_wtd_exp <- function(.) {
   # Strack & Price 2009
   
-  if((.$env$water_td - .$env$sphag_h) > 0) exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a*0 )
-  else exp( .$pars$fwdw_wl_exp_b + .$pars$fwdw_wl_exp_a * (-(.$env$water_td - .$env$sphag_h)/10) ) 
+  if((.super$env$water_td - .super$env$sphag_h) > 0) exp( .super$pars$fwdw_wl_exp_b + .super$pars$fwdw_wl_exp_a*0 )
+  else exp( .super$pars$fwdw_wl_exp_b + .super$pars$fwdw_wl_exp_a * (-(.super$env$water_td - .super$env$sphag_h)/10) ) 
 }
 
 
