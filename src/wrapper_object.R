@@ -164,7 +164,16 @@ wrapper_object <-
 
 	        # create proposal storage array (store all proposals, not just accepted ones)
           # this is not necessary for output; just used for debugging
-	        .$dataf$prop_storage  <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
+	        .$dataf$prop_storage  <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
+
+          # preallocate space for all debugging arrays (i.e., easier to read print statements)
+          .$dataf$accept_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          .$dataf$uniform_r_storage <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter))
+          .$dataf$model_eval_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          .$dataf$alpha_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          .$dataf$R1_R2_storage <- array(1, dim = c(.$wpars$mcmc_chains, 2, .$wpars$mcmc_maxiter))
+          .$dataf$metrop_ratio_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          .$dataf$runif_val_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
 
           # create accepted proposal array
           .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
@@ -846,6 +855,13 @@ wrapper_object <-
       pars_lklihood = NULL,
       pars_array    = NULL,
       prop_storage  = NULL,
+      accept_storage = NULL,
+      uniform_r_storage = NULL,
+      model_eval_storage = NULL,
+      alpha_storage = NULL,
+      R1_R2_storage = NULL,
+      metrop_ratio_storage = NULL,
+      runif_val_storage = NULL,
       env           = NULL,
       met           = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example
       # row length of above matrices

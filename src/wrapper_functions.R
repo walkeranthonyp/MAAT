@@ -122,7 +122,11 @@ proposal_generate_demc <- function(., j ) {
 
     #print(paste0('j = ', j))
 
-    print(paste0("R1 = ", R1, ", R2 = ", R2))
+    # print(paste0("R1 = ", R1, ", R2 = ", R2))
+
+    # store R1 and R2 values that were generated
+    .$dataf$R1_R2_storage[ii, 1, j] <- R1
+    .$dataf$R1_R2_storage[ii, 2, j] <- R2
 
     # evaluate for each parameter
     for (jj in 1:d) {
@@ -142,16 +146,19 @@ proposal_generate_demc <- function(., j ) {
       jump <- gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
       .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + jump
 
-      print(paste0('ii = ', ii))
-      print(paste0('jj = ', jj))
-      print(paste0('j = ', j))
-      print(paste0('gamma_star = ', gamma_star))
-      print(paste0('uniform_r[jj] = ', uniform_r[jj]))
-      print(paste0('jump = ', jump))
-      print(paste0('.$dataf$pars_array[R1, jj, j-1] = ', .$dataf$pars_array[R1, jj, j-1]))
-      print(paste0('.$dataf$pars_array[R2, jj, j-1] = ', .$dataf$pars_array[R2, jj, j-1]))
-      print(paste0('.$dataf$pars_array[ii, jj, j-1] = ', .$dataf$pars_array[ii, jj, j-1]))
-      print(paste0('.$dataf$pars[ii, jj] = ', .$dataf$pars[ii, jj]))
+      # store uniform_r value to check that set.seed() code is functioning
+      .$dataf$uniform_r_storage[ii, jj, j] <- uniform_r[jj]
+
+      # print(paste0('ii = ', ii))
+      # print(paste0('jj = ', jj))
+      # print(paste0('j = ', j))
+      # print(paste0('gamma_star = ', gamma_star))
+      # print(paste0('uniform_r[jj] = ', uniform_r[jj]))
+      # print(paste0('jump = ', jump))
+      # print(paste0('.$dataf$pars_array[R1, jj, j-1] = ', .$dataf$pars_array[R1, jj, j-1]))
+      # print(paste0('.$dataf$pars_array[R2, jj, j-1] = ', .$dataf$pars_array[R2, jj, j-1]))
+      # print(paste0('.$dataf$pars_array[ii, jj, j-1] = ', .$dataf$pars_array[ii, jj, j-1]))
+      # print(paste0('.$dataf$pars[ii, jj] = ', .$dataf$pars[ii, jj]))
 
 
       # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
@@ -162,10 +169,24 @@ proposal_generate_demc <- function(., j ) {
       # boundary_handling(., ii, jj )
     }
 
-    print('proposal generated = ')
-    print(.$dataf$pars[ii, ])
+    # print('proposal generated = ')
+    # print(.$dataf$pars[ii, ])
+
+    # store proposals being generated (regardless of whether or not they are being accepted)
+    .$dataf$prop_storage[ii, 1:d, j] <- .$dataf$pars[ii, 1:d]
 
   }
+
+  if (j == .$wpars$mcmc_maxiter) {
+    # print statements for de-bugging
+    print('array of proposals that were generated = ')
+    print(.$dataf$prop_storage)
+    print('uniform_r values (randomly generated) = ')
+    print(.$dataf$uniform_r_storage)
+    print('R1 (1st col.) and R2 (2nd col.) values (randomly generated) = ')
+    print(.$dataf$R1_R2_storage)
+  }
+
 }
 
 
@@ -174,6 +195,8 @@ proposal_accept_demc <- function(., j, lklihood ) {
 
   # Metropolis ratio
   metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
+
+  .$dataf$metrop_ratio_storage[1:.$wpars$mcmc_chains, 1, j] <- t(metrop_ratio)
 
   # print(paste0('likelihood of proposal = ', lklihood))
   # print(paste0('likelihood of current chain = ', .$dataf$pars_lklihood[ ,j-1]))
@@ -184,6 +207,8 @@ proposal_accept_demc <- function(., j, lklihood ) {
   # print(length(metrop_ratio))
 
   alpha        <- pmin(1, metrop_ratio)
+
+  .$dataf$alpha_storage[1:.$wpars$mcmc_chains, 1, j] <- t(alpha)
 
   # ALJ: maybe try computing alpha this way (more numerically comprehensive)
   # ALJ: if this change needs to be made, make the code prettier
@@ -204,6 +229,8 @@ proposal_accept_demc <- function(., j, lklihood ) {
   runif_val <- .$mcmc$runif_seed[j, 1:.$dataf$lp]
   # print('runif_val = ')
   # print(runif_val)
+
+  .$dataf$runif_val_storage[1:.$wpars$mcmc_chains, 1, j] <- t(runif_val)
 
   # print(paste0('length of alpha = ', length(alpha)))
   # print(paste0('type of alpha = ', typeof(alpha)))
@@ -237,6 +264,8 @@ proposal_accept_demc <- function(., j, lklihood ) {
     # (3) set the seed for runif(1) value chosen in accept/reject step
     accept <- log(alpha[ii]) > log(runif_val[ii])
 
+    .$dataf$accept_storage[ii, 1, j] <- accept
+
     #print(paste0('runif_val = ', runif_val[ii]))
 
     # print(paste0('length of accept = ', length(accept)))
@@ -259,6 +288,19 @@ proposal_accept_demc <- function(., j, lklihood ) {
 #    if ((j+1) > out_n)
 #      .$dataf$out_mcmc[ii,,(j+1-out_n)] <- if(accept | j==out_n+1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
   }
+
+  if (j == .$wpars$mcmc_maxiter) {
+    # print statements for debugging
+    print('Metropolis ratio = ')
+    print(.$dataf$metrop_ratio_storage)
+    print('alpha = ')
+    print(.$dataf$alpha_storage)
+    print('randomly generated runif_val = ')
+    print(.$dataf$runif_val_storage)
+    print('accept/reject values (1 = TRUE and 0 = FALSE) = ')
+    print(.$dataf$accept_storage)
+  }
+
 }
 
 
