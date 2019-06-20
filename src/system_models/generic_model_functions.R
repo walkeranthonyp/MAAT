@@ -54,7 +54,7 @@ build_with_child <- function(., mod_mimic=NULL, ... ) {
   }
 
   # assign default and mod mimic values to data structure
-  .$configure(vlist='fnames', df=unlist(init_default$fnames))
+  .$configure(vlist='fnames', df=unlist(init_default$fnames), init=T )
   .$configure(vlist='pars',   df=unlist(init_default$pars))
   .$configure(vlist='env',    df=unlist(init_default$env))
 
@@ -206,7 +206,7 @@ configure_no_child <- function(., vlist, df, init=F ) {
 }
  
  
-configure_with_child <- function(., vlist, df, o=T ) {
+configure_with_child <- function(., vlist, df, init=F, o=T ) {
   # This function is called from any of the run functions, or during model initialisation
   # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df 
 
@@ -239,7 +239,7 @@ configure_with_child <- function(., vlist, df, o=T ) {
   # print configure setup if requested
   if(.$cpars$cverbose&o) {
     print('', quote=F )
-    print('Leaf configure:', quote=F )
+    print(paste(.$name,'configure:'), quote=F )
     print(df, quote=F )
     print(listnames, quote=F )
     print(mss, quote=F )
@@ -254,10 +254,12 @@ configure_with_child <- function(., vlist, df, o=T ) {
   #print(paste(.$name,'configure:', vlist, names(df), df ))
   if(length(slss)>0)    vapply( slmss, .$configure_sublist, numeric(1), vlist=vlist, df=df ) 
   if(length(nslmss)>0) .[[vlist]][vlss] <- df[nslmss]
+  #print(listnames) 
+  #print(c(nslmss,vlss)) 
   #print(paste(df[nslmss],.[[vlist]][vlss])) 
   
   # assign methods to methods list
-  if(vlist=='fnames') {
+  if(vlist=='fnames'&length(nslmss)>0) {
     # assign all methods to methods list
     if(init) {
       fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))

@@ -84,8 +84,8 @@ f_pars_init <- function(.) {
   .super$state_pars$k_diffprime[] <- .super$state_pars$m * .super$state_pars$k_diff
 
   # calculate Vcmax0 and extinction coefficient for Vcmax
-  .super$state$vcmax0[]           <- get(.$fnames$vcmax0)(.)
-  .super$state_pars$k_vcmax[]     <- get(.$fnames$k_vcmax)(.)
+  .super$state$vcmax0[]           <- .$fns$vcmax0()
+  .super$state_pars$k_vcmax[]     <- .$fns$k_vcmax()
 }
 
 
@@ -166,7 +166,8 @@ f_scale_n_beerslaw <- function(.,l) {
 ################################
 
 f_vcmax0_constant <- function(.) {
-  .super$leaf$fnames$vcmax <- 'f_vcmax_constant'
+  #.super$leaf$fnames$vcmax <- 'f_vcmax_constant'
+  .super$configure(.=.super, vlist='fnames', df=c(leaf.vcmax='f_vcmax_constant') )
   .super$pars$vcmax0
 }
 
@@ -209,7 +210,7 @@ f_water_status_none <- function(.) .super$leaf$state$fwdw_ratio <- NA
 
 # set sphagnum water status
 f_water_status_sphagnum <- function(.) {
-  .super$leaf$state$fwdw_ratio <- get(.$fnames$fwdw)(.) 
+  .super$leaf$state$fwdw_ratio <- .$fns$fwdw() 
 }
 
 

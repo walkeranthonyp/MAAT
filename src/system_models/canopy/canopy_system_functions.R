@@ -11,7 +11,7 @@
 # Big Leaf canopy scaling 
 ###############################
 # Sellers et al 1992
-f_cansys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
+f_sys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
   # this function was described in Sellers to deal with time intergrated values of fpar and k 
   # could write wrapper function or if to pass different k coefficients
   
@@ -59,7 +59,7 @@ f_cansys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
 # Two Big Leaf canopy scaling 
 ###############################
 # - accounts for direct and diffuse light separately but only calculates A once for each radiation type 
-f_cansys_2bigleaf <- function(.) {
+f_sys_2bigleaf <- function(.) {
   # Thornton calculates the mean of all these canopy values, what does Dai do? 
   
   # calculate LAIsun and LAIshade - Dai 2004
@@ -87,16 +87,17 @@ f_cansys_2bigleaf <- function(.) {
 
 # Multilayer canopy scaling
 ###############################
-f_cansys_multilayer <- function(.) {
+f_sys_multilayer <- function(.) {
 
   # initialise layers
   # k_layer determines where in the layer photosynthesis etc is calculated, a value of 0.5 calculates at the center of the layer   
   linc           <- .super$state$lai / .super$pars$layers
   ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$state$lai-linc*.super$pars$k_layer), linc ) 
   layers         <- .super$pars$layers # this could be a function to dynamically specify the no. of layers 
-  .$init_vert(l=layers) # reallocating this memory is unnecessary in cases where layers is a fixed parameter. 
+  # consider putting this function in fns to avoid needing to use .super and .=.super 
+  .super$init_vert(.=.super, l=layers ) # reallocating this memory is unnecessary in cases where layers is a fixed parameter. 
   #print(ca_calc_points)
-  
+
   # canopy leaf layer properties 
   .super$state$vert$leaf$leaf.leafN_area[]  <- .$scale_n(ca_calc_points)
   .super$state$vert$leaf$leaf.atref.vcmax[] <- .$scale_vcmax(ca_calc_points)

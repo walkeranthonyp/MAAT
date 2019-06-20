@@ -1,7 +1,7 @@
 <default>
   <fnames>
     <canopy>
-      <cansys>'f_cansys_multilayer'</cansys>
+      <sys>'f_sys_multilayer'</sys>
       <pars_init>'f_pars_init'</pars_init>
       <rt>'f_rt_beerslaw_goudriaan'</rt>
       <scale_n>'f_scale_n_CLMuniform'</scale_n>

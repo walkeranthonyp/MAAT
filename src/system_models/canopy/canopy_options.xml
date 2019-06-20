@@ -1,7 +1,7 @@
 <options>
   <fnames>
     <canopy>
-      <cansys>'c( 'f_cansys_2bigleaf', 'f_cansys_bigleaf_s1992', 'f_cansys_multilayer' )'</cansys>
+      <sys>'c( 'f_sys_2bigleaf', 'f_sys_bigleaf_s1992', 'f_sys_multilayer' )'</sys>
       <pars_init>'c( 'f_pars_init' )'</pars_init>
       <rt>'c( 'f_rt_beerslaw', 'f_rt_beerslaw_goudriaan', 'f_rt_goudriaan' )'</rt>
       <scale_n>'c( 'f_scale_n_beerslaw', 'f_scale_n_CLMuniform' )'</scale_n>

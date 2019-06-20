@@ -36,7 +36,7 @@ canopy_object$run_met           <- run_met
 
 # assign unique run function
 ###########################################################################
-run <- function(.) {
+canopy_object$run <- function(.) {
   if(.$cpars$verbose) print('canopy run()')
  
   # initialise canopy
@@ -62,7 +62,7 @@ run <- function(.) {
   # run canopy model
   .$fns$sys()
   
-  #output
+  # output
   .$output()      
 }
 
@@ -73,7 +73,10 @@ run <- function(.) {
 
 # initialise the number of layers in the canopy
 canopy_object$init_vert <- function(.,l) {
+  print(l)
+  print(lapply(.$state$vert$leaf,  function(v,leng) numeric(leng), leng=l ))
   .$state$vert$leaf  <- lapply(.$state$vert$leaf,  function(v,leng) numeric(leng), leng=l )
+  print(.$state$vert$leaf)
   .$state$vert$sun   <- lapply(.$state$vert$sun,   function(v,leng) numeric(leng), leng=l )
   .$state$vert$shade <- lapply(.$state$vert$shade, function(v,leng) numeric(leng), leng=l )
   .$state$vert$layer <- lapply(.$state$vert$layer, function(v,leng) numeric(leng), leng=l )
@@ -81,7 +84,7 @@ canopy_object$init_vert <- function(.,l) {
 
 
 # function to run the leaves within the canopy
-canopy_object$run_leaf <- function(.,ii,df){
+canopy_object$run_leaf <- function(., ii, df ) {
   # This wrapper function is called from an (v/l)apply function to run over each leaf in the canopy
   # assumes that each row of the dataframe are independent and non-sequential
   
@@ -114,7 +117,7 @@ canopy_object$configure_unique <- NULL
 # function names
 ####################################
 canopy_object$fnames <- list(
-  sys           = 'f_cansys_multilayer',
+  sys           = 'f_sys_multilayer',
   pars_init     = 'f_pars_init',
   rt            = 'f_rt_beerslaw_goudriaan',
   scale_n       = 'f_scale_n_CLMuniform',
