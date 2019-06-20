@@ -111,7 +111,7 @@ proposal_generate_demc <- function(., j ) {
     # R1 <- 6
     # R2 <- 5
 
-    print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
+    # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
 
     #print('.$dataf$pars_array = ')
     #print(.$dataf$pars_array)
@@ -179,12 +179,12 @@ proposal_generate_demc <- function(., j ) {
 
   if (j == .$wpars$mcmc_maxiter) {
     # print statements for de-bugging
-    print('array of proposals that were generated = ')
-    print(.$dataf$prop_storage)
-    print('uniform_r values (randomly generated) = ')
-    print(.$dataf$uniform_r_storage)
-    print('R1 (1st col.) and R2 (2nd col.) values (randomly generated) = ')
-    print(.$dataf$R1_R2_storage)
+    # print('array of proposals that were generated = ')
+    # print(.$dataf$prop_storage)
+    # print('uniform_r values (randomly generated) = ')
+    # print(.$dataf$uniform_r_storage)
+    # print('R1 (1st col.) and R2 (2nd col.) values (randomly generated) = ')
+    # print(.$dataf$R1_R2_storage)
   }
 
 }
@@ -242,7 +242,7 @@ proposal_accept_demc <- function(., j, lklihood ) {
   # ALJ: changed kk to ii
   for(ii in 1:.$dataf$lp) {
 
-    print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
+    # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
 
     # ALJ: maybe try putting alpha here
     #if (.$dataf$pars_lklihood[ ,j-1] > 0) {
@@ -291,14 +291,14 @@ proposal_accept_demc <- function(., j, lklihood ) {
 
   if (j == .$wpars$mcmc_maxiter) {
     # print statements for debugging
-    print('Metropolis ratio = ')
-    print(.$dataf$metrop_ratio_storage)
-    print('alpha = ')
-    print(.$dataf$alpha_storage)
-    print('randomly generated runif_val = ')
-    print(.$dataf$runif_val_storage)
-    print('accept/reject values (1 = TRUE and 0 = FALSE) = ')
-    print(.$dataf$accept_storage)
+    # print('Metropolis ratio = ')
+    # print(.$dataf$metrop_ratio_storage)
+    # print('alpha = ')
+    # print(.$dataf$alpha_storage)
+    # print('randomly generated runif_val = ')
+    # print(.$dataf$runif_val_storage)
+    # print('accept/reject values (1 = TRUE and 0 = FALSE) = ')
+    # print(.$dataf$accept_storage)
   }
 
 }
