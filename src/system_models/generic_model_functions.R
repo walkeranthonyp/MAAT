@@ -66,7 +66,7 @@ build_with_child <- function(., mod_mimic=NULL, ... ) {
   setwd(paste0('../', mod ))
   source(paste0(mod_obj, '.R' ))
   .[[mod]] <- as.proto( get(mod_obj)$as.list(), parent=. ) # should work but may need environment setting
-  rm(mod_obj, pos=1 )
+  rm(list=mod_obj, pos=1 )
   .[[mod]]$build(mod_mimic=mod_mimic)
   .[[mod]]$cpars$output <- .$name
   setwd(paste0('../',.$name))

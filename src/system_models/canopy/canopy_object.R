@@ -34,6 +34,7 @@ canopy_object$child_configure   <- child_configure
 canopy_object$run_met           <- run_met  
 
 
+
 # assign unique run function
 ###########################################################################
 canopy_object$run <- function(.) {
@@ -67,16 +68,14 @@ canopy_object$run <- function(.) {
 }
 
 
+
 # functions unique to object that do not live in fnames/fns, i.e. do not vary ever
 # - will these cause trouble if called from within the fns object? probably need to be called as .super
 ####################################
 
 # initialise the number of layers in the canopy
 canopy_object$init_vert <- function(.,l) {
-  print(l)
-  print(lapply(.$state$vert$leaf,  function(v,leng) numeric(leng), leng=l ))
   .$state$vert$leaf  <- lapply(.$state$vert$leaf,  function(v,leng) numeric(leng), leng=l )
-  print(.$state$vert$leaf)
   .$state$vert$sun   <- lapply(.$state$vert$sun,   function(v,leng) numeric(leng), leng=l )
   .$state$vert$shade <- lapply(.$state$vert$shade, function(v,leng) numeric(leng), leng=l )
   .$state$vert$layer <- lapply(.$state$vert$layer, function(v,leng) numeric(leng), leng=l )
@@ -97,18 +96,11 @@ canopy_object$run_leaf <- function(., ii, df ) {
 }
 
 
+
 # function to configure unique elements of the object 
 ####################################
 canopy_object$configure_unique <- NULL 
-#canopy_object$configure_unique <- function(., init=F, flist=NULL ) {
-#  if(init) {
-#    .$fns$assimilation        <- f_assimilation
-#  }
-#
-#  if(any(names(flist)=='rs')) {
-#   .$fns$rs_fe <- get(paste0(.$fnames$rs,'_fe'), pos=1 )
-#  }
-#}
+
 
 
 # assign object variables 
@@ -317,14 +309,14 @@ canopy_object$configure_test <- function(.) {
   # configure methods
   fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
   .$fns   <- as.proto(fnslist, parent=. ) 
-  source('../../functions/general_functions.R')
-  .$configure_unique(init=T, flist=unlist(.$fnames) )
+  if(!is.null(.$configure_unique)) .$configure_unique(init=T, flist=unlist(.$fnames) )
 
 }
 
-canopy_object$.test <- function(., verbose=T, canopy.par=2000, canopy.ca_conc=400, canopy.lai=6 ) {
+canopy_object$.test <- function(., verbose=T, 
+                                canopy.par=2000, canopy.ca_conc=400, canopy.lai=6 ) {
   
-  # Child Objects
+  # Build, assign fnames, configure 
   .$build()
 
   # parameter settings
@@ -340,12 +332,16 @@ canopy_object$.test <- function(., verbose=T, canopy.par=2000, canopy.ca_conc=40
   .$run()
 }
 
-canopy_object$.test_aca <- function(., verbose=F, verbose_loop=F, canopy.par=c(100,1000), canopy.ca_conc=seq(50,1200,50),
-                                    leaf.rs = 'f_r_zero' ) {
+canopy_object$.test_aca <- function(., verbose=F, verbose_loop=F, 
+                                    canopy.par=c(100,1000), canopy.ca_conc=seq(50,1200,50),
+                                    leaf.rs = 'f_r_zero', canopy.rt = 'f_rt_beerslaw_goudriaan' ) {
   
-  # Child Objects
+  # Build, assign fnames, configure 
   .$build()
+  .$fnames$rt      <- canopy.rt
   .$leaf$fnames$rs <- leaf.rs
+  .$configure_test() 
+  .$leaf$configure_test() 
 
   .$cpars$verbose       <- verbose
   .$leaf$cpars$verbose  <- F
@@ -359,7 +355,7 @@ canopy_object$.test_aca <- function(., verbose=F, verbose_loop=F, canopy.par=c(1
   .$dataf       <- list()
   .$dataf$met   <- expand.grid(mget(c('canopy.ca_conc','canopy.par')))
   
-  .$dataf$out  <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+  .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
   
   print(cbind(.$dataf$met,.$dataf$out))
   

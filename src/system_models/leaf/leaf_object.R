@@ -38,8 +38,9 @@ leaf_object$run_met           <- run_met
 ####################################
 leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
   if(init) {
-    .$fns$assimilation        <- f_assimilation
+    source('../../functions/general_functions.R')
     .$fns$puniroot            <- puniroot
+    .$fns$assimilation        <- f_assimilation
     .$fns$assim_no_resistance <- f_A_r_leaf_noR
     .$fns$transition_cc       <- transition_cc
   }
@@ -397,7 +398,7 @@ leaf_object$configure_test <- function(.) {
   # configure methods
   fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
   .$fns   <- as.proto(fnslist, parent=. ) 
-  source('../../functions/general_functions.R')
+  #source('../../functions/general_functions.R')
   .$configure_unique(init=T, flist=unlist(.$fnames) )
 
 }
