@@ -13,7 +13,7 @@ source('../environment_functions.R')
 ################################
 # General enzyme kinetic model of photosynthesis
 # based on Farquhar et al. 1980 
-f_leafsys_enzymek <- function(.) {
+f_sys_enzymek <- function(.) {
 
   # calculate environmental state
   # CO2 partial pressure (Pa)

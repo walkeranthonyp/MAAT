@@ -59,7 +59,7 @@ leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
 # function names
 ####################################
 leaf_object$fnames <- list(
-  sys            = 'f_leafsys_enzymek', # leafsys should be renamed to sys, but needs functions renaming too
+  sys            = 'f_sys_enzymek', 
   solver_func    = 'f_A_r_leaf',
   solver         = 'f_R_Brent_solver',
   Acg            = 'f_Acg_farquhar1980',

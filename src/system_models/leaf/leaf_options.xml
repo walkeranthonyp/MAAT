@@ -1,7 +1,7 @@
 <options>
   <fnames>
     <leaf>
-      <leafsys>'c( 'f_leafsys_enzymek' )'</leafsys>
+      <sys>'c( 'f_sys_enzymek' )'</sys>
       <solver_func>'c(  )'</solver_func>
       <solver>'c(  )'</solver>
       <Acg>'c( 'f_Acg_farquhar1980' )'</Acg>
