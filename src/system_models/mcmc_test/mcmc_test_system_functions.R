@@ -29,7 +29,7 @@ f_mcmc_testsys_mixture <- function(.) {
   # return combined probability
   # .$state$mixture_p[] <- sum(prod(p1) + prod(p2) + prod(p3))
 
-  # ALJ: alternatively...
+  # debug: this is the correct way to evaluate the mixture model 
   # calculate proposal probability for each of the three distributions
   p1 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu1, .$pars$sd1 )
   p2 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu2, .$pars$sd2 )
