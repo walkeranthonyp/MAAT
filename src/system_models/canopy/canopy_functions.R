@@ -161,6 +161,22 @@ f_scale_n_beerslaw <- function(.,l) {
   .super$state$totalN * exp(-.super$state_pars$k_dir*l) /  sum(exp(-.super$state_pars$k_dir*1:.super$state$lai))  
 }
 
+# Use Beer's Law to scale leaf vcmax through the canopy 
+f_scale_vcmax_beerslaw <- function(.,l) {
+  # for use with a multilayer phototsynthesis scheme
+  
+  .$state$vcmax0 * exp(-.$state_pars$k_vcmax*l) 
+}
+
+f_scale_vcmax_uniform <- function(., layers ) {
+  rep(.$state$vcmax0, length(layers) ) 
+}
+
+f_k_vcmax_constant  <- function(.) .$pars$k_vcmax
+
+f_k_vcmax_lloyd2012 <- function(.) {
+   exp( .$pars$k_vcmax_expa + .$pars$k_vcmax_expb*.$state$vcmax0 )
+}
 
 # Vcmax Scaling
 ################################
