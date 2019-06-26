@@ -915,23 +915,23 @@ wrapper_object <-
 
     # parameters specific to the DREAM (mostly) MCMC algorithm
     mcmc <- list(
-      boundary_max  = numeric(1),     # max parameter prior values - for boundary handling
-      boundary_min  = numeric(1),     # min parameter prior values - for boundary handling
-      d             = numeric(1),     # number of parameters (dimensionality of problem)
-      id            = numeric(1),     # index of crossover values
-      J             = numeric(),      # vector of length n_CR
-      n_id          = numeric(),      # vector of lenght n_CR
-      R             = matrix(),       # index of chains for Differential Evolution
-      CR            = numeric(),      # crossover values
-      p_CR          = numeric(),      # select probability for crossover
-      jump          = matrix(),       # matrix of jump vectors for Differential Evolution
-      current_state = matrix(),       # current state of Markov chains
-      p_state       = numeric(),      # probability density of current state matrix
-      std_state     = numeric(),      # standard deviation of each sampling dimension
-      draw          = matrix(),       # permutation matrix
-      lambda        = matrix(),       # matrix of uniform random values between -c_rand and c_rand
-      uniform_r_seed= matrix(),       # debugging; setting seed for RNG
-      runif_seed    = matrix()        # debugging: setting seed for RNG
+      boundary_max   = numeric(1),     # max parameter prior values - for boundary handling
+      boundary_min   = numeric(1),     # min parameter prior values - for boundary handling
+      d              = numeric(1),     # number of parameters (dimensionality of problem)
+      id             = numeric(1),     # index of crossover values
+      J              = numeric(),      # vector of length n_CR
+      n_id           = numeric(),      # vector of lenght n_CR
+      R              = matrix(),       # index of chains for Differential Evolution
+      CR             = numeric(),      # crossover values
+      p_CR           = numeric(),      # select probability for crossover
+      jump           = matrix(),       # matrix of jump vectors for Differential Evolution
+      current_state  = matrix(),       # current state of Markov chains
+      p_state        = numeric(),      # probability density of current state matrix
+      sd_state       = numeric(),      # standard deviation of each sampling dimension
+      draw           = matrix(),       # permutation matrix
+      lambda         = matrix(),       # matrix of uniform random values between -c_rand and c_rand
+      uniform_r_seed = matrix(),       # debugging; setting seed for RNG
+      runif_seed     = matrix()        # debugging: setting seed for RNG
     )
 
     fnames <- list(
