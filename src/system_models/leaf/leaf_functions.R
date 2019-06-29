@@ -87,30 +87,33 @@ f_A_r_leaf_semiana <- function(.) {
   # - fit a quadratic through the three sets of co-ordinates to find the root 
  
   # save values that may get reset by analytical function = perhaps move this to the quadratic solver 
-  rb_hold <- .$state_pars$rb
-  g0_hold <- .$pars$g0
-  ri_hold <- .$state_pars$ri
+  rb_hold <- .super$state_pars$rb
+  g0_hold <- .super$pars$g0
+  ri_hold <- .super$state_pars$ri
   
   # find the analytical solution assuming rb and ri are zero to use as first guess (a0)
+  ### needs editing ###
   a0 <- .$state$A_ana_rbzero <- f_A_r_leaf_analytical_quad(.)
 
   # return values potentially reset by analytical function to the data structure
-  .$state_pars$rb[] <- rb_hold
-  .$state_pars$ri[] <- ri_hold
-  .$pars$g0[]       <- g0_hold 
+  .super$state_pars$rb[] <- rb_hold
+  .super$state_pars$ri[] <- ri_hold
+  .super$pars$g0[]       <- g0_hold 
 
   # currently no method to handle a0 < 0 - this should be fine 
   #if(a0<0) stop('a0 < 0 ,',a0)
 
   # a0 should mostly be larger than the full solution (unless rb and ri are zero) 
   # meaning that fa0 should mostly be < 0
-  fa0 <- f_A_r_leaf(., a0 ) 
+  ### needs editing ###
+  #fa0 <- f_A_r_leaf(., a0 ) 
+  fa0 <- .$solver_func(A=a0) 
  
   # is this necessary? 
   if(is.na(fa0)) {
     print('')
     print(c(a0,fa0))
-    print(unlist(.$fnames)); print(unlist(.$pars)); print(unlist(.$state_pars)); print(unlist(.$state)); print(unlist(.$env)) 
+    print(unlist(.super$fnames)); print(unlist(.super$pars)); print(unlist(.super$state_pars)); print(unlist(.super$state)); print(unlist(.super$env)) 
   }
  
   #  
@@ -118,52 +121,16 @@ f_A_r_leaf_semiana <- function(.) {
   else if(abs(fa0) < 1e-6) return(a0)
   else {
  
-    # in rare case when initial guess is smaller than solution and fa0 > 0
-#    if(fa0 > 1 ) { 
-#      print(paste('initial fa > 0,',fa0,'; a,',a0))
-#      a0  <- 2 * a0 
-#      fa0 <- f_A_r_leaf(., a0 )
-#      print(paste('new initial fa > 0,',fa0,'; a,',a0))
-#    } else if(fa0 > 1e-6 ) { 
-#      print(paste('initial fa > 0,',fa0,'; a,',a0))
-#      # second guess, also analytical
-#      .$state$cc <- get(.$fnames$gas_diff)( . , a0 , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=a0,c=get(.$fnames$gas_diff)(.,a0)) + .$state_pars$ri ) )
-#      a1         <- f_assimilation(.) 
-#      fa1        <- get(.$fnames$solver_func)(., a1 ) 
-#      print(c('analytical fa1,',fa1,'a,',a1))
-#      sinput <- seq(a0-2,a0+2,0.1 )
-#      out    <- numeric(length(sinput))
-#      for( i in 1:length(sinput) ) {
-#        out[i] <- f_A_r_leaf(., A=sinput[i] )
-#      }
-#      print(cbind(sinput,out))
-#      print(unlist(.$env)); print(unlist(.$state_pars))  
-#      a0  <- a0 + .$pars$deltaA_prop * a0
-#      fa0 <- f_A_r_leaf(., a0 )
-#      print(paste('new initial fa > 0,',fa0,'; a,',a0))
-#      print('')
-#    } 
-
-#    # second guess
-#    deltaA1 <- .$pars$deltaA_prop * a0 
-#    a1      <- a0 - deltaA1
-#    fa1     <- get(.$fnames$solver_func)(., a1 ) 
-#
-#    # third guess
-#    deltaA2 <- if(fa1*fa0 < 0) 0.5 * deltaA1 else 2 * deltaA1   
-#    a2      <- a0 - deltaA2
-#    fa2     <- get(.$fnames$solver_func)(., a2 ) 
-
     # second guess, also analytical
-    .$state$cc[] <- get(.$fnames$gas_diff)( . , a0 , r=( 1.4*.$state_pars$rb + 1.6*get(.$fnames$rs)(.,A=a0,c=get(.$fnames$gas_diff)(.,a0)) + .$state_pars$ri ) )
-    a1           <- f_assimilation(.) 
-    fa1          <- get(.$fnames$solver_func)(., a1 ) 
+    .super$state$cc[] <- .$gas_diff( A=a0 , r=( 1.4*.super$state_pars$rb + 1.6*.$rs(A=a0,c=.$gas_diff(A=a0)) + .super$state_pars$ri ))
+    a1                <- .$assimilation() 
+    fa1               <- .$solver_func(A=a1) 
 
     # third guess
     a2 <- mean(c(a0,a1))  
     #if(fa1*fa0 < 0) a2 <- mean(c(a0,a1))  
     #else            a2 <- a1 - (a0-a1)   # works if initial guess is too high but what if initial guess is too small? need to change sign
-    fa2 <- get(.$fnames$solver_func)(., a2 ) 
+    fa2 <- .$solver_func(A=a2) 
 
     # check that fa1 isn't huge relative to fa0
     if(fa1 > 20*abs(fa0)) {
@@ -171,17 +138,17 @@ f_A_r_leaf_semiana <- function(.) {
       
       if(fa2*fa0 < 0) {
         a1  <- mean(c(a0,a2))  
-        fa1 <- get(.$fnames$solver_func)(., a1 ) 
+        fa1 <- .$solver_func(A=a1) 
       } else {
         a2hold <- a2
         a2  <- mean(c(a1,a2))  
-        fa2 <- get(.$fnames$solver_func)(., a2 ) 
+        fa2 <- .$solver_func(A=a2) 
         if(fa2>fa1) {
           while(fa2>0) {
             #a2  <- mean(c(a0,a2))  
             #a2  <- mean(c(a2hold,a2))  
             a2  <- a2 - 0.01  
-            fa2 <- get(.$fnames$solver_func)(., a2 ) 
+            fa2 <- .$solver_func(A=a2) 
           }
         } 
       }
@@ -190,14 +157,14 @@ f_A_r_leaf_semiana <- function(.) {
 
       if(fa2*fa0 < 0) {
         a1  <- mean(c(a0,a2))  
-        fa1 <- get(.$fnames$solver_func)(., a1 ) 
+        fa1 <- .$solver_func(A=a1) 
         print(c('fa0,',round(fa0,4),'fa1 REDO,',round(fa1,4),'fa2,',round(fa2,4),'a0,',round(a0,4),'a1,',round(a1,4),'a2,',round(a2,4) ))
       } else stop('failed')
 
       sinput <- seq(a0-2,a0+2,0.1 )
       out    <- numeric(length(sinput))
       for( i in 1:length(sinput) ) {
-        out[i] <- f_A_r_leaf(., A=sinput[i] )
+        out[i] <- .$solver_func(A=sinput[i]) 
       }
       print(cbind(sinput,out))
     }
@@ -206,22 +173,22 @@ f_A_r_leaf_semiana <- function(.) {
     guesses  <- c(a0,a1,a2)
     fguesses <- c(fa0,fa1,fa2)
     if( min(fguesses) * max(fguesses) >= 0 ) {
-      print(unlist(.$fnames)); print(unlist(.$pars)); print(unlist(.$state_pars)); print(unlist(.$env)) 
+      print(unlist(.super$fnames)); print(unlist(.super$pars)); print(unlist(.super$state_pars)); print(unlist(.super$env)) 
       print(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
       sinput <- seq(a0-2,a0+2,0.1 )
       out    <- numeric(length(sinput))
       for( i in 1:length(sinput) ) {
-        out[i] <- f_A_r_leaf(., A=sinput[i] )
+        out[i] <- .$solver_func(A=sinput[i]) 
       }
       print(cbind(sinput,out))
       #stop(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))      
       #a2  <- a2 - deltaA1
       a2  <- mean(c(a1,a2))  
-      fa2 <- get(.$fnames$solver_func)(., a2 ) 
+      fa2 <- .$solver_func(A=a2) 
       
       if(fa2*fa0 < 0) {
         a1  <- mean(c(a0,a2))  
-        fa1 <- get(.$fnames$solver_func)(., a1 ) 
+        fa1 <- .$solver_func(A=a1) 
       }
 
       guesses  <- c(a0,a1,a2)
@@ -240,8 +207,8 @@ f_A_r_leaf_semiana <- function(.) {
  
     # find the root of the quadratic that lies between guesses 
     assim <- .$state$assim[] <- quad_sol(ax,bx,cx,'both')
-    .$state$fA_ana_final[1] <- get(.$fnames$solver_func)(., assim[1] ) 
-    .$state$fA_ana_final[2] <- get(.$fnames$solver_func)(., assim[2] ) 
+    .super$state$fA_ana_final[1] <- .$solver_func(A=assim[1]) 
+    .super$state$fA_ana_final[2] <- .$solver_func(A=assim[2]) 
     ss    <- which(assim>min(guesses)&assim<max(guesses))
     
     # catch potential errors

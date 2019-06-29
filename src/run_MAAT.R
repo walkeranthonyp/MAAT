@@ -19,16 +19,12 @@
 # - set default arguments
 # - parse command line arguments
 # - set arguments that depend on other arguments
-# - load MAAT model objects from source
+# - load MAAT objects from source
 # - load init scripts
-# - Configure and initialise the MAAT model
-# - Configure and initialise the MAAT wrapper
+# - Configure and initialise MAAT 
 # - Run MAAT
-# - Write output
 
 ###################################################################
-
-#rm(list=ls())
 
 # any one of the below objects to line 116 can be specified as a single string command line argument to this script 
 # the sub-arguments in the string (separated by a space) are interpreted individually as R code.
@@ -117,6 +113,7 @@ of_format    <- 'csv'
 
 ##################################
 # parse command line arguments   
+
 print('',quote=F)
 print('Read command line arguments',quote=F)
 print(commandArgs(T),quote=F)
@@ -155,13 +152,27 @@ initf       <- if(is.null(runid))     paste(init,'R',sep='.')       else paste(i
 # prefix for output files
 ofname      <- if(is.null(runid))     of_main                       else paste(of_main,runid,sep='_')
 ofname      <- if(is.null(mod_mimic)) ofname                        else paste(mod_mimic,ofname,sep='_')
-# prefix for saltelli sensitivity output files
-sofname     <- if(is.null(runid))     paste(of_main,'salt',sep='_') else paste(runid,of_main,'salt',sep='_')
+
+# factorial analysis over-rides UQ analysis
+if(!uq) factorial <- T
+if(factorial&uq) {
+ uq <- F
+ print('',quote=F)
+ print(paste('Both factorial and UQ run specified: Factorial ensemble will be run'),quote=F)
+}
+
+runtype <- 
+  if(factorial)   'factorial'
+  else if(procSA) 'SAprocess_ye'
+  else if(salt)   'SApar_saltelli'
+
+if(uq&of_format!='rds') {
+  of_format <- 'rds'
+  print('',quote=F)
+  print(paste('of_format changed to rds due to high output volume with SA/UQ ensembles'),quote=F)
+}
 
 
-
-###################################################################
-### start program
 
 ##################################
 # Clone and build the maat wrapper and model object
@@ -169,34 +180,27 @@ sofname     <- if(is.null(runid))     paste(of_main,'salt',sep='_') else paste(r
 setwd(srcdir)
 source('wrapper_object.R')
 maat         <- as.proto(wrapper_object$as.list()) 
-maat$build(mod_obj=mod_obj, mod_mimic=mod_mimic )
 rm(wrapper_object)
 
-# factorial analysis over-rides UQ analysis
-if(!uq) factorial <- T
-if(factorial&uq) {
- uq <- F
- print('',quote=F)
- print(paste('Both factorial and UQ run specified: Factorial ensemble will be run') ,quote=F)
-}
-
-if(uq&of_format!='rds') {
-  of_format <- 'rds'
-  print('',quote=F)
-  print(paste('of_format changed to rds due to high output volume with SA/UQ ensembles'), quote=F)
-}
-
 # define run parameters
+maat$wpars$mod_obj       <- mod_obj       
+maat$wpars$runtype       <- runtype       
+maat$wpars$UQ            <- uq       
 maat$wpars$multic        <- multic  
 maat$wpars$procs         <- procs   
-maat$wpars$UQ            <- uq       
 maat$wpars$n             <- psa_n       
 maat$wpars$coef_var      <- coef_var       
 maat$wpars$nmult         <- salt_nmult       
 maat$wpars$eval_strings  <- eval_strings       
+maat$wpars$of_name_stem  <- ofname 
+maat$wpars$of_type       <- of_format
+maat$wpars$of_dir        <- of_dir
+
 maat$model$cpars$verbose <- F
 maat$model$cpars$output  <- mod_out
 
+# build maat and model objects
+maat$build(mod_mimic=mod_mimic)
 
 
 ##################################
@@ -334,77 +338,21 @@ if(!is.null(metdata)) {
 ##################################
 ###  Run MAAT
 
-# run factorial MAAT, this is a standard setup combining variables in factorial
-if(factorial) {
-  maat$model$pars$verbose  <- F
+maat$model$pars$verbose  <- F
   
-  for(i in 1:5) print('',quote=F)
-  print('Run Factorial',quote=F)
-  st <- system.time(
-    maat$run()
-  )
+for(i in 1:5) print('',quote=F)
+print(paste('Run MAAT',runtype,':'),quote=F)
+st <- system.time(maat$run())
   
-  for(i in 1:3) print('',quote=F)
-  print('MAAT runtime:',quote=F)
-  print(st,quote=F)
+for(i in 1:3) print('',quote=F)
+print('MAAT runtime:',quote=F)
+print(st,quote=F)
   
-  # process & record output
-  setwd(odir)
-  df_out <- maat$output()
-  write_to_file(df_out,ofname,type=of_format)  
-  
-  rm(df_out)
-  maat$clean()
-  print('',quote=F)
-  print('MAAT system memory used for factorial run:',quote=F)
-  gc()
-}
+maat$clean()
+print('',quote=F)
+print('MAAT system memory used:',quote=F)
+gc()
 
 
 
-### run Ye algorithm for process sensitivity  analysis if requested
-if(procSA&uq) {
-  maat$model$pars$verbose  <- F
-  maat$wpars$UQtype <- 'ye'
-  
-  for(i in 1:5) print('',quote=F)
-  print('Run Process SA',quote=F)
-  st <- system.time(
-    maat$run()
-  )
-  
-  for(i in 1:3) print('',quote=F)
-  print('MAAT runtime:',quote=F)
-  print(st,quote=F)
-  
-  maat$clean()
-  print('',quote=F)
-  print('MAAT system memory used for process SA:',quote=F)
-  gc()
-}
-
-
-
-### run Saltelli algorithm for Sobol sensitivity  analysis if requested
-if(salt&uq) {
-  maat$model$pars$verbose  <- F
-  maat$wpars$UQtype <- 'saltelli'
-
-  # run MAAT
-  for(i in 1:5) print('',quote=F)
-  print('Run Saltelli Sobol',quote=F)
-  st <- system.time(
-    maat$run()
-  )
-
-  for(i in 1:3) print('',quote=F)
-  print('MAAT Saltelli Sobol runtime:',quote=F)
-  print(st,quote=F)
-
-  maat$clean()
-  print('',quote=F)
-  print('MAAT system memory used for Saltelli SA:',quote=F)
-  gc()
-}
-
-
+### END ###
