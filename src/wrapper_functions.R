@@ -16,7 +16,8 @@ source('functions/calc_functions.R')
 
 #####################################
 
-# expand the fnames and driving variables lists into matrices of runtime variables  
+# expand the fnames, env, and pars input lists into matrices   
+# - each row is passed to the model sequentially by each run function in the run function cascade
 generate_ensemble <- function(.) {
 
   .$dataf$fnames  <- if(!is.null(.$dynamic$fnames)) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
@@ -39,10 +40,12 @@ generate_ensemble <- function(.) {
   .$dataf$lm <- if(is.null(.$dataf$met)) 1 else length(.$dataf$met[,1])    
 }
 
+
 # parameter matrix for factorial run  
 generate_ensemble_pars_factorial <- function(.) {
   .$dataf$pars <- if(!is.null(.$dynamic$pars)) as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F)) else NULL
 } 
+
 
 # parameter matrix for Saltelli parameter SA  
 generate_ensemble_pars_SApar_saltelli <- function(.) {
@@ -63,7 +66,10 @@ generate_ensemble_pars_SApar_saltelli <- function(.) {
   .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )        
 }
 
+
 # parameter matrix for Dai, Ye, process SA
+# - the paramter matrices for the Ye method are generated in run function 1
+# - here a list structure in .$dynamic$pars is created from .$dynamic$pars_eval
 generate_ensemble_pars_SAprocess_ye <- function(.) {
   # need a minimum of >1 processes
   if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sesitivity analysis')
@@ -83,6 +89,7 @@ generate_ensemble_pars_SAprocess_ye <- function(.) {
 
 ################################
 # initialise output matrix/array
+# - these functions initialise the output matrices used to store output from the ensemble 
 
 init_output_matrix_factorial <- function(.) {
   .$dataf$out <- matrix(0, .$dataf$lm*.$dataf$le*.$dataf$lp*.$dataf$lf, length(.$dataf$mout) )
@@ -90,6 +97,7 @@ init_output_matrix_factorial <- function(.) {
 }
 
 init_output_matrix_SApar_saltelli <- init_output_matrix_factorial 
+
 
 init_output_matrix_SApar_saltelli_ABi <- function(.) {
   # initialise output array
@@ -101,6 +109,7 @@ init_output_matrix_SApar_saltelli_ABi <- function(.) {
   .$dataf$out_saltelli <- array(0, dim=c(length(.$dataf$mout), .$wpars$n, dim(.$dataf$pars)[2], .$dataf$le, .$dataf$lf ))
   dimnames(.$dataf$out_saltelli) <- list(names(.$dataf$mout), NULL, colnames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
 }
+
 
 init_output_matrix_SAprocess_ye <- function(.) {
   # Ye method does not generate a single for whole simulation but rather a separate ensemble for each process 
@@ -149,6 +158,7 @@ run0_factorial <- function(.) {
   else                                  .$print_output() 
 }
 
+
 # run1
 run1_factorial <- function(.,i) {
   # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
@@ -165,6 +175,7 @@ run1_factorial <- function(.,i) {
       else                 lapply(1:.$dataf$lp, .$run2 )
   })
 }
+
 
 # run2
 run2_factorial <- function(.,j) {
@@ -185,6 +196,7 @@ run2_factorial <- function(.,j) {
   if(class(out)=='matrix') t(out) else if(class(out)=='array') .$stack(out) else as.matrix(out)
 }
 
+
 # run3
 run3_factorial <- function(.,k) {
   # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$env matrix to the model
@@ -203,6 +215,7 @@ run3_factorial <- function(.,k) {
   }  
 }
 
+
 run4_factorial <- NULL
 run5_factorial <- run4_factorial 
 run6_factorial <- run4_factorial 
@@ -219,6 +232,7 @@ run0_SApar_saltelli <- run0_factorial
 run1_SApar_saltelli <- run1_factorial
 run2_SApar_saltelli <- run2_factorial
 run3_SApar_saltelli <- run3_factorial
+
 
 # Additional run functions for ABi array of Saltelli parameter SA method
 run4_SApar_saltelli <- function(.) {
@@ -245,6 +259,7 @@ run4_SApar_saltelli <- function(.) {
   print('',quote=F)
 }
 
+
 run5_SApar_saltelli <- function(.,i) {
   # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
   # assumes that each row of the fnames matrix are independent and non-sequential
@@ -260,6 +275,7 @@ run5_SApar_saltelli <- function(.,i) {
     else                 lapply(1:.$dataf$le, .$run6 )
   }, function(a) a, .$dataf$out_saltelli[,,,1,1] )
 }
+
 
 run6_SApar_saltelli <- function(.,k) {
   # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$env matrix to the model
@@ -286,6 +302,7 @@ run6_SApar_saltelli <- function(.,k) {
   }  
 }
 
+
 run7_SApar_saltelli <- function(.,p) {
   # This wrapper function is called from an lapply or mclappy function to be run once for each parameter (i.e. each column of the dataf$pars matrix)
   # call run8
@@ -293,6 +310,7 @@ run7_SApar_saltelli <- function(.,p) {
   # returns a numeric matrix - model output variable (rows), sample (columns)
   vapply((.$wpars$n+1):.$dataf$lp, .$run8, .$dataf$mout, pk=p )
 }
+
 
 run8_SApar_saltelli <- function(.,j,pk) {
   # This wrapper function is called from an lapply or mclappy function 
@@ -335,6 +353,7 @@ run0_SAprocess_ye <- function(.) {
   # Ye process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure  
   vapply(1:.$dataf$lf, .$run1, numeric(0) )
 }
+
 
 # run1
 run1_SAprocess_ye <- function(.,f) {
@@ -400,6 +419,7 @@ run1_SAprocess_ye <- function(.,f) {
   numeric(0)
 }
 
+
 # run2
 run2_SAprocess_ye <- function(.,g) {
   # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
@@ -422,6 +442,7 @@ run2_SAprocess_ye <- function(.,g) {
   }, function(a) a, .$dataf$out[,,,,1,1] )
 }
     
+
 # run3
 run3_SAprocess_ye <- function(., h, offset ) {
   # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
@@ -438,6 +459,7 @@ run3_SAprocess_ye <- function(., h, offset ) {
   # call process B process representation run function
   vapply(1:.$dataf$lfB, .$run4, .$dataf$out[,,,1,1,1], offset=osh )
 }
+
 
 # run4
 run4_SAprocess_ye <- function(., i, offset ) {
@@ -458,6 +480,7 @@ run4_SAprocess_ye <- function(., i, offset ) {
   vapply(oss, .$run5, .$dataf$out[,,1,1,1,1] )
 }
 
+
 # run5
 run5_SAprocess_ye <- function(.,j) {
   # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$parsB matrix to the model
@@ -472,6 +495,7 @@ run5_SAprocess_ye <- function(.,j) {
   vapply(1:.$dataf$le, .$run6, .$dataf$out[,1,1,1,1,1] )
 }
     
+
 run6_SAprocess_ye <- run3_factorial # i.e. over .$dataf$env
 run7_SAprocess_ye <- run4_factorial # i.e. NULL 
 run8_SAprocess_ye <- run4_factorial # i.e. NULL 
@@ -489,6 +513,7 @@ write_output_factorial <- function(.) {
   .$write_to_file() 
 }
 
+
 # write AB output array
 write_output_SApar_saltelli <- function(.) {
 
@@ -505,6 +530,7 @@ write_output_SApar_saltelli <- function(.) {
 
 }
 
+
 # write ABi output array 
 write_output_SApar_saltelli_ABi <- function(.) {
   .$wpars$of_name <- paste(.$wpars$of_name_stem,'salt','ABi',sep='_')  
@@ -514,6 +540,7 @@ write_output_SApar_saltelli_ABi <- function(.) {
   if(!.$wpars$unit_testing) .$dataf$out_saltelli <- matrix(1)   
 }
   
+
 # write Ye output array 
 write_output_SAprocess_ye <- function(.,f) {
   # similar to init matrix Ye method does not output for whole simulation but rather for each process 
@@ -567,6 +594,7 @@ output_factorial  <- function(.){
   )
 }
 
+
 # creates output for a saltelli Sobol sensitivity analysis 
 output_SApar_saltelli <- function(.) {
   # A and B matrices are stacked in a single matrix, which for each model and environment combination are then stored in an array 
@@ -585,6 +613,7 @@ output_SApar_saltelli <- function(.) {
   aperm(AB, c(3,1,2,4) )
 }
   
+
 # creates output for a Saltelli Sobol sensitivity analysis 
 output_SApar_saltelli_ABi <- function(.) {
 
@@ -605,6 +634,8 @@ output_SApar_saltelli_ABi <- function(.) {
   aperm(.$dataf$out_saltelli, c(5,4,2,1,3) )
 }
 
+
+# creates output for a Ye process sensitivity analysis 
 output_SAprocess_ye <- function(.) {
   .$dataf$out
 }

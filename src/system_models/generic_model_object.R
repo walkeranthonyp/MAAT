@@ -29,13 +29,14 @@ system_model_object <-
     # build function 
     build <- function(.) {}
     
+    # build function 
+    build_child <- NULL 
     
     
     ###########################################################################
     # main run function
     
     run <- function(.) {} 
-    
     
     
     ###########################################################################
@@ -75,27 +76,32 @@ system_model_object <-
     cpars      <- list()
     
     
-    
     ###########################################################################
     # configure & run_met functions
 
+    # function that gets passed named values from MAAT wrapper object 
+    # - and assigns them to the model object  
     configure <- function(.) {}
  
     # configure a list variable 
     configure_sublist <- function(.) {}
 
-    # configure a list variable 
+    # configure functions not found in fnames list
+    # - either unique functions that never change or 
+    # - sub-functions associated with functions that are in fnames  
     configure_unique <- function(.) {NULL}
 
+    # run model over a meteorological (or boundary condition) dataset
     run_met <- function(.) {}
     
     
-    
-    #######################################################################        
+    ###########################################################################
     # Test functions
-    # - not copied when the object is cloned
+    # - not copied when the object is cloned 
+    # - (signaled by the . at the beginning of the functions name)
 
     .test <- function(.) {}
+    
     
 #######################################################################        
 # end object      

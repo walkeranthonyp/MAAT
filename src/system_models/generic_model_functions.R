@@ -14,43 +14,22 @@
 # build functions 
 ###########################################################################
 
-# build function for objects that have no child objects
-build_no_child <- function(., mod_mimic=NULL, ... ) {
-
-  # read default model setup 
-  source('../../functions/general_functions.R')
-  init_default <- readXML(paste(.$name,'default.xml',sep='_'))
- 
-  # read model mimic setup
-  if(!is.null(mod_mimic)) {
-    setwd('mimic_xmls')
-    print(paste(.$name, 'mimic:', mod_mimic ))
-    init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
-    init_default <- fuselists(init_default,init_mimic)
-    setwd('..')
-  }
-
-  # assign default and mod mimic values to data structure
-  .$configure(vlist='fnames', df=unlist(init_default$fnames), init=T ) 
-  .$configure(vlist='pars',   df=unlist(init_default$pars)) 
-  .$configure(vlist='env',    df=unlist(init_default$env)) 
-}
-
-
-# build function for objects that have child objects
-build_with_child <- function(., mod_mimic=NULL, ... ) {
+# build function that initialises the object and calls build functions of all child objects 
+build <- function(., mod_mimic=NULL, ... ) {
 
   # read default model setup for highest level model
   source('../../functions/general_functions.R')
   init_default <- readXML(paste(.$name,'default.xml',sep='_'))
  
   # read model mimic setup
-  if(!is.null(mod_mimic)&F) {
-    setwd('mimic_xmls')
-    print(paste(.$name,'mimic:', mod_mimic ))
-    init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
-    init_default <- fuselists(init_default,init_mimic)
-    setwd('..')
+  if(!is.null(mod_mimic)) {
+    if(grepl(mod_mimic,list.files('../mimic_xmls'))) {
+      setwd('mimic_xmls')
+      print(paste(.$name,'mimic:',mod_mimic), quote=F )
+      init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
+      init_default <- fuselists(init_default,init_mimic)
+      setwd('..')
+    } else print(paste('mimic:',mod_mimic,', for:',.$name,'not found.'), quote=F )
   }
 
   # assign default and mod mimic values to data structure
@@ -59,19 +38,28 @@ build_with_child <- function(., mod_mimic=NULL, ... ) {
   .$configure(vlist='env',    df=unlist(init_default$env))
 
   # build child objects
-  # - this could be relatively easily converted to an lapply function
-  # - an lapply could be called after an if statement on child object list is NULL and could combine both build functions
-  mod     <- .$child_list[[1]]
-  mod_obj <- paste0(mod, '_object' ) 
-  setwd(paste0('../', mod ))
-  source(paste0(mod_obj, '.R' ))
-  .[[mod]] <- as.proto( get(mod_obj)$as.list(), parent=. ) # should work but may need environment setting
-  rm(list=mod_obj, pos=1 )
-  .[[mod]]$build(mod_mimic=mod_mimic)
-  .[[mod]]$cpars$output <- .$name
-  setwd(paste0('../',.$name))
+  if(!is.null(.$child_list)) vapply(.$child_list, .$build_child, numeric(0), mod_mimic=mod_mimic ) 
 }
 
+
+# function that calls child object build function
+build_child <- function(., child, mod_mimic=NULL, ... ) {
+
+  # load child object
+  child_obj  <- paste0(child, '_object' ) 
+  setwd(paste0('../',child))
+  source(paste0(child_obj, '.R' ))
+
+  # build child object into parent object
+  .[[child]] <- as.proto( get(child_obj)$as.list(), parent=. ) # should work but may need environment setting
+  rm(list=child_obj, pos=1 )
+  .[[child]]$build(mod_mimic=mod_mimic)
+  .[[child]]$cpars$output <- .$name
+  setwd(paste0('../',.$name))
+  
+  # return nothing 
+  numeric(0)
+}
 
 
 # main run functions

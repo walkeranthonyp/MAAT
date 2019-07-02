@@ -42,7 +42,9 @@ canopy_object$env
 canopy_object$pars
 canopy_object$state
 canopy_object$state$vert
-
+canopy_object$leaf
+canopy_object$leaf$fns
+canopy_object$leaf$fns$Ajg
 
 
 ### END ###
