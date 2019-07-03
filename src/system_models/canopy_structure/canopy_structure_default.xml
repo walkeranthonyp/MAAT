@@ -1,8 +1,7 @@
 <default>
   <fnames>
     <canopy_structure>
-      <canstrctsys>'f_canstrctsys_leafdem'</canstrctsys>
-      <pars_init>'f_pars_init'</pars_init>
+      <sys>'f_sys_leafdem'</sys>
       <lai>'f_lai_leafdem_env'</lai>
       <leafdem_upper>'f_leafdem_upper_wu2017'</leafdem_upper>
       <leafdem_lower>'f_leafdem_lower_wu2017'</leafdem_lower>

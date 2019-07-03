@@ -2,7 +2,6 @@
   <fnames>
     <canopy_structure>
       <canstrctsys>NA</canstrctsys>
-      <pars_init>NA</pars_init>
       <lai>NA</lai>
       <leafdem_upper>NA</leafdem_upper>
       <leafdem_lower>NA</leafdem_lower>
