@@ -29,7 +29,7 @@ leaf_object$name              <- 'leaf'
 # child objects - none expected 
 leaf_object$build             <- build  
 leaf_object$run               <- run  
-leaf_object$configure         <- configure_no_child  
+leaf_object$configure         <- configure
 leaf_object$configure_sublist <- configure_sublist  
 leaf_object$run_met           <- run_met  
 

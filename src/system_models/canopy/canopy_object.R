@@ -29,9 +29,9 @@ canopy_object$name              <- 'canopy'
 canopy_object$child_list        <- list('leaf') 
 canopy_object$build             <- build
 canopy_object$build_child       <- build_child  
-canopy_object$configure         <- configure_with_child  
+canopy_object$configure         <- configure
 canopy_object$configure_sublist <- configure_sublist  
-canopy_object$child_configure   <- child_configure  
+canopy_object$configure_child   <- configure_child  
 canopy_object$run_met           <- run_met  
 
 

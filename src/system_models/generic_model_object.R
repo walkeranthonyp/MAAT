@@ -86,6 +86,9 @@ system_model_object <-
     # configure a list variable 
     configure_sublist <- function(.) {}
 
+    # configure child objects 
+    configure_child <- function(.) {}
+
     # configure functions not found in fnames list
     # - either unique functions that never change or 
     # - sub-functions associated with functions that are in fnames  
