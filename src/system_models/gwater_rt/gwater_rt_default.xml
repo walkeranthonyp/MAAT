@@ -1,9 +1,9 @@
 <default>
   <fnames>
     <gwater_rt>
-      <gwatersys>'f_gwatersys_daiye'</gwatersys>
+      <sys>'f_sys_daiye'</sys>
       <rechrg>'f_rechrg_lin'</rechrg>
-      <geol>'f_trans_single'</geol>
+      <geol>'f_geol_single'</geol>
     </gwater_rt>
   </fnames>
   <pars>

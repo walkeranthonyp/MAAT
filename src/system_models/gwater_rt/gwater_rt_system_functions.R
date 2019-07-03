@@ -12,16 +12,16 @@
 ################################
 # system model for simple ground water model (does not include recative transport component in Dai et al 2017)
 
-f_gwatersys_daiye <- function(.) {
+f_sys_daiye <- function(.) {
 
   # calculate state parameters
-  .$state_pars$x   <-  seq(0, .$pars$L, (.$pars$L-0)/(.$pars$nx-1) )
+  .super$state_pars$x   <-  seq(0, .super$pars$L, (.super$pars$L-0)/(.super$pars$nx-1) )
   
   # recharge
-  .$state$recharge <- get(.$fnames$rechrg)(.)
+  .super$state$recharge <- .$rechrg()
   
   # geological transport
-  .$state$h        <- get(.$fnames$geol)(.)
+  .super$state$h        <- .$geol()
 
 }     
 
