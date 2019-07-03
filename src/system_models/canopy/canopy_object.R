@@ -27,13 +27,8 @@ setwd('canopy')
 ###########################################################################
 canopy_object$name              <- 'canopy'
 canopy_object$child_list        <- list('leaf') 
-canopy_object$build             <- build
 canopy_object$build_child       <- build_child  
-canopy_object$configure         <- configure
-canopy_object$configure_sublist <- configure_sublist  
 canopy_object$configure_child   <- configure_child  
-canopy_object$configure_test    <- configure_test  
-canopy_object$run_met           <- run_met  
 
 
 
@@ -96,12 +91,6 @@ canopy_object$run_leaf <- function(., ii, df ) {
   # run leaf
   .$leaf$run()        
 }
-
-
-
-# function to configure unique elements of the object 
-####################################
-canopy_object$configure_unique <- NULL 
 
 
 

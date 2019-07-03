@@ -1,7 +1,7 @@
 <default>
   <template>
     <fnames>
-      <templatesys>'f_templatesys_1'</templatesys>
+      <sys>'f_sys_1'</sys>
       <gstar>'f_gstar_constref'</gstar>
       <Alim>'f_lim_farquhar1980'</Alim>
     </fnames>

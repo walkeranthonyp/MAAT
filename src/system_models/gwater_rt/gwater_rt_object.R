@@ -27,18 +27,7 @@ setwd('gwater_rt')
 
 # assign object functions
 ###########################################################################
-gwater_rt_object$name              <- 'gwater_rt'
-gwater_rt_object$build             <- build
-gwater_rt_object$configure         <- configure
-gwater_rt_object$configure_sublist <- configure_sublist  
-gwater_rt_object$configure_unique  <- NULL  
-gwater_rt_object$configure_test    <- configure_test
-gwater_rt_object$run_met           <- run_met  
-
-
-
-# use default run function
-###########################################################################
+gwater_rt_object$name <- 'gwater_rt'
 
 
 

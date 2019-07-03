@@ -24,10 +24,10 @@ system_model_object <-
     name <- character(1)
     
     # child objects 
-    child_list <- NULL 
+    child_list  <- NULL 
     
     # build function 
-    build <- function(.) {}
+    build       <- build
     
     # build function 
     build_child <- NULL 
@@ -36,7 +36,7 @@ system_model_object <-
     ###########################################################################
     # main run function
     
-    run <- function(.) {} 
+    run <- run 
     
     
     ###########################################################################
@@ -81,24 +81,24 @@ system_model_object <-
 
     # function that gets passed named values from MAAT wrapper object 
     # - and assigns them to the model object  
-    configure <- function(.) {}
+    configure         <- configure 
  
     # configure a list variable 
-    configure_sublist <- function(.) {}
+    configure_sublist <- configure_sublist 
 
     # configure child objects 
-    configure_child <- function(.) {}
+    configure_child   <- NULL  
 
     # configure functions not found in fnames list
     # - either unique functions that never change or 
     # - sub-functions associated with functions that are in fnames  
-    configure_unique <- function(.) {NULL}
+    configure_unique  <- NULL 
 
     # configure for test functions 
-    configure_test <- function(.) {}
+    configure_test    <- configure_test 
 
     # run model over a meteorological (or boundary condition) dataset
-    run_met <- function(.) {}
+    run_met           <- run_met 
     
     
     ###########################################################################

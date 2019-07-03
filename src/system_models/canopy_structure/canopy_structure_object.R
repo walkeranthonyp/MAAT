@@ -29,12 +29,8 @@ setwd('canopy_structure')
 ###########################################################################
 canopy_structure_object$name              <- 'canopy_structure'
 canopy_structure_object$child_list        <- list('canopy') 
-canopy_structure_object$build             <- build
 canopy_structure_object$build_child       <- build_child  
-canopy_structure_object$configure         <- configure
-canopy_structure_object$configure_sublist <- configure_sublist  
 canopy_structure_object$configure_child   <- configure_child  
-canopy_structure_object$run_met           <- run_met  
 
 
 
@@ -79,12 +75,6 @@ canopy_structure_object$run_canopy <- function(.,ii,df){
   # run canopy
   .$canopy$run()        
 }
-
-
-# function to configure unique elements of the object 
-####################################
-canopy_structure_object$configure_unique <- NULL 
-
 
 
 # assign object variables 
