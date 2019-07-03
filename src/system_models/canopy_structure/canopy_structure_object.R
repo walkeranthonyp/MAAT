@@ -313,6 +313,7 @@ canopy_structure_object$.test_aca <- function(., verbose=F, verbose_loop=F,
   # Child Objects
   .$build()
   .$canopy$leaf$fnames$rs <- rs
+  .$canopy$leaf$configure_test
 
   .$cpars$verbose         <- verbose
   .$canopy$cpars$verbose  <- F

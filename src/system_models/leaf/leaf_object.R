@@ -31,6 +31,7 @@ leaf_object$build             <- build
 leaf_object$run               <- run  
 leaf_object$configure         <- configure
 leaf_object$configure_sublist <- configure_sublist  
+leaf_object$configure_test    <- configure_test  
 leaf_object$run_met           <- run_met  
 
 
@@ -393,15 +394,14 @@ leaf_object$output <- function(.){
 # test functions
 #######################################################################        
 
-leaf_object$configure_test <- function(.) {
-  
-  # configure methods
-  fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
-  .$fns   <- as.proto(fnslist, parent=. ) 
-  #source('../../functions/general_functions.R')
-  .$configure_unique(init=T, flist=unlist(.$fnames) )
-
-}
+#leaf_object$configure_test <- function(.) {
+#  
+#  # configure methods
+#  fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
+#  .$fns   <- as.proto(fnslist, parent=. ) 
+#  .$configure_unique(init=T, flist=unlist(.$fnames) )
+#
+#}
 
 leaf_object$.test <- function(., verbose=T, verbose_loop=T, leaf.par=1000, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
   

@@ -217,6 +217,17 @@ configure_child <- function(., child, vlist, df ) {
   .[[child]]$configure(vlist=vlist, df=df ) 
   numeric(0) 
 }
+
+
+# configure function for .test functions to configure
+configure_test <- function(.) {
+
+  # configure methods
+  fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
+  .$fns   <- as.proto(fnslist, parent=. )
+  if(!is.null(.$configure_unique)) .$configure_unique(init=T, flist=unlist(.$fnames) )
+
+}
     
 
 

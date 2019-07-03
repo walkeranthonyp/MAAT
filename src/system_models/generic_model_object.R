@@ -94,6 +94,9 @@ system_model_object <-
     # - sub-functions associated with functions that are in fnames  
     configure_unique <- function(.) {NULL}
 
+    # configure for test functions 
+    configure_test <- function(.) {}
+
     # run model over a meteorological (or boundary condition) dataset
     run_met <- function(.) {}
     

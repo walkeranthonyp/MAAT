@@ -32,6 +32,7 @@ canopy_object$build_child       <- build_child
 canopy_object$configure         <- configure
 canopy_object$configure_sublist <- configure_sublist  
 canopy_object$configure_child   <- configure_child  
+canopy_object$configure_test    <- configure_test  
 canopy_object$run_met           <- run_met  
 
 
@@ -304,15 +305,6 @@ canopy_object$output <- function(.){
 
 # test functions
 #######################################################################        
-
-canopy_object$configure_test <- function(.) {
-  
-  # configure methods
-  fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
-  .$fns   <- as.proto(fnslist, parent=. ) 
-  if(!is.null(.$configure_unique)) .$configure_unique(init=T, flist=unlist(.$fnames) )
-
-}
 
 canopy_object$.test <- function(., verbose=T, 
                                 canopy.par=2000, canopy.ca_conc=400, canopy.lai=6 ) {
