@@ -7,8 +7,8 @@
 ################################
 
 # Abbey L. Johnson
-# comments labelled 'debug' if exclusive to debugging code
-# comments labelled 'ALJ' if relevant to algorithm
+# comments labeled 'debug' if exclusive to debugging code
+# comments labeled 'ALJ' if relevant to algorithm
 
 # debug: set seed functions
 ################################
@@ -16,24 +16,23 @@
 # debug: setting the seed to reproduce sequences of quasi-random numbers
 
 # debug: (1) set the seed for uniform_r generation
-set_seed1 <- function(.) {
-  set.seed(1703)
-  .$mcmc$uniform_r_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
-  .$mcmc$uniform_r_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = -0.01, max = 0.01)
-}
+# set_seed1 <- function(.) {
+#  set.seed(1703)
+#  .$mcmc$uniform_r_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
+#  .$mcmc$uniform_r_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = -0.01, max = 0.01)
+# }
 
 # debug: (2) set the seed for R1 and R2 general_functions
-set_seed2 <- function(.) {
-  set.seed(4050)
-}
-
+# set_seed2 <- function(.) {
+#   set.seed(4050)
+# }
 
 # debug: (3) set the seed for runif(1) value chosen in accept/reject step
-set_seed3 <- function(.) {
-  set.seed(1337)
-  .$mcmc$runif_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
-  .$mcmc$runif_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = 0, max = 1)
-}
+# set_seed3 <- function(.) {
+#   set.seed(1337)
+#   .$mcmc$runif_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
+#   .$mcmc$runif_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = 0, max = 1)
+# }
 
 # MCMC functions
 ################################
@@ -338,7 +337,8 @@ static_dream <- function(.) {
 
   # vector that stores how many times crossover value indices are used
   # ALJ: initialized to 1's in order to avoid numeric issues
-  # ALJ: maybe noteworthy that this was originally initialized to 0's in Vrugt's algorithm?
+  # debug: maybe noteworthy that this was originally initialized to 0's in Vrugt's algorithm?
+  # debug: play around with whether this makes a difference or not
   .$mcmc$n_id[] <- 1
 }
 
@@ -351,9 +351,9 @@ proposal_generate_dream <- function(., j ) {
 
   # current state ('mcmc_chains' number of samples of a d-variate distribution)
   # APW: I think you can just use the pars_array here and later
-  # ALJ: yes you can, but I am currently hesitant to change it
+  # ALJ: you could, but I am hesitant to change it
   # ALJ: does using the current_state and jump matrix have any influence on the fxn call order issue in the DE-MC alg?
-  # ALJ: i.e., are these "placeholder" matricies relevant to parallelization and/or other forms of the DREAM alg?
+  # ALJ: i.e., are these "placeholder" matrices relevant to parallelization and/or other forms of the DREAM alg?
   .$mcmc$current_state[] <- matrix(.$dataf$pars_array[ , , j-1], nrow = .$dataf$lp, ncol = .$mcmc$d)
 
   # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
@@ -473,7 +473,7 @@ proposal_accept_dream <- function(., j, lklihood) {
     # number of times index crossover is used
     .$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id] + 1
 
-    # NOTE this chunk is a reapeat of DE-MC code
+    # NOTE this chunk is a repeat of DE-MC code
     # APW: can either move to mcmc function in wrapper (would require an accept vector)
     #      or, create a function that is called here
     out_n <- .$wpars$mcmc_maxiter / 2
