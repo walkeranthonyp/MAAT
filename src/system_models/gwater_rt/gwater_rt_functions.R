@@ -38,7 +38,10 @@ f_geol_single <- function(.) {
 
 # double layer model
 f_geol_double <- function(.) {
-  h11 <-  f_double_layer_model_h(.)
+  # not good practise to set a function within the fns object within another function in the fns object
+  # done to make this test code work with the new MAAT structure 
+  .$double_layer_model_h <- f_double_layer_model_h
+  h11 <-  .$double_layer_model_h()
   h11[seq(1,101,5)]
 }
 
