@@ -412,7 +412,7 @@ wrapper_object <-
       if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
 
       # placeholder for setting boundary handling limits
-  #    boundary_handling_set(.)
+      boundary_handling_set(.)
 
       # evaluate model over initial proposals derived from prior
       #print(do.call('rbind',lapply(1:.$dataf$lp, .$runp_mcmc )))
@@ -937,8 +937,8 @@ wrapper_object <-
     )
 
     fnames <- list(
-      # proposal_lklihood = 'f_proposal_lklihood_log'
-      proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
+      proposal_lklihood = 'f_proposal_lklihood_log'
+      # proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
     )
 
 

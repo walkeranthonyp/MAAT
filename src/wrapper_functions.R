@@ -168,7 +168,7 @@ proposal_generate_demc <- function(., j ) {
       #print(paste0('uniform_r = ', uniform_r[jj]))
 
       # call boundary handling function
-      # boundary_handling(., ii, jj )
+      boundary_handling(., ii, jj )
     }
 
     # print('proposal generated = ')
@@ -413,7 +413,7 @@ proposal_generate_dream <- function(., j ) {
 
     # debug: temporarily comment out boundary handling
     # call boundary handling function
-    # for (jj in 1:.$mcmc$d) boundary_handling(., ii, jj )
+    for (jj in 1:.$mcmc$d) boundary_handling(., ii, jj )
   }
 }
 
