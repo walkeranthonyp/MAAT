@@ -52,25 +52,34 @@ system_model_object <-
 
     
     ###########################################################################
-    # Variables etc
-    
-    # function names
-    fnames     <- list()
-    
-    # functions - created as a child proto object during first call to configure  
-    #fns        <- proto(.=system_model_object)
-    
-    # environment
-    env        <- list()
-
+    # Variable lists
+   
+    # calculated by model 
+    # - 2 lists
     # state
     state      <- list()
     
     # state parameters
     state_pars <- list()
     
+    # lists with values configurable by user
+    # - 3 lists
+    # - within each list, all elements must be of the same class  
+    # function names
+    fnames     <- list()
+    
+    # environment
+    env        <- list()
+
     # parameters
     pars       <- list()
+   
+    # functions 
+    # - place holder for fns proto object that lives within model object
+    # - created as a child proto object during first call to configure  
+    # - this object has methods named exactly as the elements in fnames are named
+    # - each of these methods are the functions named in the elements of the fnames list 
+    #fns        <- proto(.=system_model_object)
     
     # run control parameters
     cpars      <- list()

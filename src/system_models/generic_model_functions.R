@@ -32,6 +32,14 @@ build <- function(., mod_mimic=NULL, ... ) {
     } else print(paste('mimic:',mod_mimic,', for:',.$name,'not found.'), quote=F )
   }
 
+  # print init_default if requested
+  if(.$cpars$verbose) {
+    print('',quote=F)
+    print('Build, init_default',quote=F)
+    print(init_default,quote=F)
+  }
+
+
   # assign default and mod mimic values to data structure
   .$configure(vlist='fnames', df=unlist(init_default$fnames), init=T )
   .$configure(vlist='pars',   df=unlist(init_default$pars))
@@ -123,6 +131,13 @@ configure <- function(., vlist, df, init=F, o=T ) {
   # This function is called from any of the run functions, or during model initialisation
   # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df 
 
+  # print configure setup if requested
+  if(.$cpars$cverbose&o) {
+    print('', quote=F )
+    print(paste(.$name,'configure:'), quote=F )
+    print(df, quote=F )
+  }
+
   # split variable names at . 
   listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
 
@@ -151,9 +166,6 @@ configure <- function(., vlist, df, init=F, o=T ) {
 
   # print configure setup if requested
   if(.$cpars$cverbose&o) {
-    print('', quote=F )
-    print(paste(.$name,'configure:'), quote=F )
-    print(df, quote=F )
     print(listnames, quote=F )
     print(mss, quote=F )
     print(slmss, quote=F )

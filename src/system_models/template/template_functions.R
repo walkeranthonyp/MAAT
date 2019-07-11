@@ -12,11 +12,11 @@
 
 # generate text 
 f_text_combine <- function(.) {   
-  paste(.super$pars$text1, .super$pars$text2)
+  paste(.super$env$text1, .super$env$text2)
 }
 
 f_text_one <- function(.) {   
-  .super$pars$text3
+  .super$env$text3
 }
 
 # calculate a value
@@ -29,11 +29,12 @@ f_calcval_power <- function(.) {
 }
 
 # print values
-f_print_textonly <- function(.) {
+f_print_out_textonly <- function(.) {
   print(.super$state$text, quote=F )
+  #print(.super$state$text)
 }
 
-f_print_textandval <- function(.) {
+f_print_out_textandval <- function(.) {
   print(paste(.super$state$text,.super$state$calcval), quote=F )
 }
 
