@@ -102,7 +102,7 @@ mcmc_thin_obs <- 1
 # MCMC option to assume homoscedastic error in measured observations (else, heteroscedastic)
 mcmc_homosced <- F
 # MCMC DREAM number chain pair proposal
-mcmc_delta    <- 3         
+mcmc_delta    <- 3
 # MCMC DREAM randomization
 mcmc_c_rand   <- 0.01
 # MCMC DREAM ergodicicty

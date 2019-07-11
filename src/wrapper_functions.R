@@ -9,6 +9,7 @@
 # Abbey L. Johnson
 # comments labeled 'debug' if exclusive to debugging code
 # comments labeled 'ALJ' if relevant to algorithm
+# note: DE-MC bug fixes  and algorithm notes are not included in this code
 
 # debug: set seed functions
 ################################
@@ -178,7 +179,7 @@ proposal_generate_demc <- function(., j ) {
 
   }
 
-  if (j == .$wpars$mcmc_maxiter) {
+  # if (j == .$wpars$mcmc_maxiter) {
     # print statements for de-bugging
     # print('array of proposals that were generated = ')
     # print(.$dataf$prop_storage)
@@ -186,7 +187,7 @@ proposal_generate_demc <- function(., j ) {
     # print(.$dataf$uniform_r_storage)
     # print('R1 (1st col.) and R2 (2nd col.) values (randomly generated) = ')
     # print(.$dataf$R1_R2_storage)
-  }
+  # }
 
 }
 
@@ -337,8 +338,8 @@ static_dream <- function(.) {
 
   # vector that stores how many times crossover value indices are used
   # ALJ: initialized to 1's in order to avoid numeric issues
-  # debug: maybe noteworthy that this was originally initialized to 0's in Vrugt's algorithm?
-  # debug: play around with whether this makes a difference or not
+  # debug: maybe noteworthy that this was originally initialized to 0's in Vrugt's algorithm
+  # debug: play around with whether or not this makes a difference
   .$mcmc$n_id[] <- 1
 }
 
@@ -352,8 +353,9 @@ proposal_generate_dream <- function(., j ) {
   # current state ('mcmc_chains' number of samples of a d-variate distribution)
   # APW: I think you can just use the pars_array here and later
   # ALJ: you could, but I am hesitant to change it
-  # ALJ: does using the current_state and jump matrix have any influence on the fxn call order issue in the DE-MC alg?
-  # ALJ: i.e., are these "placeholder" matrices relevant to parallelization and/or other forms of the DREAM alg?
+  #      becasue using the current_state and jump matrices helps prevent the issue we ran into with the DE-MC algorithm
+  #      i.e., I think these "placeholder" matrices relevant to parallelization and/or other forms of the DREAM alg
+  # debug: play around with whether the current_state and jump matrices are absolutely essential
   .$mcmc$current_state[] <- matrix(.$dataf$pars_array[ , , j-1], nrow = .$dataf$lp, ncol = .$mcmc$d)
 
   # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
@@ -398,7 +400,7 @@ proposal_generate_dream <- function(., j ) {
     gamma_d <- 2.38 / sqrt(2 * D * d_star)
 
     # select gamma
-    # ALJ: I feel like there is a way to make this chunk of code more efficient?
+    # ALJ: need to figure out a way to make this chunk of code prettier
     temp1 <- c(gamma_d, 1)
     temp2 <- c(1 - .$wpars$mcmc_p_gamma, .$wpars$mcmc_p_gamma)
     gamma <- sample(temp1, 1, replace = T, prob = temp2)
@@ -421,18 +423,16 @@ proposal_accept_dream <- function(., j, lklihood) {
 
   # likelihood of current state
   # APW: is this assignment totally necessary? Could we just use the pars_lklihood matrix?
-  # ALJ:
+  # debug: play around with whether p_state is absolutely essential
   .$mcmc$p_state[] <- .$dataf$pars_lklihood[ ,j-1]
-
-  # ALJ: make an accept vector of true/false values and pull it outside of for-loop (like done above with DE-MC)
 
   for (ii in 1:.$dataf$lp) {
 
-    # APW: as with demc these two steps could be extracted to get a boolean accept vector
     # compute Metropolis acceptance probability
     alpha <- min(1, exp(lklihood[ii] - .$mcmc$p_state[ii]))
 
-    # in the future: figure out how to make this clunky block of code prettier
+    # ALJ: figure out how to make this clunky block of code prettier
+
     # determine if p_acc is larger than random number drawn from uniform distribution on interval [0,1]
     if (alpha > runif(1, min = 0, max = 1)) {
 
@@ -440,6 +440,10 @@ proposal_accept_dream <- function(., j, lklihood) {
       accept <- TRUE
 
       # APW: are these assignments totally necessary? Could we just use the pars & lklihood matrix / vector?
+      # ALJ: no, I don't think all of these assignments are totally necessary
+      #      but I left them all in to remain as true as possible to Vrugt's original pseudocode
+      #      and because it made debugging easier
+      #      once DREAM is integrated in the new MAAT, I can alter some of the unnecessary assignments
       .$mcmc$current_state[ii, 1:.$mcmc$d]  <- .$dataf$pars[ii,1:.$mcmc$d]
       .$mcmc$p_state[ii]                    <- lklihood[ii]
 
@@ -448,7 +452,7 @@ proposal_accept_dream <- function(., j, lklihood) {
       .$dataf$pars_lklihood[ii,j]           <- .$mcmc$p_state[ii]
 
       # debug: store generated proposal (regardless of whether accepted or not)
-      .$dataf$prop_storage[ii,1:.$mcmc$d,j] <- .$dataf$pars[ii,1:.$mcmc$d]
+      # .$dataf$prop_storage[ii,1:.$mcmc$d,j] <- .$dataf$pars[ii,1:.$mcmc$d]
 
     } else {
 
@@ -462,8 +466,8 @@ proposal_accept_dream <- function(., j, lklihood) {
       .$dataf$pars_array[ii, 1:.$mcmc$d,j]   <- .$dataf$pars_array[ii,1:.$mcmc$d,j-1]
       .$dataf$pars_lklihood[ii,j]            <- .$dataf$pars_lklihood[ii,j-1]
 
-      # store generated proposal (regardless of whether accepted or not)
-      .$dataf$prop_storage[ii, 1:.$mcmc$d,j] <- .$dataf$pars[ii, 1:.$mcmc$d]
+      # debug: store generated proposal (regardless of whether accepted or not)
+      # .$dataf$prop_storage[ii, 1:.$mcmc$d,j] <- .$dataf$pars[ii, 1:.$mcmc$d]
     }
 
     # update jump distance crossover index
@@ -473,23 +477,27 @@ proposal_accept_dream <- function(., j, lklihood) {
     # number of times index crossover is used
     .$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id] + 1
 
-    # NOTE this chunk is a repeat of DE-MC code
-    # APW: can either move to mcmc function in wrapper (would require an accept vector)
-    #      or, create a function that is called here
-    out_n <- .$wpars$mcmc_maxiter / 2
+    # debug: this is not really functioning as "burn-in"
+    # out_n <- .$wpars$mcmc_maxiter / 2
+    out_n <- 0
     if (j > out_n)
       .$dataf$out_mcmc[ii,,(j-out_n)] <- if(accept | j == out_n + 1) .$dataf$out[ii, ] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
   }
 
   # print(.$mcmc$id)
+
   # print(.$mcmc$n_id)
+
   # print(sum(.$mcmc$jump[ii,]))
+
   # print(.$mcmc$sd_state)
+
   # print(.$mcmc$J)
+
   # print(.$mcmc$p_CR)
 
   # update selection probability of crossover
-  # altered original algorithm here to account for numerical issues
+  # ALJ: altered original algorithm here to account for numerical issues
   # APW: still something odd going on here.
   #      with the linear example mcmc$J has two zeros in vector elements 2 & 3
   #      and then at iteration 54 and after the first element is getting a NaN
@@ -499,26 +507,25 @@ proposal_accept_dream <- function(., j, lklihood) {
   # APW: this is probably my fault from moving the variables from .$mcmc to .$wpars but I can't see where
   #      seems to be because mcmc$p_CR always contains just 1 and 0's
   # APW: update, p_CR coverges to a 1 and 0's acfter the second proposal, perhaps this is expected behaviour but worth more investigation
-  #print(c(j,.$wpars$mcmc_maxiter,.$mcmc$J,sum(.$mcmc$J)))
 
-  # test less than versus greater than
-  # testing below - to prevent immediate transition to 1/0 states for p_CR, seems to work
+  # print(c(j,.$wpars$mcmc_maxiter,.$mcmc$J,sum(.$mcmc$J)))
+
+  # debug: test less than versus greater than
+  # debug: testing below - to prevent immediate transition to 1/0 states for p_CR, seems to work
   if ((j > (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
-  #if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
+  # if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
     .$mcmc$p_CR <- .$mcmc$J    / .$mcmc$n_id
     .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
   }
 }
 
-# function for detection and correction of outlier chains
-#outlier_check <- function(.) {
-#}
+# ALJ: future work, function for detection and correction of outlier chains
+# outlier_check <- function(.) {
+# }
 
-# test for convergence using the R-statistic convergence diagnostic of Gelman and Rubin
-#chain_converge <- function(.) {
-#}
-
-
+# ALJ: future work, test for convergence using the R-statistic convergence diagnostic of Gelman and Rubin
+# chain_converge <- function(.) {
+# }
 
 # Likelihood functions
 ################################
@@ -541,6 +548,8 @@ f_proposal_lklihood_ssquared <- function(.) {
   # calculate error residual
   # - each chain is on rows of dataf$out take transpose
   error_residual_matrix <- t(.$dataf$out) - .$dataf$obs
+
+  print(.$dataf$obs)
 
   # calculate sum of squared error
   # - error_residual_matrix now has chains on columns
