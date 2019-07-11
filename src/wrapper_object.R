@@ -422,16 +422,16 @@ wrapper_object <-
             else                 lapply(1:.$dataf$lp, .$runp_mcmc )
         })
 
-      print('YOU ARE HERE 1')
+      # print('YOU ARE HERE 1')
 
-      print(.$dataf$out)
-      print(.$dataf$pars)
+      # print(.$dataf$out)
+      # print(.$dataf$pars)
 
       # add to pars array and calculate likelihood of initial proposal
       .$dataf$pars_array[,,1]   <- .$dataf$pars
       .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)
 
-      print('YOU ARE HERE 2')
+      # print('YOU ARE HERE 2')
 
       #print(paste0('i = ', i))
       #print('inital model evaluation = ')
@@ -448,7 +448,7 @@ wrapper_object <-
       #print(.$dataf$pars_lklihood)
 
       # add to proposal storage array
-      .$dataf$prop_storage[,,1] <- .$dataf$pars
+      # .$dataf$prop_storage[,,1] <- .$dataf$pars
 
       # debug: (1) set the seed for uniform_r generation
       # .$set_seed1()
@@ -938,7 +938,7 @@ wrapper_object <-
 
     fnames <- list(
       # proposal_lklihood = 'f_proposal_lklihood_log'
-      proposal_lklihood = 'f_proposal_lklihood_ssquared'
+      proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
     )
 
 

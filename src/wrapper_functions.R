@@ -175,7 +175,7 @@ proposal_generate_demc <- function(., j ) {
     # print(.$dataf$pars[ii, ])
 
     # store proposals being generated (regardless of whether or not they are being accepted)
-    .$dataf$prop_storage[ii, 1:d, j] <- .$dataf$pars[ii, 1:d]
+    # .$dataf$prop_storage[ii, 1:d, j] <- .$dataf$pars[ii, 1:d]
 
   }
 
