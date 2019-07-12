@@ -21,13 +21,13 @@ f_mcmc_testsys_mixture <- function(.) {
   # print('proposal = ')
   # print(x_proposal)
 
-  # debug: this is the correct way to evaluate the mixture model
+  # debug: correct way to evaluate the mixture model
   # calculate proposal probability for each of the three distributions
   p1 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu1, .$pars$sd1 )
   p2 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu2, .$pars$sd2 )
   p3 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu3, .$pars$sd3 )
 
-  # debug: this is the correct way to evaluate the mixture model
+  # debug: correct way to evaluate the mixture model
   # return combined probability
   .$state$mixture_p[] <- sum(.$pars$height1 * prod(p1) + .$pars$height2 * prod(p2) + .$pars$height3 * prod(p3))
 

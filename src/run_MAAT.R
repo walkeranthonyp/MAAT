@@ -350,6 +350,7 @@ if(!is.null(metdata)) {
     print(head(metdf), quote=F )
 
     ###################################
+    # future work: 
     # add eval data to model object - total hack for now
     maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
     maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se

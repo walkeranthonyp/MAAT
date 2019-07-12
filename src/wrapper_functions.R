@@ -7,28 +7,25 @@
 ################################
 
 # Abbey L. Johnson
-# comments labeled 'debug' if exclusive to debugging code
-# comments labeled 'ALJ' if relevant to algorithm
-# note: DE-MC bug fixes  and algorithm notes are not included in this code
 
-# debug: set seed functions
+# debug: set seed functions (to reproduce sequences of quasi-random numbers)
 ################################
 
-# debug: setting the seed to reproduce sequences of quasi-random numbers
-
-# debug: (1) set the seed for uniform_r generation
+# debug: funciton (1), set seed for uniform_r generation
 # set_seed1 <- function(.) {
 #  set.seed(1703)
 #  .$mcmc$uniform_r_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
 #  .$mcmc$uniform_r_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = -0.01, max = 0.01)
 # }
 
-# debug: (2) set the seed for R1 and R2 general_functions
+
+# debug: function (2), set seed for R1 and R2 general_functions
 # set_seed2 <- function(.) {
 #   set.seed(4050)
 # }
 
-# debug: (3) set the seed for runif(1) value chosen in accept/reject step
+
+# debug: function (3), set seed for runif(1) value chosen in accept/reject step
 # set_seed3 <- function(.) {
 #   set.seed(1337)
 #   .$mcmc$runif_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
@@ -64,24 +61,21 @@ boundary_handling <- function(., ii, jj ) {
 proposal_generate_demc <- function(., j ) {
 
   # Metropolis sampling
+
   # scaling factor
   d <- ncol(.$dataf$pars)
   gamma_star <- 2.38 / sqrt(d + d)
-  # b-value should be small compared to width of target distribution
-  # APW: does this b parameter have a name?
-  # ALJ: regrettably, there is no name for "b" that I have been able to find
-  # ALJ: specifies range for "randomization" value added to proposal being generated
-  b_rand  <- 0.01
-  # ALJ: made uniform_r a vector and pulled it outside for-loop
-  # draw vector of random numbers from uniform distribution on interval (-b_rand, b_rand)
-  # uniform_r <- runif(d,min=(-b_rand),max=b_rand)
-  # ALJ: NEED TO TRY creating uniform_r as just a randomly drawn scalar value
-  # temporarily hardcode uniform_r
-  # uniform_r <- rep(-0.000378, d)
-  # ALJ: like below is how uniform_r is in the original r-script
-  # uniform_r <- runif(1,min=(-b_rand),max=b_rand)
 
-  # (1) set the seed for uniform_r generation
+  # b-value should be small compared to width of target distribution
+  # b_rand specifies range for drawn "randomization" value
+  b_rand  <- 0.01
+
+  # debug: temporarily hardcode uniform_r
+  # uniform_r <- rep(-0.000378, d)
+
+  uniform_r <- runif(1, min = (-b_rand), max = b_rand)
+
+  # debug: (1) set the seed for uniform_r generation
   # uniform_r <- .$mcmc$uniform_r_seed[j, ii]
   # uniform_r <- .$mcmc$uniform_r_seed[j, 1:.$dataf$lp]
   # uniform_r <- rep(.$mcmc$uniform_r_seed[j, ii], d)
@@ -89,18 +83,13 @@ proposal_generate_demc <- function(., j ) {
   # print("uniform_r = ")
   # print(uniform_r)
 
-  # ALJ: NEED TO TRY moving R1 and R2 iniitalization to 0 inside the for-loop
-  # ALJ: index for 1st randomly chosen chain used in proposal generation
-  # R1 <- 0
-  # ALJ: index for 2nd randomly chosen chain used in proposal generation
-  # R2 <- 0
-
   # evaluate for each chain
   for (ii in 1:.$dataf$lp) {
 
-    # (1) set the seed for uniform_r generation
-    uniform_r <- rep(.$mcmc$uniform_r_seed[j, ii], d)
+    # debug: (1) set the seed for uniform_r generation
+    # uniform_r <- rep(.$mcmc$uniform_r_seed[j, ii], d)
 
+    # debug: R1 and R2 iniitalization to 0 inside the for-loop
     # randomly select two different numbers R1 and R2 unequal to j
     # from a uniform distribution without replacement
     R1 <- 0
@@ -109,64 +98,63 @@ proposal_generate_demc <- function(., j ) {
     while ((R1 == 0) | (R1 == ii))               R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
     while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
 
-    # temporarily hardcode R1 and R2
+    # debug: temporarily hardcode R1 and R2
     # R1 <- 6
     # R2 <- 5
 
     # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
 
-    #print('.$dataf$pars_array = ')
-    #print(.$dataf$pars_array)
+    # print('.$dataf$pars_array = ')
+    # print(.$dataf$pars_array)
 
-    #print(paste0('dim of .$dataf$pars_array = ', dim(.$dataf$pars_array)))
-
-    #print(paste0('dim of .$dataf$pars = ', dim(.$dataf$pars)))
-
-    #print(paste0('j = ', j))
+    # debug: check dimensions
+    # print(paste0('dim of .$dataf$pars_array = ', dim(.$dataf$pars_array)))
+    # print(paste0('dim of .$dataf$pars = ', dim(.$dataf$pars)))
 
     # print(paste0("R1 = ", R1, ", R2 = ", R2))
 
-    # store R1 and R2 values that were generated
-    .$dataf$R1_R2_storage[ii, 1, j] <- R1
-    .$dataf$R1_R2_storage[ii, 2, j] <- R2
+    # debug: store R1 and R2 values that were generated
+    # .$dataf$R1_R2_storage[ii, 1, j] <- R1
+    # .$dataf$R1_R2_storage[ii, 2, j] <- R2
 
     # evaluate for each parameter
     for (jj in 1:d) {
 
-      #print(paste0('iteration = ', j, ', chain = ', ii))
-      #print(paste0("R1 = ", R1, ", R2 = ", R2))
-
       # generate proposal via Differential Evolution
 
-      # restructure this a bit for setting the seed
+      # debug: restructure to make setting the seed easier
       # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[j]
 
-      # this one below is the original
+      # debug: note that this one below was the original at beginning of bug-fixing process
       # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
 
-      # print out everything for debugging
-      jump <- gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
-      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + jump
+      # debug: create "scalar" to measure jump differential
+      # jump <- gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
+      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + jump
 
       # store uniform_r value to check that set.seed() code is functioning
-      .$dataf$uniform_r_storage[ii, jj, j] <- uniform_r[jj]
+      # .$dataf$uniform_r_storage[ii, jj, j] <- uniform_r[jj]
 
       # print(paste0('ii = ', ii))
       # print(paste0('jj = ', jj))
       # print(paste0('j = ', j))
+
       # print(paste0('gamma_star = ', gamma_star))
+
       # print(paste0('uniform_r[jj] = ', uniform_r[jj]))
+
       # print(paste0('jump = ', jump))
+
       # print(paste0('.$dataf$pars_array[R1, jj, j-1] = ', .$dataf$pars_array[R1, jj, j-1]))
       # print(paste0('.$dataf$pars_array[R2, jj, j-1] = ', .$dataf$pars_array[R2, jj, j-1]))
       # print(paste0('.$dataf$pars_array[ii, jj, j-1] = ', .$dataf$pars_array[ii, jj, j-1]))
       # print(paste0('.$dataf$pars[ii, jj] = ', .$dataf$pars[ii, jj]))
 
+      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
 
-      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
+      # print(paste0('uniform_r = ', uniform_r[jj]))
 
-      #print(paste0('uniform_r = ', uniform_r[jj]))
-
+      # debug: temporarily comment out boundary handling
       # call boundary handling function
       boundary_handling(., ii, jj )
     }
@@ -179,8 +167,8 @@ proposal_generate_demc <- function(., j ) {
 
   }
 
+  # debug: print statements at the end of each run
   # if (j == .$wpars$mcmc_maxiter) {
-    # print statements for de-bugging
     # print('array of proposals that were generated = ')
     # print(.$dataf$prop_storage)
     # print('uniform_r values (randomly generated) = ')
@@ -201,6 +189,7 @@ proposal_accept_demc <- function(., j, lklihood ) {
   .$dataf$metrop_ratio_storage[1:.$wpars$mcmc_chains, 1, j] <- t(metrop_ratio)
 
   # print(paste0('likelihood of proposal = ', lklihood))
+
   # print(paste0('likelihood of current chain = ', .$dataf$pars_lklihood[ ,j-1]))
 
   # print(paste0('dim of .$dataf$pars_lklihood ' = dim(.$dataf$pars_lklihood)))
@@ -212,30 +201,32 @@ proposal_accept_demc <- function(., j, lklihood ) {
 
   .$dataf$alpha_storage[1:.$wpars$mcmc_chains, 1, j] <- t(alpha)
 
-  # ALJ: maybe try computing alpha this way (more numerically comprehensive)
-  # ALJ: if this change needs to be made, make the code prettier
-  #alpha <- numeric(.$dataf$lp)
-  #for (q in 1:.$dataf$lp) {
-  #  if (.$dataf$pars_lklihood[q, j-1] > 0) {
-  #    alpha[q] <- min(1, metrop_ratio[q])
-  #  } else {
-  #    alpha[q] <- 1
-  #  }
+  # debug: maybe try computing alpha this way (more numerically comprehensive/rigorous)
+  # alpha <- numeric(.$dataf$lp)
+  # for (q in 1:.$dataf$lp) {
+  #   if (.$dataf$pars_lklihood[q, j-1] > 0) {
+  #     alpha[q] <- min(1, metrop_ratio[q])
+  #   } else {
+  #     alpha[q] <- 1
+  #   }
   # }
 
   # print('alpha = ')
   # print(alpha)
 
-  # (3) set the seed for runif(1) value chosen in accept/reject step
+  # debug: (3) set the seed for runif(1) value chosen in accept/reject step
   # runif_val <- .$mcmc$runif_seed[j, ii]
-  runif_val <- .$mcmc$runif_seed[j, 1:.$dataf$lp]
+  # runif_val <- .$mcmc$runif_seed[j, 1:.$dataf$lp]
+
   # print('runif_val = ')
   # print(runif_val)
 
-  .$dataf$runif_val_storage[1:.$wpars$mcmc_chains, 1, j] <- t(runif_val)
+  # debug: store runif(1) value
+  # .$dataf$runif_val_storage[1:.$wpars$mcmc_chains, 1, j] <- t(runif_val)
 
   # print(paste0('length of alpha = ', length(alpha)))
   # print(paste0('type of alpha = ', typeof(alpha)))
+
   # print(paste0('length of runif_val = ', length(runif_val)))
   # print(paste0('type of runif_val = ', typeof(runif_val)))
 
@@ -244,53 +235,41 @@ proposal_accept_demc <- function(., j, lklihood ) {
 
     # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
 
-    # ALJ: maybe try putting alpha here
-    #if (.$dataf$pars_lklihood[ ,j-1] > 0) {
-    #  alpha[ii] <- min(1, metrop_ratio)
-    #} else {
-    #  alpha[ii] <- 1
-    #}
-
-    # print(paste0(' new alpha = ', alpha))
-
     # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
-    # APW: should this be inside or outside of the loop, ie could draw a random outside the loop
-    # ALJ: put this outside for-loop and index accept
-    # accept <- log(alpha[ii]) > log(runif(1,min=0,max=1))
+    accept <- log(alpha[ii]) > log(runif(1, min = 0, max = 1))
 
-    # temporarily hard-code runif-value for debugging
+    # debug: temporarily hard-code runif-value for debugging
     # accept <- log(alpha[ii]) > log(0.843332)
 
-    # (3) set the seed for runif(1) value chosen in accept/reject step
+    # debug:(3) set the seed for runif(1) value chosen in accept/reject step
     accept <- log(alpha[ii]) > log(runif_val[ii])
 
-    .$dataf$accept_storage[ii, 1, j] <- accept
+    # debug: store accept value
+    # .$dataf$accept_storage[ii, 1, j] <- accept
 
-    #print(paste0('runif_val = ', runif_val[ii]))
+    # print(paste0('runif_val = ', runif_val[ii]))
 
     # print(paste0('length of accept = ', length(accept)))
+
     # print('accept = ')
     # print(accept)
 
-    # print(paste0('accept = ', accept))
-
     .$dataf$pars_array[ii,,j]   <- if(accept) .$dataf$pars[ii,] else .$dataf$pars_array[ii,,j-1]
     .$dataf$pars_lklihood[ii,j] <- if(accept) lklihood[ii]      else .$dataf$pars_lklihood[ii,j-1]
-    #print(c(ii, accept))
-    #print(c(.$dataf$pars_array[ii,,j], .$dataf$pars[ii,], .$dataf$pars_array[ii,,j-1] ))
 
-    # ALJ: temporarily getting rid of burn-in for debugging purposes
-    # out_n <- .$wpars$mcmc_maxiter/2
+
+    # debug: store every model evaluation debugging purposes
+    # out_n <- .$wpars$mcmc_maxiter / 2
     out_n <- 0
     if (j > out_n)
       .$dataf$out_mcmc[ii,,(j-out_n)] <- if(accept | j==out_n+1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
-# APW: not a huge deal, but this is not quite right in the case where j==out_n+1 but not accepted as it adds the output from the rejected proposal
-#    if ((j+1) > out_n)
-#      .$dataf$out_mcmc[ii,,(j+1-out_n)] <- if(accept | j==out_n+1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
+    # APW: not a huge deal, but this is not quite right in the case where j==out_n+1 but not accepted as it adds the output from the rejected proposal
+    # if ((j+1) > out_n)
+    #   .$dataf$out_mcmc[ii,,(j+1-out_n)] <- if(accept | j==out_n+1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
   }
 
-  if (j == .$wpars$mcmc_maxiter) {
-    # print statements for debugging
+  # debug: print statements
+  # if (j == .$wpars$mcmc_maxiter) {
     # print('Metropolis ratio = ')
     # print(.$dataf$metrop_ratio_storage)
     # print('alpha = ')
@@ -299,7 +278,7 @@ proposal_accept_demc <- function(., j, lklihood ) {
     # print(.$dataf$runif_val_storage)
     # print('accept/reject values (1 = TRUE and 0 = FALSE) = ')
     # print(.$dataf$accept_storage)
-  }
+  # }
 
 }
 
@@ -350,12 +329,13 @@ proposal_generate_dream <- function(., j ) {
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
 
-  # current state ('mcmc_chains' number of samples of a d-variate distribution)
+  # current state, 'mcmc_chains' number of samples of a d-variate distribution
   # APW: I think you can just use the pars_array here and later
   # ALJ: you could, but I am hesitant to change it
-  #      becasue using the current_state and jump matrices helps prevent the issue we ran into with the DE-MC algorithm
-  #      i.e., I think these "placeholder" matrices relevant to parallelization and/or other forms of the DREAM alg
-  # debug: play around with whether the current_state and jump matrices are absolutely essential
+  #      becasue using the current_state and jump matrices circumvents "function call order" issue we ran into with the DE-MC algorithm
+  #      i.e., I think these "placeholder" matrices  are relevant to parallelization and/or other forms of the DREAM alg
+  #      I would like to leave them until we are absolutely certain that the DREAM algorithm is up and running perfectly in MAAT
+  # future work: play around with whether the current_state and jump matrices are absolutely essential
   .$mcmc$current_state[] <- matrix(.$dataf$pars_array[ , , j-1], nrow = .$dataf$lp, ncol = .$mcmc$d)
 
   # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
@@ -368,7 +348,7 @@ proposal_generate_dream <- function(., j ) {
   .$mcmc$sd_state[]     <- apply(.$mcmc$current_state, 2, sd)
 
   # create proposals
-  # ALJ: could vectorize this for-loop to improve computational efficiency, but this is non-trivial
+  # future work: vectorize this for-loop to improve computational efficiency, but this is non-trivial
   for (ii in 1:.$dataf$lp) {
 
     # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
@@ -400,7 +380,7 @@ proposal_generate_dream <- function(., j ) {
     gamma_d <- 2.38 / sqrt(2 * D * d_star)
 
     # select gamma
-    # ALJ: need to figure out a way to make this chunk of code prettier
+    # future work: figure out a way to make this chunk of code prettier
     temp1 <- c(gamma_d, 1)
     temp2 <- c(1 - .$wpars$mcmc_p_gamma, .$wpars$mcmc_p_gamma)
     gamma <- sample(temp1, 1, replace = T, prob = temp2)
@@ -423,7 +403,8 @@ proposal_accept_dream <- function(., j, lklihood) {
 
   # likelihood of current state
   # APW: is this assignment totally necessary? Could we just use the pars_lklihood matrix?
-  # debug: play around with whether p_state is absolutely essential
+  # ALJ: same reasoning as above
+  # future work: play around with whether p_state is absolutely essential
   .$mcmc$p_state[] <- .$dataf$pars_lklihood[ ,j-1]
 
   for (ii in 1:.$dataf$lp) {
@@ -431,7 +412,7 @@ proposal_accept_dream <- function(., j, lklihood) {
     # compute Metropolis acceptance probability
     alpha <- min(1, exp(lklihood[ii] - .$mcmc$p_state[ii]))
 
-    # ALJ: figure out how to make this clunky block of code prettier
+    # future work: figure out how to make this clunky block of code prettier
 
     # determine if p_acc is larger than random number drawn from uniform distribution on interval [0,1]
     if (alpha > runif(1, min = 0, max = 1)) {
@@ -442,8 +423,8 @@ proposal_accept_dream <- function(., j, lklihood) {
       # APW: are these assignments totally necessary? Could we just use the pars & lklihood matrix / vector?
       # ALJ: no, I don't think all of these assignments are totally necessary
       #      but I left them all in to remain as true as possible to Vrugt's original pseudocode
-      #      and because it made debugging easier
-      #      once DREAM is integrated in the new MAAT, I can alter some of the unnecessary assignments
+      #      and because they make debugging easier
+      #      once DREAM is integrated in the new MAAT (and we're confident that it's working), I can alter some of the unnecessary assignments
       .$mcmc$current_state[ii, 1:.$mcmc$d]  <- .$dataf$pars[ii,1:.$mcmc$d]
       .$mcmc$p_state[ii]                    <- lklihood[ii]
 
@@ -472,12 +453,13 @@ proposal_accept_dream <- function(., j, lklihood) {
 
     # update jump distance crossover index
     # APW: this step is introducing NaNs when a value in sd_state is 0
+    # ALJ: I think this issue is now resolved?
     .$mcmc$J[.$mcmc$id]    <- .$mcmc$J[.$mcmc$id] + sum((.$mcmc$jump[ii, 1:.$mcmc$d] / .$mcmc$sd_state)^2)
 
     # number of times index crossover is used
     .$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id] + 1
 
-    # debug: this is not really functioning as "burn-in"
+    # debug: see above comments in analagous DE-MC function
     # out_n <- .$wpars$mcmc_maxiter / 2
     out_n <- 0
     if (j > out_n)
@@ -507,9 +489,6 @@ proposal_accept_dream <- function(., j, lklihood) {
   # APW: this is probably my fault from moving the variables from .$mcmc to .$wpars but I can't see where
   #      seems to be because mcmc$p_CR always contains just 1 and 0's
   # APW: update, p_CR coverges to a 1 and 0's acfter the second proposal, perhaps this is expected behaviour but worth more investigation
-
-  # print(c(j,.$wpars$mcmc_maxiter,.$mcmc$J,sum(.$mcmc$J)))
-
   # debug: test less than versus greater than
   # debug: testing below - to prevent immediate transition to 1/0 states for p_CR, seems to work
   if ((j > (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
@@ -519,11 +498,11 @@ proposal_accept_dream <- function(., j, lklihood) {
   }
 }
 
-# ALJ: future work, function for detection and correction of outlier chains
+# future work: function for detection and correction of outlier chains
 # outlier_check <- function(.) {
 # }
 
-# ALJ: future work, test for convergence using the R-statistic convergence diagnostic of Gelman and Rubin
+# future work: test for convergence using the R-statistic convergence diagnostic of Gelman and Rubin
 # chain_converge <- function(.) {
 # }
 

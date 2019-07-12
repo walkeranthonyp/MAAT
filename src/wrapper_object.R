@@ -102,7 +102,7 @@ wrapper_object <-
           # remove potentially large pars list
           .$dynamic$pars   <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
-	# Ye et al process SA method
+	      # Ye et al process SA method
         } else if(.$wpars$UQtype=='ye') {
 
           # need a minimum of >1 processes
@@ -127,26 +127,25 @@ wrapper_object <-
           n <- .$wpars$mcmc_chains
           .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
 
-          # ALJ: this is where priors are generated
-          # print(paste0('you are here: n = ',n))
+          # print(paste0('n = ', n))
+
           # print('.$dynamic$pars_eval = ')
           # print(.$dynamic$pars_eval)
+
           # print('.$dynamic$pars = ')
           # print(.$dynamic$pars)
 
           # create pars / proposal matrix
           .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
 
-          # print('.$dynamic$pars = ')
-          # print(.$dynamic$pars)
-          # print('the old .$dataf$pars = ')
+          # print('.$dataf$pars = ')
           # print(.$dataf$pars)
 
-          # debug: hard-code initial sample generated from prior distribution
-          # prop1 <- c(7.631916, -5.999289, -5.734941, 1.769624, -1.128974, -1.065893, 9.091345, -9.570053)
-          # prop2 <- c(-8.955127, -2.165650, 8.288627, 8.335986, -9.420836, -6.112619, -4.796342, 8.128561)
-          # prop3 <- c(-2.757425, -1.311214, -9.983908, -6.061901, -3.076935, 8.934289, -3.041526, -7.045019)
-          # prop4 <- c(-1.34255731, 9.40670570, -0.04198163, -9.75718401, -0.40205049, -4.26300878, 6.56454083, -0.24169656)
+          # debug: hard-code initial sample generated from prior distribution (generated from interval [-10, 10])
+          # prop1 <- c( 7.631916,  -5.999289,  -5.734941,   1.769624,  -1.128974,  -1.065893,   9.091345,  -9.570053)
+          # prop2 <- c(-8.955127,  -2.165650,   8.288627,   8.335986,  -9.420836,  -6.112619,  -4.796342,   8.128561)
+          # prop3 <- c(-2.757425,  -1.311214,  -9.983908,  -6.061901,  -3.076935,   8.934289,  -3.041526,  -7.045019)
+          # prop4 <- c(-1.342557,   9.406705,  -0.041981,  -9.757184,  -0.402050,  -4.263008,   6.564540,  -0.241696)
           # .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
           # colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
 
@@ -159,16 +158,16 @@ wrapper_object <-
           # print(.$dataf$pars)
 
 	        # debug: create proposal storage array (store all proposals, not just accepted ones)
-	        # .$dataf$prop_storage  <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
+	        # .$dataf$prop_storage          <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
 
-          # debug: preallocate space for all debugging arrays (i.e., easier to read print statements)
-          # .$dataf$accept_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-          # .$dataf$uniform_r_storage <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter))
-          # .$dataf$model_eval_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-          # .$dataf$alpha_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-          # .$dataf$R1_R2_storage <- array(1, dim = c(.$wpars$mcmc_chains, 2, .$wpars$mcmc_maxiter))
-          # .$dataf$metrop_ratio_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-          # .$dataf$runif_val_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # debug: preallocate space for all debugging arrays (i.e., easier-to-read print statements)
+          # .$dataf$accept_storage        <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$uniform_r_storage     <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter))
+          # .$dataf$model_eval_storage    <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$alpha_storage         <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$R1_R2_storage         <- array(1, dim = c(.$wpars$mcmc_chains, 2, .$wpars$mcmc_maxiter))
+          # .$dataf$metrop_ratio_storage  <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$runif_val_storage     <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
 
           # create accepted proposal array
           .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
@@ -238,7 +237,7 @@ wrapper_object <-
 
         # if observation subsampling specified - currently evenly spaced subsampling
         if(.$wpars$mcmc_thin_obs < 1.0) {
-          if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value:', .$wpars$mcmc_thin_obs )
+          if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc_thin_obs )
           thin <- floor( 1 / .$wpars$mcmc_thin_obs )
           oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
           .$dataf$met   <- .$dataf$met[oss,]
@@ -253,8 +252,11 @@ wrapper_object <-
         # initialise output array
         # APW: is this effectively assuming a burn-in of 50 %?
         #      if so we need to align with the burn-in input parameters
+        # ALJ: "burn-in" in its pure form involves discarding the first 50% of MCMC samples
+        #      and I think this is just storing the model evaluations for the last 50%  of time-steps/iterations
+        #      which is not technically burn-in, but sort of funcitons like it to make the mod plots "prettier"
+        # debug: store all model evaluations (not necessary for the algorithm, but easier for debugging)
         # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
-        # debug: getting rid of burn-in
         .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
 
 	      # call run function
@@ -411,70 +413,58 @@ wrapper_object <-
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
       if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
 
+      # debug: temporarily remove boundary handling
       # placeholder for setting boundary handling limits
       boundary_handling_set(.)
 
       # evaluate model over initial proposals derived from prior
-      #print(do.call('rbind',lapply(1:.$dataf$lp, .$runp_mcmc )))
       .$dataf$out[]  <-
         do.call( 'rbind', {
             if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
             else                 lapply(1:.$dataf$lp, .$runp_mcmc )
         })
 
-      # print('YOU ARE HERE 1')
-
-      # print(.$dataf$out)
-      # print(.$dataf$pars)
-
       # add to pars array and calculate likelihood of initial proposal
       .$dataf$pars_array[,,1]   <- .$dataf$pars
       .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)
 
-      # print('YOU ARE HERE 2')
+      # print(paste0('i = ', i))
 
-      #print(paste0('i = ', i))
-      #print('inital model evaluation = ')
-      #print(.$dataf$pars)
-      #print(.$dataf$pars_array[ , , 1])
-      #print('likelihood of initial model evaluation = ')
-      #print(.$dataf$pars_lklihood[,1])
-      #print('You are here!')
-      #print('.$dataf$pars_array = ')
-      #print(.$dataf$pars_array[ , , 1])
-      #print(.$dataf$pars_array)
-      #print('.$dataf$pars_lklihood = ')
-      #print(.$dataf$pars_lklihood[ ,1])
-      #print(.$dataf$pars_lklihood)
+      # print('inital model evaluation = ')
+      # print(.$dataf$pars)
+      # print(.$dataf$pars_array[ , , 1])
 
-      # add to proposal storage array
-      # .$dataf$prop_storage[,,1] <- .$dataf$pars
+      # print('likelihood of initial model evaluation = ')
+      # print(.$dataf$pars_lklihood[ ,1])
 
-      # debug: (1) set the seed for uniform_r generation
+      # debug: add to proposal storage array
+      # .$dataf$prop_storage[ , , 1] <- .$dataf$pars
+
+      # debug: function (1), set seed for uniform_r generation
       # .$set_seed1()
 
-      # debug: (3) set the seed for runif(1) value chosen in accept/reject step
+      # debug: function (3), set seed for runif(1) value chosen in accept/reject step
       # .$set_seed3()
 
-      # debug: (2) set the seed for R1 and R2 random draw
-      # calling this one last so it will be the seed when R1 and R2 are being drawn
+      # debug: function (2), set seed for R1 and R2 random draw (in DE-MC)
+      # debug: call this set seed function last so it will be the seed for all remaining random draws
       # .$set_seed2()
 
       # if DREAM MCMC, run static part of algorithm
       if(.$wpars$mcmc_type=='dream') .$static_dream()
 
       # run MCMC
-      #print(.$mcmc$p_CR)
-      #vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
+      # debug: correct number of samples (i.e., iterations)
+      # vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
       vapply(2:(.$wpars$mcmc_maxiter), .$run_mcmc, numeric(0) )
 
-      # eventually: insert burn-in procedure here
-      # BURN-IN: if convergence has not been reached, re-run MCMC
-      # APW: need to align this with the above outut array specification
+      # future work: insert rigorous burn-in procedure here
+      #              also, if convergence has not been reached, re-run MCMC
+      #              will need to align this with the above outut array specification
 
       # write output from MCMC
 
-      # ALJ: commented this out to get mixture model unit testing working on my Mac
+      # debug: commented this out to get mixture model unit testing working on my Mac
       # if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp') }
       write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc, prop_storage=.$dataf$prop_storage), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
       # if(.$wpars$unit_testing) setwd(hd)
@@ -498,6 +488,7 @@ wrapper_object <-
       # calculate likelihood of proposals on each chain
       # likelihood function is independent of DE-MC or DREAM algorithms
       lklihood <- get(.$fnames$proposal_lklihood)(.)
+
       # print('likelihood = ')
       # print(lklihood)
 
@@ -508,7 +499,7 @@ wrapper_object <-
 
       # future work: insert function call to test for convergence here
 
-      # future work: other code here for subprograms called during burn-in (i.e., delayed rejection option and other add-ons to DREAM algorithm)
+      # future work: other code here for subprograms called during burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
 
       # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function
       numeric(0)
@@ -517,7 +508,10 @@ wrapper_object <-
     # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
     runp_mcmc <- function(.,k) {
       # runs each chain at each iteration in MCMC
+
       # assumes that each row of the pars matrix are independent and non-sequential
+      # debug: note that the above assumption is valid only for DREAM, not DE-MC
+
       # call run met
 
       # configure parameters in the model
@@ -850,22 +844,23 @@ wrapper_object <-
     # with an associated length for input matrices
     dataf <- list(
       # variables matrices - created during runtime
-      fnames        = NULL,
-      fnamesB       = NULL,
-      pars          = NULL,
-      parsB         = NULL,
-      pars_lklihood = NULL,
-      pars_array    = NULL,
-      prop_storage  = NULL,
-      accept_storage = NULL,
-      uniform_r_storage = NULL,
-      model_eval_storage = NULL,
-      alpha_storage = NULL,
-      R1_R2_storage = NULL,
-      metrop_ratio_storage = NULL,
-      runif_val_storage = NULL,
-      env           = NULL,
-      met           = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example
+      fnames               = NULL,
+      fnamesB              = NULL,
+      pars                 = NULL,
+      parsB                = NULL,
+      pars_lklihood        = NULL,
+      pars_array           = NULL,
+      # debugging arrays
+      # prop_storage         = NULL,
+      # accept_storage       = NULL,
+      # uniform_r_storage    = NULL,
+      # model_eval_storage   = NULL,
+      # alpha_storage        = NULL,
+      # R1_R2_storage        = NULL,
+      # metrop_ratio_storage = NULL,
+      # runif_val_storage    = NULL,
+      env                  = NULL,
+      met                  = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example
       # row length of above matrices
       lf            = NULL,
       lfA           = NULL,
@@ -897,7 +892,7 @@ wrapper_object <-
       nmult        = 1,           # parameter sample number multiplier for saltelli method
       eval_strings = F,           # switch tellin wrapper that dynamic$pars are to be evaluated from code string snippets in dynamic$pars_eval
       sobol_init   = T,           # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
-      mcmc_type    = 'demc',      # MCMC type of run, currently 'demc' or 'dream'
+      mcmc_type    = 'dream',      # MCMC type of run, currently 'demc' or 'dream'
       mcmc_maxiter = 100,         # MCMC maximum number of iterations / steps in the chain
       mcmc_chains  = 10,          # MCMC number of chains
       mcmc_burnin  = 0.5,         # MCMC proportion of maxiter burn in to discard in posterior
@@ -907,12 +902,12 @@ wrapper_object <-
       #APW: I moved these as they are run parameters set at the beginning of a run while the others in mcmc are set during a run
       mcmc_delta   = 3,           # MCMC DREAM number chain pair proposal
       mcmc_c_rand  = 0.01,        # MCMC DREAM randomization
-      #mcmc_c_rand  = 0.1,         # MCMC DREAM randomization (default value)
+      # mcmc_c_rand  = 0.1,         # MCMC DREAM randomization (default value)
       mcmc_c_ergod = 1e-12,       # MCMC DREAM ergodicicty
-      mcmc_p_gamma = 0.2,  #APW: which is default for p_gamma?       # MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
-      #mcmc_p_gamma = 0.4,         # MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
+      mcmc_p_gamma = 0.2,         # MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
+      # mcmc_p_gamma = 0.4,         # MCMC DREAM probability of unit jump rate (probability gamma = 1)
       mcmc_n_CR    = 3            # MCMC DREAM number of crossover values (default value)
-      #mcmc_n_CR    = 1            # MCMC DREAM number of crossover values
+      # mcmc_n_CR    = 1            # MCMC DREAM number of crossover values
     )
 
     # parameters specific to the DREAM (mostly) MCMC algorithm
@@ -931,12 +926,13 @@ wrapper_object <-
       p_state        = numeric(),      # probability density of current state matrix
       sd_state       = numeric(),      # standard deviation of each sampling dimension
       draw           = matrix(),       # permutation matrix
-      lambda         = matrix(),       # matrix of uniform random values between -c_rand and c_rand
-      uniform_r_seed = matrix(),       # debugging; setting seed for RNG
-      runif_seed     = matrix()        # debugging: setting seed for RNG
+      lambda         = matrix()        # matrix of uniform random values between -c_rand and c_rand
+      # uniform_r_seed = matrix(),       # debug: setting seed for RNG
+      # runif_seed     = matrix()        # debug: setting seed for RNG
     )
 
     fnames <- list(
+      # future work: be able to read in choice of likelihood function as an input parameter
       proposal_lklihood = 'f_proposal_lklihood_log'
       # proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
     )
@@ -1722,7 +1718,7 @@ wrapper_object <-
       .$model$pars$sd1     <- sd_vector[1]
       .$model$pars$sd2     <- sd_vector[2]
       .$model$pars$sd3     <- sd_vector[3]
-      # ALJ: added a few more problem specific parameters
+      # ALJ: added a few more problem-specific parameters
       .$model$pars$height1 <- height_vector[1]
       .$model$pars$height2 <- height_vector[2]
       .$model$pars$height3 <- height_vector[3]
