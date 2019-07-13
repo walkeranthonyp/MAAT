@@ -1,7 +1,7 @@
 ###############################
 #
-# Wrapper object for model objects 
-# 
+# Wrapper object for model objects
+#
 # AWalker December 2015
 #
 ################################
@@ -19,35 +19,35 @@ source('functions/calc_functions.R')
 #####################################
 wrapper_object <-
   proto(expr={
-    
+
     ###########################################################################
     # Object name, expected child objects & build function
-    
+
     name <- 'maat'
-    
+
     # expected child objects
-    # a proto object that is the model structure in which to run the SA/UQ 
-    model <- NULL    
-    
+    # a proto object that is the model structure in which to run the SA/UQ
+    model <- NULL
+
     # build function
     build <- function(., model, ... ) {
       .$model <- as.proto(get(model)$as.list())
       .$model$build(...)
     }
-    
+
     # clean function to reset object
     clean <- function(.) {
       for(d in 1:length(.$dataf)) if(!is.null(.$dataf[[d]])) .$dataf[[d]] <- NA
       gc()
     }
-    
-   
+
+
     ###########################################################################
     # Main run function
 
     run   <- function(.,verbose=T) {
-      
-      # Initialise 
+
+      # Initialise
       if(!.$wpars$unit_testing) {
         if(.$wpars$UQtype=='ye'|.$wpars$UQtype=='mcmc') .$wpars$eval_strings <- T
         .$init()
@@ -61,126 +61,159 @@ wrapper_object <-
       print(.$dynamic)
       if(.$wpars$eval_string&is.null(.$dynamic$pars_eval)) {
         stop(paste('wrapper: eval_strings = T but dynamic$pars_eval not set. \n
-              dynamic$pars_eval:,\n',.$dynamic$pars_eval,'\n 
+              dynamic$pars_eval:,\n',.$dynamic$pars_eval,'\n
               NOTE: Ye method SA must draw parameter samples during runtime \n
-              from code snippets written as strings in dynamic$pars_eval')) 
+              from code snippets written as strings in dynamic$pars_eval'))
       }
 
-      # configure initialisation lists 
+      # configure initialisation lists
       ########################################
 
       # initialise model with static variables
-      if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=.$static$fnames ) 
-      if(!is.null(.$static$pars))   .$model$configure(vlist='pars',   df=.$static$pars   ) 
-      if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=.$static$env    ) 
+      if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=.$static$fnames )
+      if(!is.null(.$static$pars))   .$model$configure(vlist='pars',   df=.$static$pars   )
+      if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=.$static$env    )
 
-      # create matrices of runtime variables  
+      # create matrices of runtime variables
       ######################################
-      # expand the fnames and driving variables lists into matrices 
+      # expand the fnames and driving variables lists into matrices
       .$dataf$fnames  <- if(!is.null(.$dynamic$fnames)) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
       .$dataf$env     <- if(!is.null(.$dynamic$env))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
 
       # if an SA/UQ run
       if(.$wpars$UQ) {
-            
+
         # if Saltelli style Sobol
         if(.$wpars$UQtype=='saltelli') {
-          
-          if(is.null(.$dynamic$pars)) { 
-            if(!is.null(.$dynamic$pars_eval)) { 
+
+          if(is.null(.$dynamic$pars)) {
+            if(!is.null(.$dynamic$pars_eval)) {
               # increase parameter sample number
               .$wpars$n <- .$wpars$n * .$wpars$nmult
               # sample parameters from character string code snippets to generate matrices A and B
               n <- 2 * .$wpars$n
               .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
             } else  stop('wrapper: pars (or pars_eval) list in dynamic list is empty')
-          }         
+          }
 
           # create pars matrix
           .$dataf$pars  <- do.call(cbind, .$dynamic$pars )
-          
-          # remove potentially large pars list 
-          .$dynamic$pars   <- lapply(.$dynamic$pars, function(e) numeric(1) )        
-        
-	# Ye et al process SA method 
+
+          # remove potentially large pars list
+          .$dynamic$pars   <- lapply(.$dynamic$pars, function(e) numeric(1) )
+
+	      # Ye et al process SA method
         } else if(.$wpars$UQtype=='ye') {
-          
+
           # need a minimum of >1 processes
           if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sensitivity analysis')
-          
+
           # check input dynamic$pars* are same length
           test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
           if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
-          
-          # assign same list structure as dynamic$pars_eval to dynamic$pars 
+
+          # assign same list structure as dynamic$pars_eval to dynamic$pars
           .$dynamic$pars   <- lapply(.$dynamic$pars_eval,function(e) numeric(1) )
-          
+
           # check input dynamic$pars* elements have same names
           # - to be done
-                 
+
         }
-         
-        # if MCMC 
+
+        # if MCMC
         if(.$wpars$UQtype=='mcmc') {
-          
-          # sample parameters from character string code snippets to generate initial proposal from priors 
+
+          # sample parameters from character string code snippets to generate initial proposal from priors
           n <- .$wpars$mcmc_chains
           .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-       
-          # create pars / proposal matrix 
+
+          # print(paste0('n = ', n))
+
+          # print('.$dynamic$pars_eval = ')
+          # print(.$dynamic$pars_eval)
+
+          # print('.$dynamic$pars = ')
+          # print(.$dynamic$pars)
+
+          # create pars / proposal matrix
           .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
-          #print(.$dynamic$pars)
-          #print(.$dataf$pars)
-         
-	  # create proposal storage array (store all proposals, not just accepted ones)
-          # this is not necessary for output; just used for debugging
-	  .$dataf$prop_storage  <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
-          
-          # create accepted proposal array 
+
+          # print('.$dataf$pars = ')
+          # print(.$dataf$pars)
+
+          # debug: hard-code initial sample generated from prior distribution (generated from interval [-10, 10])
+          # prop1 <- c( 7.631916,  -5.999289,  -5.734941,   1.769624,  -1.128974,  -1.065893,   9.091345,  -9.570053)
+          # prop2 <- c(-8.955127,  -2.165650,   8.288627,   8.335986,  -9.420836,  -6.112619,  -4.796342,   8.128561)
+          # prop3 <- c(-2.757425,  -1.311214,  -9.983908,  -6.061901,  -3.076935,   8.934289,  -3.041526,  -7.045019)
+          # prop4 <- c(-1.342557,   9.406705,  -0.041981,  -9.757184,  -0.402050,  -4.263008,   6.564540,  -0.241696)
+          # .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
+          # colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
+
+          # print('model parameters and algorithmic parameters')
+          # print(.$dynamic$pars_eval)
+          # print(.$model$pars)
+          # print(.$wpars)
+
+          # print("initial propopsals derived from priors = ")
+          # print(.$dataf$pars)
+
+	        # debug: create proposal storage array (store all proposals, not just accepted ones)
+	        # .$dataf$prop_storage          <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
+
+          # debug: preallocate space for all debugging arrays (i.e., easier-to-read print statements)
+          # .$dataf$accept_storage        <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$uniform_r_storage     <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter))
+          # .$dataf$model_eval_storage    <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$alpha_storage         <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$R1_R2_storage         <- array(1, dim = c(.$wpars$mcmc_chains, 2, .$wpars$mcmc_maxiter))
+          # .$dataf$metrop_ratio_storage  <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$runif_val_storage     <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+
+          # create accepted proposal array
           .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
-       
-          # create accepted proposal likelihood matrix 
-          .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter ) 
-       
-          # remove initialisation pars list 
-          .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )        
-       
+
+          # create accepted proposal likelihood matrix
+          .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter )
+
+          # remove initialisation pars list
+          .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
+
         } else {
           stop(paste('wrapper: no method for SA/UQ type',.$wpars$UQtype))
         }
-        
+
       } else {
-        # not a formal SA/UQ run - factorial combination of variables specified in the vars lists  
+        # not a formal SA/UQ run - factorial combination of variables specified in the vars lists
         .$dataf$pars <- if(!is.null(.$dynamic$pars)) as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F)) else NULL
-        print(.$dynamic$pars) 
+        print(.$dynamic$pars)
         print(.$dataf$pars)
-        print(.$dynamic$env) 
+        print(.$dynamic$env)
         print(.$dataf$env)
-      } 
-      
-      # calculate input matrix lengths 
+      }
+
+      # calculate input matrix lengths
       ################################
       # if no matrix return 1
-      # - used to set the number of iterations in the run functions  
+      # - used to set the number of iterations in the run functions
       if(.$wpars$UQ&.$wpars$UQtype=='ye') {
         # determine number of processes to be analaysed
         .$dataf$lf <- length(.$dynamic$fnames)
-        
+
       } else {
-        # any type of run other than Ye process sensitivity analysis 
-        .$dataf$lf <- if(is.null(.$dataf$fnames)) 1 else length(.$dataf$fnames[,1]) 
+        # any type of run other than Ye process sensitivity analysis
+        .$dataf$lf <- if(is.null(.$dataf$fnames)) 1 else length(.$dataf$fnames[,1])
         .$dataf$lp <- if(is.null(.$dataf$pars))   1 else length(.$dataf$pars[,1])
-        
+
       }
-      
+
       # enviroment matrix and met matrix
-      .$dataf$le <- if(is.null(.$dataf$env)) 1 else length(.$dataf$env[,1])    
-      .$dataf$lm <- if(is.null(.$dataf$met)) 1 else length(.$dataf$met[,1])    
-      
+      .$dataf$le <- if(is.null(.$dataf$env)) 1 else length(.$dataf$env[,1])
+      .$dataf$lm <- if(is.null(.$dataf$met)) 1 else length(.$dataf$met[,1])
+
       # store model output template (currently must be a vector)
       # - this will fail when output is a vector of variable length depending on parameter values
       .$dataf$mout <- .$model$output()
-      
+
       # print summary of maat setup
       .$print_data()
       .$print_data(otype='run')
@@ -190,27 +223,27 @@ wrapper_object <-
       # run model ensemble
       # call initial run function in the hierarchy of nested run functions
       ################################
-      
+
       # process UQ run
       if(.$wpars$UQ&.$wpars$UQtype=='ye') {
-        # - Ye process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure  
+        # - Ye process SA is not multicored at this stage as multicoring here messes with the processes A and B in the data structure
         vapply(1:.$dataf$lf, .$run_general_process_SA, numeric(0) )
-        
+
       # MCMC run
       } else if(.$wpars$UQ&.$wpars$UQtype=='mcmc') {
-         
+
         # if an MCMC and more than one model output has been specified, stop
         if(length(.$dataf$mout)!=1) stop('No current method to run MCMC with multiple model outputs')
 
         # if observation subsampling specified - currently evenly spaced subsampling
         if(.$wpars$mcmc_thin_obs < 1.0) {
-          if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value:', .$wpars$mcmc_thin_obs ) 
-          thin <- floor( 1 / .$wpars$mcmc_thin_obs ) 
-          oss  <- seq(1, dim(.$dataf$metdata)[1], thin )  
+          if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc_thin_obs )
+          thin <- floor( 1 / .$wpars$mcmc_thin_obs )
+          oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
           .$dataf$met   <- .$dataf$met[oss,]
           .$dataf$obs   <- .$dataf$obs[oss]
           #.$dataf$obsse <- .$dataf$obsse[oss]
-          .$dataf$lm    <- dim(.$dataf$met)[1]    
+          .$dataf$lm    <- dim(.$dataf$met)[1]
         }
 
         # initialise output matrix
@@ -218,19 +251,24 @@ wrapper_object <-
 
         # initialise output array
         # APW: is this effectively assuming a burn-in of 50 %?
-        #      if so we need to align with the burn-in input parameters  
-        .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
-     
-	# call run function
+        #      if so we need to align with the burn-in input parameters
+        # ALJ: "burn-in" in its pure form involves discarding the first 50% of MCMC samples
+        #      and I think this is just storing the model evaluations for the last 50%  of time-steps/iterations
+        #      which is not technically burn-in, but sort of funcitons like it to make the mod plots "prettier"
+        # debug: store all model evaluations (not necessary for the algorithm, but easier for debugging)
+        # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
+        .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
+
+	      # call run function
         if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
         else                 lapply( 1:.$dataf$lf, .$runf_mcmc )
-       
+
         # print summary of results
         .$print_output()
-         
+
       # Saltelli SA matrix AB run or factorial run
       } else {
-        
+
         # if a Saltelli SA and a met dataset has been specified, stop
         if(!is.null(.$dataf$met)&.$wpars$UQtype=='saltelli') stop('No current method to run Saltelli SA with a met dataset')
 
@@ -244,57 +282,57 @@ wrapper_object <-
               if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf, mc.cores=min(.$dataf$lf,.$wpars$procs), mc.preschedule=F )
               else                 lapply( 1:.$dataf$lf, .$runf )
           })
-       
+
         # print summary of results
         .$print_output()
       }
-        
+
       # if Saltelli SA, write output from AB matrix iteration above, then run and write ABi matrix iteration
       if(.$wpars$UQtype=='saltelli') {
-        
+
         # write AB output array
         if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Salt_test' } else setwd(odir)
-        write_to_file(.$output_saltelli_AB(), paste(ofname,'salt','AB',sep='_'), type='rds' )  
+        write_to_file(.$output_saltelli_AB(), paste(ofname,'salt','AB',sep='_'), type='rds' )
 
         # write dataf matrices used in AB run
-        write_to_file(list(fnames=.$dataf$fnames, pars=.$dataf$pars, env=.$dataf$env ), paste(ofname,'salt','AB','dataf',sep='_'), type='rds' )  
-        
+        write_to_file(list(fnames=.$dataf$fnames, pars=.$dataf$pars, env=.$dataf$env ), paste(ofname,'salt','AB','dataf',sep='_'), type='rds' )
+
         # remove large out array
-        if(!.$wpars$unit_testing) .$dataf$out <- NULL   
+        if(!.$wpars$unit_testing) .$dataf$out <- NULL
         .$print_saltelli()
-        
+
         # initialise output array
         # - dim 1 (rows)      output variable
         # - dim 2 (columns)   sample
-        # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A 
+        # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
         # - dim 4 (cube rows) environment combination
         # - dim 5 (cube cols) model combination
         .$dataf$out_saltelli <- array(0, dim=c(length(.$dataf$mout), .$wpars$n, dim(.$dataf$pars)[2], .$dataf$le, .$dataf$lf ))
         dimnames(.$dataf$out_saltelli) <- list(names(.$dataf$mout), NULL, colnames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
-        
-        # run over ABi matrices
-        .$dataf$out_saltelli[] <- vapply(1:.$dataf$lf, .$runf_saltelli, .$dataf$out_saltelli[,,,,1] )          
 
-        # write ABi output array 
-        write_to_file(.$output_saltelli_ABi(), paste(ofname,'salt','ABi',sep='_'), type='rds' )  
-        if(!.$wpars$unit_testing) .$dataf$out_saltelli <- matrix(1)   
+        # run over ABi matrices
+        .$dataf$out_saltelli[] <- vapply(1:.$dataf$lf, .$runf_saltelli, .$dataf$out_saltelli[,,,,1] )
+
+        # write ABi output array
+        write_to_file(.$output_saltelli_ABi(), paste(ofname,'salt','ABi',sep='_'), type='rds' )
+        if(!.$wpars$unit_testing) .$dataf$out_saltelli <- matrix(1)
         print(paste('Saltelli array ABi completed',Sys.time()),quote=F)
         print('',quote=F)
-        
+
         if(.$wpars$unit_testing) setwd(hd)
-      }             
+      }
     }
-    
-    
+
+
     ###########################################################################
-    # nested run functions - 
+    # nested run functions -
     ###########################################################################
 
     printc <- function(.,r1,r2) {
       print(r1,quote=F)
       print(r2,quote=F)
     }
-    
+
     # takes a >=3 D array and stacks it into a 2D matrix
     stack <- function(., a ) {
       apply(a, 2, function(v) v )
@@ -303,7 +341,7 @@ wrapper_object <-
 
     # for factorial runs
     ###########################################################################
-    
+
     runf <- function(.,i) {
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
       # assumes that each row of the fnames matrix are independent and non-sequential
@@ -315,7 +353,7 @@ wrapper_object <-
 #        print(.$dataf$pars,quote=F)
 #        print(.$dataf$env,quote=F)
 #      }
-      
+
       # configure function names in the model
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
       if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
@@ -326,16 +364,16 @@ wrapper_object <-
           else                 lapply(1:.$dataf$lp, .$runp )
       })
     }
-    
+
     runp <- function(.,j) {
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
       # assumes that each row of the pars matrix are independent and non-sequential
       # call rune
-      
+
       # configure parameters in the model
       if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[j,], F )
       if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[j,] )
-      
+
       # call next run function
       funv   <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )
       out    <- vapply(1:.$dataf$le, .$rune, funv )
@@ -344,28 +382,28 @@ wrapper_object <-
       # returns matrix
       if(class(out)=='matrix') t(out) else if(class(out)=='array') .$stack(out) else as.matrix(out)
     }
-    
+
     rune <- function(.,k) {
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$env matrix to the model
       # assumes that each row of the env matrix are independent and non-sequential
       # call .$model$run or .$model$run_met if met data are provided
-      
+
       # configure environment in the model
       if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[k,], F )
       if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
-      
+
       # call next run function
       if(is.null(.$dataf$met)) {
-        .$model$run()        
+        .$model$run()
       } else {
         t(vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout ))
-      }  
+      }
     }
 
-    
+
     # for MCMC runs
     ###########################################################################
-    
+
     # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
     runf_mcmc <- function(.,i) {
       # assumes that each row of the fnames matrix are independent and non-sequential
@@ -375,12 +413,12 @@ wrapper_object <-
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
       if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
 
-      # placeholder for setting boundary handling limits 
-      boundary_handling_set(.) 
+      # debug: temporarily remove boundary handling
+      # placeholder for setting boundary handling limits
+      boundary_handling_set(.)
 
       # evaluate model over initial proposals derived from prior
-      #print(do.call('rbind',lapply(1:.$dataf$lp, .$runp_mcmc )))
-      .$dataf$out[]  <- 
+      .$dataf$out[]  <-
         do.call( 'rbind', {
             if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
             else                 lapply(1:.$dataf$lp, .$runp_mcmc )
@@ -388,92 +426,119 @@ wrapper_object <-
 
       # add to pars array and calculate likelihood of initial proposal
       .$dataf$pars_array[,,1]   <- .$dataf$pars
-      .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)  
+      .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)
 
-      # add to proposal storage array
-      .$dataf$prop_storage[,,1] <- .$dataf$pars
+      # print(paste0('i = ', i))
+
+      # print('inital model evaluation = ')
+      # print(.$dataf$pars)
+      # print(.$dataf$pars_array[ , , 1])
+
+      # print('likelihood of initial model evaluation = ')
+      # print(.$dataf$pars_lklihood[ ,1])
+
+      # debug: add to proposal storage array
+      # .$dataf$prop_storage[ , , 1] <- .$dataf$pars
+
+      # debug: function (1), set seed for uniform_r generation
+      # .$set_seed1()
+
+      # debug: function (3), set seed for runif(1) value chosen in accept/reject step
+      # .$set_seed3()
+
+      # debug: function (2), set seed for R1 and R2 random draw (in DE-MC)
+      # debug: call this set seed function last so it will be the seed for all remaining random draws
+      # .$set_seed2()
 
       # if DREAM MCMC, run static part of algorithm
       if(.$wpars$mcmc_type=='dream') .$static_dream()
 
-      # run MCMC 
-      #print(.$mcmc$p_CR)
-      #vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
+      # run MCMC
+      # debug: correct number of samples (i.e., iterations)
+      # vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
       vapply(2:(.$wpars$mcmc_maxiter), .$run_mcmc, numeric(0) )
- 
-      # eventually: insert burn-in procedure here
-      # BURN-IN: if convergence has not been reached, re-run MCMC
-      # APW: need to align this with the above outut array specification
+
+      # future work: insert rigorous burn-in procedure here
+      #              also, if convergence has not been reached, re-run MCMC
+      #              will need to align this with the above outut array specification
 
       # write output from MCMC
-      if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp') }
+
+      # debug: commented this out to get mixture model unit testing working on my Mac
+      # if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp') }
       write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc, prop_storage=.$dataf$prop_storage), paste(ofname, 'mcmc', 'f', i, sep='_' ), type='rds' )
-      if(.$wpars$unit_testing) setwd(hd) 
+      # if(.$wpars$unit_testing) setwd(hd)
     }
-    
+
     # This wrapper function is called from a vapply function to iterate / step chains in an MCMC
     run_mcmc <- function(.,j) {
       # runs in serial as each step depends on the previous step
       # call runp_mcmc
-   
+
       # generate proposal matrix
-      get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j )   
+      get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j )
 
       # evaluate model for proposal on each chain
-      .$dataf$out[]  <- 
+      .$dataf$out[]  <-
         do.call( 'rbind', {
             if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
             else                 lapply(1:.$dataf$lp, .$runp_mcmc )
         })
-   
+
       # calculate likelihood of proposals on each chain
       # likelihood function is independent of DE-MC or DREAM algorithms
-      lklihood <- get(.$fnames$proposal_lklihood)(.)   
-      
-      # accept / reject proposals on each chain 
-      get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )   
+      lklihood <- get(.$fnames$proposal_lklihood)(.)
+
+      # print('likelihood = ')
+      # print(lklihood)
+
+      # accept / reject proposals on each chain
+      get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )
 
       # future work: insert function call to handle outlier chains here
 
       # future work: insert function call to test for convergence here
 
-      # future work: other code here for subprograms called during burn-in (i.e., delayed rejection option and other add-ons to DREAM algorithm)
+      # future work: other code here for subprograms called during burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
 
-      # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function   
-      numeric(0) 
+      # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function
+      numeric(0)
     }
- 
+
     # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
     runp_mcmc <- function(.,k) {
       # runs each chain at each iteration in MCMC
+
       # assumes that each row of the pars matrix are independent and non-sequential
+      # debug: note that the above assumption is valid only for DREAM, not DE-MC
+
       # call run met
-      
+
       # configure parameters in the model
       if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[k,], F )
       if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[k,] )
-      
+
       # call metdata run function
-      if(.$dataf$lm==1) .$model$run()        
+      if(.$dataf$lm==1) .$model$run()
       else              vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
     }
-   
+
 
     # for ABi array for Sobol SA using Saltelli method
     ###########################################################################
-    
+
     runf_saltelli <- function(.,i) {
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
       # assumes that each row of the fnames matrix are independent and non-sequential
       # call rune_saltelli
-      
+
       # configure function names in the model
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames',df=.$dataf$fnames[i,],F)
       if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
-      
+
       # call next run function
       vapply({
-        if(.$wpars$multic) mclapply(1:.$dataf$le, .$rune_saltelli, mc.cores=min(.$dataf$le,.$wpars$procs), mc.preschedule=F ) 
+        if(.$wpars$multic) mclapply(1:.$dataf$le, .$rune_saltelli, mc.cores=min(.$dataf$le,.$wpars$procs), mc.preschedule=F )
         else                 lapply(1:.$dataf$le, .$rune_saltelli )
       }, function(a) a, .$dataf$out_saltelli[,,,1,1] )
     }
@@ -482,27 +547,27 @@ wrapper_object <-
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$env matrix to the model
       # assumes that each row of the fnames matrix are independent and non-sequential
       # call runpmat_saltelli
-      
+
       # configure environment in the model
       if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[k,], F )
       if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
-      
+
       # call parameter matrix run function
       if(is.null(.$dataf$met)){
-        
+
         # call next run function, wrapped within vapply to convert (mc)lapply list output to an array
         # returns a numeric array - model output variable (rows), sample (columns), parameter (slices)
         vapply({
-          if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=max(1,floor(.$wpars$procs/.$dataf$le)), mc.preschedule=T ) 
+          if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli, mc.cores=max(1,floor(.$wpars$procs/.$dataf$le)), mc.preschedule=T )
           else                 lapply(1:dim(.$dataf$pars)[2], .$runpmat_saltelli )
         },function(a) a, .$dataf$out_saltelli[,,1,1,1] )
-        
+
       } else {
         # met data run not yet supported with Sobol, but should be caught before getting here
         stop('Saltelli')
-      }  
+      }
     }
-    
+
     runpmat_saltelli <- function(.,p) {
       # This wrapper function is called from an lapply or mclappy function to be run once for each parameter (i.e. each column of the dataf$pars matrix)
       # call runp_saltelli
@@ -510,18 +575,18 @@ wrapper_object <-
       # returns a numeric matrix - model output variable (rows), sample (columns)
       vapply((.$wpars$n+1):.$dataf$lp, .$runp_saltelli, .$dataf$mout, pk=p )
     }
-    
+
     runp_saltelli <- function(.,j,pk) {
-      # This wrapper function is called from an lapply or mclappy function 
+      # This wrapper function is called from an lapply or mclappy function
       # wrapper subscripts parameter matrix AB to give the row on matrix ABi
       # assumes that each row of the matrix are independent and non-sequential
       # call .$model$run
-      
+
       # create index matrix to create row on matrix ABi for the .$dataf$par matrix (which is matrix A stacked on top of matrix B)
       sub     <- rep(j-.$wpars$n, dim(.$dataf$pars)[2] )
       sub[pk] <- j
-      smat    <- cbind(sub, 1:dim(.$dataf$pars)[2] )      
-      
+      smat    <- cbind(sub, 1:dim(.$dataf$pars)[2] )
+
       # create a matrix from vector and add names
       psdf        <- t(.$dataf$pars[smat])
       names(psdf) <- colnames(.$dataf$pars)
@@ -529,29 +594,29 @@ wrapper_object <-
       # configure parameters in the model
       if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=psdf, F )
       if(.$wpars$cverbose) .$printc('pars', psdf )
-      
+
       # run model
-      .$model$run()        
+      .$model$run()
     }
-    
-    
-    
-    # nested run functions for Process Sensitivity Analysis after Ye etal 201x 
+
+
+
+    # nested run functions for Process Sensitivity Analysis after Ye etal 201x
     ###########################################################################
 
     # The Ye method is a nested system of loops implemented by apply type functions
-    # Loop 1: switch process A process B loop         
+    # Loop 1: switch process A process B loop
     # Loop 2: process loop for process A               - use standard location for variable function values
     # Loop 3: parameter loop for process A             - use standard location for variable parameter values
     # Loop 4: process representation loop for proces B - use an additional non-standard location for variable function values
     # Loop 5: parameter loop for proces B              - use an additional non-standard location for variable parameter values
     # Loop 6: environment loop                         - use standard location for variable environment values
-    
+
     run_general_process_SA <- function(.,f) {
       # this function is the overall wrapper function to run a generic process sensitivity analysis
       # The principle is to create a loop that runs the process SA nested loops once for each process to be analysed
       # This separates out the process in question - process A - from the other process(es) - process B (can be more than one process).
-      # This function partitions the parameters to process A and and process B, 
+      # This function partitions the parameters to process A and and process B,
       # then creates the fnames and pars matrices for process A and process B,
       # calls the below run function,
       # outputs an .RDS for each process segregation
@@ -559,11 +624,11 @@ wrapper_object <-
       # create the fnames matrices for process A and process B
       .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[f]))       as.matrix(expand.grid(.$dynamic$fnames[f] ,stringsAsFactors=F)) else stop()
       .$dataf$fnamesB <- if(!any(is.na(.$dynamic$fnames[-f]))) as.matrix(expand.grid(.$dynamic$fnames[-f],stringsAsFactors=F)) else stop()
-      
+
       # determine the number of the rows in the fnames process matrices
-      .$dataf$lfA     <- if(is.null(.$dataf$fnames )) 1 else length(.$dataf$fnames[,1]) 
-      .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)) 1 else length(.$dataf$fnamesB[,1]) 
-      
+      .$dataf$lfA     <- if(is.null(.$dataf$fnames )) 1 else length(.$dataf$fnames[,1])
+      .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)) 1 else length(.$dataf$fnamesB[,1])
+
       # partition the parameters to process A and and process B
       .$procA_name    <- names(.$dynamic$fnames)[f]
       .$procA_subs    <- which(unlist(.$dynamic$pars_proc)==.$procA_name)
@@ -577,28 +642,28 @@ wrapper_object <-
         n <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
         .$dynamic$pars[-.$procA_subs] <- lapply(.$dynamic$pars_eval[-.$procA_subs],function(cs) eval(parse(text=cs)))
       }
-      
-      # bind the parameter vectors into run matrices 
+
+      # bind the parameter vectors into run matrices
       .$dataf$pars    <- if(!is.na(.$dynamic$pars[1])) do.call(cbind,.$dynamic$pars[.$procA_subs] ) else stop()
       .$dataf$parsB   <- if(!is.na(.$dynamic$pars[2])) do.call(cbind,.$dynamic$pars[-.$procA_subs]) else stop()
-      .$dynamic$pars  <- lapply(.$dynamic$pars_eval,function(e) numeric(1) ) 
+      .$dynamic$pars  <- lapply(.$dynamic$pars_eval,function(e) numeric(1) )
 
       # determine the number of the rows in parameter matrices
       .$dataf$lp      <- .$wpars$n # convert these to be the row number of the actual matrices
       .$dataf$lpB     <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
-      
+
       # initialise output array
       # - dim 1 (rows)        output variable
       # - dim 2 (columns)     environment combination
-      # - dim 3 (slices)      process(es) B parameter sample 
+      # - dim 3 (slices)      process(es) B parameter sample
       # - dim 4 (cube rows)   process(es) B representation(s)
       # - dim 5 (cube cols)   process A parameter sample
       # - dim 6 (cube slices) process A representation
-      
+
       # if met data then ... .$dataf$out     <- array(0, c(length(.$dataf$mout), .$dataf$lm, .$dataf$le, .$wpars$n, .$dataf$lfB, .$wpars$n, .$dataf$lfA  ) )
       .$dataf$out           <- array(0, c(length(.$dataf$mout), .$dataf$le, .$wpars$n, .$dataf$lfB, .$wpars$n, .$dataf$lfA  ) )
       dimnames(.$dataf$out) <- list(names(.$dataf$mout), NULL, NULL, apply(.$dataf$fnamesB, 1, toString), NULL, .$dataf$fnames )
-      
+
       print('',quote=F)
       print(paste('started process:', colnames(.$dataf$fnames), Sys.time()), quote=F )
 
@@ -607,52 +672,52 @@ wrapper_object <-
         if(.$wpars$multic) mclapply(1:.$dataf$lfA, .$run_repA, mc.cores=min(.$dataf$lfA,.$wpars$procs), mc.preschedule=F )
         else                 lapply(1:.$dataf$lfA, .$run_repA)
       }, function(a) a, .$dataf$out[,,,,,1] )
-      
+
       # process & record output
       if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Ye_test' }
       else                     setwd(odir)
       write_to_file(.$dataf$out, paste(ofname, 'proc', f, sep='_' ), type='rds' )
-      
+
       print(paste('completed process:', colnames(.$dataf$fnames), Sys.time() ), quote=F )
       if(.$wpars$unit_testing) setwd(hd)
-      
+
       # return nothing
       numeric(0)
     }
-    
+
     run_repA <- function(.,g) {
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
       # assumes that each row of the fnames matrix are independent and non-sequential
       # call run_parA
-     
+
       print(paste('started representation:', .$dataf$fnames[g,], ', of process:', colnames(.$dataf$fnames)), quote=F )
- 
+
       # configure function names in the model
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[g,] , F )
       if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnames[g,] )
 
       # calculate offset to correctly subset parsB matrix
-      osg <- .$wpars$n * .$dataf$lfB * (g-1) 
- 
+      osg <- .$wpars$n * .$dataf$lfB * (g-1)
+
       # call process A parameter run function
       vapply({
         if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run_parA, offset=osg, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lfA)), mc.preschedule=F  )
         else                 lapply(1:.$dataf$lp, .$run_parA, offset=osg)
       }, function(a) a, .$dataf$out[,,,,1,1] )
     }
-        
+
     run_parA <- function(.,h,offset) {
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
       # assumes that each row of the pars matrix are independent and non-sequential
       # call run_repB
-      
+
       # configure parameters in the model
       if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[h,], F )
       if(.$wpars$cverbose) .$printc('pars', .$dataf$pars[h,] )
-      
+
       # calculate offset to correctly subset parsB matrix
-      osh  <- offset + .$dataf$lfB * (h-1)        
-      
+      osh  <- offset + .$dataf$lfB * (h-1)
+
       # call process B process representation run function
       vapply(1:.$dataf$lfB, .$run_repB, .$dataf$out[,,,1,1,1], offset=osh )
     }
@@ -661,39 +726,39 @@ wrapper_object <-
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnamesB matrix to the model
       # assumes that each row of the fnamesB matrix are independent and non-sequential
       # call run_parB
-      
+
       # configure function names in the model
       if(!is.null(.$dataf$fnamesB)) .$model$configure(vlist='fnames', df=.$dataf$fnamesB[i,], F )
       if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnamesB[i,] )
-      
+
       # calculate offset to correctly subset parsB matrix
       os  <- offset + i
       # oss is a vector of the row subscripts for the parsB matrix
-      oss <- (.$wpars$n*(os-1) + 1):(.$wpars$n*(os))    
-      
+      oss <- (.$wpars$n*(os-1) + 1):(.$wpars$n*(os))
+
       # call process B parameter run function
       vapply(oss, .$run_parB, .$dataf$out[,,1,1,1,1] )
     }
-    
+
     run_parB <- function(.,j) {
       # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$parsB matrix to the model
       # assumes that each row of the parsB matrix are independent and non-sequential
       # call rune
-      
+
       # configure parameters in the model
       if(!is.null(.$dataf$parsB)) .$model$configure(vlist='pars', df=.$dataf$parsB[j,], F )
       if(.$wpars$cverbose)        .$printc('pars', .$dataf$parsB[j,] )
-      
+
       # call the environment run function
       vapply(1:.$dataf$le, .$rune, .$dataf$out[,1,1,1,1,1] )
-      
-      # ignoring met data possibility for now 
+
+      # ignoring met data possibility for now
       # # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
       # # returns matrix
       # if(class(out)=='array') .$stack(out) else t(out)
     }
-        
-    
+
+
     ###########################################################################
     # initialisation function
 
@@ -702,21 +767,21 @@ wrapper_object <-
     # each line of the matrix is passed to the configure function in the model object
     init <- function(.) {
 
-      # setup list names for assignment 
+      # setup list names for assignment
       type   <- c('static', 'dynamic')
       vlists <- c('fnames', 'pars', 'env' )
-     
-      # assign standard input lists to wrapper data structure 
+
+      # assign standard input lists to wrapper data structure
       for( t in type ) {
         for( vl in vlists ) {
           # input variables
-          .[[t]][[vl]] <- 
+          .[[t]][[vl]] <-
             if(t == 'static') unlist(.[[paste0('init_',t)]][[vl]])
-            else if(t == 'dynamic' & !is.null(unlist(.[[paste0('init_',t)]][[vl]])) ) 
-              lapply(rapply(.[[paste0('init_',t)]][[vl]], enquote, how="unlist" ), eval )        
+            else if(t == 'dynamic' & !is.null(unlist(.[[paste0('init_',t)]][[vl]])) )
+              lapply(rapply(.[[paste0('init_',t)]][[vl]], enquote, how="unlist" ), eval )
         }
       }
-    
+
       # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
       if(.$wpars$UQ) {
         if(is.null(unlist(.$init_dynamic$pars))&!is.null(unlist(.$init_dynamic$pars_eval))) .$wpars$eval_strings <- T
@@ -724,14 +789,14 @@ wrapper_object <-
 
         if(.$wpars$eval_strings) {
           vl   <- 'pars_eval'
-          if(!is.null(unlist(.[[paste0('init_',t)]][[vl]]))) 
-            .[[t]][[vl]] <- lapply(rapply(.[[paste0('init_',t)]][[vl]], enquote, how="unlist" ), eval )        
+          if(!is.null(unlist(.[[paste0('init_',t)]][[vl]])))
+            .[[t]][[vl]] <- lapply(rapply(.[[paste0('init_',t)]][[vl]], enquote, how="unlist" ), eval )
         }
 
         if(.$wpars$UQtype=='ye') {
           vl   <- 'pars_proc'
-          if(!is.null(unlist(.[[paste0('init_',t)]][[vl]]))) 
-            .[[t]][[vl]] <- lapply(rapply(.[[paste0('init_',t)]][[vl]], enquote, how="unlist" ), eval )        
+          if(!is.null(unlist(.[[paste0('init_',t)]][[vl]])))
+            .[[t]][[vl]] <- lapply(rapply(.[[paste0('init_',t)]][[vl]], enquote, how="unlist" ), eval )
           for( vn in names(.[[t]][[vl]]) ) if( !any(vn==names(.[[t]][['pars_eval']])) )
             stop(paste('\n Variable:', vn, 'in pars_proc, not found in: pars_eval list.',
                        '\n The proc_pars input list must contain exactly the same parameter names as the pars_eval input list.',
@@ -739,29 +804,29 @@ wrapper_object <-
         }
       }
     }
-    
-    
+
+
     ###########################################################################
     # variables that are to be varied in the SA/UQ
-    
+
     # initialisation lists
     init_static  <- NULL
     init_dynamic <- NULL
-    
+
     # static variables
     # each element in the below list is a character or numeric vector to overwrite default initialisation values
-    static <- list( 
+    static <- list(
       fnames = NULL,
       pars   = NULL,
       env    = NULL
     )
-    
+
     # dynamic variables
     # all elements expected to be of class 'list'
-    # each list in the 'dynamic' list comprise vectors of the values for each variable, 
+    # each list in the 'dynamic' list comprise vectors of the values for each variable,
     # each element of the list is labelled by the variable name prefixed by the name of the model object that the variable belongs to
     # each of these lists is expanded, often factorially by expand.grid, and placed into the below list of dataframes
-    dynamic <- list( 
+    dynamic <- list(
       fnames        = NULL,
       fnamesB       = NULL,
       pars          = NULL,
@@ -774,20 +839,28 @@ wrapper_object <-
       parsB         = NULL,
       env           = NULL
     )
-    
+
     # input/output matrices and dataframes
     # with an associated length for input matrices
-    dataf <- list( 
-      # variables matrices - created during runtime 
-      fnames        = NULL,
-      fnamesB       = NULL,
-      pars          = NULL,
-      parsB         = NULL,
-      pars_lklihood = NULL,
-      pars_array    = NULL,
-      prop_storage  = NULL,
-      env           = NULL,
-      met           = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example 
+    dataf <- list(
+      # variables matrices - created during runtime
+      fnames               = NULL,
+      fnamesB              = NULL,
+      pars                 = NULL,
+      parsB                = NULL,
+      pars_lklihood        = NULL,
+      pars_array           = NULL,
+      # debugging arrays
+      # prop_storage         = NULL,
+      # accept_storage       = NULL,
+      # uniform_r_storage    = NULL,
+      # model_eval_storage   = NULL,
+      # alpha_storage        = NULL,
+      # R1_R2_storage        = NULL,
+      # metrop_ratio_storage = NULL,
+      # runif_val_storage    = NULL,
+      env                  = NULL,
+      met                  = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example
       # row length of above matrices
       lf            = NULL,
       lfA           = NULL,
@@ -797,93 +870,96 @@ wrapper_object <-
       le            = NULL,
       lm            = NULL,
       # output matrices / arrays
-      mout          = NULL,         # example model output vector, for setting up vapply functions  
+      mout          = NULL,         # example model output vector, for setting up vapply functions
       out           = NULL,         # output matrix
-      out_mcmc    = NULL,         # output array
+      out_mcmc      = NULL,         # output array
       out_saltelli  = NULL,         # saltelli output list
       # observation matrices /dataframes
       obs           = NULL,         # a vector/matrix of observations against which to valiadate/ calculate likelihood of model
       obsse         = NULL          # a vector/matrix of observation errors for the obs data, must exactly match the above dataframe
-      
+
     )
-    
+
     # parameters specific to the wrapper object
     wpars <- list(
       unit_testing = F,
       multic       = F,           # multicore the simulation
       procs        = 6,           # number of processors to use if multic = T
-      cverbose     = F,           # write configuration output during runtime 
+      cverbose     = F,           # write configuration output during runtime
       UQ           = F,           # run a UQ analysis
       UQtype       = 'none',      # SA/UQ type - 'saltelli' and 'ye' available so far
       n            = numeric(1),  # parameter sample number
       nmult        = 1,           # parameter sample number multiplier for saltelli method
       eval_strings = F,           # switch tellin wrapper that dynamic$pars are to be evaluated from code string snippets in dynamic$pars_eval
-      sobol_init   = T,           # initialise sobol sequence or not when calling rsobol. This should not be modified by the user. 
-      mcmc_type    = 'demc',      # MCMC type of run, currently 'demc' or 'dream' 
-      mcmc_maxiter = 100,         # MCMC maximum number of iterations / steps in the chain 
-      mcmc_chains  = 10,          # MCMC number of chains 
-      mcmc_burnin  = 0.5,         # MCMC proportion of maxiter burn in to discard in posterior 
-      mcmc_thin    = 0.1,         # MCMC chain thinning proportion 
-      mcmc_thin_obs= 1,           # MCMC observation thinning proportion 
+      sobol_init   = T,           # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
+      mcmc_type    = 'dream',      # MCMC type of run, currently 'demc' or 'dream'
+      mcmc_maxiter = 100,         # MCMC maximum number of iterations / steps in the chain
+      mcmc_chains  = 10,          # MCMC number of chains
+      mcmc_burnin  = 0.5,         # MCMC proportion of maxiter burn in to discard in posterior
+      mcmc_thin    = 0.1,         # MCMC chain thinning proportion
+      mcmc_thin_obs= 1,           # MCMC observation thinning proportion
       mcmc_homosced= F,           # MCMC option for homoscedastic error
-      #APW: I moved these as they are run parameters set at the beginning of a run while the others in mcmc are set during a run 
+      #APW: I moved these as they are run parameters set at the beginning of a run while the others in mcmc are set during a run
       mcmc_delta   = 3,           # MCMC DREAM number chain pair proposal
       mcmc_c_rand  = 0.01,        # MCMC DREAM randomization
-      #mcmc_c_rand  = 0.1,         # MCMC DREAM randomization (default value)
+      # mcmc_c_rand  = 0.1,         # MCMC DREAM randomization (default value)
       mcmc_c_ergod = 1e-12,       # MCMC DREAM ergodicicty
-      mcmc_p_gamma = 0.2,  #APW: which is default for p_gamma?       # MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
-      #mcmc_p_gamma = 0.4,         # MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)   
-      mcmc_n_CR    = 3            # MCMC DREAM number of crossover values (default value)      
-      #mcmc_n_CR    = 1            # MCMC DREAM number of crossover values      
+      mcmc_p_gamma = 0.2,         # MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
+      # mcmc_p_gamma = 0.4,         # MCMC DREAM probability of unit jump rate (probability gamma = 1)
+      mcmc_n_CR    = 3            # MCMC DREAM number of crossover values (default value)
+      # mcmc_n_CR    = 1            # MCMC DREAM number of crossover values
     )
- 
+
     # parameters specific to the DREAM (mostly) MCMC algorithm
     mcmc <- list(
-      boundary_max  = numeric(1),     # max parameter prior values - for boundary handling
-      boundary_min  = numeric(1),     # min parameter prior values - for boundary handling
-      d             = numeric(1),     # number of parameters (dimensionality of problem)
-      id            = numeric(1),     # index of crossover values
-      J             = numeric(),      # vector of length n_CR
-      n_id          = numeric(),      # vector of lenght n_CR          
-      R             = matrix(),       # index of chains for Differential Evolution
-      CR            = numeric(),      # crossover values
-      p_CR          = numeric(),      # select probability for crossover
-      jump          = matrix(),       # matrix of jump vectors for Differential Evolution
-      current_state = matrix(),       # current state of Markov chains
-      p_state       = numeric(),      # probability density of current state matrix
-      std_state     = numeric(),      # standard deviation of each sampling dimension
-      draw          = matrix(),       # permutation matrix
-      lambda        = matrix()        # matrix of uniform random values between -c_rand and c_rand
+      boundary_max   = numeric(1),     # max parameter prior values - for boundary handling
+      boundary_min   = numeric(1),     # min parameter prior values - for boundary handling
+      d              = numeric(1),     # number of parameters (dimensionality of problem)
+      id             = numeric(1),     # index of crossover values
+      J              = numeric(),      # vector of length n_CR
+      n_id           = numeric(),      # vector of lenght n_CR
+      R              = matrix(),       # index of chains for Differential Evolution
+      CR             = numeric(),      # crossover values
+      p_CR           = numeric(),      # select probability for crossover
+      jump           = matrix(),       # matrix of jump vectors for Differential Evolution
+      current_state  = matrix(),       # current state of Markov chains
+      p_state        = numeric(),      # probability density of current state matrix
+      sd_state       = numeric(),      # standard deviation of each sampling dimension
+      draw           = matrix(),       # permutation matrix
+      lambda         = matrix()        # matrix of uniform random values between -c_rand and c_rand
+      # uniform_r_seed = matrix(),       # debug: setting seed for RNG
+      # runif_seed     = matrix()        # debug: setting seed for RNG
     )
-   
+
     fnames <- list(
-      proposal_lklihood = 'f_proposal_lklihood_log' 
-      #proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
-    )   
- 
-    
+      # future work: be able to read in choice of likelihood function as an input parameter
+      proposal_lklihood = 'f_proposal_lklihood_log'
+      # proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
+    )
+
+
     # Output processing functions
     ###########################################################################
-    
+
     combine <- function(.,i,df) suppressWarnings(data.frame(.$dataf$met,df[i,]))
-    
+
     output  <- function(.){
-      # function that combines the "vars", "met", and "out" dataframes correctly for output 
+      # function that combines the "vars", "met", and "out" dataframes correctly for output
       return(
         # if at least one of fnames, pars, and env are varied
         if(is.null(.$dataf$env)+is.null(.$dataf$pars)+is.null(.$dataf$fnames) < 3) {
 
           # run types if - SA/UQ or not
-          # if SA/UQ this output function is not used 
-          # SA/UQ functionality is here to allow the user to call these to inspect SA/UQ output against inputs in a common dataframe 
+          # if SA/UQ this output function is not used
+          # SA/UQ functionality is here to allow the user to call these to inspect SA/UQ output against inputs in a common dataframe
           if(.$wpars$UQ) {
-            # if Ye (i.e. process) SA 
+            # if Ye (i.e. process) SA
             if(.$wpars$UQtype=='ye') {
-              
+
               # combine input into a single dataframe in order of output dataframe,
               #  - i.e. repeats lines in input dataframes/matrices to align with output
               #  - the number of rows in the resultant dataframe is lf*lfB*n^2*le
- 
+
               vardf    <- list(
                 # fnames of process A - length lf * lfB * le * n^2
                 fnames  = apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$lfB*.$dataf$le*.$wpars$n^2) ),
@@ -896,11 +972,11 @@ wrapper_object <-
                 # environment
                 env     = apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lfA*.$dataf$lfB*.$wpars$n^2) )
               )
-              
-            # if Saltelli SA
-            } else if(.$wpars$UQtype=='saltelli') { 
 
-              vardf <- cbind( 
+            # if Saltelli SA
+            } else if(.$wpars$UQtype=='saltelli') {
+
+              vardf <- cbind(
                 # fnames
                 apply(.$dataf$fnames, 2,function(v) rep(v,each=.$dataf$le*.$dataf$lp) ),
                 # pars - I think this has the correct length specifications, need to check witha saltelli unit testing function
@@ -908,19 +984,19 @@ wrapper_object <-
                 # environment
                 apply(.$dataf$env,    2,function(v) rep(v,.$dataf$lf*.$dataf$lp) )
               )
-              
+
               vardf <- as.data.frame(vardf)
-            }   
+            }
 
           # if factorial combination run
-          } else { 
+          } else {
             vpars    <- if(is.null(.$dataf$pars))    NULL else .$dynamic$pars
             venv     <- if(is.null(.$dataf$env))     NULL else .$dynamic$env
             vfnames  <- if(is.null(.$dataf$fnames))  NULL else .$dynamic$fnames
 
-            vardf <- expand.grid(c(venv,vpars,vfnames),stringsAsFactors=F)        
+            vardf <- expand.grid(c(venv,vpars,vfnames),stringsAsFactors=F)
           }
-          
+
           # if no met data
           if(is.null(.$dataf$met)) {
             # if(.$wpars$UQtype=='ye') {
@@ -928,38 +1004,38 @@ wrapper_object <-
               print(paste('vardf:',length(vardf[[1]][,1]),', out:',length(.$dataf$out[,1])),quote=F)
               # return a list
               return(c(vardf, list(out=.$dataf$out) ))
-              rm(vardf)            
+              rm(vardf)
             } else {
               print(paste('vardf:',length(vardf[,1]),', out:',length(.$dataf$out[,1])),quote=F)
               # return a dataframe
               return(cbind(vardf, .$dataf$out ))
-              rm(vardf)            
+              rm(vardf)
             }
 
           # if met data
           # - so far will only work for factorial simulations
           } else {
-            print(vardf)  
-            print(.$dataf)  
-            odf <- cbind(do.call(rbind , lapply(1:length(vardf[,1]) , .$combine, df=vardf ) ), .$dataf$out )            
+            print(vardf)
+            print(.$dataf)
+            odf <- cbind(do.call(rbind , lapply(1:length(vardf[,1]) , .$combine, df=vardf ) ), .$dataf$out )
             print(head(odf))
             if(dim(vardf)[2]==1) names(odf)[which(names(odf)=='df.i...')] <- names(vardf)
             rm(vardf)
             return(odf)
-            rm(odf)            
-          } 
+            rm(odf)
+          }
 
-        # if no vars  
+        # if no vars
         } else {
           # if met data
-          if(!is.null(.$dataf$met)) cbind(.$dataf$met , .$dataf$out ) else .$dataf$out  
+          if(!is.null(.$dataf$met)) cbind(.$dataf$met , .$dataf$out ) else .$dataf$out
         }
       )
     }
 
     output_saltelli_AB <- function(.) {
-      # creates output for a saltelli Sobol sensitivity analysis 
-      # A and B matrices are stacked in a single matrix, which for each model and environment combination are then stored in an array 
+      # creates output for a saltelli Sobol sensitivity analysis
+      # A and B matrices are stacked in a single matrix, which for each model and environment combination are then stored in an array
 
       # AB output is an array
       # - dim 1 (rows)   model combination
@@ -970,13 +1046,13 @@ wrapper_object <-
       # create AB output matrix array
       AB  <- array(.$dataf$out, c(.$dataf$le, 2*.$wpars$n, .$dataf$lf, length(.$dataf$mout) ))
       dimnames(AB) <- list( NULL, NULL, apply(.$dataf$fnames, 1, toString), names(.$dataf$mout)  )
-      
+
       # output a list composed of the AB matrix output array, the fnames that define each model combination, the parameter names
       aperm(AB, c(3,1,2,4) )
     }
-  
+
     output_saltelli_ABi <- function(.) {
-      # creates output for a saltelli Sobol sensitivity analysis 
+      # creates output for a saltelli Sobol sensitivity analysis
 
       # ABi output is an array
       # - dim 1 (rows)         model combination
@@ -984,32 +1060,32 @@ wrapper_object <-
       # - dim 3 (slices)       sample
       # - dim 4 (cube rows)    output variable
       # - dim 5 (cube columns) parameter that has used value from matrix B while all other par values are from matrix A
-      
+
       # .$dataf$out_saltelli needs permuting to acheive above array dim order
       # - dim 1 (rows)      output variable
       # - dim 2 (columns)   sample
-      # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A 
+      # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
       # - dim 4 (cube rows) environment combination
       # - dim 5 (cube cols) model combination
-      
+
       # aperm(.$dataf$out_saltelli, c(5,4,1:3) )
       aperm(.$dataf$out_saltelli, c(5,4,2,1,3) )
     }
-    
-    
+
+
     # Print functions
     ###########################################################################
-    
+
     print_data <- function(.,otype='data') {
-      
-      ens_n <- 
+
+      ens_n <-
         if(.$wpars$UQ) {
           if(.$wpars$UQtype=='ye') .$dataf$lf * prod(unlist(lapply(.$dynamic$fnames,length))) * .$wpars$n^2 * .$dataf$le
           else                     .$dataf$lf * .$wpars$n * (2+dim(.$dataf$pars)[2]) * .$dataf$le
         } else                     .$dataf$lf * .$dataf$lp *.$dataf$le
-     
-      if(otype=='data') {         
-        
+
+      if(otype=='data') {
+
         print('',quote=F)
         print('',quote=F)
         print('',quote=F)
@@ -1017,7 +1093,7 @@ wrapper_object <-
         print("MAAT :: summary of data",quote=F)
         print('',quote=F)
         print('',quote=F)
-  
+
         print("fnames ::",quote=F)
         print(summary(.$dataf$fnames),quote=F)
         print('',quote=F)
@@ -1026,7 +1102,7 @@ wrapper_object <-
         else {
           print(.$dynamic$pars_proc,quote=F)
           print(paste('sample n:',.$wpars$n),quote=F)
-        }                      
+        }
         print('',quote=F)
         print("env ::",quote=F)
         print(summary(.$dataf$env),quote=F)
@@ -1034,10 +1110,10 @@ wrapper_object <-
         print("met data ::",quote=F)
         print(summary(.$dataf$met),quote=F)
         print('',quote=F)
-      
+
       } else if(otype=='run') {
         run_type <- if(!.$wpars$UQ) 'Factorial' else paste('SA/UQ, ',.$wpars$UQtype)
-        
+
         print('',quote=F)
         print('',quote=F)
         print('',quote=F)
@@ -1046,27 +1122,27 @@ wrapper_object <-
         print(paste(run_type,' ensemble'),quote=F)
         print(paste('ensemble number ::',ens_n),quote=F)
         if(!is.null(.$dataf$met)) {
-          print(paste('timesteps in met data ::',.$dataf$lm),quote=F)                
-          print(paste('total number of model calls ::',ens_n*.$dataf$lm),quote=F)                
+          print(paste('timesteps in met data ::',.$dataf$lm),quote=F)
+          print(paste('total number of model calls ::',ens_n*.$dataf$lm),quote=F)
         }
         print('',quote=F)
-        
+
         if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'),quote=F)
         else               print(paste('serial processing.'),quote=F)
         print('',quote=F)
-      } 
+      }
     }
-    
+
     print_output <- function(.) {
       print("output ::",quote=F)
       print(paste('length ::', length(.$dataf$out[,1])), quote=F)
       print(head(.$dataf$out), quote=F)
-      print('', quote=F)      
-      print('', quote=F)      
-      print(Sys.time(), quote=F)      
-      print('', quote=F)      
+      print('', quote=F)
+      print('', quote=F)
+      print(Sys.time(), quote=F)
+      print('', quote=F)
     }
-    
+
     print_saltelli <- function(.) {
       print('Saltelli matrix AB completed', quote=F)
       print('', quote=F)
@@ -1074,54 +1150,54 @@ wrapper_object <-
       print('run Saltelli array ABi', quote=F)
       print('', quote=F)
     }
-    
-    
-    
+
+
+
     ######################################################################################
     # Unit testing functions
 
     # simple test, run a single model instance with or without met data
     .test_simple <- function(., metd=F, mc=F, pr=4, oconf=F ) {
-      
+
       # source directory
       setwd('system_models/leaf')
       source('leaf_object.R')
       setwd('../..')
-      
+
       # clone the model object
       .$model <- as.proto(leaf_object$as.list(),parent=.)
-      .$model$pars$verbose  <- F      
-      .$model$pars$cverbose <- oconf      
+      .$model$pars$verbose  <- F
+      .$model$pars$cverbose <- oconf
       print(.$model$output())
-      
+
       # define parameters for the wrapper
       .$wpars$multic       <- mc  # multicore the ensemble
       .$wpars$procs        <- pr  # number of cores to use if above is true
-      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
-      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening 
-      
+      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble
+      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
+
       # Define meteorological and environment dataset
       .$model$env$par     <- 1000
-      .$model$env$ca_conc <- 400  
-      .$model$env$vpd     <- 1  
-      .$model$env$temp    <- 20  
-      metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))      
+      .$model$env$ca_conc <- 400
+      .$model$env$vpd     <- 1
+      .$model$env$temp    <- 20
+      metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))
       if(metd) .$dataf$met <- metdata
-      
-      # Define the static parameters and model functions  
+
+      # Define the static parameters and model functions
       .$static$fnames <- list(leaf.vcmax='f_vcmax_lin')
       .$dynamic$fnames <- list(
         leaf.etrans = c('f_j_farquhar1980')
       )
-      
+
       .$dynamic$env <- list(
         leaf.vpd  = 1
       )
-      
+
       .$dynamic$pars <- list(
         leaf.avn_25 = 10
       )
-      
+
       # Run wrapper & model
       st <- system.time(
         .$run()
@@ -1130,70 +1206,70 @@ wrapper_object <-
       print('Run time:',quote=F)
       print(st)
       print('',quote=F)
-      
+
       # process & record output
       .$output()
-    }    
-    
- 
+    }
+
+
     # general factorial test, with or without metdata
     .test <- function(.,metd=T,mc=T,pr=4,oconf=F) {
-      
+
       # source directory
       setwd('system_models/leaf')
       source('leaf_object.R')
       setwd('../..')
-      
+
       library(lattice)
-      
+
       # clone the model object
       .$model <- as.proto(leaf_object$as.list(),parent=.)
-      .$model$cpars$verbose  <- F      
-      .$model$cpars$cverbose <- oconf      
+      .$model$cpars$verbose  <- F
+      .$model$cpars$cverbose <- oconf
       print(.$model$output())
-      
-      
+
+
       # define parameters for the wrapper
       .$wpars$multic       <- mc  # multicore the ensemble
       .$wpars$procs        <- pr  # number of cores to use if above is true
-      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
-      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening 
-      
+      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble
+      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
+
       ### Define meteorological and environment dataset
       ###############################
       # can load a met dataset here
       # below a trivial met dataset is created to be used as an example
-      metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))      
-      metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))      
+      metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))
+      metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))
       if(metd) .$dataf$met <- metdata
-      else     { .$model$env$par <- 1000; .$model$env$ca_conc <- 400 } 
+      else     { .$model$env$par <- 1000; .$model$env$ca_conc <- 400 }
 
-      ### Define the static parameters and model functions  
+      ### Define the static parameters and model functions
       ###############################
       .$static$fnames <- list(leaf.vcmax='f_vcmax_lin')
-            
-      ### Define the parameters and model functions that are to be varied 
+
+      ### Define the parameters and model functions that are to be varied
       ###############################
       # if this is a UQ analysis, the "pars" list must contain parameter vectors that are of equal length,
       # if not a UQ analysis the parameter vectors in the "pars" list can be of different lengths
-      
+
       # add the SA/UQ variables to the maat wrapper object
-      # - the wrapper object takes care of combining these lists into the full ensemble      
+      # - the wrapper object takes care of combining these lists into the full ensemble
       .$dynamic$fnames <- list(
         leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991'),
         leaf.rs     = c('f_r_zero','f_rs_medlyn2011')
       )
-        
+
       .$dynamic$env <- list(
         leaf.vpd  = c(1,2),
         leaf.temp = c(5,20)
       )
-        
+
       .$dynamic$pars <- list(
         leaf.avn_25 = 9:11,
         leaf.bvn_25 = 4:6
       )
-      
+
       # Run model
       st <- system.time(
         .$run()
@@ -1202,18 +1278,18 @@ wrapper_object <-
       print('Run time:',quote=F)
       print(st)
       print('',quote=F)
-      
+
       # # process & record output
       # df <- .$output()
       .$output()
       # p1 <- xyplot(A~leaf.ca_conc|leaf.etrans*leaf.rs,df,groups=leaf.temp,type='l',auto.key=T,
       #              panel=function(...) { panel.abline(h=seq(0,20,2.5)) ; panel.xyplot(...) })
       # list(df,p1)
-    }    
+    }
 
 
     # general factorial test, with or without metdata
-    .test_init <- function(., 
+    .test_init <- function(.,
                           metd=list(leaf.par = seq(800,1000,100), leaf.ca_conc = 400 ),
                           sfnames=list(fnames=list(vcmax='f_vcmax_lin')),
                           spars=list(pars=list(Ha=list(vcmax=7e4, jmax=4e4 ))),
@@ -1222,29 +1298,29 @@ wrapper_object <-
                           dpars=NULL,
                           denv=NULL
                           ) {
- 
+
       #
       .$model <- NULL
-      .$model$name <- 'leaf'      
+      .$model$name <- 'leaf'
 
-      # Define the static model functions, parameters, and environment  
-      .$init_static$leaf <- c(sfnames, spars, senv ) 
-      print('init_static')     
-      print(.$init_static)     
-       
-      # Define the dynamic model functions, parameters, and environment  
-      .$init_dynamic$leaf <- c(dfnames, dpars, denv ) 
-      print('init_dynamic')      
-      print(.$init_dynamic)      
+      # Define the static model functions, parameters, and environment
+      .$init_static$leaf <- c(sfnames, spars, senv )
+      print('init_static')
+      print(.$init_static)
+
+      # Define the dynamic model functions, parameters, and environment
+      .$init_dynamic$leaf <- c(dfnames, dpars, denv )
+      print('init_dynamic')
+      print(.$init_dynamic)
 
       # Run init function
       .$init()
-      print('static')     
-      print(.$static)     
-      print('dynamic')     
-      print(.$dynamic)      
-      
-    }    
+      print('static')
+      print(.$static)
+      print('dynamic')
+      print(.$dynamic)
+
+    }
 
 
     # general factorial test, with or without metdata
@@ -1266,36 +1342,36 @@ wrapper_object <-
                             leaf.temp = c(5,20)
                           )
                           ) {
-      
+
       # source directory
       setwd('system_models/leaf')
       source('leaf_object.R')
       setwd('../..')
-      
+
       # clone the model object
       .$model <- as.proto(leaf_object$as.list(),parent=.)
-      .$model$cpars$verbose  <- F      
-      .$model$cpars$cverbose <- oconf      
-      
+      .$model$cpars$verbose  <- F
+      .$model$cpars$cverbose <- oconf
+
       # define parameters for the wrapper
       .$wpars$multic       <- mc  # multicore the ensemble
       .$wpars$procs        <- pr  # number of cores to use if above is true
-      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
-      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening 
-      
+      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble
+      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
+
       # Define meteorological dataset
       if(!is.null(metd)) .$dataf$met  <- as.matrix(expand.grid(metd))
 
-      # Define the static model functions, parameters, and environment  
-      if(!is.null(sfnames)) .$static$fnames <- sfnames 
-      if(!is.null(spars))   .$static$pars   <- spars 
-      if(!is.null(senv))    .$static$env    <- senv 
-            
-      # Define the dynamic model functions, parameters, and environment  
-      if(!is.null(dfnames)) .$dynamic$fnames <- dfnames 
-      if(!is.null(dpars))   .$dynamic$pars   <- dpars 
-      if(!is.null(denv))    .$dynamic$env    <- denv 
-      
+      # Define the static model functions, parameters, and environment
+      if(!is.null(sfnames)) .$static$fnames <- sfnames
+      if(!is.null(spars))   .$static$pars   <- spars
+      if(!is.null(senv))    .$static$env    <- senv
+
+      # Define the dynamic model functions, parameters, and environment
+      if(!is.null(dfnames)) .$dynamic$fnames <- dfnames
+      if(!is.null(dpars))   .$dynamic$pars   <- dpars
+      if(!is.null(denv))    .$dynamic$env    <- denv
+
       # Run wrapper & model
       st <- system.time(
         .$run()
@@ -1304,17 +1380,17 @@ wrapper_object <-
       print('Run time:',quote=F)
       print(st)
       print('',quote=F)
-      
+
       # process & record output
       .$output()
-    }    
+    }
 
 
     # general factorial test with canopy object, with or without metdata
     .test_can <- function(., metd=T, mc=T, pr=4, verbose=F ) {
-     
+
       mod_obj <- 'canopy'
-       
+
       # source directory
       #setwd('system_models/canopy')
       #source('canopy_object.R')
@@ -1322,52 +1398,52 @@ wrapper_object <-
       source(paste(mod_obj,'object.R',sep='_'))
       # clone & build the model object
       init_default <- .$build(model=paste(mod_obj,'object',sep='_') )
-      setwd('../..') 
-  
+      setwd('../..')
+
       # load MAAT object(s) from source
       #setwd(paste('system_models',mod_obj,sep='/'))
       #source(paste(mod_obj,'object.R',sep='_'))
       # clone & build the model object
       #init_default <- .$build(model=paste(mod_obj,'object',sep='_'), mod_mimic=mod_mimic )
-      #setwd('../..')      
-  
+      #setwd('../..')
+
       # clone the model object
       #.$model      <- as.proto(canopy_object$as.list(),parent=.)
-      #.$model$leaf <- as.proto(leaf_object$as.list(),parent=.$model)      
+      #.$model$leaf <- as.proto(leaf_object$as.list(),parent=.$model)
 
       # define parameters for the model
-      .$model$pars$verbose       <- verbose      
-      .$model$leaf$pars$cverbose <- verbose      
+      .$model$pars$verbose       <- verbose
+      .$model$leaf$pars$cverbose <- verbose
       .$model$state$mass_a       <- 175
       .$model$state$C_to_N       <- 40
-      
+
       # define parameters for the wrapper
       .$wpars$multic       <- mc  # multicore the ensemble
       .$wpars$procs        <- pr  # number of cores to use if above is true
-      .$wpars$UQ           <- F   # run a UQ style ensemble, or if faslse a fully factorial ensemble 
-      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening 
-      
+      .$wpars$UQ           <- F   # run a UQ style ensemble, or if faslse a fully factorial ensemble
+      .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
+
       # define meteorological and environment dataset
-      metdata <- expand.grid(list(canopy.par_dir = 500,canopy.ca_conc = seq(10,1200,50)))      
+      metdata <- expand.grid(list(canopy.par_dir = 500,canopy.ca_conc = seq(10,1200,50)))
       if(metd) .$dataf$met <- metdata
-      
-      # Define the parameters and model functions that are to be varied 
+
+      # Define the parameters and model functions that are to be varied
       .$dynamic$fnames <- list(
         canopy.can_scale_light = c('f_canlight_beerslaw_wrong','f_canlight_beerslaw'),
         leaf.etrans            = c('f_j_farquhar1980','f_j_collatz1991'),
         leaf.rs                = c('f_rs_medlyn2011','f_r_zero')
       )
-      
+
       .$dynamic$env <- list(
         leaf.vpd  = c(1,2),
         leaf.temp = c(5,20)
       )
-      
+
       .$dynamic$pars <- list(
         canopy.lai = seq(2,6,2),
         canopy.G   = seq(0.4,0.6,0.1)
       )
-      
+
       # Run model
       st <- system.time(
         .$run()
@@ -1376,55 +1452,55 @@ wrapper_object <-
       print('Run time:',quote=F)
       print(st)
       print('',quote=F)
-      
+
       # process & record output
       df <- .$output()
       library(lattice)
       p1 <- xyplot(A~canopy.ca_conc|canopy.can_scale_light*leaf.rs,df,groups=canopy.lai,type='l',abline=5,auto.key=T)
       list(df,p1)
     }
-      
 
-    # simple test of init_function & model mimic set up 
+
+    # simple test of init_function & model mimic set up
     .test_mimic <- function(., mod_mimic='clm45_non_Tacclimation', mod_obj='leaf', metd=F, mc=F, pr=4, oconf=F ) {
-      
+
       # load MAAT object(s) from source
       setwd(paste('system_models',mod_obj,sep='/'))
       source(paste(mod_obj,'object.R',sep='_'))
       # clone & build the model object
       init_default <- .$build(model=paste(mod_obj,'object',sep='_'), mod_mimic=mod_mimic )
-      setwd('../..')      
-      
-      # define control parameters 
-      .$model$cpars$verbose  <- F      
-      .$model$cpars$cverbose <- oconf      
+      setwd('../..')
+
+      # define control parameters
+      .$model$cpars$verbose  <- F
+      .$model$cpars$cverbose <- oconf
       .$wpars$multic       <- mc  # multicore the ensemble
       .$wpars$procs        <- pr  # number of cores to use if above is true
-      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble 
-      .$wpars$unit_testing <- F   # tell the wrapper to run init function 
-      
-      ### Define the static parameters and model functions  
+      .$wpars$UQ           <- F   # run a UQ style ensemble, or if false a fully factorial ensemble
+      .$wpars$unit_testing <- F   # tell the wrapper to run init function
+
+      ### Define the static parameters and model functions
       ###############################
       init_default$leaf$env$ca_conc <- 400
       init_default$leaf$env$par     <- 2000
-      init_default$leaf$env$vpd     <- 50 
+      init_default$leaf$env$vpd     <- 50
       init_default$leaf$env$temp    <- 25
       .$init_static <- init_default
-      
-      ### Define the parameters and model functions that are to be varied 
+
+      ### Define the parameters and model functions that are to be varied
       ###############################
       # if this is a UQ analysis, the "pars" list must contain parameter vectors that are of equal length,
       # if not a UQ analysis the parameter vectors in the "pars" list can be of different lengths
       #maat$init_dynamic <- init_dynamic
-      .$init_dynamic <- NULL 
-      
+      .$init_dynamic <- NULL
+
       ### Define meteorological and environment dataset
       ###############################
       # can load a met dataset here
       # below a trivial met dataset is created to be used as an example
 
-      metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100), leaf.ca_conc = 400))  )      
-      metdata <- as.matrix(expand.grid(list(leaf.par = 2000, leaf.ca_conc = seq(50,1500,50))) )      
+      metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100), leaf.ca_conc = 400))  )
+      metdata <- as.matrix(expand.grid(list(leaf.par = 2000, leaf.ca_conc = seq(50,1500,50))) )
       if(metd) .$dataf$met <- metdata
 
       # Run model
@@ -1435,49 +1511,49 @@ wrapper_object <-
       print('Run time:',quote=F)
       print(st)
       print('',quote=F)
-      
+
       # # process & record output
       .$output()
       #library(lattice)
       # p1 <- xyplot(A~leaf.ca_conc|leaf.etrans*leaf.rs,df,groups=leaf.temp,type='l',auto.key=T,
       #              panel=function(...) { panel.abline(h=seq(0,20,2.5)) ; panel.xyplot(...) })
       # list(df,p1)
-    }    
+    }
 
 
     # test function for Ye method Sobol process sensitivity analysis
     .test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
-      
+
       # source directory
       setwd('system_models/leaf')
       source('leaf_object.R')
       # clone & build the model object
       init_default <- .$build(model='leaf_object')
       setwd('../..')
-      
+
       library(lattice)
-      
+
       # define control parameters
-      .$model$pars$verbose  <- F      
-      .$model$pars$cverbose <- oconf      
+      .$model$pars$verbose  <- F
+      .$model$pars$cverbose <- oconf
       .$wpars$multic       <- mc   # multicore the ensemble
       .$wpars$procs        <- pr   # number of cores to use if above is true
-      .$wpars$UQ           <- T    # run a UQ/SA style ensemble 
-      .$wpars$UQtype       <- 'ye' # Ye style SA ensemble 
-      .$wpars$unit_testing <- T    # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
-      
-      ### Define static variables 
+      .$wpars$UQ           <- T    # run a UQ/SA style ensemble
+      .$wpars$UQtype       <- 'ye' # Ye style SA ensemble
+      .$wpars$unit_testing <- T    # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions)
+
+      ### Define static variables
       ###############################
       .$model$env$par <- 1000
-      
-      ### Define the parameters and model functions that are to be varied 
+
+      ### Define the parameters and model functions that are to be varied
       ###############################
       # "pars" lists must contain parameter vectors that are of equal length,
 
       # add the SA/UQ variables to the maat wrapper object
-      # - the wrapper object takes care of combining these lists into the full ensemble      
-      .$wpars$n            <- n    # number of parameter samples in each loop 
-      .$wpars$coef_var     <- 0.1  # coefficient of variation for prior parameter distribution 
+      # - the wrapper object takes care of combining these lists into the full ensemble
+      .$wpars$n            <- n    # number of parameter samples in each loop
+      .$wpars$coef_var     <- 0.1  # coefficient of variation for prior parameter distribution
       .$wpars$eval_strings <- T    # use evaluation strings to set parameter values
 
       .$static$fnames <- list(vcmax='f_vcmax_lin')
@@ -1499,13 +1575,13 @@ wrapper_object <-
         leaf.theta_j  = '0.9 * rnorm(n,1,.$wpars$coef_var)',
         leaf.e_ajv_25 = '0.9 * rnorm(n,1,.$wpars$coef_var)'
       )
-      
+
       .$dynamic$pars_proc <- list(
         leaf.avn_25   = 'leaf.Alim',
         leaf.bvn_25   = 'leaf.Alim',
         leaf.theta_j  = 'leaf.etrans',
         leaf.e_ajv_25 = 'leaf.etrans'
-      ) 
+      )
 
       .$dynamic$env <- list(
         leaf.ca_conc  = c(400,600)
@@ -1519,12 +1595,12 @@ wrapper_object <-
       print('Run time:',quote=F)
       print(st)
       print('',quote=F)
-      
-    }    
-    
+
+    }
+
     # test function for Saltelli method Sobol parametric sensitivity analysis
     .test_saltelli <- function(., metd=F, mc=T, pr=4, oconf=F, n=3, eval_strings=T ) {
-      
+
       # source directory
       setwd('system_models/leaf')
       source('leaf_object.R')
@@ -1532,31 +1608,31 @@ wrapper_object <-
       init_default <- .$build(model='leaf_object')
       setwd('../..')
       library(lattice)
-      
+
       # define control parameters
-      .$model$pars$verbose  <- F      
-      .$model$pars$cverbose <- oconf      
+      .$model$pars$verbose  <- F
+      .$model$pars$cverbose <- oconf
       .$wpars$multic       <- mc           # multicore the ensemble
       .$wpars$procs        <- pr           # number of cores to use if above is true
-      .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
-      .$wpars$UQtype       <- 'saltelli'   # Saltelli style SA ensemble 
-      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
-      
-      ### Define static variables 
+      .$wpars$UQ           <- T            # run a UQ/SA style ensemble
+      .$wpars$UQtype       <- 'saltelli'   # Saltelli style SA ensemble
+      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions)
+
+      ### Define static variables
       ###############################
       .$static$env    <- list(leaf.par=1000)
       .$static$fnames <- list(leaf.vcmax='f_vcmax_lin')
-      
-      ### Define the parameters and model functions that are to be varied 
+
+      ### Define the parameters and model functions that are to be varied
       ###############################
       # "pars" lists must contain parameter vectors that are of equal length,
-      
+
       # add the SA/UQ variables to the maat wrapper object
-      # - the wrapper object takes care of combining these lists into the full ensemble      
-      .$wpars$n            <- n            # number of parameter samples in each loop 
-      .$wpars$eval_strings <- eval_strings # parameters are passed as strings to be evaluated to allow for different sample numbers 
+      # - the wrapper object takes care of combining these lists into the full ensemble
+      .$wpars$n            <- n            # number of parameter samples in each loop
+      .$wpars$eval_strings <- eval_strings # parameters are passed as strings to be evaluated to allow for different sample numbers
       .$wpars$coef_var     <- 0.1
-      
+
       .$dynamic$fnames <- list(
         leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
         leaf.etrans = c('f_j_farquharwong1984','f_j_collatz1991','f_j_harley1992')
@@ -1578,11 +1654,11 @@ wrapper_object <-
           leaf.e_ajv_25 = 0.9 * rnorm(n,1,.$wpars$coef_var)
         )
       }
-      
+
       .$dynamic$env <- list(
         leaf.ca_conc  = c(400,600)
       )
-      
+
       # Run model
       st <- system.time(
         .$run()
@@ -1591,23 +1667,25 @@ wrapper_object <-
       print('Run time:',quote=F)
       print(st)
       print('',quote=F)
-      
+
       # process & record output
       list(AB=.$output_saltelli_AB(), ABi=.$output_saltelli_ABi() )
-    }    
-    
-    
-    # test function for MCMC parameter estimation using mixture model with tri-modal distribution 
-    .test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='demc', 
+    }
+
+
+    # test function for MCMC parameter estimation using mixture model with tri-modal distribution
+    .test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='demc',
                                    mcmc_chains=8, mcmc_maxiter=100,
                                    mu_vector=c(-8,0,6),
-                                   sd_vector=c(1,1,1)
+                                   sd_vector=c(1,1,1),
+                                   height_vector=c(0.2,0.5,0.3),
+                                   mixture_scale=1e12
                                    ) {
-     
+
       ### currently does not work with multicoring,
-      ### probably due to assignment to . datastructure during the forked processes 
+      ### probably due to assignment to . datastructure during the forked processes
       ### perhaps setting parent in build function would avoid problem, should be shared memory, but perhaps not
- 
+
       # source directory
       setwd('system_models/mcmc_test')
       source('mcmc_test_object.R')
@@ -1615,36 +1693,41 @@ wrapper_object <-
       init_default <- .$build(model='mcmc_test_object')
       setwd('../..')
       library(lattice)
-     
+
       # redefine mc if mc=T
       if(mc) {mc <- F; print('mc specified as T but does not work in unit testing with current MAAT config, redefining mc as F') }
- 
+
       # define control parameters
-      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions) 
-      .$model$pars$verbose <- F      
-      .$model$pars$cverbose<- F      
-      .$model$mcmc_testsys <- 'f_mcmc_testsys_mixture'      
+      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions)
+      .$model$pars$verbose <- F
+      .$model$pars$cverbose<- F
+      .$model$mcmc_testsys <- 'f_mcmc_testsys_mixture'
       .$wpars$multic       <- mc           # multicore the ensemble
       .$wpars$procs        <- pr           # number of cores to use if above is true
-      .$wpars$UQ           <- T            # run a UQ/SA style ensemble 
-      .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble 
-      .$wpars$mcmc_type    <- mcmc_type    # MCMC type, 'demc' or 'dream' 
-      .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains 
-      .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain 
-      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_log'  # MCMC likelihood function 
+      .$wpars$UQ           <- T            # run a UQ/SA style ensemble
+      .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble
+      .$wpars$mcmc_type    <- mcmc_type    # MCMC type, 'demc' or 'dream'
+      .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains
+      .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain
+      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_log'  # MCMC likelihood function
 
       # set problem specific parameters
-      .$model$pars$mu1   <- mu_vector[1]      
-      .$model$pars$mu2   <- mu_vector[2]     
-      .$model$pars$mu3   <- mu_vector[3]      
-      .$model$pars$sd1   <- sd_vector[1]      
-      .$model$pars$sd2   <- sd_vector[2]     
-      .$model$pars$sd3   <- sd_vector[3]      
-     
+      .$model$pars$mu1     <- mu_vector[1]
+      .$model$pars$mu2     <- mu_vector[2]
+      .$model$pars$mu3     <- mu_vector[3]
+      .$model$pars$sd1     <- sd_vector[1]
+      .$model$pars$sd2     <- sd_vector[2]
+      .$model$pars$sd3     <- sd_vector[3]
+      # ALJ: added a few more problem-specific parameters
+      .$model$pars$height1 <- height_vector[1]
+      .$model$pars$height2 <- height_vector[2]
+      .$model$pars$height3 <- height_vector[3]
+      .$model$pars$mixture_scale <- mixture_scale
+
       # define priors
 #      # number of parameters in proposal
 #      np  <- 4
-#      # provide mean of initial sample 
+#      # provide mean of initial sample
 #      # Q: what is the final 0 doing on the below vector?
 #      mu  <- c(.$model$pars$mu1, .$model$pars$mu2, .$model$pars$mu3, 0 )
 #      # provide initial covariance
@@ -1662,17 +1745,20 @@ wrapper_object <-
 #      print(priors,quote=F)
 
       # APW: is this the standard prior used for thise test?
+      # ALJ: the prior is dependent on the user-specified mu's and sd's
+      #      so theoretically the prior should be changed with each run
+      # ALJ: these current prior ranges work well for mu=<-8,0,8> and sd=<1,1,1>
       .$dynamic$pars_eval <- list(
-        mcmc_test.proposal1  = 'runif(n,-10,0)',
-        mcmc_test.proposal2  = 'runif(n,  0,10)',
-        mcmc_test.proposal3  = 'runif(n,-10,10)',
-        mcmc_test.proposal4  = 'runif(n,-10,10)'
+        mcmc_test.proposal1  = 'runif(n,-20,20)',
+        mcmc_test.proposal2  = 'runif(n,-20,20)',
+        mcmc_test.proposal3  = 'runif(n,-20,20)',
+        mcmc_test.proposal4  = 'runif(n,-20,20)'
       )
 
       # define ofname
       .$ofname <- 'mcmc_mixture_test'
 
-      # Run MCMC 
+      # Run MCMC
       st <- system.time(
         .$run()
       )
@@ -1682,19 +1768,19 @@ wrapper_object <-
       print('',quote=F)
 
       # process & record output
-      # output  
-      hist <- histogram(.$dataf$pars_array) 
-      list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, hist=hist ) 
-    }  
-    
-    
-    # test function for MCMC parameter estimation in a linear regression 
+      # output
+      hist <- histogram(.$dataf$pars_array)
+      list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, hist=hist )
+    }
+
+
+    # test function for MCMC parameter estimation in a linear regression
     .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_type='demc', mcmc_chains=7, mcmc_homosced=T, mcmc_maxiter=3,
                                   x=1:10, a_mu=-25, b_mu=25, a_sd=1, b_sd=1, standard_err=0.5,
                                   mcmc_test.a  = 'runif(n,-30,30)',
                                   mcmc_test.b  = 'runif(n,-30,30)'
                                   ) {
-      
+
       # source directory
       setwd('system_models/mcmc_test')
       source('mcmc_test_object.R')
@@ -1702,34 +1788,34 @@ wrapper_object <-
       init_default <- .$build(model='mcmc_test_object')
       setwd('../..')
       library(lattice)
-      
+
       # redefine mc if mc=T
       if(mc) {mc <- F; print('mc specified as T but does not work in unit testing with current MAAT config, redefining mc as F') }
- 
+
       # define control parameters
-      .$wpars$unit_testing  <- T             # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
-      .$model$pars$verbose  <- F      
-      .$model$pars$cverbose <- F      
-      .$model$fnames$mcmc_testsys <- 'f_mcmc_testsys_regression'      
-      .$model$fnames$reg_func     <- 'f_reg_func_linear'      
+      .$wpars$unit_testing  <- T             # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions)
+      .$model$pars$verbose  <- F
+      .$model$pars$cverbose <- F
+      .$model$fnames$mcmc_testsys <- 'f_mcmc_testsys_regression'
+      .$model$fnames$reg_func     <- 'f_reg_func_linear'
       .$wpars$multic        <- mc            # multicore the ensemble
       .$wpars$procs         <- pr            # number of cores to use if above is true
-      .$wpars$UQ            <- T             # run a UQ/SA style ensemble 
-      .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble 
-      .$wpars$mcmc_type     <- mcmc_type     # MCMC type, 'demc' or 'dream' 
-      .$wpars$mcmc_chains   <- mcmc_chains   # MCMC number of chains 
+      .$wpars$UQ            <- T             # run a UQ/SA style ensemble
+      .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble
+      .$wpars$mcmc_type     <- mcmc_type     # MCMC type, 'demc' or 'dream'
+      .$wpars$mcmc_chains   <- mcmc_chains   # MCMC number of chains
       .$wpars$mcmc_homosced <- mcmc_homosced # MCMC homoscedastic error
-      .$wpars$mcmc_maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain 
-      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared_se'  # MCMC likelihood function 
+      .$wpars$mcmc_maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
+      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared_se'  # MCMC likelihood function
 
       # set problem specific parameters
-      .$model$pars$syn_a_mu <- a_mu      
-      .$model$pars$syn_b_mu <- b_mu      
-      .$model$pars$syn_a_sd <- a_sd     
-      .$model$pars$syn_b_sd <- b_sd      
-     
+      .$model$pars$syn_a_mu <- a_mu
+      .$model$pars$syn_b_mu <- b_mu
+      .$model$pars$syn_a_sd <- a_sd
+      .$model$pars$syn_b_sd <- b_sd
+
       # met data
-      .$dataf$met        <- matrix(x, length(x) ,1 ) 
+      .$dataf$met        <- matrix(x, length(x) ,1 )
       colnames(.$dataf$met) <- 'mcmc_test.linreg_x'
 
       # generate synthetic data
@@ -1737,7 +1823,7 @@ wrapper_object <-
       .$model$pars$b       <- rnorm(length(x), .$model$pars$syn_b_mu, .$model$pars$syn_b_sd )
       .$model$env$linreg_x <- x
       .$dataf$obs          <- get(.$model$fnames$reg_func)(.$model)
-      .$dataf$obsse        <- abs(rnorm(length(x), mean = 0, sd = standard_err)) 
+      .$dataf$obsse        <- abs(rnorm(length(x), mean = 0, sd = standard_err))
 
       # define priors
       .$dynamic$pars_eval <- list(
@@ -1748,7 +1834,7 @@ wrapper_object <-
       # define ofname
       .$ofname <- 'lin_reg_test'
 
-      # Run MCMC 
+      # Run MCMC
       st <- system.time(
         .$run()
       )
@@ -1758,15 +1844,15 @@ wrapper_object <-
       print('',quote=F)
 
       # process & record output
-      # output  
-      hist <- histogram(.$dataf$pars_array) 
-      list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, hist=hist ) 
-    }  
-    
- 
+      # output
+      hist <- histogram(.$dataf$pars_array)
+      list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, hist=hist )
+    }
+
+
 ###########################################################################
-# end maat wrapper 
-}) 
+# end maat wrapper
+})
 
 
 
