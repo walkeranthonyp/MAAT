@@ -1,8 +1,8 @@
 ################################
 #
 # MAAT Model - run script
-# 
-# AWalker (walkerap@ornl.gov) 
+#
+# AWalker (walkerap@ornl.gov)
 # December 2015
 #
 ################################
@@ -26,7 +26,7 @@
 
 ###################################################################
 
-# any one of the below objects to line 116 can be specified as a single string command line argument to this script 
+# any one of the below objects to line 150 or so can be specified as a single string command line argument to this script 
 # the sub-arguments in the string (separated by a space) are interpreted individually as R code.
 
 #       Rscript run_MAAT.R "object1<-value1 object2<-value2"
@@ -35,79 +35,113 @@
 ##################################
 # command line options and defaults
 
+# model object to use, any directory name in the src/system_models directory 
+mod_obj <- NULL
+
 # directory paths - set these on the command line or modify these here
-# source directory (full path) 
+# source directory (full path)
 # - must be added (here or as a commandline option to this script) before model will run
-# - can be modified to target source copied to a static directory rather that a reposiotory with version control 
-srcdir  <- NULL 
+# - can be modified to target source copied to a static directory rather that a reposiotory with version control
+srcdir  <- NULL
 # project directory (full path)
 pdir    <- NULL
 # meteorological data directory (full path)
-mdir    <- NULL 
+mdir    <- NULL
 # evalutaion data directory (full path)
-edir    <- NULL 
+edir    <- NULL
 # output data directory (full path)
-odir    <- NULL 
-
-# model object to use, currently leaf or gwater_rt
-mod_obj <- NULL
+odir    <- NULL
 
 # wrapper object options
 # multicore the ensemble
-multic  <- F  
+multic  <- F
 
 # number of cores to use if above is true
-procs   <- 4   
+procs   <- 4
 
 # run an emsemble that combines variables in factorial
-# - if set to TRUE this will over-ride a UQ analysis  
+# - if set to TRUE this will over-ride a UQ analysis
 factorial  <- T
 
-# run an SA/UQ style ensemble, or if -uq- is false a fully factorial ensemble 
-uq         <- T      
+# run an SA/UQ style ensemble, or if -uq- is false a fully factorial ensemble
+uq         <- T
 
 # types of SA/UQ run
 # process SA
 procSA     <- T
 # Saltelli Sobol SA
 salt       <- T
+# MCMC parameter estimation
+mcmc       <- F
 
-# parameters for SA/UQ run
-# ensemble number for an SA/UQ style ensemble, not used if -uq- is false 
+# parameters for SA run
+# ensemble number for an SA/UQ style ensemble, not used if -uq- is false
 psa_n      <- 10
 # coefficient of variation if used in parameter sampling in process sensitivity analysis
-coef_var   <- 0.1 
+coef_var   <- 0.1
 # multiplier on process ensemble n for Saltelli ensemble n
-salt_nmult <- 100      
+salt_nmult <- 100
+
+# parameters for MCMC run
+# type of MCMC
+mcmc_type     <- 'demc'
+# number of MCMC chains to run (min 2x number of parameters estimated)
+mcmc_chains   <- 10
+# number of iterations / steps in MCMC chain
+mcmc_maxiter  <- 100
+# MCMC burn in to discard as a proportion of mcmc_maxiter, or number of iterations if converged sooner
+mcmc_burnin   <- 0.5
+# MCMC thinning for posterior, as a proportion
+mcmc_thin     <- 0.1
+# MCMC thinning for observations, as a proportion
+mcmc_thin_obs <- 1
+# MCMC option to assume homoscedastic error in measured observations (else, heteroscedastic)
+mcmc_homosced <- F
+# MCMC DREAM number chain pair proposal
+mcmc_delta    <- 3         
+# MCMC DREAM randomization
+mcmc_c_rand   <- 0.01
+# MCMC DREAM ergodicicty
+mcmc_c_ergod  <- 1e-12
+# MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
+mcmc_p_gamma  <- 0.2
+# MCMC DREAM number of crossover values (default value)
+mcmc_n_CR     <- 3
 
 # run options
 # meteorological data file name
-metdata    <- NULL 
+metdata       <- NULL
+
+# evaluation data file name
+evaldata      <- NULL 
+
+# load standard error from evaluation data file (T/F)
+evalse        <- F 
 
 # pass code snippets as strings to generate parameter samples, see init_MAAT.R and wrapper for use
-eval_strings <- F 
+eval_strings  <- F
 
 # initialise in the configuration of the below specified model
-# options are: clm40, 
-mod_mimic    <- NULL
+# options are: clm40,
+mod_mimic     <- NULL
 
 # static and dynamic initialisation files are XMLs, if false init file is the R script named below
-xml          <- F
+xml           <- F
 
 # initialisation data file name if not an XML
-init         <- 'init_MAAT' 
+init          <- 'init_MAAT'
 
 # run i.d. - used as suffix/prefix for in/out files
-runid        <- NULL 
+runid         <- NULL
 
 # basic output file name
-of_main      <- 'out'
+of_main       <- 'out'
 
-# model output switch 
-mod_out      <- 'run'
+# model output switch
+mod_out       <- 'run'
 
 # output file format.  supported: rds, csv (default)
-of_format    <- 'csv'
+of_format     <- 'csv'
 
 
 
@@ -124,11 +158,11 @@ if(length(commandArgs(T))>=1) {
 }
 
 print('',quote=F)
-if(is.null(srcdir))  stop('srcdir argument not specified but required, check command line arguments to run_MAAT.R') 
+if(is.null(srcdir))  stop('srcdir argument not specified but required, check command line arguments to run_MAAT.R')
 print(paste('Source directory:',srcdir) ,quote=F)
-if(is.null(pdir))    stop('pdir argument not specified but required, check command line arguments to run_MAAT.R') 
+if(is.null(pdir))    stop('pdir argument not specified but required, check command line arguments to run_MAAT.R')
 print(paste('Project directory:',pdir) ,quote=F)
-if(is.null(mod_obj)) stop('mod_obj argument not specified but required, check command line arguments to run_MAAT.R') 
+if(is.null(mod_obj)) stop('mod_obj argument not specified but required, check command line arguments to run_MAAT.R')
 print(paste('Model:',mod_obj) ,quote=F)
 print(paste('Run ID:',runid) ,quote=F)
 
@@ -199,6 +233,20 @@ maat$wpars$of_dir        <- odir
 maat$model$cpars$verbose <- F
 maat$model$cpars$output  <- mod_out
 
+# define MCMC run parameters
+maat$wpars$mcmc_type     <- mcmc_type
+maat$wpars$mcmc_chains   <- mcmc_chains
+maat$wpars$mcmc_maxiter  <- mcmc_maxiter
+maat$wpars$mcmc_burnin   <- mcmc_burnin
+maat$wpars$mcmc_thin     <- mcmc_thin
+maat$wpars$mcmc_thin_obs <- mcmc_thin_obs
+maat$wpars$mcmc_homosced <- mcmc_homosced
+maat$wpars$mcmc_delta    <- mcmc_delta
+maat$wpars$mcmc_c_rand   <- mcmc_c_rand
+maat$wpars$mcmc_c_ergod  <- mcmc_c_ergod
+maat$wpars$mcmc_p_gamma  <- mcmc_p_gamma
+maat$wpars$mcmc_n_CR     <- mcmc_n_CR
+
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic)
 
@@ -206,32 +254,32 @@ maat$build(mod_mimic=mod_mimic)
 ##################################
 # Initialise the MAAT wrapper
 
-# load init xml's or list from init R script 
+# load init xml's or list from init R script
 setwd(pdir)
 
 # read user defined values of static variables
 if(xml) {
-  
+
   # read user defined XMLs of static variables
   staticxml   <- paste(mod_obj,'user','static.xml',sep='_')
   init_static <- if(file.exists(staticxml)) readXML(staticxml) else list(NULL)
-  
+
   # read user defined XMLs of dynamic variables
   dynamicxml   <- paste(mod_obj,'user','dynamic.xml',sep='_')
   init_dynamic <- if(file.exists(dynamicxml)) readXML(dynamicxml) else list(NULL)
 
   # convert NAs to NULLs
-  init_static  <- rapply(init_static,  function(x) if(is.na(x)) NULL else x, how='replace' )   
-  init_dynamic <- rapply(init_dynamic, function(x) if(is.na(x)) NULL else x, how='replace' )   
+  init_static  <- rapply(init_static,  function(x) if(is.na(x)) NULL else x, how='replace' )
+  init_dynamic <- rapply(init_dynamic, function(x) if(is.na(x)) NULL else x, how='replace' )
 
   # otherwise read init list R script
 } else source(initf)
 
 
-# check process representation functions specified in input exist 
+# check process representation functions specified in input exist
 search_fnames <-  function(v, ln ) {
   for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop(paste('The function: ',c1,' , specified in init', ln ,'does not exist')) else 'exists'
-} 
+}
 print('',quote=F)
 print('Check static fnames requested exist:',quote=F)
 out <- lapply(init_static$fnames,
@@ -240,7 +288,7 @@ print('  all static fnames requested exist',quote=F)
 
 print('',quote=F)
 print('Check dynamic fnames requested exist:',quote=F)
-if(!is.null(unlist(init_dynamic$fnames))) { 
+if(!is.null(unlist(init_dynamic$fnames))) {
   out <- lapply(init_dynamic$fnames,
            function(l) lapply(l, function(l1) if(is.list(l1)) lapply(l1, search_fnames, ln='dynamic') else search_fnames(l1, ln='dynamic' )) )
 }
@@ -271,18 +319,16 @@ if(!is.null(metdata)) {
   setwd(pdir)
   if(file.exists(paste0(mod_obj,'_user_met.xml'))) {
     met_trans <- readXML(paste0(mod_obj,'_user_met.xml'))
-    # met_trans <- evalXMLlist(met_trans)
-    #if(any(names(met_trans)==mod_obj)) met_trans <- met_trans[[which(names(met_trans)==mod_obj)]]$env
     if(any(names(met_trans$env)==mod_obj)) met_trans <- met_trans$env[[which(names(met_trans$env)==mod_obj)]]
     else {
       print('',quote=F)
       print('Met translator file:',quote=F)
       print(paste0(mod_obj,'_user_met.xml'),quote=F)
       print('does not contain list for:',quote=F)
-      print(mod_obj,quote=F)      
+      print(mod_obj,quote=F)
       stop()
     }
-      
+
   } else {
     print('',quote=F)
     print('Met translator file:',quote=F)
@@ -299,35 +345,127 @@ if(!is.null(metdata)) {
   setwd(mdir)
   if(file.exists(metdata)&!kill) {
     print(metdata, quote=F )
-    metdf <- read.csv(metdata,strip.white=T)  
-    
-    # order met data in metfile according to that specified in the <mod_obj>_user_met.XML 
-    # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML 
+    metdf <- read.csv(metdata,strip.white=T)
+    print(head(metdf), quote=F )
+
+    ###################################
+    # future work: 
+    # add eval data to model object - total hack for now
+    maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
+    maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
+    ###################################
+
+    # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
+    # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML
     cols  <- match(unlist(sapply(met_trans,function(l) l)),names(metdf))
-    metdf <- metdf[,cols] 
-        
+    metdf <- metdf[,cols]
+
     # if time variable specified put it first and don't rename it
     if('time'%in%names(met_trans)) {
-      tcol  <- which(names(met_trans)=='time')
+      tcol      <- which(names(met_trans)=='time')
       metdf <- metdf[, c(tcol,c(1:length(metdf))[-tcol]) ]
-      
+
       # rename to maat variables as defined in <mod_obj>_user_met.XML and prefix with the model object for compatibility with the configure function
-      names(metdf)[1] <- 'time'               
+      names(metdf)[1] <- 'time'
       names(metdf)[2:length(metdf)] <- paste(mod_obj,names(met_trans)[-tcol],sep='.')
     } else {
       names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
     }
-        
+
     # add to MAAT object
-    maat$dataf$met <- metdf 
+    maat$dataf$met <- metdf
+
+    # remove met data file
     rm(metdf)
-      
+
   } else {
     print('',quote=F)
     print('Met data file:',quote=F)
     print(metdata,quote=F)
     print('does not exist in:',quote=F)
     print(mdir,quote=F)
+    stop()
+  }
+  setwd(pdir)
+}
+
+
+
+##################################
+# Load evaluation dataset
+# - not used unless specified
+
+kill <- F
+if(!is.null(evaldata)&F) {
+  # read user defined eval data translator
+  setwd(pdir)
+  if(file.exists(paste0(mod_obj,'_user_eval.xml'))) {
+    eval_trans <- readXML(paste0(mod_obj,'_user_eval.xml'))
+    if(any(names(eval_trans$state)==mod_obj)) eval_trans <- eval_trans$env[[which(names(eval_trans$state)==mod_obj)]]
+    else {
+      print('',quote=F)
+      print('Evaluation data translator file:',quote=F)
+      print(paste0(mod_obj,'_user_eval.xml'),quote=F)
+      print('does not contain list for:',quote=F)
+      print(mod_obj,quote=F)      
+      stop()
+    }
+      
+  } else {
+    print('',quote=F)
+    print('Evaluation data translator file:',quote=F)
+    print(paste0(mod_obj,'_user_eval.xml'),quote=F)
+    print('does not exist in:',quote=F)
+    print(pdir,quote=F)
+    stop()
+  }
+
+  # read eval data file
+  if(is.null(edir)) edir <- mdir
+  print('', quote=F )
+  print('Eval data directory & filename:' , quote=F )
+  print(edir, quote=F )
+  setwd(edir)
+
+  if(evaldata=='met') evaldata <- metdata
+  if(file.exists(evaldata)&!kill) {
+    print(evaldata, quote=F )
+    evaldf   <- read.csv(evaldata,strip.white=T)  
+    print(head(evaldf), quote=F )
+
+    # check met and eval data sets are of same length 
+    if(dim(maat$dataf$met)[2]!=dim(evaldf)[2]) 
+      stop(paste('Eval data not same length as met data: check equal length of files:', evaldata, metdata ))  
+    
+    # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML 
+    # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML 
+    cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
+    evaldf <- evaldf[,cols] 
+        
+    # add to MAAT object
+    maat$dataf$obs <- evaldf 
+   
+    # Read standard error for eval data  
+    if(evalse) {   
+      print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"'
+ 
+      # extract se data 
+      cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
+      evaldfse <- evaldf[,cols] 
+      
+      # add to MAAT object
+      maat$dataf$obsse <- evaldfse 
+    }
+  
+    # remove eval data file  
+    rm(evaldf)
+      
+  } else {
+    print('',quote=F)
+    print('Eval data file:',quote=F)
+    print(evaldata,quote=F)
+    print('does not exist in:',quote=F)
+    print(evaldir,quote=F)
     stop()  
   }
   setwd(pdir)
@@ -352,6 +490,29 @@ maat$clean()
 print('',quote=F)
 print('MAAT system memory used:',quote=F)
 gc()
+
+
+# run MCMC algorithm parameter estimation if requested
+if(mcmc&uq) {
+  maat$model$pars$verbose  <- F
+  maat$wpars$UQtype <- 'mcmc'
+
+  # run MAAT
+  for(i in 1:5) print('',quote=F)
+  print('Run MCMC',quote=F)
+  st <- system.time(
+    maat$run()
+  )
+
+  for(i in 1:3) print('',quote=F)
+  print('MAAT MCMC runtime:',quote=F)
+  print(st,quote=F)
+
+  maat$clean()
+  print('',quote=F)
+  print('MAAT system memory used for MCMC:',quote=F)
+  gc()
+}
 
 
 

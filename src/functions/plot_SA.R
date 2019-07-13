@@ -7,6 +7,7 @@
 #
 ################################
 
+setwd(paste0(srcdir,'/functions'))
 source('plotting_functions.R')
 source('general_functions.R')
 
@@ -22,6 +23,15 @@ elabs <-
     NULL
   }
 
+# model labels
+setwd(wdd)
+fname <- paste('out',runid,'salt','AB','dataf',sep='_')
+l1    <- readRDS(paste(fname,'.RDS',sep=''))
+full_mod_names <- apply(l1$fnames,1,paste,collapse='.')
+ss_names       <- if(!is.null(mod_names)) match(full_mod_names,names(mod_names)) else NULL
+mlabs          <- if(!is.null(mod_names)) mod_names[ss_names] else full_mod_names
+mlabs          <- if(length(mlabs)>12) paste0('M',1:length(mlabs)) else mlabs  
+
 
 
 # plot process SA indices
@@ -29,7 +39,6 @@ elabs <-
 
 # read process SA index list
 setwd(wdt)
-# l1  <- readRDS(paste0(paste(runid_out,delta_var,'psa_list',sep='_'),'.RDS'))
 df1   <- read.csv(paste(runid_out,delta_var,'psa.csv',sep='_'))
 df1t  <- sens_table(df1)
 
@@ -39,24 +48,15 @@ df1te <- add_scenario_values(df1t)
 # write latex table, & create pdf (if call=TRUE)
 write_Latex(df1te, paste(runid_out,'procSAtables',sep='_'), write_table_Latex, call=T )
 
-# # plotting dataframe - make columnwise 
-# dfpsi <- stack(as.data.frame(matpsi))
-# dfpsi$par  <- dfpsi$ind
-# dfpsi$ind  <- paste0('S',1:dim(matpsi)[1])
-# dfpsi$type <- 'By Environment' 
-
-# for less than 5 processes
-# dfp     <- data.frame(si=as.numeric(df1), proc=rep(colnames(df1),each=length(l1[[1]])) ) 
-#dfp     <- data.frame(si=as.numeric(df1), proc=rep(dimnames(df1)[[3]],each=length(l1[[1]])) ) 
-
-# # legend labels
-lnames <- list( elabs )
+# integrated sensitivities
+df1$averaging <- ifelse(df1$scenario==-1, 'Combined', 'Scenario' )
 
 # plot
 setwd(wdp)
 pdf(paste(paste(runid_out,'PSAplots','radincs',sep='_'),'.pdf',sep=''), width=3.5, height=7)
-# radar_plot(dfpsi, vnames=NULL, lnames=lnames, max_si=1.0 )
-radar_plot(df1, var1=NULL, vnames=NULL, lnames=lnames, max_si=1.0 )
+# placeholder for if statement & function if under 4 variables
+# plot_SA_4orless(yv=df1$sensitivity1, xv=df1$co2, cv1=df1$par, gv=df1$variable,ylim=ylim1, ylab=ylab1, xlab=xlab_e1 )
+radar_plot(df1, var1='averaging', vnames=NULL, lnames=list(NULL, elabs), max_si=1.0 )
 dev.off()
 
 
@@ -64,63 +64,48 @@ dev.off()
 # parameter sensitivity plots 
 ############################################
 
-# read info data
-# - this is a bit of a fix so model names can be applied to data in l3, need to integrate this so that labels are passed through all processing stages
-setwd(wdd)
-fname <- paste('out',runid,'salt','AB','dataf',sep='_')
-l1    <- readRDS(paste(fname,'.RDS',sep=''))
-
 # read data
 setwd(wdt)
-# l3 <- readRDS(paste(runid_out,delta_var,'salt_list.RDS',sep='_'))
 df1  <- read.csv(paste(runid_out,delta_var,'salt.csv',sep='_'))
 df1t <- sens_table(df1)
 
 # add environmetal variables to sensitivity output matrix
 df1te <- add_scenario_values(df1t)
 
+# add par names suitable for latex
+stf <- NULL
+if(!is.null(par_names_latex)) {
+  ss_names <- match(names(df1te),names(par_names_latex))
+  labs     <- par_names_latex[ss_names]
+  names(df1te)[which(!is.na(labs))] <- labs[which(!is.na(labs))]
+  stf <- function(x){x}
+}
+
 # write latex table, & create pdf (if call=TRUE)
-write_Latex(df1te, paste(runid_out,'saltSAtables',sep='_'), write_table_Latex, call=T )
-
-# # integrated over models and scenarios
-# dfp1a      <- data.frame(values=l3$incmodelscenario[[sens]])
-# dfp1a$ind  <- 'MS1'
-# dfp1a$type <- 'Combined'
-# dfp1a$par  <- row.names(dfp1a)
-# dfms       <- dfp1a
-# 
-# # integrated over models and present against different environmental conditions
-# dfp1  <- sapply(l3$incmodel, function(sl) sl[[sens]])
-# colnames(dfp1) <- paste('S',1:dim(dfp1)[2], sep='')
-# dfp1a <- stack(data.frame(dfp1))
-# dfp1a$type <- 'By Environment' 
-# dfp1a$par  <- row.names(dfp1)
-# dfm        <- dfp1a
-# 
-# # integrated over scenarios and against each model combination
-# dfp1  <- sapply(l3$incscenario, function(sl) sl[[sens]])
-# colnames(dfp1) <- paste('M',1:dim(dfp1)[2], sep='')
-# dfp1a <- stack(data.frame(dfp1))
-# dfp1a$type <- 'By Model' 
-# dfp1a$par  <- row.names(dfp1)
-# dfs        <- dfp1a
-# 
-# # plotting dataframe
-# dfsi    <- rbind(dfms,dfs,dfm)
-
-# model labels
-full_mod_names <- apply(l1$fnames,1,paste,collapse='.')
-ss_names       <- if(!is.null(mod_names)) match(full_mod_names,names(mod_names)) else NULL
-labs           <- if(!is.null(mod_names)) mod_names[ss_names] else full_mod_names
-labs           <- if(length(labs)>12) paste0('M',1:length(labs)) else labs  
+# write_Latex(df1te, paste(runid_out,'saltSAtables',sep='_'), write_table_Latex, call=T, landscape=T, sanitize.text.function=stf )
+# subset to individual tables
+tlist <- list(
+  subset(df1te, par=='int'|model=='int' ),
+  subset(df1te, par!='int'&model!='int' )
+)
+write_Latex(tlist, paste(runid_out,'saltSAtables',sep='_'), write_tablelist_Latex, call=T, 
+            landscape=T, sanitize.text.function=stf, floating=F, tabular.environment="longtable" )
 
 # legend labels
-lnames <- list('weighted mean', labs, elabs )
+lnames <- list(NULL, elabs, mlabs )
+
+# integrated sensitivities
+df1$averaging <- ifelse(df1$model==-1&df1$scenario==-1, 'Combined', ifelse(df1$scenario==-1, 'Model', ifelse(df1$model==-1, 'Scenario', NA )))
+df1c <- subset(df1, scenario==-1|model==-1 )
+
+# broken out by scenario within each model
+df1s <- subset(df1, scenario!=-1&model!=-1 )
 
 # plot
 setwd(wdp)
 pdf(paste(paste(runid_out,'SAplots','radincs',sep='_'),'.pdf',sep=''), width=10, height=7)
-radar_plot(dfsi, lnames=lnames, max_si=1.0 )
+radar_plot(df1c, var1='averaging', lnames=lnames, max_si=1.0 )
+radar_plot(df1s, var1='model', lnames=list(elabs), max_si=1.0 )
 dev.off()
 
 df1s <- subset(df1, scenario!=-1&model!=-1 )
@@ -129,41 +114,22 @@ radar_plot(df1s, var1='model', lnames=lnames, max_si=1.0 )
 
 
 
-# broken out by scenario within each model combination
-# model is on the outer list, scenario the inner list
-# dfp1  <- lapply(l3, function(l) lapply(l$individual, function(sl) sapply(sl, function(ssl) ssl$sensitivity1) ))
-# names(dfp1$absolute) <- paste('M',1:prod(n_procs),sep='')
-# names(dfp1$response) <- paste('M',1:prod(n_procs),sep='')
-# dfp1l <- lapply(dfp1, function(l) sapply(l, function(sl) sl) )
-# dfp1a <- do.call('rbind',lapply(dfp1l,function(m) data.frame(stack(as.data.frame(m))) ))
-# dfp1a$type <- output_label[1]
-# dfp1a$type[which(grepl('res',row.names(dfp1a)))] <- output_label[2] 
-# 
-# # params
-# dfp1a$par  <- row.names(dfp1$absolute[[1]])
 
+# plot output variability 
+############################################
 
-# dfp1  <- lapply(l3$individual, function(sl) sapply(sl, function(ssl) ssl[[sens]]) )
-# names(dfp1) <- paste('M',1:prod(n_procs),sep='')
-# dfp1l <- vapply(dfp1, function(sl) sl, dfp1[[1]])
-# 
-# dfp1a <- stack(data.frame(dfp1))
-# dfp1a$type <- 'incS' 
-# dfp1a$par  <- row.names(dfp1[[1]])
-# 
-# 
-# # env
-# dfp1a$co2    <- NA
-# dfp1a$PAR    <- NA
-# dfp1a$co2[which(grepl('abs',row.names(dfp1a)))] <- rep(abs_co2,each=14) 
-# dfp1a$PAR[which(grepl('abs',row.names(dfp1a)))] <- rep(abs_par,each=14) 
-# dfp1a$co2[which(grepl('res',row.names(dfp1a)))] <- rep(res_co2,each=14) 
-# dfp1a$PAR[which(grepl('res',row.names(dfp1a)))] <- rep(res_par,each=14) 
-# 
-# # plot
-# pdf(paste(paste(runid_out,delta_var,'SAplots','radall',sep='_'),'.pdf',sep=''), width=1.5*10, height=2*6,pointsize=20)
-# radar_plot(subset(dfp1a,type=='absolute'),var1='PAR',var2='co2')
-# dev.off()
+setwd(wdd)
+fname <- paste('out',runid,'salt','AB',sep='_')
+AB    <- readRDS(paste(fname,'.RDS',sep=''))
+
+ppp  <- plot_env_array(AB, yvar=delta_var, condvar1='lim', ylim=ylim, ylab=ylab, xlim=xlim, lout=c(3,2), gls=gls )
+ppp  <- plot_env_array(AB, yvar=delta_var, condvar1='lim', ylim=ylim, ylab=ylab, xlim=xlim, xlab=xlab, lout=c(3,2), gls=gls )
+ppp  <- plot_env_array(AB, yvar=delta_var, condvar1='lim', ylim=ylim, ylab=ylab, xlim=xlim, lout=c(3,2), gls=gls )
+
+setwd(wdp)
+pdf(paste(runid,delta_var,'.pdf',sep='_'),width=10,height=6);                  print(ppp[[2]]); dev.off()
+pdf(paste(runid,delta_var,'_bymodel.pdf',sep='_'),width=10,height=6);          print(ppp[[1]]); dev.off()
+pdf(paste0(paste(runid,delta_var,condvar1,sep='_'),'.pdf'),width=10,height=6); print(ppp[[3]]); dev.off()
 
 
 

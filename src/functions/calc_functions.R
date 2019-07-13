@@ -6,7 +6,7 @@
 #
 ################################
 
-library(randtoolbox)
+suppressPackageStartupMessages(library(randtoolbox))
 
 
 

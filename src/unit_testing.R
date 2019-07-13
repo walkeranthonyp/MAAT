@@ -9,7 +9,7 @@
 
 
 
-### Load model scripts 
+### Load model scripts
 ###############################
 
 
@@ -98,6 +98,75 @@ out <- wrapper_object$.test_saltelli(mc=T, pr=6, oconf=F, n=10 )
 wrapper_object$dataf$env
 wrapper_object$dataf$fnames
 wrapper_object$dataf$pars
+
+
+# MCMC Mixture test
+source('wrapper_object.R')
+# ALJ: test DREAM algorithm with mixture model
+out <- wrapper_object$.test_mcmc_mixture(mcmc_type = 'dream',
+                                         mcmc_maxiter = 5000,
+                                         mcmc_chains = 8,
+                                         mc = F,
+                                         pr = 4,
+                                         mu_vector = c(-8, 0, 8),
+                                         sd_vector = c(1, 1, 1),
+                                         height_vector = c(0.1, 0.3, 0.6),
+                                         mixture_scale = 1e12
+                                         )
+# ALJ: histogram of posterior parameter distributions
+hist(out$pars_array,
+     breaks = 200,
+     col = 'darkmagenta',
+     border = 'darkmagenta',
+     xlab = 'Mixture Model Parameters',
+     main = 'Posterior (Target) Parameter Distributions for Mixture Model')
+# df1 <- data.frame(lklihood=as.vector(t(out[[2]])), chain=rep(1:dim(out[[2]])[1],each=dim(out[[2]])[2]) )
+# xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) , df1, groups=chain, auto.key=T, type='l' )
+# names(out)
+# update(out[[3]],breaks=50)
+# wrapper_object$dynamic
+# wrapper_object$dynamic$pars_eval
+# wrapper_object$dataf$pars
+# wrapper_object$model$pars
+# wrapper_object$dataf$pars_array[,,1]
+# wrapper_object$dataf$pars_lklihood
+# wrapper_object$dataf$pars_array
+# wrapper_object$wpars
+
+
+# MCMC linear regression test
+source('wrapper_object.R')
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=150)
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=150, mcmc_type='dream' )
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=150,
+                                        mcmc_test.a ='runif(n,-20,20)',
+                                        mcmc_test.b ='runif(n,-20,20)')
+#out <- wrapper_object$.test_mcmc_linreg(mc=T, pr=4, mcmc_chains=8, mcmc_maxiter=1000 )
+update(out[[3]],breaks=50)
+dim(out[[2]])
+df1 <- data.frame(lklihood=as.vector(t(out[[2]])), chain=rep(1:dim(out[[2]])[1],each=dim(out[[2]])[2]) )
+xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) , df1, groups=chain, auto.key=T, type='l' )
+xyplot(lklihood ~ rep(1:dim(out[[2]])[2], dim(out[[2]])[1] ) | chain , df1, auto.key=T, type='l' )
+names(out)
+dim(out$pars_array)
+histogram(as.numeric(out$pars_array[,1,]))
+histogram(as.numeric(out$pars_array[,2,]))
+class(out$pars_array[,2,])
+as.numeric(out$pars_array[,2,])
+wrapper_object$mcmc$boundary_min
+wrapper_object$mcmc$boundary_max
+
+wrapper_object$wpars
+wrapper_object$mcmc
+wrapper_object$dynamic
+wrapper_object$dataf$pars
+wrapper_object$model$pars
+wrapper_object$dataf$pars_array
+wrapper_object$dataf$pars_lklihood
+wrapper_object$wpars
+dim(wrapper_object$dataf$out_mcmc)
+wrapper_object$dataf$out_mcmc[,,74]
+wrapper_object$dataf$out_mcmc[,,75]
 
 
 # Canopy

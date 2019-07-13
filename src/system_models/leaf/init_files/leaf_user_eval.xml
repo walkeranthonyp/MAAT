@@ -1,0 +1,23 @@
+<eval_data_translator>
+  <state>
+    <leaf>
+      <oi>'column name of variable in evaldata file'</oi>
+      <ca>'column name of variable in evaldata file'</ca>
+      <cb>'column name of variable in evaldata file'</cb>
+      <ci>'column name of variable in evaldata file'</ci>
+      <cc>'column name of variable in evaldata file'</cc>
+      <leaf_temp>'column name of variable in evaldata file'</leaf_temp>
+      <leafN_area>'column name of variable in evaldata file'</leafN_area>
+      <fwdw_ratio>'column name of variable in evaldata file'</fwdw_ratio>
+      <J>'column name of variable in evaldata file'</J>
+      <Acg>'column name of variable in evaldata file'</Acg>
+      <Ajg>'column name of variable in evaldata file'</Ajg>
+      <Apg>'column name of variable in evaldata file'</Apg>
+      <A>'column name of variable in evaldata file'</A>
+      <rd>'column name of variable in evaldata file'</rd>
+      <lim>'column name of variable in evaldata file'</lim>
+      <A_noR>'column name of variable in evaldata file'</A_noR>
+      <transition>'column name of variable in evaldata file'</transition>
+    </leaf>
+  </state>
+</eval_data_translator>

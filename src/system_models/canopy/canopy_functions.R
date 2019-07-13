@@ -20,6 +20,10 @@ f_lai_sphagnum <- function(.) {
   .super$pars$lai_max*b / (b + exp(.super$pars$lai_curve*(.super$env$water_td-.super$env$sphag_h)/10) )
 }
 
+f_lai_sphagnum_lin <- function(.) {
+  # calculate sphagnum 'lai' as a linear function of water table depth
+  
+}
 
 # Light Scaling
 ################################

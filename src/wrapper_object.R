@@ -1,7 +1,7 @@
-################################
+###############################
 #
-# Wrapper object for model objects 
-# 
+# Wrapper object for model objects
+#
 # AWalker December 2015, June 2019
 #
 ################################
@@ -9,6 +9,7 @@
 library(proto)
 library(parallel)
 
+source('wrapper_functions.R')
 source('functions/general_functions.R')
 source('functions/calc_functions.R')
 source('wrapper_functions.R')
@@ -418,6 +419,7 @@ wrapper_object$.test_simple <- function(., gen_metd=F, mc=F, pr=4, oconf=F ) {
   .$output() # this should be runtype specific, set up in build
 }    
 
+<<<<<<< HEAD
  
 # general factorial test, with or without metdata
 wrapper_object$.test <- function(.,gen_metd=T,mc=T,pr=4,oconf=F) {
@@ -825,6 +827,187 @@ wrapper_object$.test_saltelli <- function(., metd=F, mc=T, pr=4, oconf=F, n=3, e
   # process & record output
   list(AB=.$dataf$out, ABi=.$dataf$out_saltelli)
 }    
+
+    # test function for MCMC parameter estimation using mixture model with tri-modal distribution
+    .test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='demc',
+                                   mcmc_chains=8, mcmc_maxiter=100,
+                                   mu_vector=c(-8,0,6),
+                                   sd_vector=c(1,1,1),
+                                   height_vector=c(0.2,0.5,0.3),
+                                   mixture_scale=1e12
+                                   ) {
+
+      ### currently does not work with multicoring,
+      ### probably due to assignment to . datastructure during the forked processes
+      ### perhaps setting parent in build function would avoid problem, should be shared memory, but perhaps not
+
+      # source directory
+      setwd('system_models/mcmc_test')
+      source('mcmc_test_object.R')
+      # clone & build the model object
+      init_default <- .$build(model='mcmc_test_object')
+      setwd('../..')
+      library(lattice)
+
+      # redefine mc if mc=T
+      if(mc) {mc <- F; print('mc specified as T but does not work in unit testing with current MAAT config, redefining mc as F') }
+
+      # define control parameters
+      .$wpars$unit_testing <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions)
+      .$model$pars$verbose <- F
+      .$model$pars$cverbose<- F
+      .$model$mcmc_testsys <- 'f_mcmc_testsys_mixture'
+      .$wpars$multic       <- mc           # multicore the ensemble
+      .$wpars$procs        <- pr           # number of cores to use if above is true
+      .$wpars$UQ           <- T            # run a UQ/SA style ensemble
+      .$wpars$UQtype       <- 'mcmc'       # MCMC ensemble
+      .$wpars$mcmc_type    <- mcmc_type    # MCMC type, 'demc' or 'dream'
+      .$wpars$mcmc_chains  <- mcmc_chains  # MCMC number of chains
+      .$wpars$mcmc_maxiter <- mcmc_maxiter # MCMC max number of steps / iterations on each chain
+      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_log'  # MCMC likelihood function
+
+      # set problem specific parameters
+      .$model$pars$mu1     <- mu_vector[1]
+      .$model$pars$mu2     <- mu_vector[2]
+      .$model$pars$mu3     <- mu_vector[3]
+      .$model$pars$sd1     <- sd_vector[1]
+      .$model$pars$sd2     <- sd_vector[2]
+      .$model$pars$sd3     <- sd_vector[3]
+      # ALJ: added a few more problem-specific parameters
+      .$model$pars$height1 <- height_vector[1]
+      .$model$pars$height2 <- height_vector[2]
+      .$model$pars$height3 <- height_vector[3]
+      .$model$pars$mixture_scale <- mixture_scale
+
+      # define priors
+#      # number of parameters in proposal
+#      np  <- 4
+#      # provide mean of initial sample
+#      # Q: what is the final 0 doing on the below vector?
+#      mu  <- c(.$model$pars$mu1, .$model$pars$mu2, .$model$pars$mu3, 0 )
+#      # provide initial covariance
+#      sig <- (10*diag(np))
+#      # create a (mcmc_chains x n) matrix of iid normal random variables
+#      A   <- matrix(rnorm(mcmc_chains*np), mcmc_chains, np )
+#      # compute choleski decomposition of initial covariance matrix
+#      B   <- chol(sig)
+#      # initialize chains with normal distribution
+#      priors <- matrix(1, mcmc_chains, 1 ) %*% mu + A  %*% B
+#      colnames(priors) <- paste0('mcmc_test.proposal', 1:4 )
+#      .$dataf$pars     <- priors
+#
+#      print('priors', quote=F )
+#      print(priors,quote=F)
+
+      # APW: is this the standard prior used for thise test?
+      # ALJ: the prior is dependent on the user-specified mu's and sd's
+      #      so theoretically the prior should be changed with each run
+      # ALJ: these current prior ranges work well for mu=<-8,0,8> and sd=<1,1,1>
+      .$dynamic$pars_eval <- list(
+        mcmc_test.proposal1  = 'runif(n,-20,20)',
+        mcmc_test.proposal2  = 'runif(n,-20,20)',
+        mcmc_test.proposal3  = 'runif(n,-20,20)',
+        mcmc_test.proposal4  = 'runif(n,-20,20)'
+      )
+
+      # define ofname
+      .$ofname <- 'mcmc_mixture_test'
+
+      # Run MCMC
+      st <- system.time(
+        .$run()
+      )
+      print('',quote=F)
+      print('Run time:',quote=F)
+      print(st)
+      print('',quote=F)
+
+      # process & record output
+      # output
+      hist <- histogram(.$dataf$pars_array)
+      list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, hist=hist )
+    }
+
+
+    # test function for MCMC parameter estimation in a linear regression
+    .test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_type='demc', mcmc_chains=7, mcmc_homosced=T, mcmc_maxiter=3,
+                                  x=1:10, a_mu=-25, b_mu=25, a_sd=1, b_sd=1, standard_err=0.5,
+                                  mcmc_test.a  = 'runif(n,-30,30)',
+                                  mcmc_test.b  = 'runif(n,-30,30)'
+                                  ) {
+
+      # source directory
+      setwd('system_models/mcmc_test')
+      source('mcmc_test_object.R')
+      # clone & build the model object
+      init_default <- .$build(model='mcmc_test_object')
+      setwd('../..')
+      library(lattice)
+
+      # redefine mc if mc=T
+      if(mc) {mc <- F; print('mc specified as T but does not work in unit testing with current MAAT config, redefining mc as F') }
+
+      # define control parameters
+      .$wpars$unit_testing  <- T             # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions)
+      .$model$pars$verbose  <- F
+      .$model$pars$cverbose <- F
+      .$model$fnames$mcmc_testsys <- 'f_mcmc_testsys_regression'
+      .$model$fnames$reg_func     <- 'f_reg_func_linear'
+      .$wpars$multic        <- mc            # multicore the ensemble
+      .$wpars$procs         <- pr            # number of cores to use if above is true
+      .$wpars$UQ            <- T             # run a UQ/SA style ensemble
+      .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble
+      .$wpars$mcmc_type     <- mcmc_type     # MCMC type, 'demc' or 'dream'
+      .$wpars$mcmc_chains   <- mcmc_chains   # MCMC number of chains
+      .$wpars$mcmc_homosced <- mcmc_homosced # MCMC homoscedastic error
+      .$wpars$mcmc_maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
+      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared_se'  # MCMC likelihood function
+
+      # set problem specific parameters
+      .$model$pars$syn_a_mu <- a_mu
+      .$model$pars$syn_b_mu <- b_mu
+      .$model$pars$syn_a_sd <- a_sd
+      .$model$pars$syn_b_sd <- b_sd
+
+      # met data
+      .$dataf$met        <- matrix(x, length(x) ,1 )
+      colnames(.$dataf$met) <- 'mcmc_test.linreg_x'
+
+      # generate synthetic data
+      .$model$pars$a       <- rnorm(length(x), .$model$pars$syn_a_mu, .$model$pars$syn_a_sd )
+      .$model$pars$b       <- rnorm(length(x), .$model$pars$syn_b_mu, .$model$pars$syn_b_sd )
+      .$model$env$linreg_x <- x
+      .$dataf$obs          <- get(.$model$fnames$reg_func)(.$model)
+      .$dataf$obsse        <- abs(rnorm(length(x), mean = 0, sd = standard_err))
+
+      # define priors
+      .$dynamic$pars_eval <- list(
+        mcmc_test.a  = mcmc_test.a,
+        mcmc_test.b  = mcmc_test.b
+      )
+
+      # define ofname
+      .$ofname <- 'lin_reg_test'
+
+      # Run MCMC
+      st <- system.time(
+        .$run()
+      )
+      print('',quote=F)
+      print('Run time:',quote=F)
+      print(st)
+      print('',quote=F)
+
+      # process & record output
+      # output
+      hist <- histogram(.$dataf$pars_array)
+      list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, hist=hist )
+    }
+
+
+###########################################################################
+# end maat wrapper
+})
 
 
 

@@ -73,10 +73,16 @@ f_sys_enzymek <- function(.) {
       .super$state$transition <- .$fns$transition_cc()
     }
     
-    # calculate assimilation 
+    # calculate assimilation
+    if(.$fnames$rs=='f_rs_constant') {
+      # temporarily reassign solver function that calculates A when rs is a constant 
+      #solver <- .$fnames$solver
+      .$fns$solver <- f_A_r0_leaf_analytical_quad
+    }  
     .super$state$A       <- .$solver()      
+ 
     # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
-    .super$state$lim     <- c(3,7)[which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T))]       
+    .super$state$lim     <- c(2,3,7)[which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T))]       
    
     # after the fact calculations
     if(!grepl('analytical',.$fnames$solver)) {
@@ -95,7 +101,7 @@ f_sys_enzymek <- function(.) {
         if( .super$state$A<0 | .super$state$cc<0 | .super$state_pars$rs<0 ) {
 
           # perhaps write this flag into the leaf object
-          #print(paste('negative values loop'))
+          print(paste('solver returned negative value of A, cc, or rs; recalculate assuming rs = r0'))
   
           # temporarily reassign solver function 
           #solver <- .super$fnames$solver
@@ -110,7 +116,8 @@ f_sys_enzymek <- function(.) {
           #.super$fnames$solver_func <- solver 
           .$solver <- get(.super$fnames$solver) 
     }}}
- 
+
+    if(.$fnames$rs=='f_rs_constant') .$fns$solver <- get(.$fnames$solver) 
   }
  
   # if PAR <= 0

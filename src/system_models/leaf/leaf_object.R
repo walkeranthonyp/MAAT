@@ -93,7 +93,7 @@ leaf_object$fnames <- list(
     tpu            = 'f_tcor_dep_independent',
     rd             = 'f_tcor_dep_independent',
     tau            = 'f_tcor_dep_independent'
-	),
+  ),
   deltaS   = list(  
     rd             = 'f_deltaS',
     vcmax          = 'f_deltaS',
