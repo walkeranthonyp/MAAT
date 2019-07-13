@@ -255,16 +255,20 @@ puniroot <-
   function (., f, interval, ..., lower = min(interval), upper = max(interval), 
             f.lower = f(lower, ...), f.upper = f(upper, ...), 
             extendInt = c("no", "yes", "downX", "upX"), check.conv = FALSE, tol = .Machine$double.eps^0.25, 
-            maxiter = 1000, trace = 0) {
+            maxiter = 1000, trace = 0, NAproceed=T ) {
     if (!missing(interval) && length(interval) != 2L) 
       stop("'interval' must be a vector of length 2")
     if (!is.numeric(lower) || !is.numeric(upper) || lower >= 
         upper) 
       stop("lower < upper  is not fulfilled")
     if (is.na(f.lower)) 
-      stop("f.lower = f(lower) is NA")
+      #if(NAproceed) {print("f.lower = f(lower) is NA"); print(paste("f.upper = ",f.upper)); f.lower <- f.upper } else 
+      if(NAproceed) {print("f.lower = f(lower) is NA"); return(list(root = NA, f.root = NA, iter = 0, init.it = 0, estim.prec = NA)) } else 
+        stop("f.lower = f(lower) is NA")
     if (is.na(f.upper)) 
-      stop("f.upper = f(upper) is NA")
+      #if(NAproceed) {print("f.upper = f(upper) is NA"); print(paste("f.lower = ",f.lower)); f.upper <- f(20.3453245) } else
+      if(NAproceed) {print("f.upper = f(upper) is NA"); return(list(root = NA, f.root = NA, iter = 0, init.it = 0, estim.prec = NA)) } else
+        stop("f.upper = f(upper) is NA")
     Sig <- switch(match.arg(extendInt), yes = NULL, downX = -1, no = 0, upX = 1, stop("invalid 'extendInt'; please report"))
     truncate <- function(x) pmax.int(pmin(x, .Machine$double.xmax), -.Machine$double.xmax)
     f.low. <- truncate(f.lower)
@@ -351,7 +355,7 @@ puniroot <-
     else it <- NA_integer_
     list(root = val[1L], f.root = f(val[1L], ...), iter = iter, 
          init.it = it, estim.prec = val[3L])
-}
+    }
 
 
 

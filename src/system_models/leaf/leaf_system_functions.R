@@ -77,11 +77,11 @@ f_sys_enzymek <- function(.) {
     .super$state$A       <- .$solver()      
     # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
     .super$state$lim     <- c(3,7)[which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T))]       
- 
+   
     # after the fact calculations
     if(!grepl('analytical',.$fnames$solver)) {
       # calculate Ag for each limiting process
-      .super$state$Acg     <- .super$state$Acg * .super$state$cc 
+      .super$state$Acg     <- .super$state$Acg * .super$state$cc
       .super$state$Ajg     <- .super$state$Ajg * .super$state$cc 
       .super$state$Apg     <- .super$state$Apg * .super$state$cc
  
@@ -91,26 +91,25 @@ f_sys_enzymek <- function(.) {
       .super$state$ci      <- .$gas_diff(A=.super$state$A, r=1.6*.super$state_pars$rs, c=.super$state$cb)
  
       # if rs is negative (occurs when A is negative) recalculate with fixed rs at 1/g0 
-      if( .super$state$A<0 | .super$state$cc<0 | .super$state_pars$rs<0 ) {
+      if(!is.na(.super$state$A)) { 
+        if( .super$state$A<0 | .super$state$cc<0 | .super$state_pars$rs<0 ) {
 
-        # perhaps write this flag into the leaf object
-        #print(paste('negative values loop'))
-
-        # temporarily reassign solver function 
-        #solver <- .super$fnames$solver
-        .$solver <- get('f_A_r0_leaf_analytical_quad')
-      
-        # calculate assimilation 
-        .super$state$A       <- .$solver()      
-        # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
-        .super$state$lim     <- c(3,7)[which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T))]       
-   
-        #.super$fnames$solver_func <- solver 
-        .$solver <- get(.super$fnames$solver) 
-    }}
-
-    #print(.super$leaf$fnames)
-    #print(.super$leaf$state_pars)
+          # perhaps write this flag into the leaf object
+          #print(paste('negative values loop'))
+  
+          # temporarily reassign solver function 
+          #solver <- .super$fnames$solver
+          #.$solver <- get('f_A_r0_leaf_analytical_quad')
+          .$solver <- f_A_r0_leaf_analytical_quad
+        
+          # calculate assimilation 
+          .super$state$A       <- .$solver()      
+          # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
+          .super$state$lim     <- c(3,7)[which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T))]       
+     
+          #.super$fnames$solver_func <- solver 
+          .$solver <- get(.super$fnames$solver) 
+    }}}
  
   }
  
