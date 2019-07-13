@@ -87,7 +87,7 @@ canopy_object$run_leaf <- function(., ii, df ) {
   .$leaf$configure(vlist='env',   df=df[ii,] )
   .$leaf$configure(vlist='state', df=df[ii,] )
   .$leaf$configure(vlist='pars',  df=df[ii,] )
-  
+
   # run leaf
   .$leaf$run()        
 }

@@ -48,7 +48,10 @@ leaf_object$.test_tscalar(tcor_asc='f_tcor_asc_Q10', tcor_des='f_tcor_des_cox200
 
 source('leaf_object.R')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011')
+out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011', leaf.g0=0.0 )
+out <- leaf_object$.test_aci_analytical(rs='f_rs_medlyn2011', leaf.g0=0.0, leaf.par=1000, leaf.ca_conc=c(100,50) )
 out <- leaf_object$.test_aci_analytical(rs='f_rs_ball1987', leaf.rb=0.115293015 )
+out <- leaf_object$.test_aci_analytical(rs='f_rs_ball1987', leaf.rb=0.0, leaf.g0=0.0 )
 out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_constantCiCa')
 out <- leaf_object$.test_aci_analytical(rs='f_rs_cox1998')

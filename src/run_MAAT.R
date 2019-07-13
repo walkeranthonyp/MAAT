@@ -162,9 +162,9 @@ if(factorial&uq) {
 }
 
 runtype <- 
-  if(factorial)   'factorial'
-  else if(procSA) 'SAprocess_ye'
-  else if(salt)   'SApar_saltelli'
+  if(factorial) 'factorial'    else
+  if(procSA)    'SAprocess_ye' else
+  if(salt)      'SApar_saltelli'
 
 if(uq&of_format!='rds') {
   of_format <- 'rds'
@@ -194,7 +194,7 @@ maat$wpars$nmult         <- salt_nmult
 maat$wpars$eval_strings  <- eval_strings       
 maat$wpars$of_name_stem  <- ofname 
 maat$wpars$of_type       <- of_format
-maat$wpars$of_dir        <- of_dir
+maat$wpars$of_dir        <- odir
 
 maat$model$cpars$verbose <- F
 maat$model$cpars$output  <- mod_out

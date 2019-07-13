@@ -102,6 +102,11 @@ run_met <- function(.,l) {
  
   # met data assignment
   .$configure(vlist='env', df=.$dataf$met[l,] )
+
+  #print('')
+  #print(.$name)
+  #print(.$env)
+ 
  
   # run model
   .$run()              

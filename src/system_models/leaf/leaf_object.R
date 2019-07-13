@@ -575,22 +575,22 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
   if(output) .$dataf$out_full
 }
 
-leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011', leaf.par=c(100,1000), leaf.ca_conc=seq(100,1200,50), leaf.rb=0, 
+leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011', leaf.par=c(100,1000), leaf.ca_conc=seq(50,1200,50), leaf.rb=0, leaf.g0=0.01, 
                                  ana_only=F, verbose=F, verbose_loop=F, diag=F ) {
   
-  .$cpars$verbose       <- verbose
-  .$cpars$verbose_loop  <- verbose_loop
-  .$pars$diag           <- diag
-  .$cpars$output        <- 'all_lim'
-  
   if(verbose) str(.)
+  .$cpars$verbose      <- verbose
+  .$cpars$verbose_loop <- verbose_loop
+  .$pars$diag          <- diag
+  .$cpars$output       <- 'all_lim'
   
-  .$fnames$rs           <- rs
-  .$fnames$ri           <- 'f_r_zero'
-  .$fnames$rb           <- 'f_rb_constant'
-  #.$fnames$rb           <- 'f_rb_leafdim'
-  #.$fnames$rb           <- 'f_r_zero'
-  .$pars$rb             <- leaf.rb
+  .$fnames$rs <- rs
+  .$fnames$ri <- 'f_r_zero'
+  .$fnames$rb <- 'f_rb_constant'
+  #.$fnames$rb <- 'f_rb_leafdim'
+  #.$fnames$rb <- 'f_r_zero'
+  .$pars$rb   <- leaf.rb
+  .$pars$g0   <- leaf.g0
   
   # configure met data 
   .$dataf     <- list()

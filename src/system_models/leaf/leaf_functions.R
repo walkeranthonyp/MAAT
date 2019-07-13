@@ -35,7 +35,7 @@ f_assimilation <- function(.) {
   .super$state$Acg     <- .$Acg()
   .super$state$Ajg     <- .$Ajg()
   .super$state$Apg     <- .$Apg()
-  
+ 
   # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
   Amin <- .$Alim() 
   
@@ -265,7 +265,6 @@ f_A_r_leaf_analytical_quad <- function(.) {
   # calculate coefficients of quadratic to solve A
   .$assim_quad_soln <- function(., V, K ) {
     gsd <- .$rs_fe() / .super$state$ca 
-    #gsd <- get(paste0(.super$fnames$rs,'_fe'))(.) / .super$state$ca
     p   <- .super$env$atm_press*1e-6
     a   <- p*( 1.6 - gsd*(.super$state$ca + K) )
     b   <- p*gsd*( .super$state$ca*(V - .super$state$rd) - .super$state$rd*K - V*.super$state_pars$gstar ) - .super$pars$g0*(.super$state$ca + K) + 1.6*p*(.super$state$rd - V)
@@ -280,7 +279,8 @@ f_A_r_leaf_analytical_quad <- function(.) {
   .super$state$Apg <- .$assim_quad_soln(V=(3*.super$state_pars$tpu), K=(-(1+3*.super$pars$Apg_alpha)*.super$state_pars$gstar) )
 
   # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin        <- .$Alim() 
+  Amin        <- .$Alim()
+  if(Amin==0) Amin <- 1e-6 
   
   # determine cc/ci based on Amin
   # calculate rs
@@ -485,7 +485,7 @@ f_Apg_none <- function(.) {
 # limiting rate selection 
 # simple minimum of all three possible limitating states
 f_lim_farquhar1980 <- function(.) {
-  
+ 
   min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T)
 }
 
@@ -941,8 +941,9 @@ f_tcor_des_modArrhenius <- function(., var, ... ) {
   # convert to Kelvin
   Trk <- .super$pars$reftemp[[var]] + 273.15
   Tsk <- .super$state$leaf_temp + 273.15
-  
-  deltaS <- .[[paste('deltaS',var,sep='.')]](., var=var )
+ 
+  # calculate deltaS 
+  deltaS <- .[[paste('deltaS',var,sep='.')]](var=var)
   
   (1 + exp((Trk*deltaS-.super$pars$Hd[[var]]) / (Trk*.super$pars$R)) ) / 
     (1 + exp((Tsk*deltaS-.super$pars$Hd[[var]]) / (Tsk*.super$pars$R)) )  
@@ -960,7 +961,7 @@ f_tcor_des_collatz1991 <- function(., var, ... ) {
   # convert to Kelvin
   Tsk <- .super$state$leaf_temp + 273.15
   
-  # get deltaS
+  # calculate deltaS 
   deltaS <- .[[paste('deltaS',var,sep='.')]](., var=var )
   
   1 / ( 1 + exp((Tsk*deltaS-.super$pars$Hd[[var]]) / (Tsk*.super$pars$R)) )
@@ -1034,10 +1035,10 @@ f_gstar_f1980 <- function(., ... ) {
 f_gstar_constref <- function(.) {
   # this will probably not give the correct response to a change in atmospheric pressure
   
-  .super$pars$atref$gstar * .[['tcor_asc.gstar']]('gstar') 
+  .super$pars$atref$gstar * .[['tcor_asc.gstar']](var='gstar') 
 }
 
-# calcualtes gstar at leaftemp from tau
+# calculates gstar at leaftemp from tau
 f_gstar_c1991 <- function(.) {
   # takes a defined ref temperature value of tau and scales to leaf temp
   
