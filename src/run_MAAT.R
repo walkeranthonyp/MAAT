@@ -196,9 +196,10 @@ if(factorial&uq) {
 }
 
 runtype <- 
-  if(factorial) 'factorial'    else
-  if(procSA)    'SAprocess_ye' else
-  if(salt)      'SApar_saltelli'
+  if(factorial) 'factorial'      else
+  if(procSA)    'SAprocess_ye'   else
+  if(salt)      'SApar_saltelli' else
+  if(mcmc)      paste0('mcmc_',mcmc_type)
 
 if(uq&of_format!='rds') {
   of_format <- 'rds'
