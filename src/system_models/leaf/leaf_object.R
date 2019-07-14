@@ -8,6 +8,7 @@
 
 source('leaf_system_functions.R')
 source('leaf_functions.R')
+source('leaf_functions_solvers.R')
 
 
 
@@ -56,6 +57,7 @@ leaf_object$fnames <- list(
   sys            = 'f_sys_enzymek', 
   solver_func    = 'f_A_r_leaf',
   solver         = 'f_R_Brent_solver',
+  semiana        = 'f_semiana_quad',
   Acg            = 'f_Acg_farquhar1980',
   Ajg            = 'f_Ajg_generic',
   Apg            = 'f_Apg_vonc2000',            
@@ -73,6 +75,7 @@ leaf_object$fnames <- list(
   rs             = 'f_rs_medlyn2011',
   rb             = 'f_rb_leafdim',
   cica_ratio     = 'f_cica_constant',             
+  d13c           = 'f_d13c_classical',             
   tcor_asc = list(
     vcmax          = 'f_tcor_asc_Arrhenius',
     jmax           = 'f_tcor_asc_Arrhenius',
@@ -150,8 +153,18 @@ leaf_object$state <- list(
   lim = numeric(1),                # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
 
   # diagnostic state
-  A_noR        = numeric(1),       # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
-  transition   = numeric(1)        # cc at the transition point where wc = wj                        (Pa)
+  A_ana_rbzero   = numeric(1),     # rate of carboxylation assuming zero boundary layer resistance to CO2 diffusion (umol m-2 s-1)
+  A_ana_rbg0zero = numeric(1),     # rate of carboxylation assuming zero boundary layer resistance & zero minimum stomatal conductance to CO2 diffusion (umol m-2 s-1)
+  aguess         = numeric(4),     # value of three guesses and solution from semi-analytical solver  (umol m-2 s-1)
+  faguess        = numeric(4),     # value of solver function on three guesses and solution from semi-analytical solver  (umol m-2 s-1)
+  aguess_flag    = numeric(1),     # flag for first guess from semi-analytical solver
+  iter           = numeric(1),     # number of iterations to solve solver function in Brent uniroot
+  estimprec      = numeric(1),     # estimated precision of solve from uniroot solver function 
+  assim          = numeric(2),     # roots of fitted quadratic in semi-analytical solver
+  fA_ana_final   = numeric(2),     # value of solver function for final gusee from semi-analytical solver  (umol m-2 s-1)
+  A_noR          = numeric(1),     # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
+  transition     = numeric(1),     # cc at the transition point where wc = wj                        (Pa)
+  d13c           = numeric(1)      # delta 13 C concentration of assimilated C 
 )
 
 # results from solver
@@ -185,6 +198,9 @@ leaf_object$state_pars <- list(
 ####################################
 leaf_object$pars   <- list(
   diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
+  d13c          = F,          # calculate d13c and add to output
+  deltaA_prop   = 0.15,       # proportion of first guess in A to use as delta in semi-analytical solver (unitless)  
+
   # photosynthetic parameters
   a             = 0.80,       # fraction of PAR absorbed by leaf                       (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
   f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
@@ -206,6 +222,7 @@ leaf_object$pars   <- list(
   fnr           = 7.16,       # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
   Rsa           = 60,         # specific activity of RuBisCO                           ()
   Apg_alpha     = 0,          # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
+
   # resistance parameters
   g0            = 0.01,       # Medlyn 2011 min gs                                     (molm-2s-1)
   g1_medlyn     = 6,          # Medlyn 2011 gs slope                                   (kPa^0.5)
@@ -223,6 +240,12 @@ leaf_object$pars   <- list(
   co2_diff      = 1.7e-9,     # CO2 diffusivity in water                      - these three parameters are from Evans etal 2009 and the diffusivities are temp dependent  
   hco_co2_ratio = 0,          # ratio of HCO and CO2 concentration in water, assumed 0 for bog pH i.e. below 4.5   
   hco_co2_diff_ratio = 0.56,  # ratio of HCO and CO2 diffusivity in water  
+  d13c_a        = 4.4,        # 13 C discrimination during CO2 diffusion through stomata 
+  d13c_b        = 27,         # 13 C discrimination during carboxylation in the simple model 
+  d13c_b_prime  = 30,         # 13 C discrimination during carboxylation 
+  d13c_am       = 1.8,        # 13 C discrimination during diffusion to site of carboxylation 
+  d13c_f        = 12,         # 13 C discrimination during photorespiration 
+
   # respiration parameters
   a_rdv_25      = 0,          # intercept of linear rd25 to vcmax25 relationship        (umolm-2s-1)
   b_rdv_25      = 0.015,      # slope of linear rd25 to vcmax25 relationship            (unitless)
@@ -233,6 +256,7 @@ leaf_object$pars   <- list(
   rl_rd_lloyd_b = 0.05,       # slope of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from mercado 2007 (?)
   a_rdv_25_t    = 0.015,      # intercept of b_rdv_25 relationship to temperature       (umolm-2s-1)
   b_rdv_25_t    = -0.0005,    # slope of b_rdv_25 relationship to temperature           (unitless)
+  
   # temperature response parameters
   reftemp = list(
     rd    = 25,               # reference temperature at which rd scalar = 1            (oC) 
@@ -411,7 +435,8 @@ leaf_object$.test <- function(., verbose=T, verbose_loop=T, leaf.par=1000, leaf.
 
 
 leaf_object$.test_solverFunc <- function(., verbose=T, verbose_loop=T,
-                             sinput=c(-1,50), leaf.par=200, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
+                                         sinput=c(-1,50), centrala=5, range=3, inc=range,
+                                         leaf.par=200, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
   
   if(verbose) str(.)
   
@@ -445,12 +470,14 @@ leaf_object$.test_solverFunc <- function(., verbose=T, verbose_loop=T,
   # run the residual function within a loop
   out <- numeric(length(sinput))
   for( i in 1:length(sinput) ) {
-    #out[i] <- f_A_r_leaf(., A=sinput[i] )
     out[i] <- .$fns$solver_func(A=sinput[i])
   }
 
+  #out <- f_residual(., centrala, range, inc )
+
   # output
   print(xyplot(out~sinput,type='b',abline=0))
+  #print(xyplot(resid~a,type='b',abline=0))
   out
 }
 
@@ -526,8 +553,8 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
 }
 
 
- leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50),rs='f_rs_medlyn2011',
-                            verbose=F,verbose_loop=F,output=F,diag=F) {
+leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50),rs='f_rs_medlyn2011',
+                                        verbose=F,verbose_loop=F,output=F,diag=F) {
   
   .$cpars$verbose       <- verbose
   .$cpars$verbose_loop  <- verbose_loop
@@ -575,8 +602,11 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
   if(output) .$dataf$out_full
 }
 
-leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011', leaf.par=c(100,1000), leaf.ca_conc=seq(50,1200,50), leaf.rb=0, leaf.g0=0.01, 
-                                 ana_only=F, verbose=F, verbose_loop=F, diag=F ) {
+
+leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011', 
+                                             leaf.par=c(100,1000), leaf.ca_conc=seq(50,1200,50), 
+                                             leaf.rb=0, leaf.g0=0.01, 
+                                             ana_only=F, verbose=F, verbose_loop=F, diag=F ) {
   
   if(verbose) str(.)
   .$cpars$verbose      <- verbose
@@ -660,8 +690,9 @@ leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011', leaf.par=c
   ol
 }
 
+
 leaf_object$.test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_j_farquharwong1984',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1500,50), 
-                                 ana_only=F,verbose=F,verbose_loop=F,diag=F) {
+                                      ana_only=F,verbose=F,verbose_loop=F,diag=F) {
   
   .$cpars$verbose       <- verbose
   .$cpars$verbose_loop  <- verbose_loop

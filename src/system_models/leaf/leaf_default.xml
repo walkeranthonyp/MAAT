@@ -4,6 +4,7 @@
       <sys>'f_sys_enzymek'</sys>
       <solver_func>'f_A_r_leaf'</solver_func>
       <solver>'f_R_Brent_solver'</solver>
+      <semiana>'f_semiana_quad'</semiana>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
@@ -21,6 +22,7 @@
       <rs>'f_rs_medlyn2011'</rs>
       <rb>'f_rb_leafdim'</rb>
       <cica_ratio>'f_cica_constant'</cica_ratio>
+      <d13c>'f_d13c_classical'</d13c>
       <tcor_asc>
         <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
         <jmax>'f_tcor_asc_Arrhenius'</jmax>
@@ -61,6 +63,8 @@
   <pars>
     <leaf>
       <diag>FALSE</diag>
+      <d13c>FALSE</d13c>
+      <deltaA_prop>0.15</deltaA_prop>
       <a>0.8</a>
       <f>0.23</f>
       <ko_kc_ratio>0.21</ko_kc_ratio>
@@ -97,6 +101,11 @@
       <co2_diff>1.7e-09</co2_diff>
       <hco_co2_ratio>0</hco_co2_ratio>
       <hco_co2_diff_ratio>0.56</hco_co2_diff_ratio>
+      <d13c_a>4.4</d13c_a>
+      <d13c_b>27</d13c_b>
+      <d13c_b_prime>30</d13c_b_prime>
+      <d13c_am>1.8</d13c_am>
+      <d13c_f>12</d13c_f>
       <a_rdv_25>0</a_rdv_25>
       <b_rdv_25>0.015</b_rdv_25>
       <a_rdn_25>0.5</a_rdn_25>

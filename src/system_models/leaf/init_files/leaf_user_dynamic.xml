@@ -4,6 +4,7 @@
       <sys>NA</sys>
       <solver_func>NA</solver_func>
       <solver>NA</solver>
+      <semiana>NA</semiana>
       <Acg>NA</Acg>
       <Ajg>NA</Ajg>
       <Apg>NA</Apg>
@@ -21,6 +22,7 @@
       <rs>NA</rs>
       <rb>NA</rb>
       <cica_ratio>NA</cica_ratio>
+      <d13c>NA</d13c>
       <tcor_asc>
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
@@ -61,6 +63,8 @@
   <pars>
     <leaf>
       <diag>NA</diag>
+      <d13c>NA</d13c>
+      <deltaA_prop>NA</deltaA_prop>
       <a>NA</a>
       <f>NA</f>
       <ko_kc_ratio>NA</ko_kc_ratio>
@@ -97,6 +101,11 @@
       <co2_diff>NA</co2_diff>
       <hco_co2_ratio>NA</hco_co2_ratio>
       <hco_co2_diff_ratio>NA</hco_co2_diff_ratio>
+      <d13c_a>NA</d13c_a>
+      <d13c_b>NA</d13c_b>
+      <d13c_b_prime>NA</d13c_b_prime>
+      <d13c_am>NA</d13c_am>
+      <d13c_f>NA</d13c_f>
       <a_rdv_25>NA</a_rdv_25>
       <b_rdv_25>NA</b_rdv_25>
       <a_rdn_25>NA</a_rdn_25>

@@ -14,17 +14,8 @@ f_none <- function(.) {
   NA
 }
 
-### SOLVERS & RESIDUAL FUNCTIONS
+### PHOTOSYNTHESIS FUNCTIONS
 ################################
-
-# Solver to find root of .$solver_func
-f_R_Brent_solver <- function(.) {
-  if(.super$cpars$verbose_loop) print(.super$env) 
-
-  .super$solver_out <- .$puniroot(.$solver_func, interval=c(-0.002765326,50.1234), extendInt='downX' )
-  .super$solver_out$root
-}
-
 
 # Calculate assimilation for a given cc (.super$state$cc)
 # - code block common to all assimilation solvers
@@ -32,10 +23,10 @@ f_R_Brent_solver <- function(.) {
 f_assimilation <- function(.) {
  
   # calculate Ag / cc for each limiting process
-  .super$state$Acg     <- .$Acg()
-  .super$state$Ajg     <- .$Ajg()
-  .super$state$Apg     <- .$Apg()
- 
+  .super$state$Acg[] <- .$Acg()
+  .super$state$Ajg[] <- .$Ajg()
+  .super$state$Apg[] <- .$Apg()
+  
   # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
   Amin <- .$Alim() 
   
@@ -43,323 +34,6 @@ f_assimilation <- function(.) {
   Amin*.super$state$cc - Amin*.super$state_pars$gstar - .super$state$rd
 }
   
-
-# Residual function for solver to calculate assimilation
-f_A_r_leaf <- function(., A, ... ) {
-  # combines A, rs, ri, ci & cc eqs to a single f(A), 
-  # combines all rate limiting processes
-  #  -- for use with uniroot solver
-  #  -- A is pased to this equation by the uniroot solver and is solved to find the root of this equation
-   
-  # calculate cc from ca, rb, rs, and ri
-  # total resistance of a set of resistors in series is simply their sum 
-  # assumes boundary layer and stomatal resistance terms are in h2o units
-  # assumes mesophyll resistance is in co2 units
-  .super$state$cc <- .$gas_diff(A, r=( 1.4*.super$state_pars$rb + 1.6*.$rs(A=A,c=.$gas_diff(A)) + .super$state_pars$ri ) )
-  
-  #print(c(A,f_assimilation(.)))
-  
-  # calculate residual of net A
-  .$assimilation() - A
-} 
-
-
-# same as above function but with no stomatal resistance 
-f_A_r_leaf_noRs <- function(.,A) {
-  
-  # calculate cc from ca, rb, and ri
-  # assumes boundary layer resistance is in h2o units
-  # assumes mesophyll resistance is in co2 units
-  .super$state$cc <- .$gas_diff(A, r=( 1.4*.super$state_pars$rb + .super$state_pars$ri ) )
-  
-  # calculate residual of net A
-  .$assimilation() - A
-}
-
-
-# Semi-analytical solution 
-f_A_r_leaf_semiana <- function(.) {
-  # - finds the analytical solution assuming rb and ri are zero to use as first guess (a0)
-  # - make a second (a1) guess 
-  # - make a third (a2) guess 
-  # - calculate solver function value for these three guesses (fa0, fa1, fa2) 
-  # - check to make sure these span the root
-  # - fit a quadratic through the three sets of co-ordinates to find the root 
- 
-  # save values that may get reset by analytical function = perhaps move this to the quadratic solver 
-  rb_hold <- .super$state_pars$rb
-  g0_hold <- .super$pars$g0
-  ri_hold <- .super$state_pars$ri
-  
-  # find the analytical solution assuming rb and ri are zero to use as first guess (a0)
-  ### needs editing ###
-  a0 <- .$state$A_ana_rbzero <- f_A_r_leaf_analytical_quad(.)
-
-  # return values potentially reset by analytical function to the data structure
-  .super$state_pars$rb[] <- rb_hold
-  .super$state_pars$ri[] <- ri_hold
-  .super$pars$g0[]       <- g0_hold 
-
-  # currently no method to handle a0 < 0 - this should be fine 
-  #if(a0<0) stop('a0 < 0 ,',a0)
-
-  # a0 should mostly be larger than the full solution (unless rb and ri are zero) 
-  # meaning that fa0 should mostly be < 0
-  ### needs editing ###
-  #fa0 <- f_A_r_leaf(., a0 ) 
-  fa0 <- .$solver_func(A=a0) 
- 
-  # is this necessary? 
-  if(is.na(fa0)) {
-    print('')
-    print(c(a0,fa0))
-    print(unlist(.super$fnames)); print(unlist(.super$pars)); print(unlist(.super$state_pars)); print(unlist(.super$state)); print(unlist(.super$env)) 
-  }
- 
-  #  
-  if(a0 == 0 ) return(1e-3) 
-  else if(abs(fa0) < 1e-6) return(a0)
-  else {
- 
-    # second guess, also analytical
-    .super$state$cc[] <- .$gas_diff( A=a0 , r=( 1.4*.super$state_pars$rb + 1.6*.$rs(A=a0,c=.$gas_diff(A=a0)) + .super$state_pars$ri ))
-    a1                <- .$assimilation() 
-    fa1               <- .$solver_func(A=a1) 
-
-    # third guess
-    a2 <- mean(c(a0,a1))  
-    #if(fa1*fa0 < 0) a2 <- mean(c(a0,a1))  
-    #else            a2 <- a1 - (a0-a1)   # works if initial guess is too high but what if initial guess is too small? need to change sign
-    fa2 <- .$solver_func(A=a2) 
-
-    # check that fa1 isn't huge relative to fa0
-    if(fa1 > 20*abs(fa0)) {
-      print(c('fa0,',round(fa0,4),'fa1 HUGE,',round(fa1,4),'fa2,',round(fa2,4),'a0,',round(a0,4),'a1,',round(a1,4),'a2,',round(a2,4) ))
-      
-      if(fa2*fa0 < 0) {
-        a1  <- mean(c(a0,a2))  
-        fa1 <- .$solver_func(A=a1) 
-      } else {
-        a2hold <- a2
-        a2  <- mean(c(a1,a2))  
-        fa2 <- .$solver_func(A=a2) 
-        if(fa2>fa1) {
-          while(fa2>0) {
-            #a2  <- mean(c(a0,a2))  
-            #a2  <- mean(c(a2hold,a2))  
-            a2  <- a2 - 0.01  
-            fa2 <- .$solver_func(A=a2) 
-          }
-        } 
-      }
-
-      print(c('fa0,',round(fa0,4),'fa1 REDO,',round(fa1,4),'fa2,',round(fa2,4),'a0,',round(a0,4),'a1,',round(a1,4),'a2,',round(a2,4) ))
-
-      if(fa2*fa0 < 0) {
-        a1  <- mean(c(a0,a2))  
-        fa1 <- .$solver_func(A=a1) 
-        print(c('fa0,',round(fa0,4),'fa1 REDO,',round(fa1,4),'fa2,',round(fa2,4),'a0,',round(a0,4),'a1,',round(a1,4),'a2,',round(a2,4) ))
-      } else stop('failed')
-
-      sinput <- seq(a0-2,a0+2,0.1 )
-      out    <- numeric(length(sinput))
-      for( i in 1:length(sinput) ) {
-        out[i] <- .$solver_func(A=sinput[i]) 
-      }
-      print(cbind(sinput,out))
-    }
-
-    # check f(guesses) span zero i.e. that guesses span the root
-    guesses  <- c(a0,a1,a2)
-    fguesses <- c(fa0,fa1,fa2)
-    if( min(fguesses) * max(fguesses) >= 0 ) {
-      print(unlist(.super$fnames)); print(unlist(.super$pars)); print(unlist(.super$state_pars)); print(unlist(.super$env)) 
-      print(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
-      sinput <- seq(a0-2,a0+2,0.1 )
-      out    <- numeric(length(sinput))
-      for( i in 1:length(sinput) ) {
-        out[i] <- .$solver_func(A=sinput[i]) 
-      }
-      print(cbind(sinput,out))
-      #stop(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))      
-      #a2  <- a2 - deltaA1
-      a2  <- mean(c(a1,a2))  
-      fa2 <- .$solver_func(A=a2) 
-      
-      if(fa2*fa0 < 0) {
-        a1  <- mean(c(a0,a2))  
-        fa1 <- .$solver_func(A=a1) 
-      }
-
-      guesses  <- c(a0,a1,a2)
-      fguesses <- c(fa0,fa1,fa2)
-      print(paste('New fas,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
-      if( min(fguesses) * max(fguesses) >= 0 ) stop(paste('Solver error: fa0-2 all > or < 0,',fa0,fa1,fa2,'; guesses,',a0,a1,a2))
-    } 
-    .$state$aguess[]  <- guesses 
-    .$state$faguess[] <- fguesses
-   
-    # fit a quadratic through the three sets of co-ordinates a la Lomas (one step of Muller's method) 
-    # Muller, David E., "A Method for Solving Algebraic Equations Using an Automatic Computer," Mathematical Tables and Other Aids to Computation, 10 (1956)    
-    bx <- ((a1+a0)*(fa2-fa1)/(a2-a1)-(a2+a1)*(fa1-fa0)/(a1-a0))/(a0-a2)
-    ax <- (fa2-fa1-bx*(a2-a1))/(a2**2-a1**2)
-    cx <- fa1-bx*a1-ax*a1**2
- 
-    # find the root of the quadratic that lies between guesses 
-    assim <- .$state$assim[] <- quad_sol(ax,bx,cx,'both')
-    .super$state$fA_ana_final[1] <- .$solver_func(A=assim[1]) 
-    .super$state$fA_ana_final[2] <- .$solver_func(A=assim[2]) 
-    ss    <- which(assim>min(guesses)&assim<max(guesses))
-    
-    # catch potential errors
-    if(length(ss)==0)      stop('no solution,', assim,'; within initial 3 guesses,',a0,a1,a2,'fguesses,',fa0,fa1,fa2 ) 
-    else if(length(ss)==2) stop('both solutions,',assim,'; within initial 3 guesses,',a0,a1,a2,'fguesses,',fa0,fa1,fa2 ) 
-    else return(assim[ss])
-  }
-}
-
-
-
-### ANALYTICAL SOLUTIONS
-################################
-
-# solves A analytically by assuming g0 = 0 in the stomatal resistance function, and rb and ri also = zero 
-f_A_r_leaf_analytical <- function(.) {
-  # combines A, rs, ci, cc eqs to a single f(), 
-  # combines all rate limiting processes
-  
-  .super$state_pars$rb <- 0
-  .super$state_pars$ri <- 0
-  
-  # calculate cb, ci & cc
-  .super$state$cb      <- .super$state$ca
-  fe                   <- .$rs_fe() 
-  .super$state$ci      <- .super$state$ca * (1 - (1.6 / fe) )
-  .super$state$cc      <- .super$state$ci 
- 
-  # calculate net A
-  Anet <- .$assimilation()
-  
-  # calculate rs
-  .super$state_pars$rs <- .super$state$ca / (fe * Anet * .super$env$atm_press*1e-6) 
-  
-  # return net A
-  Anet
-}
-
-
-# solves A analytically by assuming rb and ri are zero 
-f_A_r_leaf_analytical_quad <- function(.) {
-  # combines A, rs, ci, cc eqs to a single f(), 
-  # combines all rate limiting processes
-
-  # set cb, rb & ri
-  .super$state$cb[]      <- .super$state$ca
-  .super$state_pars$rb[] <- 0
-  .super$state_pars$ri[] <- 0
-
-  # correctly assign g0 if rs functions assume g0 = 0
-  g0_hold <- .super$pars$g0
-  if(.super$fnames$rs=='f_rs_cox1998'|.super$fnames$rs=='f_rs_constantCiCa') .super$pars$g0[] <- 0 
-
-  # calculate coefficients of quadratic to solve A
-  .$assim_quad_soln <- function(., V, K ) {
-    gsd <- .$rs_fe() / .super$state$ca 
-    p   <- .super$env$atm_press*1e-6
-    a   <- p*( 1.6 - gsd*(.super$state$ca + K) )
-    b   <- p*gsd*( .super$state$ca*(V - .super$state$rd) - .super$state$rd*K - V*.super$state_pars$gstar ) - .super$pars$g0*(.super$state$ca + K) + 1.6*p*(.super$state$rd - V)
-    c   <- .super$pars$g0*( V*(.super$state$ca - .super$state_pars$gstar) - .super$state$rd*(K + .super$state$ca) )
- 
-    # return A 
-    quad_sol(a,b,c,'upper')
-  }
-
-  .super$state$Acg <- .$assim_quad_soln(V=.super$state_pars$vcmaxlt, K=.super$state_pars$Km )
-  .super$state$Ajg <- .$assim_quad_soln(V=(.super$state$J/4),        K=(2*.super$state_pars$gstar) )
-  .super$state$Apg <- .$assim_quad_soln(V=(3*.super$state_pars$tpu), K=(-(1+3*.super$pars$Apg_alpha)*.super$state_pars$gstar) )
-
-  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin        <- .$Alim()
-  if(Amin==0) Amin <- 1e-6 
-  
-  # determine cc/ci based on Amin
-  # calculate rs
-  .super$pars$g0[]       <- g0_hold 
-  .super$state_pars$rs[] <- .$rs(A=Amin)
-  .super$state$cc[] <-.super$state$ci[] <- .$gas_diff(A=Amin, r=1.6*.super$state_pars$rs )
-    
-  # recalculate Ag for each limiting process
-  # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
-  .super$state$Acg[] <- .$Acg() * .super$state$cc
-  .super$state$Ajg[] <- .$Ajg() * .super$state$cc
-  .super$state$Apg[] <- .$Apg() * .super$state$cc
-
-  # return net A
-  Amin
-}
-
-
-# solves A analytically by assuming rs is equal to 1/g0 
-f_A_r0_leaf_analytical_quad <- function(.) {
-  # combines A, rs, ci, cc eqs to a single f(), 
-  # combines all rate limiting processes
-
-  #r0 <- get(paste0(.$fnames$rs,'_r0'))(.) 
-  r0 <- .$rs_r0() 
-
-  # calculate coefficients of quadratic to solve A
-  .$assim_quad_soln <- function(., V, K, r0 ) {
-    r   <- 1.4*.super$state_pars$rb + 1.6*r0 + .super$state_pars$ri
-    p   <- .super$env$atm_press*1e-6
-    a   <- -p*r
-    b   <- .super$state$ca + K - .super$state$rd*p*r + V*p*r
-    c   <- .super$state$ca*(.super$state$rd-V) + .super$state$rd*K + V*.super$state_pars$gstar 
-    
-    # return A 
-    quad_sol(a,b,c,'lower')
-  }
-
-  .super$state$Acg <- .$assim_quad_soln(V=.super$state_pars$vcmaxlt, K=.super$state_pars$Km, r0=r0 )
-  .super$state$Ajg <- .$assim_quad_soln(V=(.super$state$J/4),        K=(2*.super$state_pars$gstar), r0=r0 )
-  .super$state$Apg <- .$assim_quad_soln(V=(3*.super$state_pars$tpu), K=(-(1+3*.super$pars$Apg_alpha)*.super$state_pars$gstar), r0=r0 )
-
-  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
-  Amin        <- .$Alim() 
-  
-  # determine cc/ci based on Amin
-  .super$state_pars$rs <- r0 
-  .super$state$cb <- .$gas_diff(A=Amin)
-  .super$state$cc <- .super$state$ci <- .$gas_diff(A=Amin, r=1.6*.super$state_pars$rs )
-    
-  # recalculate Ag for each limiting process
-  # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
-  .super$state$Acg <- .$Acg() * .super$state$cc
-  .super$state$Ajg <- .$Ajg() * .super$state$cc
-  .super$state$Apg <- .$Apg() * .super$state$cc
-
-  # return net A
-  Amin
-}
-
-
-# Calculate assimilation assuming zero resistance to CO2 diffusion from the atmosphere to the site of carboxylation
-f_A_r_leaf_noR <- function(.,...) {
-  # This function can be used to calculate the stomatal limitation to photosynthesis when rb and ri are assumed zero 
-  # (when ri and rb are non-zero, use below function 'f_A_r_leaf_noRs' )
-  
-  # combines all rate limiting processes
-  
-  # assume cc = ca
-  .super$state$cc <- .super$state$ca
-  
-  # calculate net A
-  .$assimilation()
-}
-
-
-
-### PHOTOSYNTHESIS FUNCTIONS
-################################
 
 # Transition point function, calculates cc at which Acg = Ajg, i.e. the transition cc
 transition_cc <- function(.) {
@@ -645,6 +319,28 @@ f_rs_constant_fe <- f_r_zero_fe <- function(., ... ) {
 
 f_r_zero_r0 <- function(., ... ) {
   0
+}
+
+# 13C discrimination
+f_d13c_lin <- function(.) {
+  #ci_conc <- 1e6 * .super$state$ci / .super$env$atm_press
+  #.super$pars$d13c_a + (.super$pars$d13c_b_prime - .super$pars$d13c_a) * ci_conc / .super$env$ca_conc
+  .super$pars$d13c_a + (.super$pars$d13c_b_prime - .super$pars$d13c_a) * (.super$state$ci / .super$state$ca)
+}
+
+f_d13c_classical <- function(.) {
+#  ci_conc <- 1e6 * .super$state$ci / .super$env$atm_press
+#  cc_conc <- 1e6 * .super$state$cc / .super$env$atm_press
+#  gstar_conc <- 1e6 * .super$state_pars$gstar / .super$env$atm_press
+#
+#  .super$pars$d13c_a * ( .super$env$ca_conc - ci_conc ) / .super$env$ca_conc +
+#    .super$pars$d13c_am * ( ci_conc - cc_conc ) / .super$env$ca_conc +
+#    .super$pars$d13c_b  * cc_conc / .super$env$ca_conc -
+#    .super$pars$d13c_f  * gstar_conc / .super$env$ca_conc
+  .super$pars$d13c_a * (( .super$state$ca - .super$state$ci ) / .super$state$ca ) +
+    .super$pars$d13c_am * (( .super$state$ci - .super$state$cc ) / .super$state$ca ) +
+    .super$pars$d13c_b  * ( .super$state$cc / .super$state$ca ) -
+    .super$pars$d13c_f  * ( .super$state_pars$gstar / .super$state$ca )
 }
 
 

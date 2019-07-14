@@ -34,7 +34,7 @@ wrapper_object$run4
 source('wrapper_object.R')
 out <- wrapper_object$.test(mc=F, oconf=F, gen_metd=F )
 out <- wrapper_object$.test(mc=T, oconf=F )
-out <- wrapper_object$.test(mc=F, oconf=F )
+out <- wrapper_object$.test(mc=T, oconf=F )
 
 library(lattice)
 xyplot(A~leaf.par  | leaf.etrans*leaf.rs, out, groups=leaf.temp,type='l', panel=function(...) { panel.abline(h=seq(0,20,2.5)); panel.xyplot(...)} )

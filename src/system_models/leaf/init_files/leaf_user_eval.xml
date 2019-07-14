@@ -16,8 +16,18 @@
       <A>'column name of variable in evaldata file'</A>
       <rd>'column name of variable in evaldata file'</rd>
       <lim>'column name of variable in evaldata file'</lim>
+      <A_ana_rbzero>'column name of variable in evaldata file'</A_ana_rbzero>
+      <A_ana_rbg0zero>'column name of variable in evaldata file'</A_ana_rbg0zero>
+      <aguess>'column name of variable in evaldata file'</aguess>
+      <faguess>'column name of variable in evaldata file'</faguess>
+      <aguess_flag>'column name of variable in evaldata file'</aguess_flag>
+      <iter>'column name of variable in evaldata file'</iter>
+      <estimprec>'column name of variable in evaldata file'</estimprec>
+      <assim>'column name of variable in evaldata file'</assim>
+      <fA_ana_final>'column name of variable in evaldata file'</fA_ana_final>
       <A_noR>'column name of variable in evaldata file'</A_noR>
       <transition>'column name of variable in evaldata file'</transition>
+      <d13c>'column name of variable in evaldata file'</d13c>
     </leaf>
   </state>
 </eval_data_translator>
