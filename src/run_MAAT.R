@@ -64,15 +64,17 @@ procs   <- 4
 factorial  <- T
 
 # run an SA/UQ style ensemble, or if -uq- is false a fully factorial ensemble
-uq         <- T
+uq         <- F
 
 # types of SA/UQ run
 # process SA
 procSA     <- T
 # Saltelli Sobol SA
-salt       <- T
+salt       <- F 
 # MCMC parameter estimation
 mcmc       <- F
+# type of MCMC
+mcmc_type  <- 'dream'
 
 # parameters for SA run
 # ensemble number for an SA/UQ style ensemble, not used if -uq- is false
@@ -83,8 +85,8 @@ coef_var   <- 0.1
 salt_nmult <- 100
 
 # parameters for MCMC run
-# type of MCMC
-mcmc_type     <- 'demc'
+# MCMC likelihood (options: log, ssquared, ssquared_se )
+mcmc_lklihood <- 'log'
 # number of MCMC chains to run (min 2x number of parameters estimated)
 mcmc_chains   <- 10
 # number of iterations / steps in MCMC chain
@@ -182,26 +184,30 @@ if(is.null(odir)) {
 
 # create input/output filenames
 # initialisation file if not xml
-initf       <- if(is.null(runid))     paste(init,'R',sep='.')       else paste(init,'_',runid,'.R',sep='')
+initf       <- if(is.null(runid))     paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
 # prefix for output files
-ofname      <- if(is.null(runid))     of_main                       else paste(of_main,runid,sep='_')
-ofname      <- if(is.null(mod_mimic)) ofname                        else paste(mod_mimic,ofname,sep='_')
+ofname      <- if(is.null(runid))     of_main                 else paste(of_main,runid,sep='_')
+ofname      <- if(is.null(mod_mimic)) ofname                  else paste(mod_mimic,ofname,sep='_')
 
 # factorial analysis over-rides UQ analysis
 if(!uq) factorial <- T
-if(factorial&uq) {
- uq <- F
+if(factorial&(uq|mcmc)) {
+ uq   <- F
+ mcmc <- F
  print('',quote=F)
- print(paste('Both factorial and UQ run specified: Factorial ensemble will be run'),quote=F)
+ print(paste('Both factorial and UQ or MCMC run specified: Factorial ensemble will be run'),quote=F)
 }
 
+# select run/ensemble type and output
 runtype <- 
   if(factorial) 'factorial'      else
   if(procSA)    'SAprocess_ye'   else
   if(salt)      'SApar_saltelli' else
   if(mcmc)      paste0('mcmc_',mcmc_type)
 
-if(uq&of_format!='rds') {
+print(paste('Run type:',runtype,'selected') ,quote=F)
+
+if((uq|mcmc)&of_format!='rds') {
   of_format <- 'rds'
   print('',quote=F)
   print(paste('of_format changed to rds due to high output volume with SA/UQ ensembles'),quote=F)
@@ -236,6 +242,7 @@ maat$model$cpars$output  <- mod_out
 
 # define MCMC run parameters
 maat$wpars$mcmc_type     <- mcmc_type
+maat$wpars$mcmc_lklihood <- mcmc_lklihood
 maat$wpars$mcmc_chains   <- mcmc_chains
 maat$wpars$mcmc_maxiter  <- mcmc_maxiter
 maat$wpars$mcmc_burnin   <- mcmc_burnin
@@ -250,6 +257,11 @@ maat$wpars$mcmc_n_CR     <- mcmc_n_CR
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic)
+
+# set debugging flags
+maat$model$pars$verbose  <- F
+maat$model$cpars$verbose <- F
+  
 
 
 ##################################
@@ -477,8 +489,6 @@ if(!is.null(evaldata)&F) {
 ##################################
 ###  Run MAAT
 
-maat$model$pars$verbose  <- F
-  
 for(i in 1:5) print('',quote=F)
 print(paste('Run MAAT',runtype,':'),quote=F)
 st <- system.time(maat$run())
@@ -491,29 +501,6 @@ maat$clean()
 print('',quote=F)
 print('MAAT system memory used:',quote=F)
 gc()
-
-
-# run MCMC algorithm parameter estimation if requested
-if(mcmc&uq) {
-  maat$model$pars$verbose  <- F
-  maat$wpars$UQtype <- 'mcmc'
-
-  # run MAAT
-  for(i in 1:5) print('',quote=F)
-  print('Run MCMC',quote=F)
-  st <- system.time(
-    maat$run()
-  )
-
-  for(i in 1:3) print('',quote=F)
-  print('MAAT MCMC runtime:',quote=F)
-  print(st,quote=F)
-
-  maat$clean()
-  print('',quote=F)
-  print('MAAT system memory used for MCMC:',quote=F)
-  gc()
-}
 
 
 

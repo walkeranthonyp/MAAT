@@ -49,9 +49,13 @@ wrapper_object$build <- function(., ... ) {
 
   # MCMC specific functions
   if(grepl('mcmc',.$wpars$runtype)) {
-    .$generate_proposal <- get(paste0('generate_proposal_',.$wpars$runtype))
-    .$proposal_accept   <- get(paste0('proposal_accept',.$wpars$runtype))
-    # placeholder for likelihodd func
+    .$generate_proposal     <- get(paste0('generate_proposal_',.$wpars$runtype))
+    .$proposal_accept       <- get(paste0('proposal_accept',.$wpars$runtype))
+    .$proposal_lklihood     <- get(paste0('f_proposal_lklihood',.$wpars$lklihood))
+    .$static                <- get(paste0('static',.$wpars$lklihood))
+    .$boundary_handling     <- boundary_handling 
+    .$boundary_handling_set <- boundary_handling_set
+    # placeholder for convergence function etc 
   }
 
   # build model
@@ -272,9 +276,22 @@ wrapper_object$wpars <- list(
   of_name_stem = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this 
   n         = numeric(1),  # parameter sample number
   nmult     = 1,           # parameter sample number multiplier for saltelli method
-  eval_strings = F,        # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
-  sobol_init   = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user. 
-  unit_testing = F
+  eval_strings  = F,        # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
+  sobol_init    = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user. 
+  unit_testing  = F,
+  mcmc_type     = 'dream',
+  mcmc_lklihood = 'log',
+  mcmc_chains   = 10,
+  mcmc_maxiter  = 100,
+  mcmc_burnin   = 0.5,
+  mcmc_thin     = 0.1,
+  mcmc_thin_obs = 1,
+  mcmc_homosced = F,
+  mcmc_delta    = 3,
+  mcmc_c_rand   = 0.01,
+  mcmc_c_ergod  = 1e-12,
+  mcmc_p_gamma  = 0.2, 
+  mcmc_n_CR     = 3
 )
 
 
@@ -287,6 +304,7 @@ wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(.$dataf$m
 
 # function to write ensemble output data to file
 wrapper_object$write_to_file <- function(., df=.$output(), app=F ) {
+
   setwd(.$wpars$of_dir)
   if(.$wpars$of_type=='csv')      write.table(format(df,width=12),paste(.$wpars$of_name,'.csv',sep=''),quote=F,row.names=F,col.names=!app,sep=',',append=app)  
   else if(.$wpars$of_type=='rds') saveRDS(df,paste(.$wpars$of_name,'RDS',sep='.'))

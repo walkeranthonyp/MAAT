@@ -8,30 +8,6 @@
 
 
 
-# debug: set seed functions (to reproduce sequences of quasi-random numbers)
-################################
-
-# debug: funciton (1), set seed for uniform_r generation
-# set_seed1 <- function(.) {
-#  set.seed(1703)
-#  .$mcmc$uniform_r_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
-#  .$mcmc$uniform_r_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = -0.01, max = 0.01)
-# }
-
-
-# debug: function (2), set seed for R1 and R2 general_functions
-# set_seed2 <- function(.) {
-#   set.seed(4050)
-# }
-
-
-# debug: function (3), set seed for runif(1) value chosen in accept/reject step
-# set_seed3 <- function(.) {
-#   set.seed(1337)
-#   .$mcmc$runif_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
-#   .$mcmc$runif_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = 0, max = 1)
-# }
-
 # MCMC functions
 ################################
 
@@ -156,7 +132,8 @@ proposal_generate_mcmc_demc <- function(., j ) {
 
       # debug: temporarily comment out boundary handling
       # call boundary handling function
-      boundary_handling(., ii, jj )
+      #boundary_handling(., ii, jj )
+      .$boundary_handling(ii=ii,jj=jj)
     }
 
     # print('proposal generated = ')
@@ -287,8 +264,10 @@ proposal_accept_mcmc_demc <- function(., j, lklihood ) {
 # DREAM functions
 ################################
 
+static_mcmc_demc <- function(.) NULL
+
 # static part of DREAM algorithm
-static_dream <- function(.) {
+static_mcmc_dream <- function(.) {
 
   # number of parameters being estimated
   .$mcmc$d <- ncol(.$dataf$pars)
@@ -393,7 +372,8 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
     # debug: temporarily comment out boundary handling
     # call boundary handling function
-    for (jj in 1:.$mcmc$d) boundary_handling(., ii, jj )
+    #for (jj in 1:.$mcmc$d) boundary_handling(., ii, jj )
+    for (jj in 1:.$mcmc$d) .$boundary_handling(ii=ii,jj=jj)
   }
 }
 
@@ -506,6 +486,8 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 # chain_converge <- function(.) {
 # }
 
+
+
 # Likelihood functions
 ################################
 
@@ -564,6 +546,33 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
   -(obs_n/2)*log(2*pi) - sum(log(obsse)) - 0.5*SSR
 }
+
+
+
+# Debuging functions 
+################################
+
+#set seed functions (to reproduce sequences of quasi-random numbers)
+# debug: function (1), set seed for uniform_r generation
+# set_seed1 <- function(.) {
+#  set.seed(1703)
+#  .$mcmc$uniform_r_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
+#  .$mcmc$uniform_r_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = -0.01, max = 0.01)
+# }
+
+
+# debug: function (2), set seed for R1 and R2 general_functions
+# set_seed2 <- function(.) {
+#   set.seed(4050)
+# }
+
+
+# debug: function (3), set seed for runif(1) value chosen in accept/reject step
+# set_seed3 <- function(.) {
+#   set.seed(1337)
+#   .$mcmc$runif_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
+#   .$mcmc$runif_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = 0, max = 1)
+# }
 
 
 

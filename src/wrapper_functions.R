@@ -13,8 +13,6 @@ source('functions/calc_functions.R')
 source('wrapper_functions_mcmc.R')
 
 
-
-
 #####################################
 
 # expand the fnames, env, and pars input lists into matrices   
@@ -87,6 +85,70 @@ generate_ensemble_pars_SAprocess_ye <- function(.) {
 }
 
 
+# parameter matrix for initial proposal of MCMC 
+generate_ensemble_pars_mcmc_dream <- function(.) {
+
+  # sample parameters from character string code snippets to generate initial proposal from priors
+  n <- .$wpars$mcmc_chains
+  .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+
+  # print(paste0('n = ', n))
+  # print('.$dynamic$pars_eval = ')
+  # print(.$dynamic$pars_eval)
+  # print('.$dynamic$pars = ')
+  # print(.$dynamic$pars)
+
+  # create pars / proposal matrix
+  .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
+
+  # print('.$dataf$pars = ')
+  # print(.$dataf$pars)
+
+  # debug: hard-code initial sample generated from prior distribution (generated from interval [-10, 10])
+  # prop1 <- c( 7.631916,  -5.999289,  -5.734941,   1.769624,  -1.128974,  -1.065893,   9.091345,  -9.570053)
+  # prop2 <- c(-8.955127,  -2.165650,   8.288627,   8.335986,  -9.420836,  -6.112619,  -4.796342,   8.128561)
+  # prop3 <- c(-2.757425,  -1.311214,  -9.983908,  -6.061901,  -3.076935,   8.934289,  -3.041526,  -7.045019)
+  # prop4 <- c(-1.342557,   9.406705,  -0.041981,  -9.757184,  -0.402050,  -4.263008,   6.564540,  -0.241696)
+  # .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
+  # colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
+
+  # print('model parameters and algorithmic parameters')
+  # print(.$dynamic$pars_eval)
+  # print(.$model$pars)
+  # print(.$wpars)
+
+  # print("initial propopsals derived from priors = ")
+  # print(.$dataf$pars)
+
+  # debug: create proposal storage array (store all proposals, not just accepted ones)
+  # .$dataf$prop_storage          <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
+
+  # debug: preallocate space for all debugging arrays (i.e., easier-to-read print statements)
+  # .$dataf$accept_storage        <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+  # .$dataf$uniform_r_storage     <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter))
+  # .$dataf$model_eval_storage    <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+  # .$dataf$alpha_storage         <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+  # .$dataf$R1_R2_storage         <- array(1, dim = c(.$wpars$mcmc_chains, 2, .$wpars$mcmc_maxiter))
+  # .$dataf$metrop_ratio_storage  <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+  # .$dataf$runif_val_storage     <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+
+  # remove initialisation pars list
+  .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
+
+  # if observation subsampling specified - currently evenly spaced subsampling
+  if(.$wpars$mcmc_thin_obs < 1.0) {
+    if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc_thin_obs )
+    thin <- floor( 1 / .$wpars$mcmc_thin_obs )
+    oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
+    .$dataf$met   <- .$dataf$met[oss,]
+    .$dataf$obs   <- .$dataf$obs[oss]
+    #.$dataf$obsse <- .$dataf$obsse[oss]
+  }
+}
+
+generate_ensemble_pars_mcmc_demc <- generate_ensemble_pars_mcmc_dream 
+
+
 
 ################################
 # initialise output matrix/array
@@ -126,6 +188,32 @@ init_output_matrix_SAprocess_ye <- function(.) {
   
 }
 
+
+init_output_matrix_mcmc_dream <- function(.) {
+
+  # create accepted proposal array
+  .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
+
+  # create accepted proposal likelihood matrix
+  .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter )
+
+  # initialise output matrix
+  .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm)
+
+  # APW: is this effectively assuming a burn-in of 50 %?
+  #      if so we need to align with the burn-in input parameters
+  # ALJ: "burn-in" in its pure form involves discarding the first 50% of MCMC samples
+  #      and I think this is just storing the model evaluations for the last 50%  of time-steps/iterations
+  #      which is not technically burn-in, but sort of funcitons like it to make the mod plots "prettier"
+  # debug: store all model evaluations (not necessary for the algorithm, but easier for debugging)
+  # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
+
+  # APW: OK, let's align this with burn-in then, 
+  #      If I understand you right we should apply the burn-in to all output arrays    
+  .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
+}
+
+init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream  
 
 
 ###########################################################################
@@ -503,6 +591,159 @@ run8_SAprocess_ye <- run4_factorial # i.e. NULL
 
 
 
+################################
+# for MCMC runs 
+
+run0_mcmc_dream <- function(.) {
+
+  # if more than one model output has been specified, stop
+  if(length(.$dataf$mout)!=1) stop('No current method to run MCMC with multiple model outputs')
+
+  # initialise output array
+  .$init_output_matrix()
+
+  # call run function
+  #if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
+  #else                 lapply( 1:.$dataf$lf, .$runf_mcmc )
+  if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$run1, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
+  else                 lapply( 1:.$dataf$lf, .$run1 )
+
+  # print summary of results
+  .$print_output()
+}
+
+
+run1_mcmc_dream <- function(.,i) {
+  # assumes that each row of the fnames matrix are independent and non-sequential
+  # call run_mcmc
+
+  # configure function names in the model
+  if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
+  if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
+
+  # debug: temporarily remove boundary handling
+  # placeholder for setting boundary handling limits
+  #boundary_handling_set(.)
+  .$boundary_handling_set()
+
+  # evaluate model over initial proposals derived from prior
+  .$dataf$out[]  <-
+    do.call( 'rbind', {
+        #if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
+        #else                 lapply(1:.$dataf$lp, .$runp_mcmc )
+        if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run2, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
+        else                 lapply(1:.$dataf$lp, .$run2 )
+    })
+
+  # add to pars array and calculate likelihood of initial proposal
+  .$dataf$pars_array[,,1]   <- .$dataf$pars
+  .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
+
+  # print(paste0('i = ', i))
+
+  # print('inital model evaluation = ')
+  # print(.$dataf$pars)
+  # print(.$dataf$pars_array[ , , 1])
+
+  # print('likelihood of initial model evaluation = ')
+  # print(.$dataf$pars_lklihood[ ,1])
+
+  # debug: add to proposal storage array
+  # .$dataf$prop_storage[ , , 1] <- .$dataf$pars
+
+  # debug: function (1), set seed for uniform_r generation
+  # .$set_seed1()
+
+  # debug: function (3), set seed for runif(1) value chosen in accept/reject step
+  # .$set_seed3()
+
+  # debug: function (2), set seed for R1 and R2 random draw (in DE-MC)
+  # debug: call this set seed function last so it will be the seed for all remaining random draws
+  # .$set_seed2()
+
+  # if DREAM MCMC, run static part of algorithm
+  #if(.$wpars$mcmc_type=='dream') .$static_dream()
+  .$static()
+
+  # run MCMC
+  # debug: correct number of samples (i.e., iterations)
+  # vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
+  #vapply(2:(.$wpars$mcmc_maxiter), .$run_mcmc, numeric(0) )
+  vapply(2:(.$wpars$mcmc_maxiter), .$run2, numeric(0) )
+
+  # future work: insert rigorous burn-in procedure here
+  #              also, if convergence has not been reached, re-run MCMC
+  #              will need to align this with the above outut array specification
+
+  # write output from MCMC
+  .$write_output(i=i) 
+
+}
+
+# This wrapper function is called from a vapply function to iterate / step chains in an MCMC
+run2_mcmc_dream <- function(.,j) {
+  # runs in serial as each step depends on the previous step
+  # call runp_mcmc
+
+  # generate proposal matrix
+  #get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j )
+  $proposal_generate(j=j)
+
+  # evaluate model for proposal on each chain
+  .$dataf$out[]  <-
+    do.call( 'rbind', {
+        #if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
+        #else                 lapply(1:.$dataf$lp, .$runp_mcmc )
+        if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run3, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
+        else                 lapply(1:.$dataf$lp, .$run3 )
+    })
+
+  # calculate likelihood of proposals on each chain
+  # likelihood function is independent of DE-MC or DREAM algorithms
+  lklihood <- .$proposal_lklihood()
+
+  # print('likelihood = ')
+  # print(lklihood)
+
+  # accept / reject proposals on each chain
+  #get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )
+  .$proposal_accept(j=j, lklihood )
+
+  # future work: insert function call to handle outlier chains here
+
+  # future work: insert function call to test for convergence here
+
+  # future work: other code here for subprograms called during burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
+
+  # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function
+  numeric(0)
+}
+
+# This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
+#runp_mcmc <- function(.,k) {
+run3_mcmc_dream <- function(.,k) {
+  # runs each chain at each iteration in MCMC
+
+  # assumes that each row of the pars matrix are independent and non-sequential
+  # debug: note that the above assumption is valid only for DREAM, not DE-MC
+
+  # configure parameters in the model
+  if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[k,], F )
+  if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[k,] )
+
+  # call model/met run function
+  if(.$dataf$lm==1) .$model$run()
+  else              vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
+}
+
+run4_mcmc_dream <- run4_factorial # i.e. NULL 
+run5_mcmc_dream <- run4_factorial # i.e. NULL 
+run6_mcmc_dream <- run4_factorial # i.e. NULL 
+run7_mcmc_dream <- run4_factorial # i.e. NULL 
+run8_mcmc_dream <- run4_factorial # i.e. NULL 
+
+
+
 # Output processing functions
 ###########################################################################
 
@@ -548,6 +789,14 @@ write_output_SAprocess_ye <- function(.,f) {
   .$wpars$of_name <- paste(.$wpars$of_name_stem, 'proc', f, sep='_' )
   .$write_to_file()
 }
+  
+
+# write MCMC output list 
+write_output_SAprocess_ye <- function(.,i) {
+  .$wpars$of_name <- paste(ofname, 'mcmc', 'f', i, sep='_' )
+  .$write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc, prop_storage=.$dataf$prop_storage))
+}
+
 
 
 ################################
