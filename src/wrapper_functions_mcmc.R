@@ -14,8 +14,8 @@
 # set parameter boundaries from prior distributions
 boundary_handling_set <- function(.) {
   # number of samples to be used in boundary handling
-  n <- 1000
-  boundary_sample <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+  n <- 1e4
+  boundary_sample     <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
   .$mcmc$boundary_min <- unlist(lapply(boundary_sample,min))
   .$mcmc$boundary_max <- unlist(lapply(boundary_sample,max))
   rm(boundary_sample)
@@ -264,10 +264,10 @@ proposal_accept_mcmc_demc <- function(., j, lklihood ) {
 # DREAM functions
 ################################
 
-static_mcmc_demc <- function(.) NULL
+init_mcmc_demc <- function(.) NULL
 
-# static part of DREAM algorithm
-static_mcmc_dream <- function(.) {
+# initialisation of DREAM algorithm
+init_mcmc_dream <- function(.) {
 
   # number of parameters being estimated
   .$mcmc$d <- ncol(.$dataf$pars)
@@ -471,6 +471,11 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   # APW: update, p_CR coverges to a 1 and 0's acfter the second proposal, perhaps this is expected behaviour but worth more investigation
   # debug: test less than versus greater than
   # debug: testing below - to prevent immediate transition to 1/0 states for p_CR, seems to work
+  #print(j)
+  #print(.$wpars$mcmc_maxiter / 10)
+  #print(.$mcmc$J)
+  #print(sum(.$mcmc$J))
+  
   if ((j > (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
   # if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
     .$mcmc$p_CR <- .$mcmc$J    / .$mcmc$n_id
@@ -511,8 +516,7 @@ f_proposal_lklihood_ssquared <- function(.) {
   # calculate error residual
   # - each chain is on rows of dataf$out take transpose
   error_residual_matrix <- t(.$dataf$out) - .$dataf$obs
-
-  print(.$dataf$obs)
+  #print(error_residual_matrix)
 
   # calculate sum of squared error
   # - error_residual_matrix now has chains on columns

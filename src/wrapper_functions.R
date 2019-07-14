@@ -603,8 +603,6 @@ run0_mcmc_dream <- function(.) {
   .$init_output_matrix()
 
   # call run function
-  #if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
-  #else                 lapply( 1:.$dataf$lf, .$runf_mcmc )
   if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$run1, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
   else                 lapply( 1:.$dataf$lf, .$run1 )
 
@@ -615,29 +613,26 @@ run0_mcmc_dream <- function(.) {
 
 run1_mcmc_dream <- function(.,i) {
   # assumes that each row of the fnames matrix are independent and non-sequential
-  # call run_mcmc
+  # call run2
 
   # configure function names in the model
   if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
   if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
 
-  # debug: temporarily remove boundary handling
-  # placeholder for setting boundary handling limits
-  #boundary_handling_set(.)
-  .$boundary_handling_set()
-
   # evaluate model over initial proposals derived from prior
   .$dataf$out[]  <-
     do.call( 'rbind', {
-        #if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
-        #else                 lapply(1:.$dataf$lp, .$runp_mcmc )
-        if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run2, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
-        else                 lapply(1:.$dataf$lp, .$run2 )
+        if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run3, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
+        else                 lapply(1:.$dataf$lp, .$run3 )
     })
 
   # add to pars array and calculate likelihood of initial proposal
   .$dataf$pars_array[,,1]   <- .$dataf$pars
   .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
+
+  # Set boundary handling limits
+  # debug: temporarily remove boundary handling
+  .$boundary_handling_set()
 
   # print(paste0('i = ', i))
 
@@ -661,15 +656,11 @@ run1_mcmc_dream <- function(.,i) {
   # debug: call this set seed function last so it will be the seed for all remaining random draws
   # .$set_seed2()
 
-  # if DREAM MCMC, run static part of algorithm
-  #if(.$wpars$mcmc_type=='dream') .$static_dream()
-  .$static()
+  # run initialisation part of algorithm
+  .$init_mcmc()
 
   # run MCMC
-  # debug: correct number of samples (i.e., iterations)
-  # vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
-  #vapply(2:(.$wpars$mcmc_maxiter), .$run_mcmc, numeric(0) )
-  vapply(2:(.$wpars$mcmc_maxiter), .$run2, numeric(0) )
+  vapply(2:.$wpars$mcmc_maxiter, .$run2, numeric(0) )
 
   # future work: insert rigorous burn-in procedure here
   #              also, if convergence has not been reached, re-run MCMC
@@ -686,14 +677,11 @@ run2_mcmc_dream <- function(.,j) {
   # call runp_mcmc
 
   # generate proposal matrix
-  #get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j )
-  $proposal_generate(j=j)
+  .$proposal_generate(j=j)
 
   # evaluate model for proposal on each chain
   .$dataf$out[]  <-
     do.call( 'rbind', {
-        #if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
-        #else                 lapply(1:.$dataf$lp, .$runp_mcmc )
         if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run3, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
         else                 lapply(1:.$dataf$lp, .$run3 )
     })
@@ -792,9 +780,9 @@ write_output_SAprocess_ye <- function(.,f) {
   
 
 # write MCMC output list 
-write_output_SAprocess_ye <- function(.,i) {
+write_output_mcmc_dream <- function(.,i) {
   .$wpars$of_name <- paste(ofname, 'mcmc', 'f', i, sep='_' )
-  .$write_to_file( list(pars_array=.$dataf$pars_array, pars_lklihood=.$dataf$pars_lklihood, mod_out_final=.$dataf$out, obs=.$dataf$obs, mod_eval=.$dataf$out_mcmc, prop_storage=.$dataf$prop_storage))
+  .$write_to_file()
 }
 
 
@@ -888,6 +876,17 @@ output_SApar_saltelli_ABi <- function(.) {
 # creates output for a Ye process sensitivity analysis 
 output_SAprocess_ye <- function(.) {
   .$dataf$out
+}
+
+
+# creates output for a Ye process sensitivity analysis 
+output_mcmc_dream <- function(.) {
+  list(pars_array=.$dataf$pars_array, 
+       pars_lklihood=.$dataf$pars_lklihood, 
+       mod_out_final=.$dataf$out, 
+       obs=.$dataf$obs, 
+       mod_eval=.$dataf$out_mcmc, 
+       prop_storage=.$dataf$prop_storage)
 }
 
 
