@@ -28,6 +28,10 @@ mcmc_test_object$fnames
 mcmc_test_object$state
 mcmc_test_object$pars
 mcmc_test_object$env
+mcmc_test_object$fnames$reg_func
+mcmc_test_object$fns$reg_func
+mcmc_test_object$fns$reg_func()
+mcmc_test_object$output
 
 
 

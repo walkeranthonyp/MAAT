@@ -1,0 +1,8 @@
+<options>
+  <fnames>
+    <mcmc_test>
+      <sys>'c( 'f_sys_mixture', 'f_sys_regression' )'</sys>
+      <reg_func>'c( 'f_reg_func_linear' )'</reg_func>
+    </mcmc_test>
+  </fnames>
+</options>

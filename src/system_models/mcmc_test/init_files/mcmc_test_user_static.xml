@@ -1,4 +1,4 @@
-<dynamic>
+<static>
   <fnames>
     <mcmc_test>
       <sys>NA</sys>
@@ -35,4 +35,4 @@
       <linreg_x>NA</linreg_x>
     </mcmc_test>
   </env>
-</dynamic>
+</static>

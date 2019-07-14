@@ -12,7 +12,7 @@
 
 # regression functions
 f_reg_func_linear <- function(.) {   
-  .$pars$a + .$pars$b * .$env$linreg_x
+  .super$pars$a + .super$pars$b * .super$env$linreg_x
 }
 
 

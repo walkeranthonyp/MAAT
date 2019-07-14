@@ -12,37 +12,35 @@
 ################################
 # MCMC test system function
 
-f_mcmc_testsys_mixture <- function(.) {
+f_sys_mixture <- function(.) {
 
   # Mixture model that combines three normal distributions centered at mu1, mu2, mu3
   # the function evaluates the probability of the proposal vector based on the multi-modal distribution
-  x_proposal <- c(.$pars$proposal1, .$pars$proposal2, .$pars$proposal3, .$pars$proposal4 )
+  x_proposal <- c(.super$pars$proposal1, .super$pars$proposal2, .super$pars$proposal3, .super$pars$proposal4 )
 
   # print('proposal = ')
   # print(x_proposal)
 
-  # debug: correct way to evaluate the mixture model
   # calculate proposal probability for each of the three distributions
-  p1 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu1, .$pars$sd1 )
-  p2 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu2, .$pars$sd2 )
-  p3 <- .$pars$mixture_scale * dnorm(x_proposal, .$pars$mu3, .$pars$sd3 )
+  p1 <- .super$pars$mixture_scale * dnorm(x_proposal, .super$pars$mu1, .super$pars$sd1 )
+  p2 <- .super$pars$mixture_scale * dnorm(x_proposal, .super$pars$mu2, .super$pars$sd2 )
+  p3 <- .super$pars$mixture_scale * dnorm(x_proposal, .super$pars$mu3, .super$pars$sd3 )
 
-  # debug: correct way to evaluate the mixture model
   # return combined probability
-  .$state$mixture_p[] <- sum(.$pars$height1 * prod(p1) + .$pars$height2 * prod(p2) + .$pars$height3 * prod(p3))
+  .super$state$mixture_p[] <- sum(.super$pars$height1 * prod(p1) + .super$pars$height2 * prod(p2) + .super$pars$height3 * prod(p3))
 
-  # print(paste0('model evalution = ', .$state$mixture_p[]))
+  # print(paste0('model evalution = ', .super$state$mixture_p[]))
 
   return(.$state$mixture_p[])
 }
 
 
-f_mcmc_testsys_regression <- function(.) {
+f_sys_regression <- function(.) {
 
   #print(c(.$pars$a, .$pars$b, .$env$linreg_x ))
 
   # line function used as the model in a linear regression
-  .$state$linreg_y[] <- get(.$fnames$reg_func)(.)
+  .super$state$linreg_y[] <- .$reg_func()
 }
 
 

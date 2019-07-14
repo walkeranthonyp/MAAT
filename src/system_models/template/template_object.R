@@ -12,7 +12,7 @@ source('template_system_functions.R')
 
 
 
-# GWATER_RT OBJECT
+# TEMPLATE OBJECT
 ###############################################################################
 
 # use generic template
