@@ -21,12 +21,12 @@
 # - set arguments that depend on other arguments
 # - load MAAT objects from source
 # - load init scripts
-# - Configure and initialise MAAT 
+# - Configure and initialise MAAT
 # - Run MAAT
 
 ###################################################################
 
-# any one of the below objects to line 150 or so can be specified as a single string command line argument to this script 
+# any one of the below objects to line 150 or so can be specified as a single string command line argument to this script
 # the sub-arguments in the string (separated by a space) are interpreted individually as R code.
 
 #       Rscript run_MAAT.R "object1<-value1 object2<-value2"
@@ -35,7 +35,7 @@
 ##################################
 # command line options and defaults
 
-# model object to use, any directory name in the src/system_models directory 
+# model object to use, any directory name in the src/system_models directory
 mod_obj <- NULL
 
 # directory paths - set these on the command line or modify these here
@@ -70,7 +70,7 @@ uq         <- F
 # process SA
 procSA     <- T
 # Saltelli Sobol SA
-salt       <- F 
+salt       <- F
 # MCMC parameter estimation
 mcmc       <- F
 # type of MCMC
@@ -100,7 +100,7 @@ mcmc_thin_obs <- 1
 # MCMC option to assume homoscedastic error in measured observations (else, heteroscedastic)
 mcmc_homosced <- F
 # MCMC DREAM number chain pair proposal
-mcmc_delta    <- 3         
+mcmc_delta    <- 3
 # MCMC DREAM randomization
 mcmc_c_rand   <- 0.01
 # MCMC DREAM ergodicicty
@@ -115,10 +115,10 @@ mcmc_n_CR     <- 3
 metdata       <- NULL
 
 # evaluation data file name
-evaldata      <- NULL 
+evaldata      <- NULL
 
 # load standard error from evaluation data file (T/F)
-evalse        <- F 
+evalse        <- F
 
 # pass code snippets as strings to generate parameter samples, see init_MAAT.R and wrapper for use
 eval_strings  <- F
@@ -148,7 +148,7 @@ of_format     <- 'csv'
 
 
 ##################################
-# parse command line arguments   
+# parse command line arguments
 
 print('',quote=F)
 print('Read command line arguments',quote=F)
@@ -199,7 +199,7 @@ if(factorial&(uq|mcmc)) {
 }
 
 # select run/ensemble type and output
-runtype <- 
+runtype <-
   if(factorial) 'factorial'      else
   if(procSA)    'SAprocess_ye'   else
   if(salt)      'SApar_saltelli' else
@@ -220,20 +220,20 @@ if((uq|mcmc)&of_format!='rds') {
 
 setwd(srcdir)
 source('wrapper_object.R')
-maat         <- as.proto(wrapper_object$as.list()) 
+maat         <- as.proto(wrapper_object$as.list())
 rm(wrapper_object)
 
 # define run parameters
-maat$wpars$mod_obj       <- mod_obj       
-maat$wpars$runtype       <- runtype       
-maat$wpars$UQ            <- uq       
-maat$wpars$multic        <- multic  
-maat$wpars$procs         <- procs   
-maat$wpars$n             <- psa_n       
-maat$wpars$coef_var      <- coef_var       
-maat$wpars$nmult         <- salt_nmult       
-maat$wpars$eval_strings  <- eval_strings       
-maat$wpars$of_name_stem  <- ofname 
+maat$wpars$mod_obj       <- mod_obj
+maat$wpars$runtype       <- runtype
+maat$wpars$UQ            <- uq
+maat$wpars$multic        <- multic
+maat$wpars$procs         <- procs
+maat$wpars$n             <- psa_n
+maat$wpars$coef_var      <- coef_var
+maat$wpars$nmult         <- salt_nmult
+maat$wpars$eval_strings  <- eval_strings
+maat$wpars$of_name_stem  <- ofname
 maat$wpars$of_type       <- of_format
 maat$wpars$of_dir        <- odir
 
@@ -241,6 +241,7 @@ maat$model$cpars$verbose <- F
 maat$model$cpars$output  <- mod_out
 
 # define MCMC run parameters
+maat$wpars$mcmc          <- mcmc
 maat$wpars$mcmc_type     <- mcmc_type
 maat$wpars$mcmc_lklihood <- mcmc_lklihood
 maat$wpars$mcmc_chains   <- mcmc_chains
@@ -261,7 +262,7 @@ maat$build(mod_mimic=mod_mimic)
 # set debugging flags
 maat$model$pars$verbose  <- F
 maat$model$cpars$verbose <- F
-  
+
 
 
 ##################################
@@ -362,7 +363,7 @@ if(!is.null(metdata)) {
     print(head(metdf), quote=F )
 
     ###################################
-    # future work: 
+    # future work:
     # add eval data to model object - total hack for now
     maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
     maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
@@ -420,10 +421,10 @@ if(!is.null(evaldata)&F) {
       print('Evaluation data translator file:',quote=F)
       print(paste0(mod_obj,'_user_eval.xml'),quote=F)
       print('does not contain list for:',quote=F)
-      print(mod_obj,quote=F)      
+      print(mod_obj,quote=F)
       stop()
     }
-      
+
   } else {
     print('',quote=F)
     print('Evaluation data translator file:',quote=F)
@@ -443,43 +444,43 @@ if(!is.null(evaldata)&F) {
   if(evaldata=='met') evaldata <- metdata
   if(file.exists(evaldata)&!kill) {
     print(evaldata, quote=F )
-    evaldf   <- read.csv(evaldata,strip.white=T)  
+    evaldf   <- read.csv(evaldata,strip.white=T)
     print(head(evaldf), quote=F )
 
-    # check met and eval data sets are of same length 
-    if(dim(maat$dataf$met)[2]!=dim(evaldf)[2]) 
-      stop(paste('Eval data not same length as met data: check equal length of files:', evaldata, metdata ))  
-    
-    # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML 
-    # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML 
+    # check met and eval data sets are of same length
+    if(dim(maat$dataf$met)[2]!=dim(evaldf)[2])
+      stop(paste('Eval data not same length as met data: check equal length of files:', evaldata, metdata ))
+
+    # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML
+    # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML
     cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
-    evaldf <- evaldf[,cols] 
-        
+    evaldf <- evaldf[,cols]
+
     # add to MAAT object
-    maat$dataf$obs <- evaldf 
-   
-    # Read standard error for eval data  
-    if(evalse) {   
-      print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"'
- 
-      # extract se data 
+    maat$dataf$obs <- evaldf
+
+    # Read standard error for eval data
+    if(evalse) {
+      print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"')
+
+      # extract se data
       cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
-      evaldfse <- evaldf[,cols] 
-      
+      evaldfse <- evaldf[,cols]
+
       # add to MAAT object
-      maat$dataf$obsse <- evaldfse 
+      maat$dataf$obsse <- evaldfse
     }
-  
-    # remove eval data file  
+
+    # remove eval data file
     rm(evaldf)
-      
+
   } else {
     print('',quote=F)
     print('Eval data file:',quote=F)
     print(evaldata,quote=F)
     print('does not exist in:',quote=F)
     print(evaldir,quote=F)
-    stop()  
+    stop()
   }
   setwd(pdir)
 }
@@ -492,11 +493,11 @@ if(!is.null(evaldata)&F) {
 for(i in 1:5) print('',quote=F)
 print(paste('Run MAAT',runtype,':'),quote=F)
 st <- system.time(maat$run())
-  
+
 for(i in 1:3) print('',quote=F)
 print('MAAT runtime:',quote=F)
 print(st,quote=F)
-  
+
 maat$clean()
 print('',quote=F)
 print('MAAT system memory used:',quote=F)
