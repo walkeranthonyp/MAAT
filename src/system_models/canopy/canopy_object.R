@@ -267,13 +267,20 @@ canopy_object$cpars <- list(
 canopy_object$output <- function(.){
 
   if(.$cpars$output=='run') {
+    
     c(A=.$state$integrated$A, gs=.$state$integrated$gs, rd=.$state$integrated$rd)
     
+  } else if(.$cpars$output=='main'|.$cpars$output=='mcmc') {
+    
+    c(A=.$state$integrated$A)
+    
   } else if(.$cpars$output=='leaf') {
+    
     c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
       gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd, lim=NA)
     
   } else if(.$cpars$output=='all_lim') {
+    
     c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
       gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd, lim=NA, 
       Acg_lim=.$state$integrated$Acg_lim, 
@@ -282,9 +289,11 @@ canopy_object$output <- function(.){
     )
     
   } else if(.$cpars$output=='full') {
-    c(.$state$integrated, .$state_pars)
+    
+    unlist(c(.$state$integrated, .$state_pars))
 
   } else if(.$cpars$output=='leaf_dem') {
+    
     vapply(.$state$vert$layer, function(v) v, .$state$vert$layer[[1]] )
 
   }
