@@ -92,24 +92,8 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   n <- .$wpars$mcmc_chains
   .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
 
-  print('.$wpars$eval_strings =')
-  print(.$wpars$eval_strings)
-  print('.$dynamic$pars_eval = ')
-  print(.$dynamic$pars_eval)
-  print('.$init_dynamic = ')
-  print(.$init_dynamic)
-  print('.$wpars$mcmc = ')
-  print(.$wpars$mcmc)
-
   # create pars / proposal matrix
   .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
-
-  print('.$dynamic$pars = ')
-  print(.$dynamic$pars)
-  print(paste0('dim of pars matrix = ', dim(.$dataf$pars)))
-  print(paste0('type of pars matrix = ', typeof(.$dataf$pars)))
-  print('.$dataf$pars = ')
-  print(.$dataf$pars)
 
   # debug: hard-code initial sample generated from prior distribution (generated from interval [-10, 10])
   # prop1 <- c( 7.631916,  -5.999289,  -5.734941,   1.769624,  -1.128974,  -1.065893,   9.091345,  -9.570053)
@@ -632,11 +616,6 @@ run1_mcmc_dream <- function(.,i) {
         if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run3, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
         else                 lapply(1:.$dataf$lp, .$run3 )
     })
-
-  print('you are here 3')
-  print(paste0('dim of pars_array = ', dim(.$dataf$pars_array)))
-  print(paste0('dim of pars matrix = ', dim(.$dataf$pars)))
-  print(paste0('type of pars matrix = ', typeof(.$dataf$pars)))
 
   # add to pars array and calculate likelihood of initial proposal
   .$dataf$pars_array[,,1]   <- .$dataf$pars

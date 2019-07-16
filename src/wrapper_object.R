@@ -90,14 +90,7 @@ wrapper_object$run   <- function(.,verbose=T) {
     hd <- getwd()
   }
 
-  print(paste0('.$wpars$eval_string = ', .$wpars$eval_string))
-  print(paste0('.$wpars$eval_strings = ', .$wpars$eval_strings))
   # ALJ: probably a stupid question on my part, but why is the below if-statement eval_string and not eval_strings?
-  print('.$dynamic$pars_eval = ')
-  print(.$dynamic$pars_eval)
-
-  print('beginning of init checks')
-
   # Initialisation checks
   # need to add a check for equal par vector lengths if this is a UQ run and not eval_strings
   # for Ye et al SA method
@@ -110,10 +103,6 @@ wrapper_object$run   <- function(.,verbose=T) {
           NOTE: Ye method SA must draw parameter samples during runtime \n
           from code snippets written as strings in dynamic$pars_eval'))
   }
-
-  print('where most recent error is happening!')
-  print('.$static$fnames = ')
-  print(.$static$fnames)
 
   # initialise model with static variables
   if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=.$static$fnames )
@@ -172,8 +161,6 @@ wrapper_object$stack <- function(., a ) {
 # each line of the matrix is passed to the configure function in the model object
 wrapper_object$init <- function(.) {
 
-  print('init function being called successfully')
-
   # setup list names for assignment
   type   <- c('static', 'dynamic')
   vlists <- c('fnames', 'pars', 'env' )
@@ -183,33 +170,22 @@ wrapper_object$init <- function(.) {
     for( vl in vlists ) {
       # input variables
       .[[t]][[vl]] <-
-      print(paste0('t = ', t, ' vl = ', vl))
         if(t == 'static') unlist(.[[paste0('init_',t)]][[vl]])
         else if(t == 'dynamic' & !is.null(unlist(.[[paste0('init_',t)]][[vl]])) )
           lapply(rapply(.[[paste0('init_',t)]][[vl]], enquote, how="unlist" ), eval )
     }
   }
 
-  print(paste0('.$wpars$UQ = ', .$wpars$UQ))
-  print(paste0('.$wpars$mcmc = ', .$wpars$mcmc))
-
   # if(.$wpars$UQ | .$wpars$mcmc) .$init_uq
   if(.$wpars$UQ | .$wpars$mcmc) .$init_uq()
 
-  print('end of init function')
 }
 
 # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
 wrapper_object$init_uq <- function(.) {
 
-  print('init_uq function being called successfully')
-
   if(is.null(unlist(.$init_dynamic$pars))&!is.null(unlist(.$init_dynamic$pars_eval))) .$wpars$eval_strings <- T
   t <- 'dynamic'
-
-  print('you are here!')
-  print('.$wpars$eval_strings = ')
-  print(.$wpars$eval_strings)
 
   if(.$wpars$eval_strings) {
     vl   <- 'pars_eval'

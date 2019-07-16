@@ -1,7 +1,7 @@
 ################################
 #
-# Wrapper functions for MCMC runs 
-# 
+# Wrapper functions for MCMC runs
+#
 # AJohnson, AWalker July 2019
 #
 ################################
@@ -282,7 +282,7 @@ init_mcmc_dream <- function(.) {
   .$mcmc$p_state       <- numeric(.$dataf$lp)
   .$mcmc$sd_state      <- numeric(.$mcmc$d)
   .$mcmc$jump          <- matrix(data=0, nrow=.$dataf$lp,   ncol=.$mcmc$d )
-  .$mcmc$draw          <- matrix(data=0, nrow=.$dataf$lp-1, ncol=.$dataf$lp )
+  .$mcmc$draw          <- matrix(data=0, nrow=.$dataf$lp - 1, ncol=.$dataf$lp )
   .$mcmc$lambda        <- matrix(data=0, nrow=.$dataf$lp,   ncol=1 )
 
   # index of chains for Differential Evolution
@@ -332,7 +332,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
     # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
     D <- sample(1:.$wpars$mcmc_delta, 1, replace = T)
-
+    
     # extract vectors a and b not equal to ii
     a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
     b <- .$mcmc$R[ii, .$mcmc$draw[(D + 1):(2 * D), ii]]
@@ -475,7 +475,7 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   #print(.$wpars$mcmc_maxiter / 10)
   #print(.$mcmc$J)
   #print(sum(.$mcmc$J))
-  
+
   if ((j > (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
   # if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
     .$mcmc$p_CR <- .$mcmc$J    / .$mcmc$n_id
@@ -498,7 +498,7 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
 # expects model output to be probability - as in the output from the mixture model
 f_proposal_lklihood_log <- function(.) {
-  # derive log density   
+  # derive log density
   log(.$dataf$out)
 
   # print(paste0('model likelihood = ', log(.$dataf$out)))
@@ -531,7 +531,7 @@ f_proposal_lklihood_ssquared <- function(.) {
 # this function incorporates measurement errors
 f_proposal_lklihood_ssquared_se <- function(.) {
 
-  # read in measurement error and remove zeros from measurement error  
+  # read in measurement error and remove zeros from measurement error
   sspos <- which(.$dataf$obsse > 1e-9)
 
   # number of measured data points (that do not have zero uncertainty)
@@ -553,7 +553,7 @@ f_proposal_lklihood_ssquared_se <- function(.) {
 
 
 
-# Debuging functions 
+# Debuging functions
 ################################
 
 #set seed functions (to reproduce sequences of quasi-random numbers)
