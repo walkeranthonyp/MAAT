@@ -237,9 +237,6 @@ maat$wpars$of_name_stem  <- ofname
 maat$wpars$of_type       <- of_format
 maat$wpars$of_dir        <- odir
 
-maat$model$cpars$verbose <- F
-maat$model$cpars$output  <- mod_out
-
 # define MCMC run parameters
 maat$wpars$mcmc          <- mcmc
 maat$wpars$mcmc_type     <- mcmc_type
@@ -258,6 +255,9 @@ maat$wpars$mcmc_n_CR     <- mcmc_n_CR
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic)
+
+# define model parameters
+maat$model$cpars$output  <- mod_out
 
 # set debugging flags
 maat$model$pars$verbose  <- F
@@ -458,7 +458,7 @@ if(!is.null(evaldata)&F) {
 
     # add to MAAT object
     maat$dataf$obs <- evaldf
-
+   
     # Read standard error for eval data
     if(evalse) {
       print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"')

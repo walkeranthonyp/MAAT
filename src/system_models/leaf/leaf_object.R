@@ -370,39 +370,52 @@ leaf_object$cpars <- list(
 #######################################################################        
 leaf_object$output <- function(.){
 
-  if(.$cpars$output=='slim') {
-    
-    lout <- .$state_retrive(snames=c('A','ci','lim')) 
-    
-  } else if(.$cpars$output=='run') {
-    
-    lout <- c(.$state_retrive(snames=c('A','cc','ci','rd','lim')),
-              .$state_retrive(snames=c('ri','rs','rb'), state='state_pars') )
-    
-  } else if(.$cpars$output=='all_lim') {
-    
-    lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
+  lout <- 
+
+    if(.$cpars$output=='run') {
+      
+      c(.$state_retrive(snames=c('A','cc','ci','rd','lim')),
+                .$state_retrive(snames=c('ri','rs','rb'), state='state_pars') )
+      
+    } else if(.$cpars$output=='slim') {
+      
+      .$state_retrive(snames=c('A','ci','lim')) 
+      
+    } else if(.$cpars$output=='main'|.$cpars$output=='mcmc') {
+      
+      c(A=.$state$A)
+      
+    } else if(.$cpars$output=='state') {
+      
+      unlist(.$state)
+      
+    } else if(.$cpars$output=='full') {
+      
+      unlist(c(.$state, .$state_pars ))
+      
+    } else if(.$cpars$output=='all_lim') {
+      
+      c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
+                .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
+      
+    } else if(.$cpars$output=='canopy') {
+      
+      c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
+                gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb, 
+                g =1/ (.$state_pars$rs + .$state_pars$rb) )
+      
+    } else if(.$cpars$output=='sphagnum') {
+      
+      c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim','fwdw_ratio')), 
               .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
-    
-  } else if(.$cpars$output=='canopy') {
-    
-    lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
-              gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb, 
-              g =1/ (.$state_pars$rs + .$state_pars$rb) )
-    
-  } else if(.$cpars$output=='full') {
-    
-    lout <- unlist(c(.$state, .$state_pars ))
-    
-  } else if(.$cpars$output=='sphagnum') {
-    
-    lout <- c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim','fwdw_ratio')), 
-              .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
-    
-  }
+
+    } else {
+
+      stop(paste('No', .$name, 'model output option:', .$cpars$output, ', defined in output function.' ))
+    }
   
-  if(.$pars$diag&.$cpars$output!='full') c( lout, A_noR=.$state$A_noR, transition=.$state$transition ) 
-  else                                    lout
+  if(.$pars$diag&.$cpars$output!='full') c(lout, A_noR=.$state$A_noR, transition=.$state$transition ) 
+  else                                   lout
   
 }    
 
