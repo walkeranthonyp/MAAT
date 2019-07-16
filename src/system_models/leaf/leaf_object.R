@@ -26,10 +26,12 @@ setwd('leaf')
 
 # assign object functions
 ###########################################################################
-leaf_object$name              <- 'leaf'
+leaf_object$name <- 'leaf'
 
 
-# function to configure unique elements of the object 
+# function to configure unique elements of the object
+# - adds functions to fns that are not in fnames
+# - or functions that are derivations of other functions, in this case teh rs derived fuinctions like rs_r0 and rs_fe 
 ####################################
 leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
   if(init) {
@@ -38,6 +40,13 @@ leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
     .$fns$assimilation        <- f_assimilation
     .$fns$assim_no_resistance <- f_A_r_leaf_noR
     .$fns$transition_cc       <- transition_cc
+    .$fns$analytical          <- f_A_r_leaf_analytical 
+    .$fns$analytical_quad     <- f_A_r_leaf_analytical_quad 
+    .$fns$full_soln           <- f_A_r_leaf 
+    .$fns$iterate_guesses     <- f_iterate_guesses 
+    .$fns$residual            <- f_residual 
+    .$fns$write_residual      <- f_write_residual 
+    .$fns$solver_brackets     <- f_R_Brent_solver_diag_brackets 
   }
 
   if(any(names(flist)=='rs')) {
@@ -113,6 +122,7 @@ leaf_object$fnames <- list(
   )      
 )
 
+
 # environment
 ####################################
 leaf_object$env <- list(
@@ -127,6 +137,7 @@ leaf_object$env <- list(
   atm_press = 101325,              # ( Pa)
   wind      = 1                    # (m s-1)
 )
+
 
 # state
 ####################################
@@ -167,9 +178,11 @@ leaf_object$state <- list(
   d13c           = numeric(1)      # delta 13 C concentration of assimilated C 
 )
 
+
 # results from solver
 ####################################
 leaf_object$solver_out = NULL
+
 
 # state parameters (i.e. calculated parameters)
 ####################################
@@ -193,6 +206,7 @@ leaf_object$state_pars <- list(
   alpha    = numeric(1),   # mol electrons mol-1 absorbed photosynthetically active photons
   cica_chi = numeric(1)    # Ci:Ca ratio 
 )
+
 
 # parameters
 ####################################
@@ -355,6 +369,7 @@ leaf_object$pars   <- list(
   R   = 8.31446               # molar gas constant                                      (m2 kg s-2 K-1 mol-1  ==  Pa m3 mol-1K-1)
 )
 
+
 # run control parameters
 ####################################
 leaf_object$cpars <- list(
@@ -363,7 +378,6 @@ leaf_object$cpars <- list(
   cverbose      = F,          # write configuration output during runtime 
   output        = 'slim'      # type of output from run function
 )
-
 
 
 # output functions
@@ -418,7 +432,6 @@ leaf_object$output <- function(.){
   else                                   lout
   
 }    
-
 
 
 # test functions
