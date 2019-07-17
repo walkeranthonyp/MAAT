@@ -59,9 +59,9 @@
       <!-- leaf boundary layer resistance to H2O & CO2 transport -->
       <rb>'f_r_zero'</rb>
       <!-- solver, numerical or analytical -->
-      <solver>'f_R_Brent_solver'</solver>
+      <solver>'f_solver_brent'</solver>
       <!-- function passed to solver -->
-      <solver_func>'f_A_r_leaf'</solver_func>
+      <residual_func>'f_residual_func_leaf_Ar'</residual_func>
       <!-- selection of limiting rate function, straight miniimum Farquhar 1980 or smoothed Collatz 1991 -->
       <Alim>'f_lim_collatz1991'</Alim>
     </leaf>

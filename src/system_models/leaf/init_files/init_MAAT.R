@@ -47,7 +47,6 @@
 
 # define lists
 fnames.static <- list(
-  solver_func     = 'f_A_r_leaf',
   vcmax           = 'f_vcmax_constant',
   jmax            = 'f_jmax_power',
   tcor_asc = list(  

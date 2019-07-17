@@ -8,7 +8,7 @@
 
 source('leaf_system_functions.R')
 source('leaf_functions.R')
-source('leaf_functions_solvers.R')
+source('leaf_solver_functions.R')
 
 
 
@@ -38,15 +38,14 @@ leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
     source('../../functions/general_functions.R')
     .$fns$puniroot            <- puniroot
     .$fns$assimilation        <- f_assimilation
-    .$fns$assim_no_resistance <- f_A_r_leaf_noR
+    .$fns$assim_no_resistance <- f_solver_analytical_leaf_no_r
     .$fns$transition_cc       <- transition_cc
-    .$fns$analytical          <- f_A_r_leaf_analytical 
-    .$fns$analytical_quad     <- f_A_r_leaf_analytical_quad 
-    .$fns$full_soln           <- f_A_r_leaf 
+    .$fns$analytical_simple   <- f_solver_analytical_leaf_simple 
+    .$fns$analytical_quad     <- f_solver_analytical_leaf_quad 
     .$fns$iterate_guesses     <- f_iterate_guesses 
-    .$fns$residual            <- f_residual 
+    .$fns$residual_iterate    <- f_residual_iterate 
     .$fns$write_residual      <- f_write_residual 
-    .$fns$solver_brackets     <- f_R_Brent_solver_diag_brackets 
+    .$fns$solver_numerical    <- f_solver_brent 
   }
 
   if(any(names(flist)=='rs')) {
@@ -64,8 +63,8 @@ leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
 ####################################
 leaf_object$fnames <- list(
   sys            = 'f_sys_enzymek', 
-  solver_func    = 'f_A_r_leaf',
-  solver         = 'f_R_Brent_solver',
+  solver         = 'f_solver_brent',
+  residual_func  = 'f_residual_func_leaf_Ar',
   semiana        = 'f_semiana_quad',
   Acg            = 'f_Acg_farquhar1980',
   Ajg            = 'f_Ajg_generic',
@@ -214,6 +213,8 @@ leaf_object$pars   <- list(
   diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
   d13c          = F,          # calculate d13c and add to output
   deltaA_prop   = 0.15,       # proportion of first guess in A to use as delta in semi-analytical solver (unitless)  
+  solver_min    = -0.0029834, # lower bracket for numerical solver (arbitrary decimal places to avoid numerical errors) 
+  solver_max    = 51.8364435, # upper bracket for numerical solver  
 
   # photosynthetic parameters
   a             = 0.80,       # fraction of PAR absorbed by leaf                       (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
@@ -447,10 +448,10 @@ leaf_object$.test <- function(., verbose=T, verbose_loop=T, leaf.par=1000, leaf.
   .$cpars$verbose_loop  <- verbose_loop
   .$cpars$output        <-'full'
   
-  .$fnames$rb          <- 'f_r_zero'
-  .$fnames$ri          <- 'f_r_zero'
-  .$fnames$rs          <- rs
-  .$fnames$solver_func <- 'f_A_r_leaf'
+  .$fnames$rb            <- 'f_r_zero'
+  .$fnames$ri            <- 'f_r_zero'
+  .$fnames$rs            <- rs
+  .$fnames$residual_func <- 'f_residual_func_leaf_Ar'
   
   .$env$par     <- leaf.par
   .$env$ca_conc <- leaf.ca_conc
@@ -460,20 +461,20 @@ leaf_object$.test <- function(., verbose=T, verbose_loop=T, leaf.par=1000, leaf.
 }
 
 
-leaf_object$.test_solverFunc <- function(., verbose=T, verbose_loop=T,
-                                         sinput=c(-1,50), centrala=5, range=3, inc=range,
-                                         leaf.par=200, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
+leaf_object$.test_residual_func <- function(., verbose=T, verbose_loop=T,
+                                            centrala=5, range=3, inc=range/20,
+                                            leaf.par=200, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
   
   if(verbose) str(.)
   
   .$cpars$verbose       <- verbose
   .$cpars$verbose_loop  <- verbose_loop
 
-  .$fnames$ri          <- 'f_r_zero'
-  .$fnames$rs          <- rs
-  .$fnames$rb          <- 'f_r_zero'
-  .$fnames$solver_func <- 'f_A_r_leaf'
-  .$pars$g0            <- 0.01 
+  .$fnames$ri            <- 'f_r_zero'
+  .$fnames$rs            <- rs
+  .$fnames$rb            <- 'f_r_zero'
+  .$fnames$residual_func <- 'f_residual_func_leaf_Ar'
+  .$pars$g0              <- 0.01 
   
   # configure methods
   .$configure_test()
@@ -494,16 +495,10 @@ leaf_object$.test_solverFunc <- function(., verbose=T, verbose_loop=T,
   }
 
   # run the residual function within a loop
-  out <- numeric(length(sinput))
-  for( i in 1:length(sinput) ) {
-    out[i] <- .$fns$solver_func(A=sinput[i])
-  }
-
-  #out <- f_residual(., centrala, range, inc )
+  out <- .$fns$residual_iterate(centrala, range, inc)
 
   # output
-  print(xyplot(out~sinput,type='b',abline=0))
-  #print(xyplot(resid~a,type='b',abline=0))
+  print(xyplot(resid~a, as.data.frame(out), type='b', abline=0 ))
   out
 }
 
@@ -520,11 +515,11 @@ leaf_object$.test_tscalar <- function(., leaf.temp=0:50, leaf.par=c(1000), leaf.
   
   .$fnames$tcor_asc[['vcmax']]  <- tcor_asc
   .$fnames$tcor_des[['vcmax']]  <- tcor_des
-  .$pars$Ha$vcmax      <- Ha
-  .$fnames$ri          <- 'f_r_zero'
-  .$fnames$rs          <- rs
-  .$fnames$solver_func <- 'f_A_r_leaf'
-  .$fnames$solver      <- 'f_R_Brent_solver'
+  .$pars$Ha$vcmax        <- Ha
+  .$fnames$ri            <- 'f_r_zero'
+  .$fnames$rs            <- rs
+  .$fnames$residual_func <- 'f_residual_func_leaf_Ar'
+  .$fnames$solver        <- 'f_solver_brent'
   
   # configure methods
   .$configure_test()
@@ -550,12 +545,11 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
   
   if(verbose) str(.)
   
-  .$fnames$solver_func <- 'f_A_r_leaf'
-  .$fnames$solver      <- 'f_R_Brent_solver'
-  .$fnames$ri          <- 'f_r_zero'
-  
-  .$fnames$rb          <- rb
-  .$fnames$rs          <- rs
+  .$fnames$residual_func <- 'f_residual_func_leaf_Ar'
+  .$fnames$solver        <- 'f_solver_brent'
+  .$fnames$ri            <- 'f_r_zero'
+  .$fnames$rb            <- rb
+  .$fnames$rs            <- rs
   
   # configure methods
   .$configure_test()
@@ -589,10 +583,10 @@ leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=
   
   if(verbose) str(.)
   
-  .$fnames$ri          <- 'f_r_zero'
-  .$fnames$rs          <- rs
-  .$fnames$solver_func <- 'f_A_r_leaf'
-  .$fnames$solver      <- 'f_R_Brent_solver'
+  .$fnames$ri            <- 'f_r_zero'
+  .$fnames$rs            <- rs
+  .$fnames$residual_func <- 'f_residual_func_leaf_Ar'
+  .$fnames$solver        <- 'f_solver_brent'
   
   # configure methods
   .$configure_test()
@@ -653,18 +647,18 @@ leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011',
   .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
   
   if(!ana_only) {
-    .$fnames$solver <- 'f_R_Brent_solver'
+    .$fnames$solver <- 'f_solver_brent'
     .$configure_test()
     .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
     num_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver )
   }
 
-  .$fnames$solver <- 'f_A_r_leaf_analytical'
+  .$fnames$solver <- 'f_solver_analytical_leaf_simple'
   .$configure_test()
   .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
   ana_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver)
 
-  .$fnames$solver <- 'f_A_r_leaf_analytical_quad'
+  .$fnames$solver <- 'f_solver_analytical_leaf_quad'
   .$configure_test()
   .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
   ana_soln        <- rbind(ana_soln,  cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver) )

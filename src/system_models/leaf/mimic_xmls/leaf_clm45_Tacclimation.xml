@@ -43,8 +43,8 @@
       <ri>'f_r_zero'</ri>
       <rs>'f_rs_ball1987'</rs>
       <rb>'f_r_zero'</rb>
-      <solver>'f_R_Brent_solver'</solver>
-      <solver_func>'f_A_r_leaf'</solver_func>
+      <solver>'f_solver_brent'</solver>
+      <residual_func>'f_residual_func_leaf_Ar'</residual_func>
       <Alim>'f_lim_collatz1991'</Alim>
     </leaf>
   </fnames>

@@ -2,9 +2,9 @@
   <fnames>
     <leaf>
       <sys>'c( 'f_sys_enzymek' )'</sys>
-      <solver_func>'c(  )'</solver_func>
-      <solver>'c(  )'</solver>
-      <semiana>'c( 'f_A_r_leaf_semiana', 'f_A_r_leaf_semiana_brent', 'f_A_r_leaf_semiana_quad', 'f_semiana_brent', 'f_semiana_quad', 'f_semiana_three' )'</semiana>
+      <solver>'c( 'f_solver_analytical_leaf_no_r', 'f_solver_analytical_leaf_quad', 'f_solver_analytical_leaf_quad_r0', 'f_solver_analytical_leaf_simple', 'f_solver_brent', 'f_solver_brent_diag', 'f_solver_semiana_leaf_Ar' )'</solver>
+      <residual_func>'c( 'f_residual_func_leaf_Ar', 'f_residual_func_leaf_Ar_no_rs' )'</residual_func>
+      <semiana>'c( 'f_semiana_brent', 'f_semiana_quad', 'f_semiana_three' )'</semiana>
       <Acg>'c( 'f_Acg_farquhar1980' )'</Acg>
       <Ajg>'c( 'f_Ajg_generic' )'</Ajg>
       <Apg>'c( 'f_Apg_foley1996', 'f_Apg_none', 'f_Apg_vonc2000' )'</Apg>

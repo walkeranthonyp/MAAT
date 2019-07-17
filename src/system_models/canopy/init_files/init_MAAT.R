@@ -49,7 +49,6 @@
 
 # define lists
 leaf.fnames.static <- list(
-  solver_func = 'f_A_r_leaf',
   rb          = 'f_r_zero'
 )
 

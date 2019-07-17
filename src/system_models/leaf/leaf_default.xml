@@ -2,8 +2,8 @@
   <fnames>
     <leaf>
       <sys>'f_sys_enzymek'</sys>
-      <solver_func>'f_A_r_leaf'</solver_func>
-      <solver>'f_R_Brent_solver'</solver>
+      <solver>'f_solver_brent'</solver>
+      <residual_func>'f_residual_func_leaf_Ar'</residual_func>
       <semiana>'f_semiana_quad'</semiana>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
@@ -65,6 +65,8 @@
       <diag>FALSE</diag>
       <d13c>FALSE</d13c>
       <deltaA_prop>0.15</deltaA_prop>
+      <solver_min>-0.0029834</solver_min>
+      <solver_max>51.8364435</solver_max>
       <a>0.8</a>
       <f>0.23</f>
       <ko_kc_ratio>0.21</ko_kc_ratio>

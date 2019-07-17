@@ -2,8 +2,8 @@
   <fnames>
     <leaf>
       <sys>NA</sys>
-      <solver_func>NA</solver_func>
       <solver>NA</solver>
+      <residual_func>NA</residual_func>
       <semiana>NA</semiana>
       <Acg>NA</Acg>
       <Ajg>NA</Ajg>
@@ -65,6 +65,8 @@
       <diag>NA</diag>
       <d13c>NA</d13c>
       <deltaA_prop>NA</deltaA_prop>
+      <solver_min>NA</solver_min>
+      <solver_max>NA</solver_max>
       <a>NA</a>
       <f>NA</f>
       <ko_kc_ratio>NA</ko_kc_ratio>
