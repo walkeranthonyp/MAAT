@@ -307,13 +307,11 @@ puniroot <-
         print("f.lower = f(lower) is NA")
 
         # debugging code
-        print('proposal generated = ')
+        # assumming this puniroot fxn is called each iteration?
+        print('proposals generated = ')
         print(.$dataf$pars)
-        # print('model evaluation (.$dataf$out_mcmc) = ')
-        # print(.$dataf$out_mcmc)
-        # print('.dataf$out = ')
+        # print('model evaluation, .dataf$out = ')
         # print(.$dataf$out)
-
 
         return(list(root = NA, f.root = NA, iter = 0, init.it = 0, estim.prec = NA))
       } else {
@@ -327,9 +325,7 @@ puniroot <-
         # debugging code
         print('proposal generated = ')
         print(.$dataf$pars)
-        # print('model evaluation (.$dataf$out_mcmc) = ')
-        # print(.$dataf$out_mcmc)
-        # print('.dataf$out = ')
+        # print('model evaluation, .dataf$out = ')
         # print(.$dataf$out)
 
         return(list(root = NA, f.root = NA, iter = 0, init.it = 0, estim.prec = NA))

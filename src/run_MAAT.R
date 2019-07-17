@@ -86,7 +86,7 @@ salt_nmult <- 100
 
 # parameters for MCMC run
 # MCMC likelihood (options: log, ssquared, ssquared_se )
-mcmc_lklihood <- 'log'
+mcmc_lklihood <- 'ssquared_se'
 # number of MCMC chains to run (min 2x number of parameters estimated)
 mcmc_chains   <- 10
 # number of iterations / steps in MCMC chain
@@ -458,7 +458,7 @@ if(!is.null(evaldata)&F) {
 
     # add to MAAT object
     maat$dataf$obs <- evaldf
-   
+
     # Read standard error for eval data
     if(evalse) {
       print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"')

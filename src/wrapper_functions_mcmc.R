@@ -305,6 +305,9 @@ init_mcmc_dream <- function(.) {
 # generate proposal using DREAM algorithm
 proposal_generate_mcmc_dream <- function(., j ) {
 
+  # debugging
+  print(paste0('iteration = ', j))
+
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
 
@@ -332,7 +335,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
     # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
     D <- sample(1:.$wpars$mcmc_delta, 1, replace = T)
-    
+
     # extract vectors a and b not equal to ii
     a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
     b <- .$mcmc$R[ii, .$mcmc$draw[(D + 1):(2 * D), ii]]
@@ -532,17 +535,42 @@ f_proposal_lklihood_ssquared <- function(.) {
 f_proposal_lklihood_ssquared_se <- function(.) {
 
   # read in measurement error and remove zeros from measurement error
+  # future work: screen out night-time values in a more efficient location
   sspos <- which(.$dataf$obsse > 1e-9)
+
+  # debugging: parse out NA, NaN, Inf, and -Inf values so Sphagnum simulation will keep running
+  # idx <- which((.$dataf$out[sspos, ] != NA & !NaN))
+  idx <- which(is.na(.$dataf$out[ , sspos]))
+
+  print(paste0('type of idx = ', typeof(idx)))
+  print(paste0('length of idx = ', length(idx)))
+  print(paste0('type of sspos = ', typeof(sspos)))
+  print(paste0('length of sspos = ', length(sspos)))
+  # print('idx = ')
+  # print(idx)
+  # print('sspos = ')
+  # print(sspos)
 
   # number of measured data points (that do not have zero uncertainty)
   obs_n <- length(sspos)
 
+  # debugging: altered original code below
+  # debugging: mcmc_homosced <- F
   # observed error
   obsse <- if(.$wpars$mcmc_homosced)   rep(mean(.$dataf$obsse[sspos]), obs_n)
-           else                .$dataf$obsse[sspos]
+           else                .$dataf$obsse[sspos][-idx]
+
+  # debugging
+  # obsse <- .$dataf$obsse[idx]
 
   # calculate error residual (each chain is on rows of dataf$out, take transpose)
-  error_residual_matrix <- ( t(.$dataf$out)[sspos,] - .$dataf$obs[sspos] ) / obsse
+  # error_residual_matrix <- ( t(.$dataf$out)[sspos, ] - .$dataf$obs[sspos] ) / obsse
+
+  # debugging
+  error_residual_matrix <- ( t(.$dataf$out)[sspos, ][-idx,] - .$dataf$obs[sspos][-idx] ) / obsse
+
+  # debugging
+  # error_residual_matrix <- ( t(.$dataf$out)[idx, ] - .$dataf$obs[idx] ) / obsse
 
   # calculate sum of squared error
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
