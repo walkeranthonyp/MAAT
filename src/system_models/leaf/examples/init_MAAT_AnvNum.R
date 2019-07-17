@@ -55,13 +55,13 @@ fnames.static <- list(
   	  vcmax	= 'f_scalar_none',
   	  jmax  = 'f_scalar_none'
   ),
-    tcor_des = list(
+  tcor_des = list(
     vcmax  = 'f_scalar_none',
-  	jmax   = 'f_scalar_none'
+    jmax   = 'f_scalar_none'
   ),
   vcmax           = 'f_vcmax_constant',
   jmax            = 'f_jmax_power',
-  rd 		      = 'f_rd_lin_vcmax', 
+  rd              = 'f_rd_lin_vcmax', 
   ri              = 'f_r_zero',
   rb              = 'f_r_zero'
 )
@@ -92,7 +92,7 @@ env.static  <- list(
 # define lists
 fnames.var <- list(
   rs     = c('f_rs_ball1987', 'f_rs_medlyn2011', 'f_rs_leuning1995', 'f_rs_constantCiCa', 'f_rs_cox1998'),
-  solver = c('f_R_Brent_solver','f_A_r_leaf_analytical','f_A_r_leaf_analytical_quad')
+  solver = c('f_solver_brent','f_solver_analytical_leaf_simple','f_solver_analytical_leaf_quad')
 )
 
 pars.var <- list(
