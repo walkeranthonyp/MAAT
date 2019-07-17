@@ -26,7 +26,7 @@
         <vcmax>'f_deltaS_lin_t'</vcmax>
         <jmax>'f_deltaS_lin_t'</jmax>
       </deltaS>
-      <etrans>'f_j_harley1992'</etrans>
+      <etrans>'f_etrans_harley1992'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <gas_diff>'f_ficks_ci'</gas_diff>

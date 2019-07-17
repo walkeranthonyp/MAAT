@@ -32,7 +32,7 @@
         <tpu>'f_deltaS_constant'</tpu>
         <rd>'f_deltaS_constant'</rd>
       </deltaS>
-      <etrans>'f_j_farquharwong1984'</etrans>
+      <etrans>'f_etrans_farquharwong1984'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>

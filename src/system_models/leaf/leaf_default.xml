@@ -8,7 +8,7 @@
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
-      <etrans>'f_j_harley1992'</etrans>
+      <etrans>'f_etrans_harley1992'</etrans>
       <gas_diff>'f_ficks_ci'</gas_diff>
       <Alim>'f_lim_farquhar1980'</Alim>
       <vcmax>'f_vcmax_lin'</vcmax>

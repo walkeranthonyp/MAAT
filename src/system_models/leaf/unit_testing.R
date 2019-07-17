@@ -34,7 +34,7 @@ leaf_object$.test_aci_light(diag=T)
 
 source('leaf_object.R')
 out <- leaf_object$.test_aci_lim(leaf.par=2000, leaf.ca_conc=seq(100,1500,10) )
-out <- leaf_object$.test_aci_lim(et='f_j_collatz1991', leaf.par=2000, leaf.ca_conc=seq(100,1500,10) )
+out <- leaf_object$.test_aci_lim(et='f_etrans_collatz1991', leaf.par=2000, leaf.ca_conc=seq(100,1500,10) )
 
 source('leaf_object.R')
 leaf_object$.test_tscalar()

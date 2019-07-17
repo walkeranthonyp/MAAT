@@ -22,7 +22,7 @@
         <Kc>'f_q10_constant'</Kc>
         <Ko>'f_q10_constant'</Ko>
       </q10_func>
-      <etrans>'f_j_collatz1991'</etrans>
+      <etrans>'f_etrans_collatz1991'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>

@@ -77,7 +77,7 @@ f_Ajg_generic <- function(., cc=.super$state$cc ) {
 }
 
 # Farquhar 1980 and others
-f_j_farquhar1980 <- function(.){
+f_etrans_farquhar1980 <- function(.){
   # calculates J given Jmax, I - irradiance & alpha - electrons transported per incident photon
   # this is the replacement for eq A2 added in the proofing stage (very last line of the manuscript after all refs etc)
   
@@ -85,14 +85,14 @@ f_j_farquhar1980 <- function(.){
 }
 
 # Harley etal 1992 eq to calculate electron transport rate
-f_j_harley1992 <- function(.) {
+f_etrans_harley1992 <- function(.) {
   # umol e m-2 s-1
   harley_alpha <- .super$pars$a * .super$state_pars$alpha
   harley_alpha*.super$env$par / ( 1.0 + (harley_alpha**2)*(.super$env$par**2) / (.super$state_pars$jmaxlt**2) )**0.5  
 }
 
 # von Caemmerer 2000 book and taken from Farquhar & Wong 1984
-f_j_farquharwong1984 <- function(.) {
+f_etrans_farquharwong1984 <- function(.) {
   # calculates J given Jmax, I - irradiance & alpha - electrons transported per photon
   
   # in von Caemmerer 2000 - I2 = I * a*(1-f)/2
@@ -109,7 +109,7 @@ f_j_farquharwong1984 <- function(.) {
 }
 
 # Collatz etal 1991 eq to calculate electron transport rate
-f_j_collatz1991 <- function(.) {
+f_etrans_collatz1991 <- function(.) {
   # umol e m-2 s-1
   
   .super$pars$a * .super$state_pars$alpha * .super$env$par  

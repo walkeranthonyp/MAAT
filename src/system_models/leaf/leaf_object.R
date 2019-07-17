@@ -69,7 +69,7 @@ leaf_object$fnames <- list(
   Acg            = 'f_Acg_farquhar1980',
   Ajg            = 'f_Ajg_generic',
   Apg            = 'f_Apg_vonc2000',            
-  etrans         = 'f_j_harley1992',
+  etrans         = 'f_etrans_harley1992',
   gas_diff       = 'f_ficks_ci',
   Alim           = 'f_lim_farquhar1980',
   vcmax          = 'f_vcmax_lin',
@@ -711,7 +711,7 @@ leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011',
 }
 
 
-leaf_object$.test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_j_farquharwong1984',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1500,50), 
+leaf_object$.test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_etrans_farquharwong1984',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1500,50), 
                                       ana_only=F,verbose=F,verbose_loop=F,diag=F) {
   
   .$cpars$verbose       <- verbose

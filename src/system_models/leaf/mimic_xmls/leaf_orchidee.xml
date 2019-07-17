@@ -30,7 +30,7 @@
         <jmax>'f_deltaS_lin_t'</jmax>
       </deltaS>
       <!-- electron transport -->
-      <etrans>'f_j_farquharwong1984'</etrans>
+      <etrans>'f_etrans_farquharwong1984'</etrans>
       <!-- RuBP saturated gross carboxylation rate -->
       <Acg>'f_Acg_farquhar1980'</Acg>
       <!-- RuBP limited gross carboxylation rate -->

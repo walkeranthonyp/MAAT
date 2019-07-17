@@ -17,7 +17,7 @@
         <tpu>'f_tcor_dep_dependent'</tpu>
         <rd>'f_tcor_dep_dependent'</rd>
       </tcor_dep>
-      <etrans>'f_j_collatz1991'</etrans>
+      <etrans>'f_etrans_collatz1991'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
