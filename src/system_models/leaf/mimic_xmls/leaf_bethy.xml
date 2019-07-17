@@ -29,15 +29,15 @@
       <etrans>'f_etrans_harley1992'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
-      <gas_diff>'f_ficks_ci'</gas_diff>
+      <gas_diff>'f_gas_diff_ficks_ci'</gas_diff>
       <rd>'f_rd_lin_vcmax'</rd>
-      <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
+      <rl_rd>'f_rl_rd_fixed'</rl_rd_scalar>
       <ri>'f_r_zero'</ri>
       <rs>'f_rs_constantCiCa'</rs>
       <rb>'f_r_zero'</rb>
       <solver>'f_solver_analytical_leaf_simple'</solver>
       <residual_func>'f_residual_func_leaf_Ar'</residual_func>
-      <Alim>'f_lim_farquhar1980'</Alim>
+      <Alim>'f_Alim_farquhar1980'</Alim>
     </leaf>
   </fnames>
   <pars>

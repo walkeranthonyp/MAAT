@@ -63,7 +63,7 @@ f_sys_enzymek <- function(.) {
   if(.super$env$par > 0) {
     # run photosynthesis
     # account for decreased respiration in the light
-    .super$state$rd  <- .$rl_rd_scalar() * .super$state$rd
+    .super$state$rd  <- .$rl_rd() * .super$state$rd
     .super$state_pars$gamma   <- (-.super$state_pars$vcmaxlt * .super$state_pars$gstar - .super$state$rd * .super$state_pars$Km) / (.super$state$rd - .super$state_pars$vcmaxlt)
   
     # diagnostic calculations

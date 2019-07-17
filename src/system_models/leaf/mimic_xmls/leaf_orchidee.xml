@@ -38,11 +38,11 @@
       <!-- TPU limited gross carboxylation rate -->
       <Apg>'f_Apg_none'</Apg>
       <!-- gas diffusion function, Fick's law; can apply a zero bound as gs solution can be negative at low ci -->
-      <gas_diff>'f_ficks_ci'</gas_diff>
+      <gas_diff>'f_gas_diff_ficks_ci'</gas_diff>
       <!-- calculate Rd at <reftemp.rd>, f(Vcmax), f(N), -->
       <rd>'f_rd_lin_vcmax'</rd>
       <!-- scaling of Rd in the dark to rd in the light, default is fixed ratio with ratio set to 1 -->
-      <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
+      <rl_rd>'f_rl_rd_fixed'</rl_rd_scalar>
       <!-- is temperature scaling of Rd the same as that of Vcmax or not -->
       <tcor_dep>
         <rd>'f_tcor_dep_independent'</rd>
@@ -58,7 +58,7 @@
       <!-- function passed to solver -->
       <residual_func>'f_residual_func_leaf_Ar'</residual_func>
       <!-- selection of limiting rate function, straight miniimum Farquhar 1980 or smoothed Collatz 1991 -->
-      <Alim>'f_lim_farquhar1980'</Alim>
+      <Alim>'f_Alim_farquhar1980'</Alim>
     </leaf>
   </fnames>
   <pars>

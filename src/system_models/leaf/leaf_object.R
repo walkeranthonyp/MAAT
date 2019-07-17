@@ -70,19 +70,19 @@ leaf_object$fnames <- list(
   Ajg            = 'f_Ajg_generic',
   Apg            = 'f_Apg_vonc2000',            
   etrans         = 'f_etrans_harley1992',
-  gas_diff       = 'f_ficks_ci',
-  Alim           = 'f_lim_farquhar1980',
+  gas_diff       = 'f_gas_diff_ficks_ci',
+  Alim           = 'f_Alim_farquhar1980',
   vcmax          = 'f_vcmax_lin',
   jmax           = 'f_jmax_power',
   tcor_jmax      = 'f_scalar_none',
   tpu            = 'f_tpu_lin',
   rd             = 'f_rd_lin_vcmax',
-  rl_rd_scalar   = 'f_scalar_none',
+  rl_rd   = 'f_scalar_none',
   gstar          = 'f_gstar_f1980',
   ri             = 'f_r_zero',
   rs             = 'f_rs_medlyn2011',
   rb             = 'f_rb_leafdim',
-  cica_ratio     = 'f_cica_constant',             
+  cica_ratio     = 'f_cica_ratio_constant',             
   d13c           = 'f_d13c_classical',             
   tcor_asc = list(
     vcmax          = 'f_tcor_asc_Arrhenius',
@@ -111,7 +111,7 @@ leaf_object$fnames <- list(
     jmax           = 'f_deltaS',
     tpu            = 'f_deltaS'
   ),
-  q10_func = list(
+  q10 = list(
     rd             = 'f_q10_constant',
     vcmax          = 'f_q10_constant',
     jmax           = 'f_q10_constant',
@@ -723,18 +723,18 @@ leaf_object$.test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_etrans_farquh
   
   .$fnames$rs           <- rs
   .$fnames$ri           <- 'f_r_zero'
-  .$fnames$gas_diff     <- 'f_ficks_ci'
+  .$fnames$gas_diff     <- 'f_gas_diff_ficks_ci'
   .$fnames$etrans       <- et
   
   .$dataf     <- list()
   .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
   
-  .$fnames$Alim <- 'f_lim_farquhar1980'
+  .$fnames$Alim <- 'f_Alim_farquhar1980'
   .$configure_test()
   .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
   Fout          <- cbind(.$dataf$met,.$dataf$out,Alim='F1980')
   
-  .$fnames$Alim <- 'f_lim_collatz1991'
+  .$fnames$Alim <- 'f_Alim_collatz1991'
   .$configure_test()
   .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
   Cout          <- cbind(.$dataf$met,.$dataf$out,Alim='C1991')

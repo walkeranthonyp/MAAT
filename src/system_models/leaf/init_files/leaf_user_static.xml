@@ -16,7 +16,7 @@
       <tcor_jmax>NA</tcor_jmax>
       <tpu>NA</tpu>
       <rd>NA</rd>
-      <rl_rd_scalar>NA</rl_rd_scalar>
+      <rl_rd>NA</rl_rd>
       <gstar>NA</gstar>
       <ri>NA</ri>
       <rs>NA</rs>
@@ -50,14 +50,14 @@
         <jmax>NA</jmax>
         <tpu>NA</tpu>
       </deltaS>
-      <q10_func>
+      <q10>
         <rd>NA</rd>
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tau>NA</tau>
         <Kc>NA</Kc>
         <Ko>NA</Ko>
-      </q10_func>
+      </q10>
     </leaf>
   </fnames>
   <pars>
