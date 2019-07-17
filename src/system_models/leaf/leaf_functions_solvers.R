@@ -13,17 +13,21 @@
 ################################
 
 # Solver to find root of .$solver_func
+#f_solver_brent <- function(., interval=c(.$pars$solver_min,.$pars$solver_max) ) {
 f_R_Brent_solver <- function(.) {
   if(.super$cpars$verbose_loop) print(.super$env) 
 
+  #.$puniroot(.$residual_func, interval=interval, extendInt='downX' )$root
   .super$solver_out <- .$puniroot(.$solver_func, interval=c(-0.002765326,50.1234), extendInt='downX' )
   .super$solver_out$root
 }
 
 
+#f_solver_brent_diag <- function(., interval=c(.$pars$solver_min,.$pars$solver_max) ) {
 f_R_Brent_solver_diag <- function(.) {
   if(.super$cpars$verbose_loop) print(.super$env) 
 
+  #.super$solver_out        <- .$puniroot(.$solver_func, interval=interval, extendInt='downX' )
   .super$solver_out        <- .$puniroot(.$solver_func, interval=c(-0.002765326,50.1234), extendInt='downX' )
   .super$state$iter[]      <- .super$solver_out$iter
   .super$state$estimprec[] <- .super$solver_out$estim.prec
@@ -41,6 +45,7 @@ f_R_Brent_solver_diag_brackets <- function(., brackets ) {
 
 
 # Residual function for solver to calculate assimilation
+#f_residual_leaf_Ar <- function(., A ) {
 f_A_r_leaf <- function(., A ) {
   # combines A, rs, ri, ci & cc eqs to a single f(A), 
   # combines all rate limiting processes
@@ -61,6 +66,7 @@ f_A_r_leaf <- function(., A ) {
 
 
 # same as above function but with no stomatal resistance 
+#f_residual_leaf_Ar_no_rs <- function(., A ) {
 f_A_r_leaf_noRs <- function(., A ) {
   
   # calculate cc from ca, rb, and ri
@@ -74,6 +80,7 @@ f_A_r_leaf_noRs <- function(., A ) {
 
 
 # semi-analytical solver
+#f_solver_semiana_leaf <- function(.) {
 f_A_r_leaf_semiana <- function(.) {
   # - finds the analytical solution assuming rb, ri, and g0 are zero to use as first guess (a1)
   # - or finds the analytical solution assuming rb and ri are zero to use as first guess (a1)
@@ -509,6 +516,7 @@ f_write_residual <- function(., fname='resid.csv', ... ) {
 ################################
 
 # solves A analytically by assuming g0 = 0 in the stomatal resistance function, and rb and ri also = zero 
+#f_solver_analytical_leaf_simple <- function(.) {
 f_A_r_leaf_analytical <- function(.) {
   # combines A, rs, ci, cc eqs to a single f(), 
   # combines all rate limiting processes
@@ -536,6 +544,7 @@ f_A_r_leaf_analytical <- function(.) {
 
 
 # solves A analytically by assuming rb and ri are zero 
+#f_solver_analytical_leaf_quad <- function(.) {
 f_A_r_leaf_analytical_quad <- function(.) {
   # combines A, rs, ci, cc eqs to a single f(), 
   # combines all rate limiting processes
@@ -591,6 +600,7 @@ f_A_r_leaf_analytical_quad <- function(.) {
 
 
 # solves A analytically by assuming rs is equal to 1/g0 
+#f_solver_analytical_leaf_quad_r0 <- function(.) {
 f_A_r0_leaf_analytical_quad <- function(.) {
   # combines A, rs, ci, cc eqs to a single f(), 
   # combines all rate limiting processes
@@ -634,6 +644,7 @@ f_A_r0_leaf_analytical_quad <- function(.) {
 
 
 # Calculate assimilation assuming zero resistance to CO2 diffusion from the atmosphere to the site of carboxylation
+#f_solver_analytical_leaf_no_r <- function(.,...) {
 f_A_r_leaf_noR <- function(.,...) {
   # This function can be used to calculate the stomatal limitation to photosynthesis when rb and ri are assumed zero 
   # (when ri and rb are non-zero, use below function 'f_A_r_leaf_noRs' )
