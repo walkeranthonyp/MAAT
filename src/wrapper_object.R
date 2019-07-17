@@ -283,7 +283,8 @@ wrapper_object$wpars <- list(
   sobol_init    = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
   unit_testing  = F,
   mcmc_type     = 'dream',
-  mcmc_lklihood = 'log',
+  # mcmc_lklihood = 'log',
+  mcmc_lklihood = 'ssquared_se',
   mcmc_chains   = 10,
   mcmc_maxiter  = 100,
   mcmc_burnin   = 0.5,
