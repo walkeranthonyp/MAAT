@@ -47,7 +47,8 @@ system_model_object <-
       lsubs <- match(snames,names(.[[state]]))
       unlist(.[[state]][lsubs])
     }
-    
+   
+    # output is a function assigned during build function execution 
     output <- function(.) {}    
 
     

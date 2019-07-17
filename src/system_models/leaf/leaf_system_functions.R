@@ -67,7 +67,7 @@ f_sys_enzymek <- function(.) {
     .super$state_pars$gamma   <- (-.super$state_pars$vcmaxlt * .super$state_pars$gstar - .super$state$rd * .super$state_pars$Km) / (.super$state$rd - .super$state_pars$vcmaxlt)
   
     # diagnostic calculations
-    if(.super$pars$diag) {
+    if(.super$cpars$diag) {
       # these need assigning in fns
       .super$state$A_noR      <- .$fns$assim_no_resistance()
       .super$state$transition <- .$fns$transition_cc()
