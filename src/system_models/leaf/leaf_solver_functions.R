@@ -20,7 +20,7 @@ f_solver_brent <- function(., interval=c(.$pars$solver_min,.$pars$solver_max) ) 
 
 
 f_solver_brent_diag <- function(., interval=c(.$pars$solver_min,.$pars$solver_max) ) {
-  if(.super$cpars$verbose_loop) print(.super$env) 
+  if(.super$cpars$cverbose) { print('Leaf solver env:',quote=F); print(.super$env,quote=F) }
 
   .super$solver_out        <- .$puniroot(.$residualfunc, interval=interval, extendInt='downX' )
   .super$state$iter[]      <- .super$solver_out$iter
