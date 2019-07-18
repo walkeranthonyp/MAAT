@@ -119,20 +119,20 @@ f_output_mcmc_test_regression <- function(.) {
 # test functions
 #######################################################################        
 
-mcmc_test_object$.test_mixture <- function(., verbose=F, verbose_loop=F ) {
+mcmc_test_object$.test_mixture <- function(., verbose=F, cverbose=F ) {
 
   if(verbose) str(.)
-  .$build(mod_out='mixture', switches=c(F,verbose,verbose_loop) )
+  .$build(mod_out='mixture', switches=c(F,verbose,cverbose) )
 
   .$fnames$sys <- 'f_sys_mixture'
   .$configure_test()
   .$run()
 }
 
-mcmc_test_object$.test_linreg <- function(., verbose=F, verbose_loop=F ) {
+mcmc_test_object$.test_linreg <- function(., verbose=F, cverbose=F ) {
 
   if(verbose) str(.)
-  .$build(mod_out='regression', switches=c(F,verbose,verbose_loop) )
+  .$build(mod_out='regression', switches=c(F,verbose,cverbose) )
 
   .$fnames$sys <- 'f_sys_regression'
   .$configure_test()

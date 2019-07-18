@@ -376,7 +376,7 @@ leaf_object$pars   <- list(
 leaf_object$cpars <- list(
   diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
   verbose       = F,          # write diagnostic output during runtime 
-  verbose_loop  = F,          # write diagnostic output on the solver during runtime 
+  cverbose  = F,          # write diagnostic output on the solver during runtime 
   cverbose      = F,          # write configuration output during runtime 
   output        = 'slim'      # type of output from run function
 )
@@ -426,11 +426,11 @@ f_output_leaf_sphagnum <- function(.) {
 # test functions
 #######################################################################        
 
-leaf_object$.test <- function(., diag=F, verbose=T, verbose_loop=T, 
+leaf_object$.test <- function(., diag=F, verbose=T, cverbose=T, 
                               leaf.par=1000, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
   
   if(verbose) { str(.); print(.$env) }
-  .$build(mod_out='full', switches=c(diag,verbose,verbose_loop) )
+  .$build(mod_out='full', switches=c(diag,verbose,cverbose) )
   
   .$fnames$rb            <- 'f_r_zero'
   .$fnames$ri            <- 'f_r_zero'
@@ -445,15 +445,15 @@ leaf_object$.test <- function(., diag=F, verbose=T, verbose_loop=T,
 }
 
 
-leaf_object$.test_residual_func <- function(., diag=F, verbose=T, verbose_loop=T,
+leaf_object$.test_residual_func <- function(., diag=F, verbose=T, cverbose=T,
                                             centrala=5, range=3, inc=range/20,
                                             leaf.par=200, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
   
   if(verbose) str(.)
-  .$build(switches=c(diag,verbose,verbose_loop))
+  .$build(switches=c(diag,verbose,cverbose))
   
   .$cpars$verbose       <- verbose
-  .$cpars$verbose_loop  <- verbose_loop
+  .$cpars$cverbose  <- cverbose
 
   .$fnames$ri            <- 'f_r_zero'
   .$fnames$rs            <- rs
@@ -488,13 +488,13 @@ leaf_object$.test_residual_func <- function(., diag=F, verbose=T, verbose_loop=T
 }
 
     
-leaf_object$.test_tscalar <- function(., diag=F, verbose=F, verbose_loop=F, 
+leaf_object$.test_tscalar <- function(., diag=F, verbose=F, cverbose=F, 
                                       leaf.temp=0:50, leaf.par=c(1000), leaf.ca_conc=400, rs='f_rs_medlyn2011',
                                       tcor_asc='f_tcor_asc_Arrhenius', tcor_des='f_scalar_none', Ha=70000 
                                       ) {
   
   if(verbose) str(.)
-  .$build(mod_out='full', switches=c(diag,verbose,verbose_loop) )
+  .$build(mod_out='full', switches=c(diag,verbose,cverbose) )
   
   .$fnames$tcor_asc[['vcmax']]  <- tcor_asc
   .$fnames$tcor_des[['vcmax']]  <- tcor_des
@@ -519,10 +519,10 @@ leaf_object$.test_tscalar <- function(., diag=F, verbose=F, verbose_loop=F,
 
 
 leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,1500,50), rs='f_rs_medlyn2011', rb='f_r_zero', 
-                      verbose=F, verbose_loop=F, diag=F, output='all_lim' ) {
+                      verbose=F, cverbose=F, diag=F, output='all_lim' ) {
   
   if(verbose) str(.)
-  .$build(mod_out=output, switches=c(diag,verbose,verbose_loop) )
+  .$build(mod_out=output, switches=c(diag,verbose,cverbose) )
   
   .$fnames$residual_func <- 'f_residual_func_leaf_Ar'
   .$fnames$solver        <- 'f_solver_brent'
@@ -553,10 +553,10 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
 
 
 leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50),rs='f_rs_medlyn2011',
-                                        verbose=F,verbose_loop=F,output=F,diag=F) {
+                                        verbose=F,cverbose=F,output=F,diag=F) {
   
   if(verbose) str(.)
-  .$build(mod_out='all_lim', switches=c(diag,verbose,verbose_loop) )
+  .$build(mod_out='all_lim', switches=c(diag,verbose,cverbose) )
   
   .$fnames$ri            <- 'f_r_zero'
   .$fnames$rs            <- rs
@@ -601,10 +601,10 @@ leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=
 leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011', 
                                              leaf.par=c(100,1000), leaf.ca_conc=seq(50,1200,50), 
                                              leaf.rb=0, leaf.g0=0.01, fnames.leaf.rb='f_rb_constant', 
-                                             ana_only=F, verbose=F, verbose_loop=F, diag=F ) {
+                                             ana_only=F, verbose=F, cverbose=F, diag=F ) {
   
   if(verbose) str(.)
-  .$build(mod_out='all_lim', switches=c(diag,verbose,verbose_loop) )
+  .$build(mod_out='all_lim', switches=c(diag,verbose,cverbose) )
   
   .$fnames$rs <- rs
   .$fnames$ri <- 'f_r_zero'
@@ -682,10 +682,10 @@ leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011',
 
 
 leaf_object$.test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_etrans_farquharwong1984',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1500,50), 
-                                      ana_only=F,verbose=F,verbose_loop=F,diag=F) {
+                                      ana_only=F,verbose=F,cverbose=F,diag=F) {
   
   if(verbose) str(.)
-  .$build(mod_out='all_lim', switches=c(diag,verbose,verbose_loop) )
+  .$build(mod_out='all_lim', switches=c(diag,verbose,cverbose) )
   
   .$fnames$rs           <- rs
   .$fnames$ri           <- 'f_r_zero'

@@ -326,12 +326,12 @@ canopy_object$.test <- function(., verbose=T,
 }
 
 
-canopy_object$.test_aca <- function(., verbose=F, verbose_loop=F, 
+canopy_object$.test_aca <- function(., verbose=F, cverbose=F, 
                                     canopy.par=c(100,1000), canopy.ca_conc=seq(50,1200,50),
                                     leaf.rs = 'f_r_zero', canopy.rt = 'f_rt_beerslaw_goudriaan' ) {
   
   # Build, assign fnames, configure 
-  .$build(switches=c(F,verbose,verbose_loop))
+  .$build(switches=c(F,verbose,cverbose))
   if(verbose) str.proto(canopy_object)
   .$leaf$cpars$verbose  <- F
   

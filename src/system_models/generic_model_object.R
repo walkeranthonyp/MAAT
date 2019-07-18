@@ -7,7 +7,6 @@
 ################################
 
 library(proto)
-
 source('generic_model_functions.R')
 
 
@@ -83,7 +82,12 @@ system_model_object <-
     #fns        <- proto(.=system_model_object)
     
     # run control parameters
-    cpars      <- list()
+    cpars      <- list(
+      output   = 'run', # output function
+      verbose  = F,     # standard verbose output for debugging
+      cverbose = F,     # more in-depth verbose output from configure function
+      diag     = F      # model specific diagnostic output - written to state list
+    )
     
     
     ###########################################################################

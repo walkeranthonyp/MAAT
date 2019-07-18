@@ -300,12 +300,12 @@ canopy_structure_object$.test <- function(., verbose=T, par=1320, ca_conc=400  )
 }
 
 
-canopy_structure_object$.test_aca <- function(., verbose=F, verbose_loop=F, 
+canopy_structure_object$.test_aca <- function(., verbose=F, cverbose=F, 
                                               canopy_structure.par=c(100,1000), 
                                               canopy_structure.ca_conc=seq(50,1200,50),
                                               rs = 'f_r_zero' ) {
   # Child Objects
-  .$build(switches=c(F,verbose,verbose_loop))
+  .$build(switches=c(F,verbose,cverbose))
   if(verbose) str.proto(canopy_structure_object)
   .$canopy$cpars$verbose  <- F
   

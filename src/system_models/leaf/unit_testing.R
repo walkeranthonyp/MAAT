@@ -14,7 +14,9 @@ rm(list=ls())
 library(lattice)
 
 source('leaf_object.R')
-leaf_object$.test(verbose=F, verbose_loop=F )
+leaf_object$.test(verbose=F, cverbose=F )
+leaf_object$.test(verbose=T, cverbose=F )
+leaf_object$.test(verbose=F, cverbose=T )
 leaf_object$fnames
 leaf_object$state
 leaf_object$state_pars
@@ -61,19 +63,19 @@ out <- leaf_object$.test_aci_analytical(rs='f_rs_leuning1995', leaf.rb=0.0001 )
 
 # leaf solver function
 source('leaf_object.R')
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F )
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_ball1987' )
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_ball1987',    leaf.ca_conc=50 )
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_ball1987',    leaf.ca_conc=50,                centrala=3.5, range=6.5, inc=0.1 )
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_ball1987',    leaf.ca_conc=300, leaf.par=100, centrala=1.5, range=3.5, inc=0.01 ) 
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_leuning1995', leaf.ca_conc=1,   leaf.par=1000 )
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_leuning1995', leaf.ca_conc=1,   leaf.par=1000, centrala=85, range=115, inc=1 ) 
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_medlyn2011',  leaf.ca_conc=1,   leaf.par=1000, centrala=0, range=10 )
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_medlyn2011',  leaf.ca_conc=1,   leaf.par=1000, centrala=0, range=10, inc=0.01 )
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_medlyn2011',  leaf.ca_conc=1,   leaf.par=1000, centrala=45, range=55)
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_medlyn2011',  leaf.ca_conc=100, leaf.par=1000, centrala=2, range=3, inc=0.01 )
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_yin2009',     leaf.ca_conc=50,  leaf.par=1000 )
-leaf_object$.test_residual_func(verbose=F, verbose_loop=F, rs='f_rs_yin2009',     leaf.ca_conc=500, leaf.par=1000 )
+leaf_object$.test_residual_func(verbose=F, cverbose=F )
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_ball1987' )
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_ball1987',    leaf.ca_conc=50 )
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_ball1987',    leaf.ca_conc=50,                centrala=3.5, range=6.5, inc=0.1 )
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_ball1987',    leaf.ca_conc=300, leaf.par=100, centrala=1.5, range=3.5, inc=0.01 ) 
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_leuning1995', leaf.ca_conc=1,   leaf.par=1000 )
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_leuning1995', leaf.ca_conc=1,   leaf.par=1000, centrala=85, range=115, inc=1 ) 
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_medlyn2011',  leaf.ca_conc=1,   leaf.par=1000, centrala=0, range=10 )
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_medlyn2011',  leaf.ca_conc=1,   leaf.par=1000, centrala=0, range=10, inc=0.01 )
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_medlyn2011',  leaf.ca_conc=1,   leaf.par=1000, centrala=45, range=55)
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_medlyn2011',  leaf.ca_conc=100, leaf.par=1000, centrala=2, range=3, inc=0.01 )
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_yin2009',     leaf.ca_conc=50,  leaf.par=1000 )
+leaf_object$.test_residual_func(verbose=F, cverbose=F, rs='f_rs_yin2009',     leaf.ca_conc=500, leaf.par=1000 )
 
 
 
