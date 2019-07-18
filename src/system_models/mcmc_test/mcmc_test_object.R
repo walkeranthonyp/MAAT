@@ -98,7 +98,7 @@ mcmc_test_object$state_pars <- list(
 mcmc_test_object$cpars <- list(
   verbose  = F,          # write diagnostic output during runtime 
   cverbose = F,          # write diagnostic output from configure function 
-  output   = 'run'       # type of output from run function
+  output   = 'mixture'   # type of output from run function
 )
 
 
@@ -106,13 +106,13 @@ mcmc_test_object$cpars <- list(
 # output functions
 #######################################################################        
 
-mcmc_test_object$output <- function(.) {
-  if(.$fnames$sys == 'f_sys_mixture') {
-    .$state$mixture_p
-  } else if(.$fnames$sys == 'f_sys_regression') {
-    .$state$linreg_y
-  } else stop('Output type not defined')
-}    
+f_output_mcmc_test_mixture <- function(.) {
+  .$state$mixture_p
+}
+
+f_output_mcmc_test_regression <- function(.) {
+  .$state$linreg_y
+}
 
 
 
@@ -120,25 +120,21 @@ mcmc_test_object$output <- function(.) {
 #######################################################################        
 
 mcmc_test_object$.test_mixture <- function(., verbose=F, verbose_loop=F ) {
+
   if(verbose) str(.)
-  .$cpars$verbose  <- verbose
-  .$cpars$cverbose <- verbose
-  .$build()
+  .$build(mod_out='mixture', switches=c(F,verbose,verbose_loop) )
 
   .$fnames$sys <- 'f_sys_mixture'
-
   .$configure_test()
   .$run()
 }
 
 mcmc_test_object$.test_linreg <- function(., verbose=F, verbose_loop=F ) {
+
   if(verbose) str(.)
-  .$cpars$verbose  <- verbose
-  .$cpars$cverbose <- verbose
-  .$build()
+  .$build(mod_out='regression', switches=c(F,verbose,verbose_loop) )
 
   .$fnames$sys <- 'f_sys_regression'
-
   .$configure_test()
   .$run()
 }

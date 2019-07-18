@@ -253,26 +253,31 @@ canopy_structure_object$cpars <- list(
 # output functions
 #######################################################################        
 
-canopy_structure_object$output <- function(.){
-  if(.$cpars$output=='run') {
-    c(A=.$state$integrated$A, gs=.$state$integrated$gs, rd=.$state$integrated$rd)
-    
-  } else if(.$cpars$output=='canopy') {
-    c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-      gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd )
-    
-  } else if(.$cpars$output=='all_lim') {
-    c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-      gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd,
-      Acg_lim=.$state$integrated$Acg_lim, 
-      Ajg_lim=.$state$integrated$Ajg_lim, 
-      Apg_lim=.$state$integrated$Apg_lim 
+f_output_canopy_structure_state <- function(.) {
+  unlist(.$state)
+}
+
+f_output_canopy_structure_full <- function(.) {
+  c(unlist(.$state$integrated), unlist(.$state_pars) )
+}
+
+f_output_canopy_structure_run <- function(.) {
+  c(A=.$state$integrated$A, gs=.$state$integrated$gs, rd=.$state$integrated$rd)
+}
+
+f_output_canopy_structure_canopy <- function(.) {
+  c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
+    gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd )
+}
+
+f_output_canopy_structure_all_lim <- function(.) {
+  c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
+    gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd,
+    Acg_lim=.$state$integrated$Acg_lim, 
+    Ajg_lim=.$state$integrated$Ajg_lim, 
+    Apg_lim=.$state$integrated$Apg_lim 
     )
-    
-  } else if(.$cpars$output=='full') {
-    c(unlist(.$state$integrated), unlist(.$state_pars) )
-  }
-}    
+}
 
 
 
@@ -282,7 +287,7 @@ canopy_structure_object$output <- function(.){
 canopy_structure_object$.test <- function(., verbose=T, par=1320, ca_conc=400  ){
   
   # Child Objects
-  .$build()
+  .$build(switches=c(F,verbose,F))
 
   # parameter settings
   .$cpars$verbose       <- verbose
@@ -299,23 +304,20 @@ canopy_structure_object$.test_aca <- function(., verbose=F, verbose_loop=F,
                                               canopy_structure.par=c(100,1000), 
                                               canopy_structure.ca_conc=seq(50,1200,50),
                                               rs = 'f_r_zero' ) {
-  
   # Child Objects
-  .$build()
-  .$canopy$leaf$fnames$rs <- rs
-  .$canopy$leaf$configure_test
-
-  .$cpars$verbose         <- verbose
+  .$build(switches=c(F,verbose,verbose_loop))
+  if(verbose) str.proto(canopy_structure_object)
   .$canopy$cpars$verbose  <- F
   
-  if(verbose) str.proto(canopy_structure_object)
+  .$canopy$leaf$fnames$rs <- rs
+  .$canopy$leaf$configure_test
  
   # generate met data 
-  .$dataf       <- list()
-  .$dataf$met   <- expand.grid(mget(c('canopy_structure.ca_conc','canopy_structure.par')))
+  .$dataf     <- list()
+  .$dataf$met <- expand.grid(mget(c('canopy_structure.ca_conc','canopy_structure.par')))
   
   # run maat
-  .$dataf$out  <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+  .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
   
   # run output
   print(cbind(.$dataf$met,.$dataf$out))

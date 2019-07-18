@@ -27,6 +27,23 @@ setwd('template')
 # assign object functions
 ###########################################################################
 template_object$name <- 'template'
+# if this new object will contain nested child objects uncomment and edit the below lines of code and delete this comment 
+# - otherwise delete all 5 lines
+#template_object$child_list      <- list('child_name1') 
+#template_object$build_child     <- build_child  
+#template_object$configure_child <- configure_child  
+
+
+
+# assign unique run function
+###########################################################################
+# if run function needs to be modified - add new function here
+
+
+
+# functions unique to object that do not live in fnames/fns, i.e. do not vary ever
+###########################################################################
+# add structural functions (i.e not alternative process functions)  unique to model object here
 
 
 
@@ -88,16 +105,17 @@ template_object$cpars <- list(
 # output functions
 #######################################################################        
 
-template_object$output <- function(.) {
-  if(.$cpars$output=='full') {
-    ## delete the two below print statements to allow a single output vector ##  
-    print('', quote=F )
-    print('Output:', quote=F )
-    unlist(.$state)
-  } else if(.$cpars$output=='none') { 
-    print('')
-  } else stop('Output type not defined')
-}    
+f_object_template_run <- function(.) {
+  unlist(.$state)
+}
+
+f_object_template_state <- function(.) {
+  unlist(.$state)
+}
+
+f_object_template_full <- function(.) {
+  c(unlist(.$state),unlist(.$statei_pars))
+}
 
 
 
@@ -106,42 +124,36 @@ template_object$output <- function(.) {
 
 template_object$.test <- function(., verbose=F) {
   if(verbose) str(.)
-  .$cpars$verbose  <- verbose
-  .$cpars$cverbose <- verbose
-  .$cpars$output   <-'full'
-  .$build()
+  .$build(switches=c(F,verbose,F))
 
   .$run()
 }
+
 
 template_object$.test_change_func <- function(., verbose=F,
                                               template.text='f_text_combine',
                                               template.calcval='f_calcval_product',
                                               template.print_out='f_print_out_textonly' ) {
   if(verbose) str(.)
-  .$cpars$verbose  <- verbose
-  .$cpars$cverbose <- verbose
-  .$cpars$output   <-'full'
-  .$build()
+  .$build(switches=c(F,verbose,F))
   
   .$fnames$text      <- template.text
   .$fnames$calcval   <- template.calcval
   .$fnames$print_out <- template.print_out
 
+  # configure_test must be called if any variables in the fnames lista re reassigned
   .$configure_test()  
   .$run()
 }
+
 
 template_object$.test_change_pars <- function(., verbose=F,
                                               template.text1='hello',
                                               template.text2='world' ) {
   if(verbose) str(.)
-  .$cpars$verbose  <- verbose
-  .$cpars$cverbose <- verbose
-  .$cpars$output   <-'full'
-  .$build()
+  .$build(switches=c(F,verbose,F))
 
-  .$pars$text1    <- template.text1
+  .$pars$text1 <- template.text1
   .$run()
 }
 

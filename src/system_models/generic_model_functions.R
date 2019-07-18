@@ -64,7 +64,7 @@ build_child <- function(., child_obj, mod_mimic=NULL, ... ) {
 
   # load child object
   child_obj_name  <- paste0(child_obj, '_object' ) 
-  setwd(paste0('../',child_obj_name))
+  setwd(paste0('../',child_obj))
   source(paste0(child_obj_name, '.R' ))
 
   # build child object into parent object
