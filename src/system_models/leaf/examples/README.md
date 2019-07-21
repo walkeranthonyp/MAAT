@@ -45,7 +45,7 @@ From the project directory open `analysis_figures.R` using your favorite text ed
 There are a number of configurable options but the only one needed is to set the date on which the ensemble was run replace `##OUTPUTDATE##` in `odate <- '##OUTPUTDATE##'` on line 19 with the ensemble run date in YYYY-MM-DD format.
 The figures can then be run from the command line with:
 ```bash
-Rscript analysis_figures.R
+Rscript analysis_leafeg.R
 ```  
 This will generate the photosynthesis figures in Walker et al. manuscript submitted to GMD.
 These will be placed in the `tables` and `plots` subdirectories of the results directory: `<projectpath>/results/#OUTPUTDATE#`.

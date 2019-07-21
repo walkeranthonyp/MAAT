@@ -436,7 +436,7 @@ wrapper_object$.test_simple <- function(., gen_metd=F, mc=F, pr=4, oconf=F ) {
   # Define the static parameters and model functions  
   .$static$fnames <- list(leaf.vcmax='f_vcmax_lin')
   .$dynamic$fnames <- list(
-    leaf.etrans = c('f_j_farquhar1980')
+    leaf.etrans = c('f_etrans_farquhar1980')
   )
   
   .$dynamic$env <- list(
@@ -497,7 +497,7 @@ wrapper_object$.test <- function(.,gen_metd=T,mc=T,pr=4,oconf=F) {
   # add the SA/UQ variables to the maat wrapper object
   # - the wrapper object takes care of combining these lists into the full ensemble      
   .$dynamic$fnames <- list(
-    leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991'),
+    leaf.etrans = c('f_etrans_farquhar1980','f_etrans_collatz1991'),
     leaf.rs     = c('f_r_zero','f_rs_medlyn2011')
   )
     
@@ -565,7 +565,7 @@ wrapper_object$.test_con <- function(., mc=T, pr=4, oconf=F,
                                      spars=NULL,
                                      senv=list(par=1000, ca_conc=400 ),
                                      dfnames=list(
-                                       leaf.etrans = c('f_j_farquhar1980','f_j_collatz1991'),
+                                       leaf.etrans = c('f_etrans_farquhar1980','f_etrans_collatz1991'),
                                        leaf.rs     = c('f_r_zero','f_rs_medlyn2011')
                                      ),
                                      dpars=list(
@@ -647,7 +647,7 @@ wrapper_object$.test_can <- function(., metd=T, mc=T, pr=4, verbose=F ) {
   # Define the parameters and model functions that are to be varied 
   .$dynamic$fnames <- list(
     canopy.can_scale_light = c('f_canlight_beerslaw_wrong','f_canlight_beerslaw'),
-    leaf.etrans            = c('f_j_farquhar1980','f_j_collatz1991'),
+    leaf.etrans            = c('f_etrans_farquhar1980','f_etrans_collatz1991'),
     leaf.rs                = c('f_rs_medlyn2011','f_r_zero')
   )
   
@@ -760,8 +760,8 @@ wrapper_object$.test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
   # - the wrapper object takes care of combining these lists into the full ensemble      
   .$static$fnames <- list(leaf.vcmax='f_vcmax_lin')
   .$dynamic$fnames <- list(
-    leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
-    leaf.etrans = c('f_j_farquharwong1984','f_j_collatz1991','f_j_harley1992')
+    leaf.Alim   = c('f_Alim_farquhar1980','f_Alim_collatz1991'),
+    leaf.etrans = c('f_etrans_farquharwong1984','f_etrans_collatz1991','f_etrans_harley1992')
   )
 
   .$dynamic$pars <- list(
@@ -828,8 +828,8 @@ wrapper_object$.test_saltelli <- function(., metd=F, mc=T, pr=4, oconf=F, n=3, e
   .$wpars$coef_var     <- 0.1
   
   .$dynamic$fnames <- list(
-    leaf.Alim   = c('f_lim_farquhar1980','f_lim_collatz1991'),
-    leaf.etrans = c('f_j_farquharwong1984','f_j_collatz1991','f_j_harley1992')
+    leaf.Alim   = c('f_Alim_farquhar1980','f_Alim_collatz1991'),
+    leaf.etrans = c('f_etrans_farquharwong1984','f_etrans_collatz1991','f_etrans_harley1992')
   )
 
   if(eval_strings) {

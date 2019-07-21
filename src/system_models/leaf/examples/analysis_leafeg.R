@@ -15,21 +15,21 @@ library(grid)
 library(viridis)
 
 
-wd    <- '/mnt/disk2/Write_ups/MAAT/MAAT_sims4'
-ddate <- '2018-07-20' 
+wd    <- '##PDIR##' 
+ddate <- Sys.Date() 
 wdd   <- paste0(wd,'/results/',ddate)
 
-ifile <- 'out.csv'
+ifile <- 'out'
 an_id <- 'AnvNum'
 tc_id <- 'Tcurves'
 
 
 # read data
 setwd(wdd)
-df1   <- read.csv(paste(an_id,ifile,sep='_'))
+df1   <- read.csv(paste0(paste(ifile,an_id,sep='_'),'.csv'))
 head(df1)
 
-df2   <- read.csv(paste(tc_id,ifile,sep='_'))
+df2   <- read.csv(paste0(paste(ifile,tc_id,sep='_'),'.csv'))
 head(df2)
 df2$Tres <- df2$vcmaxlt / df2$vcmax
 
@@ -76,7 +76,7 @@ p1so
 
 # A/Ci curves
 p2 <- 
-  xyplot(A~ci|leaf.rs*as.factor(leaf.g0), df1, groups=leaf.solver, subset=leaf.solver!='f_A_r_leaf_analytical',
+  xyplot(A~ci|leaf.rs*as.factor(leaf.g0), df1, groups=leaf.solver, subset=leaf.solver!='f_solver_analytical_leaf_simple',
          par.settings=simpleTheme(pch=c(20,20,4), cex=cex, col=col, lwd=lwd ),
          ylab=ylab, xlab=xlabCi, scales=list(alternating=F, tck=c(-0.5,0)),  
          as.table=T,
@@ -125,7 +125,7 @@ dev.off()
 
 
 # Stomatal limitation Figure
-df1s    <- subset(df1,leaf.solver=='f_R_Brent_solver'&leaf.g0==0.01)
+df1s    <- subset(df1,leaf.solver=='f_solver_brent'&leaf.g0==0.01)
 df1s_gs <- rbind(data.frame(A=df1s$A,leaf.rs=df1s$leaf.rs,ca=df1s$ca,gs='Stomatal Limitation'), data.frame(A=df1s$A_noR,leaf.rs=df1s$leaf.rs,ca=df1s$ca,gs='No Stomatal Limitation') )
 p3 <- 
   xyplot(A~ca|leaf.rs, df1s_gs, groups=gs,

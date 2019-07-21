@@ -245,16 +245,6 @@ f_jmax_power <- function(.) {
   exp(.super$pars$e_ajv_25) * .super$state_pars$vcmax^.super$pars$e_bjv_25    
 }
 
-#f_jmax_lin <- function(.) {
-#  .super$pars$ajv_25 + .super$state_pars$vcmax * .super$pars$bjv_25    
-#}
-
-#f_jmax_lin_t <- function(.) {
-#  .super$pars$ajv_25 <- 0.0
-#  .super$pars$bjv_25 <- .super$pars$a_jvt_25 + .super$state$leaf_temp * .super$pars$b_jvt_25
-#  .super$pars$ajv_25 + .super$state_pars$vcmax * .super$pars$bjv_25    
-#}
-
 f_jmax_lin <- function(.) {
   .super$pars$ajv_25 + .super$state_pars$vcmax * .super$pars$bjv_25 * .$tcor_jmax(.)    
 }
