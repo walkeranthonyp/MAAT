@@ -285,6 +285,16 @@ init_mcmc_dream <- function(.) {
   .$mcmc$draw          <- matrix(data=0, nrow=.$dataf$lp - 1, ncol=.$dataf$lp )
   .$mcmc$lambda        <- matrix(data=0, nrow=.$dataf$lp,   ncol=1 )
 
+  if(.$wpars$mcmc_debug) {
+    .$mcmc$runif_seed     <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$wpars$mcmc_maxiter)
+    .$mcmc$draw_seed      <- array(data = 0, dim = c(.$dataf$lp - 1, .$dataf$lp, .$wpars$mcmc_maxiter))
+    .$mcmc$lambda_seed    <- array(data = 0, dim = c(.$dataf$lp, 1, .$wpars$mcmc_maxiter))
+    .$mcmc$zz_seed        <- array(data = 0, dim = c(.$dataf$lp, .$mcmc$d, .$wpars$mcmc_maxiter))
+    .$mcmc$prop_storage   <- array(data = 0, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter))
+    .$mcmc$accept_storage <- array(data = 0, dim = c(.$dataf$lp, 1, .$wpars$mcmc_maxiter))
+    .$mcmc$lklhd_storage  <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$wpars$mcmc_maxiter)
+  }
+
   # index of chains for Differential Evolution
   for (ii in 1:.$dataf$lp) .$mcmc$R[ii, ] <- setdiff(1:.$dataf$lp, ii)
 
@@ -322,9 +332,11 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
   # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
   .$mcmc$draw[]          <- apply(matrix(runif((.$dataf$lp - 1) * .$dataf$lp), .$dataf$lp - 1, .$dataf$lp), 2, function(v) sort(v, index.return = T)$ix)
+  if(.$wpars$mcmc_debug) .$mcmc$draw[] <- apply(.$mcmc$draw_seed[ , , j], 2, function(v) sort(v, index.return = T)$ix)
 
   # create a .$dataf$lp x 1 matrix of continuous uniform random values between -c_rand and c_rand
   .$mcmc$lambda[]        <- matrix(runif(.$dataf$lp * 1, -.$wpars$mcmc_c_rand, .$wpars$mcmc_c_rand), .$dataf$lp)
+  if(.$wpars$mcmc_debug) .$mcmc$lambda[] <- .$mcmc$lambda_seed[ , , j]
 
   # compute standard deviation of each dimension (ie,compute standard deviation of each column of current_state matrix)
   .$mcmc$sd_state[]     <- apply(.$mcmc$current_state, 2, sd)
@@ -345,6 +357,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
     # draw d values from uniform distribution between 0 and 1
     zz <- runif(.$mcmc$d)
+    if(.$wpars$mcmc_debug) zz <- .$mcmc$zz_seed[ii, 1:.$mcmc$d, j]
 
     # derive subset A of selected dimensions
     A  <- which(zz < .$mcmc$CR[.$mcmc$id])
@@ -377,6 +390,10 @@ proposal_generate_mcmc_dream <- function(., j ) {
     # call boundary handling function
     #for (jj in 1:.$mcmc$d) boundary_handling(., ii, jj )
     for (jj in 1:.$mcmc$d) .$boundary_handling(ii=ii,jj=jj)
+
+    # debugging print statements
+    print('proposal generated = ')
+    print(.$dataf$pars[ii, ])
   }
 }
 
@@ -397,8 +414,11 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
     # future work: figure out how to make this clunky block of code prettier
 
+    runif_val <- runif(1, min = 0, max = 1)
+    if (.$wpars$mcmc_debug) runif_val <- .$mcmc$runif_seed[ii, j]
+
     # determine if p_acc is larger than random number drawn from uniform distribution on interval [0,1]
-    if (alpha > runif(1, min = 0, max = 1)) {
+    if (alpha > runif_val) {
 
       # accept the proposal
       accept <- TRUE
@@ -449,18 +469,6 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       .$dataf$out_mcmc[ii,,(j-out_n)] <- if(accept | j == out_n + 1) .$dataf$out[ii, ] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
   }
 
-  # print(.$mcmc$id)
-
-  # print(.$mcmc$n_id)
-
-  # print(sum(.$mcmc$jump[ii,]))
-
-  # print(.$mcmc$sd_state)
-
-  # print(.$mcmc$J)
-
-  # print(.$mcmc$p_CR)
-
   # update selection probability of crossover
   # ALJ: altered original algorithm here to account for numerical issues
   # APW: still something odd going on here.
@@ -479,11 +487,24 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   #print(.$mcmc$J)
   #print(sum(.$mcmc$J))
 
+  print('.$mcmc$sd_state = ')
+  print(.$mcmc$sd_state)
+  print('.$mcmcm$id = ')
+  print(.$mcmc$id)
+  print('.$mcmc$n_id = ')
+  print(.$mcmc$n_id)
+  print('J = ')
+  print(.$mcmc$J)
+
   if ((j > (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
   # if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
     .$mcmc$p_CR <- .$mcmc$J    / .$mcmc$n_id
     .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
   }
+
+  print('.$mcmc$p_CR = ')
+  print(.$mcmc$p_CR)
+
 }
 
 # future work: function for detection and correction of outlier chains
@@ -584,28 +605,32 @@ f_proposal_lklihood_ssquared_se <- function(.) {
 # Debuging functions
 ################################
 
-#set seed functions (to reproduce sequences of quasi-random numbers)
-# debug: function (1), set seed for uniform_r generation
-# set_seed1 <- function(.) {
-#  set.seed(1703)
-#  .$mcmc$uniform_r_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
-#  .$mcmc$uniform_r_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = -0.01, max = 0.01)
-# }
+# set seed function (to reproduce sequences of quasi-random numbers)
+set_seed <- function(.) {
+
+  # random number generation 1, set seed for draw matrix in proposal_generate_mcmc_dream
+  set.seed(1703)
+  .$mcmc$draw_seed[]   <- runif(((.$dataf$lp - 1) * .$dataf$lp * .$wpars$mcmc_maxiter), min = 0, max = 1)
+
+  # random number generation 2, set seed for lambda matrix in proposal_generate_mcmc_dream
+  set.seed(4050)
+  .$mcmc$lambda_seed[] <- runif((.$dataf$lp * .$wpars$mcmc_maxiter), min = -.$wpars$mcmc_c_rand, max = .$wpars$mcmc_c_rand)
+
+  # random number generation 3, set seed for zz vector in proposal_generate_mcmc_dream
+  set.seed(1337)
+  .$mcmc$zz_seed[]     <- runif((.$mcmc$d * .$dataf$lp * .$wpars$mcmc_maxiter), min = 0, max = 1)
+
+  # random number generation 4, runif(1) value used in accept/reject step
+  .$mcmc$runif_seed[]  <- runif((.$dataf$lp * .$wpars$mcmc_maxiter), min = 0, max = 1)
+
+}
+
+# function for organized print statements
+print_debug <- function(., j) {
 
 
-# debug: function (2), set seed for R1 and R2 general_functions
-# set_seed2 <- function(.) {
-#   set.seed(4050)
-# }
 
-
-# debug: function (3), set seed for runif(1) value chosen in accept/reject step
-# set_seed3 <- function(.) {
-#   set.seed(1337)
-#   .$mcmc$runif_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
-#   .$mcmc$runif_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = 0, max = 1)
-# }
-
+}
 
 
 ### END ###

@@ -283,8 +283,7 @@ wrapper_object$wpars <- list(
   sobol_init    = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
   unit_testing  = F,
   mcmc_type     = 'dream',
-  # mcmc_lklihood = 'log',
-  mcmc_lklihood = 'ssquared_se',
+  mcmc_lklihood = 'log',
   mcmc_chains   = 10,
   mcmc_maxiter  = 100,
   mcmc_burnin   = 0.5,
@@ -295,25 +294,33 @@ wrapper_object$wpars <- list(
   mcmc_c_rand   = 0.01,
   mcmc_c_ergod  = 1e-12,
   mcmc_p_gamma  = 0.2,
-  mcmc_n_CR     = 3
+  mcmc_n_CR     = 3,
+  mcmc_debug    = F
 )
 
 # MCMC specific data, size depends on MCMC set up
 wrapper_object$mcmc <- list(
-  d             = numeric(1),
-  J             = numeric(1),
-  n_id          = numeric(1),
-  CR            = numeric(1),
-  p_CR          = numeric(1),
-  R             = matrix(1,1,1),
-  current_state = matrix(1,1,1),
-  p_state       = numeric(1),
-  sd_state      = numeric(1),
-  jump          = matrix(1,1,1),
-  draw          = matrix(1,1,1),
-  lambda        = matrix(1,1,1),
-  boundary_min  = numeric(1),
-  boundary_max  = numeric(1)
+  d              = numeric(1),
+  J              = numeric(1),
+  n_id           = numeric(1),
+  CR             = numeric(1),
+  p_CR           = numeric(1),
+  R              = matrix(1,1,1),
+  current_state  = matrix(1,1,1),
+  p_state        = numeric(1),
+  sd_state       = numeric(1),
+  jump           = matrix(1,1,1),
+  draw           = matrix(1,1,1),
+  lambda         = matrix(1,1,1),
+  boundary_min   = numeric(1),
+  boundary_max   = numeric(1),
+  runif_seed     = matrix(1,1,1),
+  draw_seed      = array(1, c(1,1,1)),
+  lambda_seed    = array(1, c(1,1,1)),
+  zz_seed        = array(1, c(1,1,1)),
+  prop_storage   = array(1, c(1,1,1)),
+  lklhd_storage  = array(1, c(1,1,1)),
+  accept_storage = array(1, c(1,1,1))
 )
 
 # Output processing functions

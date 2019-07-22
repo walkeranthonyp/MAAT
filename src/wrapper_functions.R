@@ -95,34 +95,16 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   # create pars / proposal matrix
   .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
 
-  # debug: hard-code initial sample generated from prior distribution (generated from interval [-10, 10])
-  # prop1 <- c( 7.631916,  -5.999289,  -5.734941,   1.769624,  -1.128974,  -1.065893,   9.091345,  -9.570053)
-  # prop2 <- c(-8.955127,  -2.165650,   8.288627,   8.335986,  -9.420836,  -6.112619,  -4.796342,   8.128561)
-  # prop3 <- c(-2.757425,  -1.311214,  -9.983908,  -6.061901,  -3.076935,   8.934289,  -3.041526,  -7.045019)
-  # prop4 <- c(-1.342557,   9.406705,  -0.041981,  -9.757184,  -0.402050,  -4.263008,   6.564540,  -0.241696)
-  # .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
-  # colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
-
-  # print('model parameters and algorithmic parameters')
-  # print(.$dynamic$pars_eval)
-  # print(.$model$pars)
-  # print(.$wpars)
-
-  # print("initial propopsals derived from priors = ")
-  # print(.$dataf$pars)
-
-  # debug: create proposal storage array (store all proposals, not just accepted ones)
-  # .$dataf$prop_storage          <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
-
-  # debug: preallocate space for all debugging arrays (i.e., easier-to-read print statements)
-  # .$dataf$accept_storage        <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-  # .$dataf$uniform_r_storage     <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter))
-  # .$dataf$model_eval_storage    <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-  # .$dataf$alpha_storage         <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-  # .$dataf$R1_R2_storage         <- array(1, dim = c(.$wpars$mcmc_chains, 2, .$wpars$mcmc_maxiter))
-  # .$dataf$metrop_ratio_storage  <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-  # .$dataf$runif_val_storage     <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-
+  if(.$wpars$mcmc_debug & .$wpars$mod_obj == 'mcmc_test') {
+    # hard-code initial sample generated from prior distribution (generated from interval [-10, 10])
+    prop1 <- c( 7.631916,  -5.999289,  -5.734941,   1.769624,  -1.128974,  -1.065893,   9.091345,  -9.570053)
+    prop2 <- c(-8.955127,  -2.165650,   8.288627,   8.335986,  -9.420836,  -6.112619,  -4.796342,   8.128561)
+    prop3 <- c(-2.757425,  -1.311214,  -9.983908,  -6.061901,  -3.076935,   8.934289,  -3.041526,  -7.045019)
+    prop4 <- c(-1.342557,   9.406705,  -0.041981,  -9.757184,  -0.402050,  -4.263008,   6.564540,  -0.241696)
+    .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
+    colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
+  }
+  
   # remove initialisation pars list
   .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
@@ -637,6 +619,8 @@ run1_mcmc_dream <- function(.,i) {
   # debug: add to proposal storage array
   # .$dataf$prop_storage[ , , 1] <- .$dataf$pars
 
+
+
   # debug: function (1), set seed for uniform_r generation
   # .$set_seed1()
 
@@ -649,6 +633,9 @@ run1_mcmc_dream <- function(.,i) {
 
   # run initialisation part of algorithm
   .$init_mcmc()
+
+  # if debugging, predetermine random number generation
+  if (.$wpars$mcmc_debug) .$set_seed()
 
   # run MCMC
   vapply(2:.$wpars$mcmc_maxiter, .$run2, numeric(0) )

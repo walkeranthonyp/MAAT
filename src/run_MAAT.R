@@ -86,7 +86,7 @@ salt_nmult <- 100
 
 # parameters for MCMC run
 # MCMC likelihood (options: log, ssquared, ssquared_se )
-mcmc_lklihood <- 'ssquared_se'
+mcmc_lklihood <- 'log'
 # number of MCMC chains to run (min 2x number of parameters estimated)
 mcmc_chains   <- 10
 # number of iterations / steps in MCMC chain
@@ -109,6 +109,8 @@ mcmc_c_ergod  <- 1e-12
 mcmc_p_gamma  <- 0.2
 # MCMC DREAM number of crossover values (default value)
 mcmc_n_CR     <- 3
+# MCMC option if debugging DREAM algorithm
+mcmc_debug    <- F
 
 # run options
 # meteorological data file name
@@ -252,6 +254,7 @@ maat$wpars$mcmc_c_rand   <- mcmc_c_rand
 maat$wpars$mcmc_c_ergod  <- mcmc_c_ergod
 maat$wpars$mcmc_p_gamma  <- mcmc_p_gamma
 maat$wpars$mcmc_n_CR     <- mcmc_n_CR
+maat$wpars$mcmc_debug    <- mcmc_debug
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic)
