@@ -222,7 +222,7 @@ if((uq|mcmc)&of_format!='rds') {
 
 setwd(srcdir)
 source('wrapper_object.R')
-maat         <- as.proto(wrapper_object$as.list())
+maat <- as.proto(wrapper_object$as.list())
 rm(wrapper_object)
 
 # define run parameters
@@ -257,10 +257,10 @@ maat$wpars$mcmc_n_CR     <- mcmc_n_CR
 maat$wpars$mcmc_debug    <- mcmc_debug
 
 # build maat and model objects
-maat$build(mod_mimic=mod_mimic)
+maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
 
 # define model parameters
-maat$model$cpars$output  <- mod_out
+#maat$model$cpars$output  <- mod_out
 
 # set debugging flags
 maat$model$pars$verbose  <- F

@@ -17,22 +17,22 @@
       <deltaS>
         <vcmax>'f_deltaS_constant'</vcmax>
       </deltaS>
-      <q10_func>
+      <q10>
         <vcmax>'f_q10_constant'</vcmax>
         <Kc>'f_q10_constant'</Kc>
         <Ko>'f_q10_constant'</Ko>
-      </q10_func>
-      <etrans>'f_j_collatz1991'</etrans>
+      </q10>
+      <etrans>'f_etrans_collatz1991'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
-      <gas_diff>'f_ficks_ci'</gas_diff>
+      <gas_diff>'f_gas_diff_ficks_ci'</gas_diff>
       <rd>'f_rd_constant'</rd>
       <rs>'f_rs_ball1987'</rs>
       <rb>'f_r_zero'</rb>
-      <solver>'f_R_Brent_solver'</solver>
-      <solver_func>'f_A_r_leaf'</solver_func>
-      <Alim>'f_lim_farquhar1980'</Alim>
+      <solver>'f_solver_brent'</solver>
+      <residual_func>'f_residual_func_leaf_Ar'</residual_func>
+      <Alim>'f_Alim_farquhar1980'</Alim>
     </leaf>
   </fnames>
   <pars>

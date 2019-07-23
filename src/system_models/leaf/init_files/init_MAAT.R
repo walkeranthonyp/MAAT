@@ -47,7 +47,6 @@
 
 # define lists
 fnames.static <- list(
-  solver_func     = 'f_A_r_leaf',
   vcmax           = 'f_vcmax_constant',
   jmax            = 'f_jmax_power',
   tcor_asc = list(  
@@ -84,7 +83,7 @@ env.static  <- list(
 
 # define lists
 fnames.var    <- list(
-  etrans = c('f_j_farquharwong1984','f_j_harley1992','f_j_collatz1991')
+  etrans = c('f_etrans_farquharwong1984','f_etrans_harley1992','f_etrans_collatz1991')
 )
 
 pars.var      <- NULL

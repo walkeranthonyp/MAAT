@@ -47,11 +47,11 @@
 
 # define lists
 fnames.static <- list(
-  solver  = 'f_A_r_leaf_analytical',
+  solver  = 'f_solver_analytical_leaf_simple',
   gstar   = 'f_scalar_none',
   tcor_asc = list(
   	Kc     = 'f_scalar_none',
-  	Ko 		 = 'f_scalar_none',
+  	Ko     = 'f_scalar_none',
   	vcmax  = 'f_scalar_none',
   	jmax   = 'f_scalar_none'
   ),

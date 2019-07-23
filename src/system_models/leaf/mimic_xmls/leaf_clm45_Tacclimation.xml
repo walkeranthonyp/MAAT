@@ -33,19 +33,19 @@
         <tpu>'f_deltaS_lin_t'</tpu>
         <rd>'f_deltaS_lin_t'</rd>
       </deltaS>
-      <etrans>'f_j_farquharwong1984'</etrans>
+      <etrans>'f_etrans_farquharwong1984'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
-      <gas_diff>'f_ficks_ci'</gas_diff>
+      <gas_diff>'f_gas_diff_ficks_ci'</gas_diff>
       <rd>'f_rd_lin_vcmax'</rd>
-      <rl_rd_scalar>'f_rl_rd_fixed'</rl_rd_scalar>
+      <rl_rd>'f_rl_rd_fixed'</rl_rd_scalar>
       <ri>'f_r_zero'</ri>
       <rs>'f_rs_ball1987'</rs>
       <rb>'f_r_zero'</rb>
-      <solver>'f_R_Brent_solver'</solver>
-      <solver_func>'f_A_r_leaf'</solver_func>
-      <Alim>'f_lim_collatz1991'</Alim>
+      <solver>'f_solver_brent'</solver>
+      <residual_func>'f_residual_func_leaf_Ar'</residual_func>
+      <Alim>'f_Alim_collatz1991'</Alim>
     </leaf>
   </fnames>
   <pars>

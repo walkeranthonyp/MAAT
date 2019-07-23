@@ -2,26 +2,26 @@
   <fnames>
     <leaf>
       <sys>'f_sys_enzymek'</sys>
-      <solver_func>'f_A_r_leaf'</solver_func>
-      <solver>'f_R_Brent_solver'</solver>
+      <solver>'f_solver_brent'</solver>
+      <residual_func>'f_residual_func_leaf_Ar'</residual_func>
       <semiana>'f_semiana_quad'</semiana>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
-      <etrans>'f_j_harley1992'</etrans>
-      <gas_diff>'f_ficks_ci'</gas_diff>
-      <Alim>'f_lim_farquhar1980'</Alim>
+      <etrans>'f_etrans_harley1992'</etrans>
+      <gas_diff>'f_gas_diff_ficks_ci'</gas_diff>
+      <Alim>'f_Alim_farquhar1980'</Alim>
       <vcmax>'f_vcmax_lin'</vcmax>
       <jmax>'f_jmax_power'</jmax>
       <tcor_jmax>'f_scalar_none'</tcor_jmax>
       <tpu>'f_tpu_lin'</tpu>
       <rd>'f_rd_lin_vcmax'</rd>
-      <rl_rd_scalar>'f_scalar_none'</rl_rd_scalar>
+      <rl_rd>'f_scalar_none'</rl_rd>
       <gstar>'f_gstar_f1980'</gstar>
       <ri>'f_r_zero'</ri>
       <rs>'f_rs_medlyn2011'</rs>
       <rb>'f_rb_leafdim'</rb>
-      <cica_ratio>'f_cica_constant'</cica_ratio>
+      <cica_ratio>'f_cica_ratio_constant'</cica_ratio>
       <d13c>'f_d13c_classical'</d13c>
       <tcor_asc>
         <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
@@ -50,14 +50,14 @@
         <jmax>'f_deltaS'</jmax>
         <tpu>'f_deltaS'</tpu>
       </deltaS>
-      <q10_func>
+      <q10>
         <rd>'f_q10_constant'</rd>
         <vcmax>'f_q10_constant'</vcmax>
         <jmax>'f_q10_constant'</jmax>
         <tau>'f_q10_constant'</tau>
         <Kc>'f_q10_constant'</Kc>
         <Ko>'f_q10_constant'</Ko>
-      </q10_func>
+      </q10>
     </leaf>
   </fnames>
   <pars>
@@ -65,6 +65,8 @@
       <diag>FALSE</diag>
       <d13c>FALSE</d13c>
       <deltaA_prop>0.15</deltaA_prop>
+      <solver_min>-0.0029834</solver_min>
+      <solver_max>51.8364435</solver_max>
       <a>0.8</a>
       <f>0.23</f>
       <ko_kc_ratio>0.21</ko_kc_ratio>

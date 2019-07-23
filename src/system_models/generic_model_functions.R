@@ -15,11 +15,17 @@
 ###########################################################################
 
 # build function that initialises the object and calls build functions of all child objects
-build <- function(., mod_mimic=NULL, ... ) {
+build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,verbose=F,cverbose=F), ... ) {
 
   # read default model setup for highest level model
   source('../../functions/general_functions.R')
   init_default <- readXML(paste(.$name,'default.xml',sep='_'))
+
+  # set switches
+  .$cpars$diag     <- switches[1] & !child
+  .$cpars$verbose  <- switches[2]
+  .$cpars$cverbose <- switches[3]
+  .$cpars$mod_out  <- mod_out
 
   # read model mimic setup
   if(!is.null(mod_mimic)) {
@@ -39,6 +45,9 @@ build <- function(., mod_mimic=NULL, ... ) {
     print(init_default,quote=F)
   }
 
+  # assign model output function
+  if(.$cpars$diag) mod_out <- 'full' ### this will assign full to all child objects too could add a child switch
+  .$output <- get(paste('f', 'output', .$name, .$cpars$mod_out, sep='_' ))
 
   # assign default and mod mimic values to data structure
   .$configure(vlist='fnames', df=unlist(init_default$fnames), init=T )
@@ -51,18 +60,17 @@ build <- function(., mod_mimic=NULL, ... ) {
 
 
 # function that calls child object build function
-build_child <- function(., child, mod_mimic=NULL, ... ) {
+build_child <- function(., child_obj, mod_mimic=NULL, ... ) {
 
   # load child object
-  child_obj  <- paste0(child, '_object' )
-  setwd(paste0('../',child))
-  source(paste0(child_obj, '.R' ))
+  child_obj_name  <- paste0(child_obj, '_object' )
+  setwd(paste0('../',child_obj))
+  source(paste0(child_obj_name, '.R' ))
 
   # build child object into parent object
-  .[[child]] <- as.proto( get(child_obj)$as.list(), parent=. ) # should work but may need environment setting
-  rm(list=child_obj, pos=1 )
-  .[[child]]$build(mod_mimic=mod_mimic)
-  .[[child]]$cpars$output <- .$name
+  .[[child_obj]] <- as.proto( get(child_obj_name)$as.list(), parent=. ) # should work but may need environment setting
+  rm(list=child_obj_name, pos=1 )
+  .[[child_obj]]$build(mod_mimic=mod_mimic, mod_out=.$name, child=T )
   setwd(paste0('../',.$name))
 
   # return nothing
@@ -76,7 +84,6 @@ build_child <- function(., child, mod_mimic=NULL, ... ) {
 run <- function(.) {
 
   # call system model
-  #.$fns$test()
   .$fns$sys()
 
   # print to screen
@@ -103,30 +110,25 @@ run_met <- function(.,l) {
   # met data assignment
   .$configure(vlist='env', df=.$dataf$met[l,] )
 
-  #print('')
-  #print(.$name)
-  #print(.$env)
-
-
   # run model
   .$run()
 }
 
 
 
-# output functions
-###########################################################################
-
-output <- function(.){
-
-  if(.$cpars$output=='full') {
-
-    lout <- unlist(c(.$state, .$state_pars ))
-
-  }
-
-  lout
-}
+## output functions
+############################################################################
+#
+#output <- function(.){
+#
+#  if(.$cpars$output=='full') {
+#
+#    lout <- unlist(c(.$state, .$state_pars ))
+#
+#  }
+#
+#  lout
+#}
 
 
 # configure functions
@@ -135,13 +137,6 @@ output <- function(.){
 configure <- function(., vlist, df, init=F, o=T ) {
   # This function is called from any of the run functions, or during model initialisation
   # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df
-
-  # print configure setup if requested
-  if(.$cpars$cverbose&o) {
-    print('', quote=F )
-    print(paste(.$name,'configure:'), quote=F )
-    print(df, quote=F )
-  }
 
   # split variable names at .
   listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
@@ -171,13 +166,22 @@ configure <- function(., vlist, df, init=F, o=T ) {
 
   # print configure setup if requested
   if(.$cpars$cverbose&o) {
+    print('', quote=F )
+    print(paste(.$name,'configure.'), quote=F )
+    print('data passed to configure:', quote=F )
+    print(df, quote=F )
+    print('listnames:', quote=F )
     print(listnames, quote=F )
+    print(paste('  subscripts for this model object:',.$name), quote=F )
     print(mss, quote=F )
+    print('  subscripts for variables that are lists:', quote=F )
     print(slmss, quote=F )
+    print('  subscripts for variables that are not lists:', quote=F )
     print(nslmss, quote=F )
+    print(paste('  subscripts in:',.$name, vlist ,' for variables that are not lists:'), quote=F )
     print(vlss, quote=F )
-    print(which(is.na(vlss)), quote=F )
-    print(.[[vlist]], quote=F )
+    #print(which(is.na(vlss)), quote=F )
+    print(names(.[[vlist]]), quote=F )
   }
 
   # assign UQ variables
@@ -230,13 +234,13 @@ configure_sublist <- function(., ss, vlist, df ) {
 
 # call a child configure function
 configure_child <- function(., child, vlist, df ) {
-  #print(paste('child conf:',vlist, names(df), df ))
+
   .[[child]]$configure(vlist=vlist, df=df )
   numeric(0)
 }
 
 
-# configure function for .test functions to configure
+# configure function for .test functions to configure fns from reassigned fnames
 configure_test <- function(.) {
 
   # configure methods

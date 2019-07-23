@@ -115,6 +115,7 @@ canopy_object$fnames <- list(
   fwdw          = 'f_fwdw_wtd_lin'
 )
 
+
 # environment
 ####################################
 canopy_object$env <- list(
@@ -129,6 +130,7 @@ canopy_object$env <- list(
   water_td  = numeric(1),
   sphag_h   = numeric(1)
 )
+
 
 # state
 ####################################
@@ -212,6 +214,7 @@ canopy_object$state <- list(
   )
 )
 
+
 # state parameters (i.e. calculated parameters)
 ####################################
 canopy_object$state_pars <- list(
@@ -228,6 +231,7 @@ canopy_object$state_pars <- list(
   alb_dir_can  = numeric(1),
   alb_diff_can = numeric(1)
 )
+
 
 # parameters
 ####################################
@@ -252,6 +256,7 @@ canopy_object$pars   <- list(
   fwdw_wl_exp_b    = 3.254    # decrease in sphagnum fwdw ratio as an exponential f of water level (cm) 
 )
 
+
 # run control parameters
 ####################################
 canopy_object$cpars <- list(
@@ -264,40 +269,40 @@ canopy_object$cpars <- list(
 
 # output functions
 #######################################################################        
-canopy_object$output <- function(.){
 
-  if(.$cpars$output=='run') {
-    
-    c(A=.$state$integrated$A, gs=.$state$integrated$gs, rd=.$state$integrated$rd)
-    
-  } else if(.$cpars$output=='main'|.$cpars$output=='mcmc') {
-    
-    c(A=.$state$integrated$A)
-    
-  } else if(.$cpars$output=='leaf') {
-    
-    c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-      gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd, lim=NA)
-    
-  } else if(.$cpars$output=='all_lim') {
-    
-    c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
-      gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd, lim=NA, 
-      Acg_lim=.$state$integrated$Acg_lim, 
-      Ajg_lim=.$state$integrated$Ajg_lim, 
-      Apg_lim=.$state$integrated$Apg_lim 
+f_output_canopy_state <- function(.) {
+  unlist(.$state)
+}
+
+f_output_canopy_full <- function(.) {
+  unlist(c(.$state, .$state_pars ))
+}
+
+f_output_canopy_run <- function(.) {
+  c(A=.$state$integrated$A, gs=.$state$integrated$gs, rd=.$state$integrated$rd)
+}
+
+f_output_canopy_mcmc <- function(.) {
+  c(A=.$state$integrated$A)
+}
+
+f_output_canopy_leaf <- function(.) {
+  c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
+    gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd, lim=NA)
+}
+
+f_output_canopy_all_lim <- function(.) {
+  c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
+    gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd, lim=NA, 
+    Acg_lim=.$state$integrated$Acg_lim, 
+    Ajg_lim=.$state$integrated$Ajg_lim, 
+    Apg_lim=.$state$integrated$Apg_lim 
     )
-    
-  } else if(.$cpars$output=='full') {
-    
-    unlist(c(.$state$integrated, .$state_pars))
+}
 
-  } else if(.$cpars$output=='leaf_dem') {
-    
-    vapply(.$state$vert$layer, function(v) v, .$state$vert$layer[[1]] )
-
-  }
-}    
+f_output_canopy_canopy_structure <- function(.) {
+  vapply(.$state$vert$layer, function(v) v, .$state$vert$layer[[1]] )
+}
 
 
 
@@ -308,10 +313,7 @@ canopy_object$.test <- function(., verbose=T,
                                 canopy.par=2000, canopy.ca_conc=400, canopy.lai=6 ) {
   
   # Build, assign fnames, configure 
-  .$build()
-
-  # parameter settings
-  .$cpars$verbose       <- verbose
+  .$build(switches=c(F,verbose,F))
   .$leaf$cpars$verbose  <- F
   
   .$env$par        <- canopy.par
@@ -323,33 +325,30 @@ canopy_object$.test <- function(., verbose=T,
   .$run()
 }
 
-canopy_object$.test_aca <- function(., verbose=F, verbose_loop=F, 
+
+canopy_object$.test_aca <- function(., verbose=F, cverbose=F, 
                                     canopy.par=c(100,1000), canopy.ca_conc=seq(50,1200,50),
                                     leaf.rs = 'f_r_zero', canopy.rt = 'f_rt_beerslaw_goudriaan' ) {
   
   # Build, assign fnames, configure 
-  .$build()
-  .$fnames$rt      <- canopy.rt
-  .$leaf$fnames$rs <- leaf.rs
-  .$configure_test() 
-  .$leaf$configure_test() 
-
-  .$cpars$verbose       <- verbose
+  .$build(switches=c(F,verbose,cverbose))
+  if(verbose) str.proto(canopy_object)
   .$leaf$cpars$verbose  <- F
   
   .$pars$lai       <- 10
   .$state$mass_a   <- 175
   .$state$C_to_N   <- 40
   
-  if(verbose) str.proto(canopy_object)
+  .$fnames$rt      <- canopy.rt
+  .$leaf$fnames$rs <- leaf.rs
+  .$configure_test() 
+  .$leaf$configure_test() 
   
   .$dataf       <- list()
   .$dataf$met   <- expand.grid(mget(c('canopy.ca_conc','canopy.par')))
-  
   .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
   
   print(cbind(.$dataf$met,.$dataf$out))
-  
   p1 <- xyplot(A~.$dataf$met$canopy.ca_conc|as.factor(.$dataf$met$canopy.par),.$dataf$out,abline=0,
                ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'))
   print(p1)

@@ -19,22 +19,22 @@
         <tpu>'f_tcor_dep_dependent'</tpu>
         <rd>'f_tcor_dep_independent'</rd>
       </tcor_dep>
-      <etrans>'f_j_collatz1991'</etrans>
+      <etrans>'f_etrans_collatz1991'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
       <Apg>'f_Apg_vonc2000'</Apg>
-      <gas_diff>'f_ficks_ci'</gas_diff>
+      <gas_diff>'f_gas_diff_ficks_ci'</gas_diff>
       <rd>'f_rd_lin_vcmax'</rd>
-      <q10_func>
+      <q10>
         <rd>'f_q10_constant'</rd>
         <vcmax>'f_q10_constant'</vcmax>
         <jmax>'f_q10_constant'</jmax>
-      </q10_func> 
+      </q10> 
       <rs>'f_rs_leuning1995'</rs>
       <rb>'f_r_zero'</rb>
-      <solver>'f_R_Brent_solver'</solver>
-      <solver_func>'f_A_r_leaf'</solver_func>
-      <Alim>'f_lim_collatz1991'</Alim>
+      <solver>'f_solver_brent'</solver>
+      <residual_func>'f_residual_func_leaf_Ar'</residual_func>
+      <Alim>'f_Alim_collatz1991'</Alim>
     </leaf>
   </fnames>
   <pars>

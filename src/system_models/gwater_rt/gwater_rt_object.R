@@ -94,15 +94,13 @@ gwater_rt_object$cpars <- list(
 # output functions
 #######################################################################        
 
-gwater_rt_object$output <- function(.) {
-  if(.$cpars$output=='run') {
-    lout <- .$state$h
-  } else if(.$cpars$output=='slim') {
-    lout <- c(recharge=.$state$recharge,h=.$state$h[.$pars$out_hsub])
-  } else stop()
-  
-  lout
-}    
+f_output_gwater_rt_run <- function(.) {
+  .$state$h
+}
+
+f_output_gwater_rt_slim <- function(.) {
+  c(recharge=.$state$recharge,h=.$state$h[.$pars$out_hsub])
+}
 
 
 
@@ -112,15 +110,8 @@ gwater_rt_object$output <- function(.) {
 gwater_rt_object$.test <- function(., verbose=F, 
                                    gwater_rt.precip=1524, gwater_rt.rechrg='f_rechrg_lin', gwater_rt.geol='f_geol_single' ) {
   
-  if(verbose) {
-    str(.)
-    print(.$env)
-  }
-  
-  .$build()
-
-  .$cpars$verbose <- verbose
-  .$cpars$output  <-'run'
+  if(verbose) { str(.); print(.$env) }
+  .$build(switches=c(F,verbose,F))
   
   .$env$precip    <- gwater_rt.precip
   .$fnames$rechrg <- gwater_rt.rechrg

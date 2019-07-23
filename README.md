@@ -29,13 +29,17 @@ MAAT has been developed on Linux Ubuntu 16.04 and is designed to be run from the
 * MCMC DREAM algorithm added for parameter estimation, also a work in progress.
 * A number of bug fixes.
 
+#### v1.2.1
+* mostly under-the-hood structural changes
+* small incompatibility with v1.2 for a few leaf function names (solver, electron transport, gas_diff, 1 / 2 more)  
+
 
 ### Use guidelines ### 
 
-Communicating your intentions with code authors at an early stage (i.e. during the early stages of a study, when simulations are being run well before manuscript drafting) is the policy.
-
 If you want to use this code then please do! 
-If you plan to publish using this code the please be respectful of other people's work and their willingness to open source their code. 
+If you plan to publish using this code, communicating your intentions with code authors at an early stage is the use-policy (i.e. when the study is being designed and simulations are being run, well before manuscript drafting).
+
+Please be respectful of other people's work and their willingness to open source their code. 
 The master branch is very close to the cutting edge developments in MAAT, which allows for good code integration and software best practice. 
 Please be aware that the authors of these developments are likely to have not yet published what they are intending to, please contact them to discuss use. 
 Older code is fine to use without co-authorship, but it is rcommended that code authors be contacted. 
@@ -63,11 +67,11 @@ This will help to maintain a central code-base and the principles of open scienc
 
 ### Related publications ###
 
-[Walker, A. P., Ye, M., Lu, D., De Kauwe, M. G., Gu, L., Medlyn, B. E., Rogers, A., and Serbin, S. P.: The multi-assumption architecture and testbed (MAAT v1.0): R code for generating ensembles with dynamic model structure and analysis of epistemic uncertainty from multiple sources, Geosci. Model Dev., 11, 3159-3185, https://doi.org/10.5194/gmd-11-3159-2018, 2018.](https://www.geosci-model-dev.net/11/3159/2018/)
+Walker, A. P., Ye, M., Lu, D., De Kauwe, M. G., Gu, L., Medlyn, B. E., Rogers, A., and Serbin, S. P.: The multi-assumption architecture and testbed (MAAT v1.0): R code for generating ensembles with dynamic model structure and analysis of epistemic uncertainty from multiple sources, Geosci. Model Dev., 11, 3159-3185, 2018, [doi.org/10.5194/gmd-11-3159-2018](https://doi.org/10.5194/gmd-11-3159-2018)
 
-[Dai et al 2017](https://agupubs.onlinelibrary.wiley.com/doi/10.1002/2016WR019715)
+Dai, H., Ye, M., Walker, A.P., Chen, X., 2017. A new process sensitivity index to identify important system processes under process model and parametric uncertainty. Water Resour. Res. 53, 3476–3490. [doi.org/10.1002/2016WR019715](https://doi.org/10.1002/2016WR019715)
 
-[Walker et al 2017](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1002/2016JG003711)
+Walker, A.P., Carter, K.R., Gu, L., Hanson, P.J., Malhotra, A., Norby, R.J., Sebestyen, S.D., Wullschleger, S.D., Weston, D.J., 2017. Biophysical drivers of seasonal variability in Sphagnum gross primary production in a northern temperate bog. J. Geophys. Res. Biogeosci. 122, 2016JG003711. [doi.org/10.1002/2016JG003711](https://doi.org/10.1002/2016JG003711)
 
 
 ### Sponsorship ###

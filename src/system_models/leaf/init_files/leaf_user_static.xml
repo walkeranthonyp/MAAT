@@ -2,8 +2,8 @@
   <fnames>
     <leaf>
       <sys>NA</sys>
-      <solver_func>NA</solver_func>
       <solver>NA</solver>
+      <residual_func>NA</residual_func>
       <semiana>NA</semiana>
       <Acg>NA</Acg>
       <Ajg>NA</Ajg>
@@ -16,7 +16,7 @@
       <tcor_jmax>NA</tcor_jmax>
       <tpu>NA</tpu>
       <rd>NA</rd>
-      <rl_rd_scalar>NA</rl_rd_scalar>
+      <rl_rd>NA</rl_rd>
       <gstar>NA</gstar>
       <ri>NA</ri>
       <rs>NA</rs>
@@ -50,14 +50,14 @@
         <jmax>NA</jmax>
         <tpu>NA</tpu>
       </deltaS>
-      <q10_func>
+      <q10>
         <rd>NA</rd>
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tau>NA</tau>
         <Kc>NA</Kc>
         <Ko>NA</Ko>
-      </q10_func>
+      </q10>
     </leaf>
   </fnames>
   <pars>
@@ -65,6 +65,8 @@
       <diag>NA</diag>
       <d13c>NA</d13c>
       <deltaA_prop>NA</deltaA_prop>
+      <solver_min>NA</solver_min>
+      <solver_max>NA</solver_max>
       <a>NA</a>
       <f>NA</f>
       <ko_kc_ratio>NA</ko_kc_ratio>

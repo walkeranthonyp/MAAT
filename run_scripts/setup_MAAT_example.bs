@@ -19,7 +19,7 @@ cp $SDIRM/$MOBJ/examples/* $PDIR
 chmod 775 $PDIR/call*
 chmod 775 $PDIR/qsub*
 chmod 775 $PDIR/analysis*
-chmod 775 $PDIR/plot*
+#chmod 775 $PDIR/plot*
 
 # if else
 if [[ $OSTYPE == darwin* ]]; then
@@ -28,7 +28,7 @@ if [[ $OSTYPE == darwin* ]]; then
   sed -i '' "s@##SDIR##@$SDIR@"  $PDIR/call*.bs
   sed -i '' "s@##PDIR##@$PDIR@"  $PDIR/call*.bs
   sed -i '' "s@##MOBJ##@$MOBJ@"  $PDIR/call*.bs
-  sed -i '' "s@##PDIR##@$PDIR@"  $PDIR/plot*.R
+#  sed -i '' "s@##PDIR##@$PDIR@"  $PDIR/plot*.R
   sed -i '' "s@##PDIR##@$PDIR@"  $PDIR/analysis*.R
   sed -i '' "s@##SDIR##@$SDIR@"  $PDIR/analysis*.R
 else
@@ -37,7 +37,7 @@ else
   sed -i    "s@##SDIR##@$SDIR@"  $PDIR/call*.bs
   sed -i    "s@##PDIR##@$PDIR@"  $PDIR/call*.bs
   sed -i    "s@##MOBJ##@$MOBJ@"  $PDIR/call*.bs
-  sed -i    "s@##PDIR##@$PDIR@"  $PDIR/plot*.R
+#  sed -i    "s@##PDIR##@$PDIR@"  $PDIR/plot*.R
   sed -i    "s@##PDIR##@$PDIR@"  $PDIR/analysis*.R
   sed -i    "s@##SDIR##@$SDIR@"  $PDIR/analysis*.R
 fi
