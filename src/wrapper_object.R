@@ -60,7 +60,7 @@ wrapper_object$build <- function(., ... ) {
   setwd(paste('system_models', .$wpars$mod_obj, sep='/' ))
   mod_obj <- paste(.$wpars$mod_obj, 'object', sep='_' )
   source(paste0(mod_obj, '.R' ))
-  .$model <- as.proto(get(mod_obj)$as.list())
+  .$model <- as.proto(get(mod_obj)$as.list(), parent=. )
   .$model$build(...)
   rm(mod_obj)
   setwd('../..')
@@ -870,14 +870,10 @@ wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
                                               mu_vector=c(-8,0,6),
                                               sd_vector=c(1,1,1),
                                               height_vector=c(0.2,0.5,0.3),
-                                              mixture_scale=1e12
+                                              mixture_scale=1e12,
+                                              verbose=F, cverbose=F, diag=F
                                               ) {
 
-  ### currently does not work with multicoring,
-  ### probably due to assignment to . datastructure during the forked processes
-  ### perhaps setting parent in build function would avoid problem, should be shared memory, but perhaps not
-  # redefine mc if mc=T
-  if(mc) {mc <- F; print('mc specified as T but does not work in unit testing with current MAAT config, redefining mc as F') }
 
   library(lattice)
   # build wrapper and the model object
@@ -887,6 +883,8 @@ wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
 
   # define control parameters
   .$wpars$unit_testing  <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions)
+  .$wpars$verbose       <- verbose       
+  .$wpars$cverbose      <- cverbose       
   .$wpars$multic        <- mc           # multicore the ensemble
   .$wpars$procs         <- pr           # number of cores to use if above is true
   .$wpars$UQ            <- T            # run a UQ/SA style ensemble
@@ -895,52 +893,27 @@ wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
   .$wpars$mcmc_chains   <- mcmc_chains  # MCMC number of chains
   .$wpars$mcmc_maxiter  <- mcmc_maxiter # MCMC max number of steps / iterations on each chain
   .$wpars$mcmc_lklihood <- 'log'        # MCMC likelihood function
-  .$build()
+  .$build(mod_out='mixture', switches=c(diag,verbose,cverbose) )
 
-  # set model specific variables 
-  .$model$pars$verbose  <- F
-  .$model$pars$cverbose <- F
+  # set model system function 
   .$model$fnames$sys    <- 'f_sys_mixture'
+
   # Define static variables 
   .$static$fnames <- list(mcmc_test.sys='f_sys_mixture')
 
   # set problem specific parameters
-  .$model$pars$mu1     <- mu_vector[1]
-  .$model$pars$mu2     <- mu_vector[2]
-  .$model$pars$mu3     <- mu_vector[3]
-  .$model$pars$sd1     <- sd_vector[1]
-  .$model$pars$sd2     <- sd_vector[2]
-  .$model$pars$sd3     <- sd_vector[3]
-  # ALJ: added a few more problem-specific parameters
-  .$model$pars$height1 <- height_vector[1]
-  .$model$pars$height2 <- height_vector[2]
-  .$model$pars$height3 <- height_vector[3]
-  .$model$pars$mixture_scale <- mixture_scale
+  .$model$pars$mu1      <- mu_vector[1]
+  .$model$pars$mu2      <- mu_vector[2]
+  .$model$pars$mu3      <- mu_vector[3]
+  .$model$pars$sd1      <- sd_vector[1]
+  .$model$pars$sd2      <- sd_vector[2]
+  .$model$pars$sd3      <- sd_vector[3]
+  .$model$pars$height1  <- height_vector[1]
+  .$model$pars$height2  <- height_vector[2]
+  .$model$pars$height3  <- height_vector[3]
+  .$model$pars$mixture_scale  <- mixture_scale
 
   # define priors
-#      # number of parameters in proposal
-#      np  <- 4
-#      # provide mean of initial sample
-#      # Q: what is the final 0 doing on the below vector?
-#      mu  <- c(.$model$pars$mu1, .$model$pars$mu2, .$model$pars$mu3, 0 )
-#      # provide initial covariance
-#      sig <- (10*diag(np))
-#      # create a (mcmc_chains x n) matrix of iid normal random variables
-#      A   <- matrix(rnorm(mcmc_chains*np), mcmc_chains, np )
-#      # compute choleski decomposition of initial covariance matrix
-#      B   <- chol(sig)
-#      # initialize chains with normal distribution
-#      priors <- matrix(1, mcmc_chains, 1 ) %*% mu + A  %*% B
-#      colnames(priors) <- paste0('mcmc_test.proposal', 1:4 )
-#      .$dataf$pars     <- priors
-#
-#      print('priors', quote=F )
-#      print(priors,quote=F)
-
-  # APW: is this the standard prior used for thise test?
-  # ALJ: the prior is dependent on the user-specified mu's and sd's
-  #      so theoretically the prior should be changed with each run
-  # ALJ: these current prior ranges work well for mu=<-8,0,8> and sd=<1,1,1>
   .$dynamic$pars_eval <- list(
     mcmc_test.proposal1  = 'runif(n,-20,20)',
     mcmc_test.proposal2  = 'runif(n,-20,20)',
@@ -978,14 +951,20 @@ wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
 
 
 # test function for MCMC parameter estimation in a linear regression
-wrapper_object$.test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_type='dream', mcmc_lklihood='ssquared', 
-                                             mcmc_chains=7, mcmc_homosced=T, mcmc_maxiter=3,
+wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_chains,
+                                             mcmc_type='dream', mcmc_lklihood='ssquared', 
+                                             mcmc_homosced=T, mcmc_maxiter=3,
                                              x=1:10, a_mu=-5, b_mu=15, a_sd=1, b_sd=1, standard_err=0.5,
                                              mcmc_test.a  = 'runif(n,-30,30)',
-                                             mcmc_test.b  = 'runif(n,-30,30)'
+                                             mcmc_test.b  = 'runif(n,-30,30)',
+                                             verbose=F, cverbose=F, diag=F
                                              ) {
+
+  ### currently does not work with multicoring,
+  ### probably due to assignment to . datastructure during the forked processes
+  ### perhaps setting parent in build function would avoid problem, should be shared memory, but perhaps not
   # redefine mc if mc=T
-  if(mc) {mc <- F; print('mc specified as T but does not work in unit testing with current MAAT config, redefining mc as F') }
+  #if(mc) {mc <- F; print('mc specified as T but does not work in unit testing with current MAAT config, redefining mc as F') }
 
   library(lattice)
   # build wrapper and the model object
@@ -994,23 +973,20 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_type='dream', m
   .$wpars$mod_obj <- 'mcmc_test' 
 
   # define control parameters
-  .$wpars$unit_testing    <- T       
-  .$wpars$mcmc_lklihood   <- mcmc_lklihood # MCMC likelihood function
-  .$wpars$multic          <- mc            # multicore the ensemble
-  .$wpars$procs           <- pr            # number of cores to use if above is true
-  .$wpars$UQ              <- T             # run a UQ/SA style ensemble
-  .$wpars$UQtype          <- 'mcmc'        # MCMC ensemble
-  .$wpars$mcmc_type       <- mcmc_type     # MCMC type, 'demc' or 'dream'
-  .$wpars$mcmc_chains     <- mcmc_chains   # MCMC number of chains
-  .$wpars$mcmc_homosced   <- mcmc_homosced # MCMC homoscedastic error
-  .$wpars$mcmc_maxiter    <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
-  .$build()
+  .$wpars$unit_testing  <- T       
+  .$wpars$verbose       <- verbose       
+  .$wpars$cverbose      <- cverbose       
+  .$wpars$mcmc_lklihood <- mcmc_lklihood # MCMC likelihood function
+  .$wpars$multic        <- mc            # multicore the ensemble
+  .$wpars$procs         <- pr            # number of cores to use if above is true
+  .$wpars$UQ            <- T             # run a UQ/SA style ensemble
+  .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble
+  .$wpars$mcmc_type     <- mcmc_type     # MCMC type, 'demc' or 'dream'
+  .$wpars$mcmc_chains   <- mcmc_chains   # MCMC number of chains
+  .$wpars$mcmc_homosced <- mcmc_homosced # MCMC homoscedastic error
+  .$wpars$mcmc_maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
+  .$build(mod_out='regression', switches=c(diag,verbose,cverbose) )
 
-  # set model parameters
-  .$model$pars$verbose    <- F
-  .$model$pars$cverbose   <- F
-  #.$model$fnames$sys      <- 'f_sys_regression'
-  #.$model$fnames$reg_func <- 'f_reg_func_linear'
   # Define static variables 
   .$static$fnames <- list(
     mcmc_test.sys      = 'f_sys_regression',
@@ -1018,21 +994,15 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_type='dream', m
   )
 
   # set problem specific parameters
-  .$model$pars$syn_a_mu <- a_mu
-  .$model$pars$syn_b_mu <- b_mu
-  .$model$pars$syn_a_sd <- a_sd
-  .$model$pars$syn_b_sd <- b_sd
+  .$model$pars$obs_error <- standard_err
+  .$model$pars$syn_a_mu  <- a_mu
+  .$model$pars$syn_b_mu  <- b_mu
+  .$model$pars$syn_a_sd  <- a_sd
+  .$model$pars$syn_b_sd  <- b_sd
 
   # met data
-  .$dataf$met           <- matrix(x, length(x) ,1 )
-  colnames(.$dataf$met) <- 'mcmc_test.linreg_x'
-
-  # generate synthetic data
-  .$model$pars$a       <- rnorm(length(x), .$model$pars$syn_a_mu, .$model$pars$syn_a_sd )
-  .$model$pars$b       <- rnorm(length(x), .$model$pars$syn_b_mu, .$model$pars$syn_b_sd )
-  .$model$env$linreg_x <- x
-  .$dataf$obs          <- .$model$fns$reg_func()
-  .$dataf$obsse        <- abs(rnorm(length(x), mean = 0, sd = standard_err))
+  .$dataf$met            <- matrix(x, length(x) ,1 )
+  colnames(.$dataf$met)  <- 'mcmc_test.linreg_x'
 
   # define priors
   .$dynamic$pars_eval <- list(
@@ -1054,7 +1024,7 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, pr=4, mcmc_type='dream', m
   mcmc_pars_hist <- 
     hist(.$dataf$pars_array, breaks=200,
          col='darkmagenta', border='darkmagenta',
-         xlab='Mixture Model Parameters', main='Posterior (Target) Parameter Distributions for Mixture Model')
+         xlab='Regression Model Parameters', main='Posterior (Target) Parameter Distributions for Regression Model')
 
   dims <- dim(.$dataf$pars_lklihood)
   df1  <- data.frame(lklihood=as.vector(t(.$dataf$pars_lklihood)), chain=rep(1:dims[1],each=dims[2]) )

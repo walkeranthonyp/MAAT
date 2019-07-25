@@ -1,6 +1,6 @@
 ################################
 #
-# template for MAAT object functions - really just a hello world example
+# MAAT template model object 
 #
 # AWalker November 2017
 #
