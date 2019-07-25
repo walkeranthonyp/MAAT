@@ -102,9 +102,9 @@ wrapper_object$run   <- function(.,verbose=T) {
   }
 
   # initialise model with static variables
-  if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=.$static$fnames ) 
   if(!is.null(.$static$pars))   .$model$configure(vlist='pars',   df=.$static$pars   ) 
   if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=.$static$env    ) 
+  if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=.$static$fnames ) 
 
   # create matrices of runtime variables  
   .$generate_ensemble()
@@ -160,7 +160,7 @@ wrapper_object$init <- function(.) {
 
   # setup list names for assignment 
   type   <- c('static', 'dynamic')
-  vlists <- c('fnames', 'pars', 'env' )
+  vlists <- c('pars', 'env', 'fnames' )
  
   # assign standard input lists to wrapper data structure 
   for( t in type ) {
@@ -173,7 +173,7 @@ wrapper_object$init <- function(.) {
     }
   }
  
-  if(.$wpars$UQ) .$init_uq 
+  if(.$wpars$UQ|.$wpars$mcmc) .$init_uq() 
 }
 
 # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)

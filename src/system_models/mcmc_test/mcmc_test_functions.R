@@ -19,12 +19,17 @@ f_reg_func_linear <- function(.) {
 # functions to generate synthetic data
 f_reg_func_linear_gen_obs <- function(.) {   
   
-  # assign met data 
+  # assign met data
+  print('Gen obs:')
+  #print(.$dataf$met)
+  #print(.super$dataf$met)
   .$env$linreg_x     <- .super$dataf$met[,'mcmc_test.linreg_x']
 
   # generate uncertainty on target parameters 
   .$pars$a           <- rnorm(length(.$env$linreg_x), .$pars$syn_a_mu, .$pars$syn_a_sd )
   .$pars$b           <- rnorm(length(.$env$linreg_x), .$pars$syn_b_mu, .$pars$syn_b_sd )
+  print(.$pars$a)
+  print(.$pars$b)
 
   # generate synthetic data
   .super$dataf$obs   <- .$fns$reg_func()

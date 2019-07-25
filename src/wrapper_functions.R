@@ -627,13 +627,24 @@ run1_mcmc_dream <- function(.,i) {
         else                 lapply(1:.$dataf$lp, .$run3 )
     })
 
-  #print('run1 mcmc')
-  #print(.$dataf$out)
+  print('run1 mcmc')
+  print('.$model$pars')
+  print(.$model$pars)
+  print('.$dataf$obs')
+  print(.$dataf$obs)
+  print('.$dataf$out')
+  print(.$dataf$out)
+  #print('.$dataf$pars')
+  #print(.$dataf$pars)
+  #print('.$dataf$pars_array')   
+  #print(.$dataf$pars_array)   
 
   # add to pars array and calculate likelihood of initial proposal
   .$dataf$pars_array[,,1]   <- .$dataf$pars
   .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
 
+  print('.$dataf$pars_lklihood[,1]') 
+  print(.$dataf$pars_lklihood[,1]) 
   #print(.$dataf$pars_array)
   #print(.$dataf$pars_lklihood)
 
