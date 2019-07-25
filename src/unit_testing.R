@@ -88,7 +88,7 @@ head(wrapper_object$dataf$out_saltelli)
 head(wrapper_object$dataf$out)
 wrapper_object$dataf$out_saltelli
 wrapper_object$init_output_matrix
-wrapper_object$init_output_matrix_saltelli()
+wrapper_object$init_output_matrix()
 wrapper_object$write_output
 wrapper_object$print_saltelli
 
@@ -102,14 +102,11 @@ wrapper_object$dataf$pars
 
 # MCMC Mixture test
 source('wrapper_object.R')
-# ALJ: test DREAM algorithm with mixture model
-out <- wrapper_object$.test_mcmc_mixture(mcmc_type = 'dream',
-                                         mcmc_maxiter = 2000, mcmc_chains = 8,
-                                         mc = F, pr = 4,
-                                         mu_vector = c(-8, 0, 8),
-                                         sd_vector = c(1, 1, 1),
-                                         height_vector = c(0.1, 0.3, 0.6),
-                                         mixture_scale = 1e12
+out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=1000)
+out <- wrapper_object$.test_mcmc_mixture(mcmc_type='dream',
+                                         mcmc_maxiter=2000, mcmc_chains=8, mc=F, pr=4,
+                                         mu_vector=c(-8, 0, 8), sd_vector=c(1, 1, 1),
+                                         height_vector=c(0.1, 0.3, 0.6), mixture_scale=1e12
                                          )
 names(out)
 wrapper_object$dynamic
@@ -121,32 +118,60 @@ wrapper_object$dataf$pars_lklihood
 wrapper_object$dataf$pars_array
 wrapper_object$wpars
 
+out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=20)
+out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=20, mc=T )
+
+out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=1000)
+out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=1000, mc=T )
+
+wrapper_object$dataf$pars
+wrapper_object$dataf$out
+wrapper_object$dataf$pars_lklihood[,1]
+wrapper_object$dataf$pars_array[,,1]
+wrapper_object$dataf$pars_lklihood
+wrapper_object$dataf$pars_array
+
+
 
 # MCMC linear regression test
 source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg()
+out <- wrapper_object$.test_mcmc_linreg(cverbose=T)
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=10)
-out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=2000)
-out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=150,
-                                        mcmc_test.a ='runif(n,-20,20)',
-                                        mcmc_test.b ='runif(n,-20,20)')
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=1000)
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=1000,
+                                        mcmc_test.a='runif(n,-20,20)',
+                                        mcmc_test.b='runif(n,-20,20)')
 names(out)
 plot(out[[3]])
-out[[5]]
 wrapper_object$wpars
 wrapper_object$mcmc
 wrapper_object$dynamic
 
-wrapper_object$dataf$pars_array[,,1]
-wrapper_object$dataf$pars_array[,,10]
+source('wrapper_object.R')
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=2, mc=F )
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=2, mc=T )
+
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=1000, mc=F )
+out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=1000, mc=T )
+
 wrapper_object$dataf$pars
+wrapper_object$dataf$out
+wrapper_object$dataf$pars_lklihood[,1]
+wrapper_object$dataf$pars_array[,,1]
+wrapper_object$dataf$pars_lklihood
+wrapper_object$dataf$pars_array
+
+wrapper_object$dataf$pars_array[,,10]
 wrapper_object$dataf$out
 wrapper_object$dataf$out_mcmc[,,1]
 wrapper_object$dataf$out_mcmc[,,10]
 
+wrapper_object$dataf$met
 wrapper_object$dataf$obs
 wrapper_object$dataf$obsse
 wrapper_object$dataf$out
+
 xyplot(wrapper_object$dataf$obs~wrapper_object$dataf$met)
 lm(wrapper_object$dataf$obs~wrapper_object$dataf$met)
 

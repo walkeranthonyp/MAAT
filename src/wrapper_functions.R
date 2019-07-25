@@ -576,8 +576,9 @@ run0_mcmc_dream <- function(.) {
   .$init_output_matrix()
 
   # call run function
-  if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$run1, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
-  else                 lapply( 1:.$dataf$lf, .$run1 )
+  #if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$run1, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
+  #else                 lapply( 1:.$dataf$lf, .$run1 )
+  vapply( 1:.$dataf$lf, .$run1, numeric(0) )
 
   # print summary of results
   .$print_output()
@@ -599,9 +600,15 @@ run1_mcmc_dream <- function(.,i) {
         else                 lapply(1:.$dataf$lp, .$run3 )
     })
 
+  #print('run1 mcmc')
+  #print(.$dataf$out)
+
   # add to pars array and calculate likelihood of initial proposal
   .$dataf$pars_array[,,1]   <- .$dataf$pars
   .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
+
+  #print(.$dataf$pars_array)
+  #print(.$dataf$pars_lklihood)
 
   # Set boundary handling limits
   # debug: temporarily remove boundary handling
@@ -647,6 +654,7 @@ run1_mcmc_dream <- function(.,i) {
   # write output from MCMC
   .$write_output(i=i)
 
+  numeric(0)
 }
 
 # This wrapper function is called from a vapply function to iterate / step chains in an MCMC

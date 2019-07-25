@@ -1,6 +1,6 @@
 ################################
 #
-# mcmc_test system representation functions (SRFs)
+# MAAT mcmc_test system representation functions (SRFs)
 #
 # AWalker, Dan Lu, Abbey Johnson
 # July 2018
@@ -29,9 +29,9 @@ f_sys_mixture <- function(.) {
   # return combined probability
   .super$state$mixture_p[] <- sum(.super$pars$height1 * prod(p1) + .super$pars$height2 * prod(p2) + .super$pars$height3 * prod(p3))
 
-  # print(paste0('model evalution = ', .super$state$mixture_p[]))
+  # print(paste0('model evalution = ', .super$state$mixture_p))
 
-  return(.$state$mixture_p[])
+  return(.$state$mixture_p)
 }
 
 

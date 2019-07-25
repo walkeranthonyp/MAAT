@@ -21,6 +21,7 @@
       <proposal2>1</proposal2>
       <proposal3>1</proposal3>
       <proposal4>1</proposal4>
+      <obs_error>1</obs_error>
       <syn_a_mu>2</syn_a_mu>
       <syn_b_mu>7</syn_b_mu>
       <syn_a_sd>3</syn_a_sd>

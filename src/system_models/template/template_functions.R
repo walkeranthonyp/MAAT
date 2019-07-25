@@ -1,6 +1,6 @@
 ################################
 #
-# template for MAAT object functions
+# MAAT template process representation functions (PRFs)
 # 
 # AWalker March 2017
 #
