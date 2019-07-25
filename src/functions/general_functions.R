@@ -305,14 +305,6 @@ puniroot <-
       #if(NAproceed) {print("f.lower = f(lower) is NA"); print(paste("f.upper = ",f.upper)); f.lower <- f.upper } else
       if(NAproceed) {
         print("f.lower = f(lower) is NA")
-
-        # debugging code
-        # assumming this puniroot fxn is called each iteration?
-        print('proposals generated = ')
-        print(.$dataf$pars)
-        # print('model evaluation, .dataf$out = ')
-        # print(.$dataf$out)
-
         return(list(root = NA, f.root = NA, iter = 0, init.it = 0, estim.prec = NA))
       } else {
         stop("f.lower = f(lower) is NA")
@@ -321,13 +313,6 @@ puniroot <-
       #if(NAproceed) {print("f.upper = f(upper) is NA"); print(paste("f.lower = ",f.lower)); f.upper <- f(20.3453245) } else
       if(NAproceed) {
         print("f.upper = f(upper) is NA")
-
-        # debugging code
-        print('proposal generated = ')
-        print(.$dataf$pars)
-        # print('model evaluation, .dataf$out = ')
-        # print(.$dataf$out)
-
         return(list(root = NA, f.root = NA, iter = 0, init.it = 0, estim.prec = NA))
       } else {
         stop("f.upper = f(upper) is NA")

@@ -388,13 +388,17 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
     # debug: temporarily comment out boundary handling
     # call boundary handling function
-    #for (jj in 1:.$mcmc$d) boundary_handling(., ii, jj )
+    # for (jj in 1:.$mcmc$d) boundary_handling(., ii, jj )
     for (jj in 1:.$mcmc$d) .$boundary_handling(ii=ii,jj=jj)
 
     # debugging print statements
-    print('proposal generated = ')
-    print(.$dataf$pars[ii, ])
+    # print('proposal generated = ')
+    # print(.$dataf$pars[ii, ])
+
   }
+
+  print('you are here! (proposal generation)')
+
 }
 
 
@@ -487,15 +491,16 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   #print(.$mcmc$J)
   #print(sum(.$mcmc$J))
 
-  print('.$mcmc$sd_state = ')
-  print(.$mcmc$sd_state)
-  print('.$mcmcm$id = ')
-  print(.$mcmc$id)
-  print('.$mcmc$n_id = ')
-  print(.$mcmc$n_id)
-  print('J = ')
-  print(.$mcmc$J)
+  # print('.$mcmc$sd_state = ')
+  # print(.$mcmc$sd_state)
+  # print('.$mcmcm$id = ')
+  # print(.$mcmc$id)
+  # print('.$mcmc$n_id = ')
+  # print(.$mcmc$n_id)
+  # print('J = ')
+  # print(.$mcmc$J)
 
+  # debug: play around with < versus >
   if ((j > (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
   # if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
     .$mcmc$p_CR <- .$mcmc$J    / .$mcmc$n_id
@@ -522,6 +527,7 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
 # expects model output to be probability - as in the output from the mixture model
 f_proposal_lklihood_log <- function(.) {
+
   # derive log density
   log(.$dataf$out)
 
