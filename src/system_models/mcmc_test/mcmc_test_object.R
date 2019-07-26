@@ -31,8 +31,9 @@ mcmc_test_object$name <- 'mcmc_test'
 
 mcmc_test_object$configure_unique <- function(., init=F, flist=NULL ) {
 
-  if(any(names(flist)=='reg_func')) {
-
+  if(any(names(flist)=='reg_func') & !init ) {
+   #.$fns$reg_func_gen_obs <- get(paste0(.$fnames$reg_func,'_gen_obs'), pos=1 )
+   #.$fns$reg_func_gen_obs()
    .$reg_func_gen_obs <- get(paste0(.$fnames$reg_func,'_gen_obs'), pos=1 )
    .$reg_func_gen_obs()
 
