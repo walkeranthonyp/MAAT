@@ -96,8 +96,7 @@ f_sys_enzymek <- function(.) {
       # if rs is negative (occurs when A is negative) recalculate with fixed rs at 1/g0
       if(!is.na(.super$state$A)) {
         if( .super$state$A<0 | .super$state$cc<0 | .super$state_pars$rs<0 ) {
-
-          # debugging: temporarily comment out print statement to make reading log file easier
+          
           # perhaps write this flag into the leaf object
           print(paste('solver returned negative value of A, cc, or rs; recalculate assuming rs = r0'))
 

@@ -397,8 +397,6 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
   }
 
-  print('you are here! (proposal generation)')
-
 }
 
 
@@ -507,8 +505,8 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
     .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
   }
 
-  print('.$mcmc$p_CR = ')
-  print(.$mcmc$p_CR)
+  # print('.$mcmc$p_CR = ')
+  # print(.$mcmc$p_CR)
 
 }
 
@@ -546,7 +544,15 @@ f_proposal_lklihood_ssquared <- function(.) {
   # calculate error residual
   # - each chain is on rows of dataf$out take transpose
   error_residual_matrix <- t(.$dataf$out) - .$dataf$obs
-  #print(error_residual_matrix)
+
+  print('.$model$dataf$obs = ')
+  print(.$model$dataf$obs)
+  print('.$model$pars = ')
+  print(.$model$pars)
+  print('.$dataf$obs = ')
+  print(.$dataf$obs)
+  print('.$dataf$out = ')
+  print(.$dataf$out)
 
   # calculate sum of squared error
   # - error_residual_matrix now has chains on columns
@@ -565,39 +571,15 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   # future work: screen out night-time values in a more efficient location
   sspos <- which(.$dataf$obsse > 1e-9)
 
-  # debugging: parse out NA, NaN, Inf, and -Inf values so Sphagnum simulation will keep running
-  # idx <- which((.$dataf$out[sspos, ] != NA & !NaN))
-  idx <- which(is.na(.$dataf$out[ , sspos]))
-
-  print(paste0('type of idx = ', typeof(idx)))
-  print(paste0('length of idx = ', length(idx)))
-  print(paste0('type of sspos = ', typeof(sspos)))
-  print(paste0('length of sspos = ', length(sspos)))
-  # print('idx = ')
-  # print(idx)
-  # print('sspos = ')
-  # print(sspos)
-
   # number of measured data points (that do not have zero uncertainty)
   obs_n <- length(sspos)
 
-  # debugging: altered original code below
-  # debugging: mcmc_homosced <- F
   # observed error
   obsse <- if(.$wpars$mcmc_homosced)   rep(mean(.$dataf$obsse[sspos]), obs_n)
-           else                .$dataf$obsse[sspos][-idx]
-
-  # debugging
-  # obsse <- .$dataf$obsse[idx]
+           else                .$dataf$obsse[sspos]
 
   # calculate error residual (each chain is on rows of dataf$out, take transpose)
-  # error_residual_matrix <- ( t(.$dataf$out)[sspos, ] - .$dataf$obs[sspos] ) / obsse
-
-  # debugging
-  error_residual_matrix <- ( t(.$dataf$out)[sspos, ][-idx,] - .$dataf$obs[sspos][-idx] ) / obsse
-
-  # debugging
-  # error_residual_matrix <- ( t(.$dataf$out)[idx, ] - .$dataf$obs[idx] ) / obsse
+  error_residual_matrix <- ( t(.$dataf$out)[sspos, ] - .$dataf$obs[sspos] ) / obsse
 
   # calculate sum of squared error
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))

@@ -104,7 +104,7 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
     .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
     colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
   }
-  
+
   # remove initialisation pars list
   .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
@@ -600,15 +600,17 @@ run1_mcmc_dream <- function(.,i) {
         else                 lapply(1:.$dataf$lp, .$run3 )
     })
 
-  #print('run1 mcmc')
-  #print(.$dataf$out)
-
   # add to pars array and calculate likelihood of initial proposal
   .$dataf$pars_array[,,1]   <- .$dataf$pars
   .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
 
-  #print(.$dataf$pars_array)
-  #print(.$dataf$pars_lklihood)
+  # debugging
+  print('.$dataf$out = ')
+  print(.$dataf$out)
+  print('.$dataf$pars_array = ')
+  print(.$dataf$pars_array)
+  print('.$dataf$pars_lklihood = ')
+  print(.$dataf$pars_lklihood)
 
   # Set boundary handling limits
   # debug: temporarily remove boundary handling
