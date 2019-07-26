@@ -316,7 +316,7 @@ init_mcmc_dream <- function(.) {
 proposal_generate_mcmc_dream <- function(., j ) {
 
   # debugging
-  print(paste0('iteration = ', j))
+  # print(paste0('iteration = ', j))
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
@@ -339,7 +339,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
   if(.$wpars$mcmc_debug) .$mcmc$lambda[] <- .$mcmc$lambda_seed[ , , j]
 
   # compute standard deviation of each dimension (ie,compute standard deviation of each column of current_state matrix)
-  .$mcmc$sd_state[]     <- apply(.$mcmc$current_state, 2, sd)
+  .$mcmc$sd_state[]      <- apply(.$mcmc$current_state, 2, sd)
 
   # create proposals
   # future work: vectorize this for-loop to improve computational efficiency, but this is non-trivial
@@ -449,7 +449,7 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       .$mcmc$jump[ii, 1:.$mcmc$d] <- 0
 
       # repeat previous current_state and probability density in storage data frames
-      .$dataf$pars_array[ii, 1:.$mcmc$d,j]   <- .$dataf$pars_array[ii,1:.$mcmc$d,j-1]
+      .$dataf$pars_array[ii, 1:.$mcmc$d, j]   <- .$dataf$pars_array[ii,1:.$mcmc$d,j-1]
       .$dataf$pars_lklihood[ii,j]            <- .$dataf$pars_lklihood[ii,j-1]
 
       # debug: store generated proposal (regardless of whether accepted or not)
@@ -499,8 +499,9 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   # print(.$mcmc$J)
 
   # debug: play around with < versus >
-  if ((j > (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
-  # if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
+  # note that the original is <
+  # if ((j > (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
+  if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
     .$mcmc$p_CR <- .$mcmc$J    / .$mcmc$n_id
     .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
   }
@@ -544,15 +545,6 @@ f_proposal_lklihood_ssquared <- function(.) {
   # calculate error residual
   # - each chain is on rows of dataf$out take transpose
   error_residual_matrix <- t(.$dataf$out) - .$dataf$obs
-
-  print('.$model$dataf$obs = ')
-  print(.$model$dataf$obs)
-  print('.$model$pars = ')
-  print(.$model$pars)
-  print('.$dataf$obs = ')
-  print(.$dataf$obs)
-  print('.$dataf$out = ')
-  print(.$dataf$out)
 
   # calculate sum of squared error
   # - error_residual_matrix now has chains on columns
