@@ -604,14 +604,6 @@ run1_mcmc_dream <- function(.,i) {
   .$dataf$pars_array[,,1]   <- .$dataf$pars
   .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
 
-  # debugging
-  print('.$dataf$out = ')
-  print(.$dataf$out)
-  print('.$dataf$pars_array = ')
-  print(.$dataf$pars_array)
-  print('.$dataf$pars_lklihood = ')
-  print(.$dataf$pars_lklihood)
-
   # Set boundary handling limits
   # debug: temporarily remove boundary handling
   .$boundary_handling_set()
@@ -627,8 +619,6 @@ run1_mcmc_dream <- function(.,i) {
 
   # debug: add to proposal storage array
   # .$dataf$prop_storage[ , , 1] <- .$dataf$pars
-
-
 
   # debug: function (1), set seed for uniform_r generation
   # .$set_seed1()

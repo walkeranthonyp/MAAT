@@ -316,7 +316,7 @@ init_mcmc_dream <- function(.) {
 proposal_generate_mcmc_dream <- function(., j ) {
 
   # debugging
-  # print(paste0('iteration = ', j))
+  print(paste0('iteration = ', j))
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
@@ -330,16 +330,21 @@ proposal_generate_mcmc_dream <- function(., j ) {
   # future work: play around with whether the current_state and jump matrices are absolutely essential
   .$mcmc$current_state[] <- matrix(.$dataf$pars_array[ , , j-1], nrow = .$dataf$lp, ncol = .$mcmc$d)
 
+  # debugging: can make sure that this code is exactly analagous with Matlab version of "sort" function
   # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
-  .$mcmc$draw[]          <- apply(matrix(runif((.$dataf$lp - 1) * .$dataf$lp), .$dataf$lp - 1, .$dataf$lp), 2, function(v) sort(v, index.return = T)$ix)
+  .$mcmc$draw[]                        <- apply(matrix(runif((.$dataf$lp - 1) * .$dataf$lp), .$dataf$lp - 1, .$dataf$lp), 2, function(v) sort(v, index.return = T)$ix)
   if(.$wpars$mcmc_debug) .$mcmc$draw[] <- apply(.$mcmc$draw_seed[ , , j], 2, function(v) sort(v, index.return = T)$ix)
 
+  # debugging: can make sure this code snipit is exactly analagous to Matlab version
   # create a .$dataf$lp x 1 matrix of continuous uniform random values between -c_rand and c_rand
-  .$mcmc$lambda[]        <- matrix(runif(.$dataf$lp * 1, -.$wpars$mcmc_c_rand, .$wpars$mcmc_c_rand), .$dataf$lp)
+  .$mcmc$lambda[]                        <- matrix(runif(.$dataf$lp * 1, -.$wpars$mcmc_c_rand, .$wpars$mcmc_c_rand), .$dataf$lp)
   if(.$wpars$mcmc_debug) .$mcmc$lambda[] <- .$mcmc$lambda_seed[ , , j]
 
   # compute standard deviation of each dimension (ie,compute standard deviation of each column of current_state matrix)
   .$mcmc$sd_state[]      <- apply(.$mcmc$current_state, 2, sd)
+  # debugging: replace any 0's in standard deviation array with 1e-9 to avoid division by 0
+  idx                    <- which(.$mcmc$sd_state == 0)
+  .$mcmc$sd_state[idx]   <- 1e-9
 
   # create proposals
   # future work: vectorize this for-loop to improve computational efficiency, but this is non-trivial
@@ -348,6 +353,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
     # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
     D <- sample(1:.$wpars$mcmc_delta, 1, replace = T)
 
+    # debugging: can make sure this code snipit is exactly analagous to Matlab version (maybe there is a numerical issue here?)
     # extract vectors a and b not equal to ii
     a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
     b <- .$mcmc$R[ii, .$mcmc$draw[(D + 1):(2 * D), ii]]
@@ -356,7 +362,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
     .$mcmc$id <- sample(1:.$wpars$mcmc_n_CR, 1, replace = T, prob = .$mcmc$p_CR)
 
     # draw d values from uniform distribution between 0 and 1
-    zz <- runif(.$mcmc$d)
+    zz                        <- runif(.$mcmc$d)
     if(.$wpars$mcmc_debug) zz <- .$mcmc$zz_seed[ii, 1:.$mcmc$d, j]
 
     # derive subset A of selected dimensions
@@ -375,21 +381,18 @@ proposal_generate_mcmc_dream <- function(., j ) {
     gamma_d <- 2.38 / sqrt(2 * D * d_star)
 
     # select gamma
-    # future work: figure out a way to make this chunk of code prettier
-    temp1 <- c(gamma_d, 1)
-    temp2 <- c(1 - .$wpars$mcmc_p_gamma, .$wpars$mcmc_p_gamma)
-    gamma <- sample(temp1, 1, replace = T, prob = temp2)
+    gamma <- sample(c(gamma_d, 1), size = 1, replace = T, prob = c(1 - .$wpars$mcmc_p_gamma, .$wpars$mcmc_p_gamma))
 
     # compute jump differential evolution of ii-th chain
-    .$mcmc$jump[ii,A] <- .$wpars$mcmc_c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[a,A] - .$mcmc$current_state[b,A]), dim = 1)
+    .$mcmc$jump[ii, A] <- .$wpars$mcmc_c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[a, A] - .$mcmc$current_state[b, A]), dim = 1)
 
     # compute proposal of ii-th chain
-    .$dataf$pars[ii,1:.$mcmc$d] <- .$mcmc$current_state[ii,1:.$mcmc$d] + .$mcmc$jump[ii,1:.$mcmc$d]
+    .$dataf$pars[ii, 1:.$mcmc$d] <- .$mcmc$current_state[ii, 1:.$mcmc$d] + .$mcmc$jump[ii, 1:.$mcmc$d]
 
     # debug: temporarily comment out boundary handling
     # call boundary handling function
     # for (jj in 1:.$mcmc$d) boundary_handling(., ii, jj )
-    for (jj in 1:.$mcmc$d) .$boundary_handling(ii=ii,jj=jj)
+    for (jj in 1:.$mcmc$d) .$boundary_handling(ii = ii, jj = jj)
 
     # debugging print statements
     # print('proposal generated = ')
@@ -403,6 +406,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
 # proposal acceptance function for the DREAM algorithm
 proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
+  # debugging: make sure this is being assigned at the right place in terms of function call order
   # likelihood of current state
   # APW: is this assignment totally necessary? Could we just use the pars_lklihood matrix?
   # ALJ: same reasoning as above
@@ -411,13 +415,16 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
   for (ii in 1:.$dataf$lp) {
 
+    # debugging: maybe try this part with the division and without the exponential?
     # compute Metropolis acceptance probability
     alpha <- min(1, exp(lklihood[ii] - .$mcmc$p_state[ii]))
 
     # future work: figure out how to make this clunky block of code prettier
 
-    runif_val <- runif(1, min = 0, max = 1)
+    runif_val                         <- runif(1, min = 0, max = 1)
     if (.$wpars$mcmc_debug) runif_val <- .$mcmc$runif_seed[ii, j]
+
+    # DEBUGGING: YOU ARE HERE IN THE LINE-BY-LINE READ THROUGH
 
     # determine if p_acc is larger than random number drawn from uniform distribution on interval [0,1]
     if (alpha > runif_val) {
@@ -430,12 +437,12 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       #      but I left them all in to remain as true as possible to Vrugt's original pseudocode
       #      and because they make debugging easier
       #      once DREAM is integrated in the new MAAT (and we're confident that it's working), I can alter some of the unnecessary assignments
-      .$mcmc$current_state[ii, 1:.$mcmc$d]  <- .$dataf$pars[ii,1:.$mcmc$d]
-      .$mcmc$p_state[ii]                    <- lklihood[ii]
+      .$mcmc$current_state[ii, 1:.$mcmc$d]   <- .$dataf$pars[ii, 1:.$mcmc$d]
+      .$mcmc$p_state[ii]                     <- lklihood[ii]
 
       # append accepted current_state and probability density to storage data frames
-      .$dataf$pars_array[ii,1:.$mcmc$d,j]   <- .$mcmc$current_state[ii,1:.$mcmc$d]
-      .$dataf$pars_lklihood[ii,j]           <- .$mcmc$p_state[ii]
+      .$dataf$pars_array[ii, 1:.$mcmc$d,j]   <- .$mcmc$current_state[ii, 1:.$mcmc$d]
+      .$dataf$pars_lklihood[ii, j]           <- .$mcmc$p_state[ii]
 
       # debug: store generated proposal (regardless of whether accepted or not)
       # .$dataf$prop_storage[ii,1:.$mcmc$d,j] <- .$dataf$pars[ii,1:.$mcmc$d]
@@ -449,8 +456,8 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       .$mcmc$jump[ii, 1:.$mcmc$d] <- 0
 
       # repeat previous current_state and probability density in storage data frames
-      .$dataf$pars_array[ii, 1:.$mcmc$d, j]   <- .$dataf$pars_array[ii,1:.$mcmc$d,j-1]
-      .$dataf$pars_lklihood[ii,j]            <- .$dataf$pars_lklihood[ii,j-1]
+      .$dataf$pars_array[ii, 1:.$mcmc$d, j]   <- .$dataf$pars_array[ii, 1:.$mcmc$d, j-1]
+      .$dataf$pars_lklihood[ii, j]            <- .$dataf$pars_lklihood[ii, j-1]
 
       # debug: store generated proposal (regardless of whether accepted or not)
       # .$dataf$prop_storage[ii, 1:.$mcmc$d,j] <- .$dataf$pars[ii, 1:.$mcmc$d]
@@ -463,6 +470,16 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
     # number of times index crossover is used
     .$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id] + 1
+
+    # debugging
+    # print('.$mcmc$sd_state = ')
+    # print(.$mcmc$sd_state)
+    # print('.$mcmcm$id = ')
+    # print(.$mcmc$id)
+    # print('.$mcmc$n_id = ')
+    # print(.$mcmc$n_id)
+    # print('J = ')
+    # print(.$mcmc$J)
 
     # debug: see above comments in analagous DE-MC function
     # out_n <- .$wpars$mcmc_maxiter / 2
@@ -484,19 +501,6 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   # APW: update, p_CR coverges to a 1 and 0's acfter the second proposal, perhaps this is expected behaviour but worth more investigation
   # debug: test less than versus greater than
   # debug: testing below - to prevent immediate transition to 1/0 states for p_CR, seems to work
-  #print(j)
-  #print(.$wpars$mcmc_maxiter / 10)
-  #print(.$mcmc$J)
-  #print(sum(.$mcmc$J))
-
-  # print('.$mcmc$sd_state = ')
-  # print(.$mcmc$sd_state)
-  # print('.$mcmcm$id = ')
-  # print(.$mcmc$id)
-  # print('.$mcmc$n_id = ')
-  # print(.$mcmc$n_id)
-  # print('J = ')
-  # print(.$mcmc$J)
 
   # debug: play around with < versus >
   # note that the original is <
