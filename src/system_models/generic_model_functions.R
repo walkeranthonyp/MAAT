@@ -50,9 +50,9 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   .$output <- get(paste('f', 'output', .$name, .$cpars$mod_out, sep='_' ))
 
   # assign default and mod mimic values to data structure
-  .$configure(vlist='fnames', df=unlist(init_default$fnames), init=T )
   .$configure(vlist='pars',   df=unlist(init_default$pars))
   .$configure(vlist='env',    df=unlist(init_default$env))
+  .$configure(vlist='fnames', df=unlist(init_default$fnames), init=T )
 
   # build child objects
   if(!is.null(.$child_list)) vapply(.$child_list, .$build_child, numeric(0), mod_mimic=mod_mimic ) 
@@ -108,7 +108,14 @@ run_met <- function(.,l) {
   # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values 
  
   # met data assignment
+  #print('run_met')
+  #print(l)
+  #print('this obj')
+  #print(.$dataf$met[l,])
+  #print('super obj')
+  #print(.super$dataf$met[l,])
   .$configure(vlist='env', df=.$dataf$met[l,] )
+  #.$configure(vlist='env', df=.super$dataf$met[l,] )
 
   # run model
   .$run()              
@@ -137,6 +144,17 @@ run_met <- function(.,l) {
 configure <- function(., vlist, df, init=F, o=T ) {
   # This function is called from any of the run functions, or during model initialisation
   # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df 
+
+  # print configure setup if requested
+  if(!is.character(names(df))) {
+    print('', quote=F )
+    print(paste('Configure:',.$name,',',vlist,'.'), quote=F )
+    print('df passed to configure:', quote=F )
+    print(df, quote=F )
+    print('names(df):', quote=F )
+    print(names(df), quote=F )
+    stop('FATAL ERROR: names(df) is not a character vector, will cause strsplit to fail.')
+  }
 
   # split variable names at . 
   listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
@@ -167,8 +185,8 @@ configure <- function(., vlist, df, init=F, o=T ) {
   # print configure setup if requested
   if(.$cpars$cverbose&o) {
     print('', quote=F )
-    print(paste(.$name,'configure.'), quote=F )
-    print('data passed to configure:', quote=F )
+    print(paste('Configure:',.$name,',',vlist,'.'), quote=F )
+    print('df passed to configure:', quote=F )
     print(df, quote=F )
     print('listnames:', quote=F )
     print(listnames, quote=F )

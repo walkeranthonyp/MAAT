@@ -1,6 +1,6 @@
 ################################
 #
-# Leaf object 
+# MAAT leaf model object 
 # 
 # AWalker Dec 2018
 #

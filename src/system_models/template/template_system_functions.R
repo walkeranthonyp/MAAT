@@ -1,6 +1,6 @@
 ################################
 #
-# template for MAAT object system functions
+# MAAT template system representation functions (SRFs) 
 # 
 # AWalker February 2018
 #

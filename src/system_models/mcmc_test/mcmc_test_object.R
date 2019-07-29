@@ -1,6 +1,6 @@
 ################################
 #
-# mcmc_test for MAAT object functions 
+# MAAT mcmc_test model object 
 #
 # AWalker November 2017
 #
@@ -29,6 +29,16 @@ setwd('mcmc_test')
 mcmc_test_object$name <- 'mcmc_test'
 
 
+mcmc_test_object$configure_unique <- function(., init=F, flist=NULL ) {
+
+  if(any(names(flist)=='reg_func') & !init ) {
+   #.$fns$reg_func_gen_obs <- get(paste0(.$fnames$reg_func,'_gen_obs'), pos=1 )
+   #.$fns$reg_func_gen_obs()
+   .$reg_func_gen_obs <- get(paste0(.$fnames$reg_func,'_gen_obs'), pos=1 )
+   .$reg_func_gen_obs()
+  }
+}
+
 
 # assign object variables 
 ###########################################################################
@@ -44,6 +54,7 @@ mcmc_test_object$fnames <- list(
 # parameters
 ####################################
 mcmc_test_object$pars   <- list(
+
   # mixture model parameters
   mixture_scale = 1e12,
   height1       = 0.1,
@@ -61,12 +72,13 @@ mcmc_test_object$pars   <- list(
   proposal4     = 1,
 
   # linear regresssion model parameters
-  syn_a_mu = 2,
-  syn_b_mu = 7,
-  syn_a_sd = 3,
-  syn_b_sd = 2,
-  a        = 7,
-  b        = 2
+  obs_error     = 1,
+  syn_a_mu      = 2,
+  syn_b_mu      = 7,
+  syn_a_sd      = 3,
+  syn_b_sd      = 2,
+  a             = 7,
+  b             = 2
 )
 
 
@@ -96,9 +108,9 @@ mcmc_test_object$state_pars <- list(
 # run control parameters
 ####################################
 mcmc_test_object$cpars <- list(
-  verbose  = F,          # write diagnostic output during runtime 
-  cverbose = F,          # write diagnostic output from configure function 
-  output   = 'mixture'   # type of output from run function
+  verbose      = F,          # write diagnostic output during runtime 
+  cverbose     = F,          # write diagnostic output from configure function 
+  output       = 'mixture'   # type of output from run function
 )
 
 
@@ -122,6 +134,7 @@ f_output_mcmc_test_regression <- function(.) {
 mcmc_test_object$.test_mixture <- function(., verbose=F, cverbose=F ) {
 
   if(verbose) str(.)
+  .$cpars$maat_gen_obs <- F
   .$build(mod_out='mixture', switches=c(F,verbose,cverbose) )
 
   .$fnames$sys <- 'f_sys_mixture'
@@ -132,6 +145,7 @@ mcmc_test_object$.test_mixture <- function(., verbose=F, cverbose=F ) {
 mcmc_test_object$.test_linreg <- function(., verbose=F, cverbose=F ) {
 
   if(verbose) str(.)
+  .$cpars$maat_gen_obs <- F
   .$build(mod_out='regression', switches=c(F,verbose,cverbose) )
 
   .$fnames$sys <- 'f_sys_regression'
