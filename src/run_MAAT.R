@@ -366,10 +366,8 @@ if(!is.null(metdata)) {
     metdf <- read.csv(metdata,strip.white=T)
 
     # temporary: screen out night-time values from met data file to shorten Sphagnum simulation iterations
-    # subset it to remove 0's
-    sub_idx <- which(metdf$GPP.PAR != 0)
-    # sub_idx <- which(metdf$EM_PAR_2M_x != 0)
-    # sub_idx <- which(out$EM_PAR_8100_x != 0)
+    # subset it to remove 0's and negative values
+    sub_idx <- which(metdf$EM_PAR_8100_x> 0)
     metdf <- metdf[sub_idx, ]
 
     print(head(metdf), quote=F )
