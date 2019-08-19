@@ -302,6 +302,13 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
     .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
   }
 
+  # debug: print crossover values and crossover probabilities at the end of each iteration
+  print(paste0('iteration = ', j))
+  print('CR = ')
+  print(.$mcmc$CR)
+  print('p_CR = ')
+  print(.$mcmc$p_CR)
+
 }
 
 # future work: function for detection and correction of outlier chains
