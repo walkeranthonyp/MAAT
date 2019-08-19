@@ -364,6 +364,8 @@ if(!is.null(metdata)) {
   if(file.exists(metdata)&!kill) {
     print(metdata, quote=F )
     metdf <- read.csv(metdata,strip.white=T)
+    #temporary branch; subset it here to screen out 0s from PAR column 
+
     print(head(metdf), quote=F )
 
     ###################################
