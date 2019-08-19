@@ -115,6 +115,7 @@ run_met <- function(.,l) {
   #print('super obj')
   #print(.super$dataf$met[l,])
   .$configure(vlist='env', df=.$dataf$met[l,] )
+  #.$configure(vlist='env', df=.super$dataf$met[l,] )
 
   # run model
   .$run()
@@ -145,11 +146,14 @@ configure <- function(., vlist, df, init=F, o=T ) {
   # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df
 
   # print configure setup if requested
-  if(.$cpars$cverbose&o) {
+  if(!is.character(names(df))) {
     print('', quote=F )
-    print(paste(.$name,'configure',vlist,'.'), quote=F )
-    print('data passed to configure:', quote=F )
+    print(paste('Configure:',.$name,',',vlist,'.'), quote=F )
+    print('df passed to configure:', quote=F )
     print(df, quote=F )
+    print('names(df):', quote=F )
+    print(names(df), quote=F )
+    stop('FATAL ERROR: names(df) is not a character vector, will cause strsplit to fail.')
   }
 
   # split variable names at .
@@ -180,10 +184,10 @@ configure <- function(., vlist, df, init=F, o=T ) {
 
   # print configure setup if requested
   if(.$cpars$cverbose&o) {
-   # print('', quote=F )
-   # print(paste(.$name,'configure.'), quote=F )
-   # print('data passed to configure:', quote=F )
-   # print(df, quote=F )
+    print('', quote=F )
+    print(paste('Configure:',.$name,',',vlist,'.'), quote=F )
+    print('df passed to configure:', quote=F )
+    print(df, quote=F )
     print('listnames:', quote=F )
     print(listnames, quote=F )
     print(paste('  subscripts for this model object:',.$name), quote=F )

@@ -147,6 +147,10 @@ mod_out       <- 'run'
 # output file format.  supported: rds, csv (default)
 of_format     <- 'csv'
 
+# verbose - ouput various things during runtime for diagnostics
+verbose       <- F
+cverbose      <- F
+
 
 
 ##################################
@@ -192,7 +196,7 @@ ofname      <- if(is.null(runid))     of_main                 else paste(of_main
 ofname      <- if(is.null(mod_mimic)) ofname                  else paste(mod_mimic,ofname,sep='_')
 
 # factorial analysis over-rides UQ analysis
-if(!uq) factorial <- T
+#if(!uq) factorial <- T
 if(factorial&(uq|mcmc)) {
  uq   <- F
  mcmc <- F
@@ -259,12 +263,9 @@ maat$wpars$mcmc_debug    <- mcmc_debug
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
 
-# define model parameters
-#maat$model$cpars$output  <- mod_out
-
 # set debugging flags
-maat$model$pars$verbose  <- F
-maat$model$cpars$verbose <- F
+maat$model$cpars$verbose  <- verbose
+maat$model$cpars$cverbose <- cverbose
 
 
 
@@ -363,13 +364,17 @@ if(!is.null(metdata)) {
   if(file.exists(metdata)&!kill) {
     print(metdata, quote=F )
     metdf <- read.csv(metdata,strip.white=T)
+    #temporary branch; subset it here to screen out 0s from PAR column 
+
     print(head(metdf), quote=F )
 
     ###################################
     # future work:
     # add eval data to model object - total hack for now
-    maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
-    maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
+    if(mod_obj!='mcmc_test') {
+      maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
+      maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
+    }
     ###################################
 
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
