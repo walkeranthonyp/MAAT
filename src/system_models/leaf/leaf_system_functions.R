@@ -99,7 +99,7 @@ f_sys_enzymek <- function(.) {
 
           # ALJ: commenting this out to reduce size of log file
           # perhaps write this flag into the leaf object
-          print(paste('solver returned negative value of A, cc, or rs; recalculate assuming rs = r0'))
+          # print(paste('solver returned negative value of A, cc, or rs; recalculate assuming rs = r0'))
 
           # temporarily reassign solver function
           .$solver <- f_solver_analytical_leaf_quad_r0
