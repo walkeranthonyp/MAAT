@@ -144,6 +144,12 @@ init_mcmc_dream <- function(.) {
   # debug: maybe noteworthy that this was originally initialized to 0's in Vrugt's algorithm
   # debug: play around with whether or not this makes a difference
   .$mcmc$n_id[] <- 1
+
+  # debug: print crossover values and crossover probabilities at the end of each iteration
+  print('CR = ')
+  print(.$mcmc$CR)
+  print('p_CR = ')
+  print(.$mcmc$p_CR)
 }
 
 
@@ -301,6 +307,13 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
     .$mcmc$p_CR <- .$mcmc$J    / .$mcmc$n_id
     .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
   }
+
+  # debug: print crossover values and crossover probabilities at the end of each iteration
+  print(paste0('iteration = ', j))
+  print('CR = ')
+  print(.$mcmc$CR)
+  print('p_CR = ')
+  print(.$mcmc$p_CR)
 
 }
 
