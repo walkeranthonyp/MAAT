@@ -678,6 +678,9 @@ run2_mcmc_dream <- function(.,j) {
   # future work: insert function call to handle outlier chains here
 
   # future work: insert function call to test for convergence here
+  # future work: don't necessarily have to test for convergence after every iteration
+  #              would maybe more efficient to test for convergence after every 5-10 iters
+  .$Gelman_Rubin(j=j)
 
   # future work: other code here for subprograms called during burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
 

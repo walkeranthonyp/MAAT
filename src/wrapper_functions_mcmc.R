@@ -300,9 +300,7 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       .$dataf$out_mcmc[ii,,(j-out_n)] <- if(accept | j == out_n + 1) .$dataf$out[ii, ] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
   }
 
-  # update selection probability of crossover
-  # debug: play around with < versus >
-  # note that the original is <
+  # update selection probability of crossover in the first 10% of samples
   if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
     .$mcmc$p_CR <- .$mcmc$J    / .$mcmc$n_id
     .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
@@ -317,13 +315,63 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
 }
 
-# future work: function for detection and correction of outlier chains
-# outlier_check <- function(.) {
-# }
+# function that generates/updates crossover values based on current probabilities
+generate_CR <- function(.) {
 
-# future work: test for convergence using the R-statistic convergence diagnostic of Gelman and Rubin
-# chain_converge <- function(.) {
-# }
+}
+
+# function that adapts crossover probabilities
+adapt_CR <- function(.) {
+
+}
+
+# function that detects and corrects outlier Markov chains
+outlier_handling <- function(.) {
+
+}
+
+# function that computes the R-statistic of Gelman and Rubin as a convergence diagnostic
+Gelman_Rubin <- function(., j) {
+
+  # TEMPORARY basing off of Dan's MATLAB code
+
+  # need an R_stat storage array!
+
+  # TEMPORARY dimensions
+  # number of stored samples
+  n   <- .$wpars$mcmc_maxiter
+  # dimension / number of parameters
+  nrY <- .$mcmc$d
+  # number of Markov chains
+  m   <- .$wpars$mcmc_chains
+
+  # TEMPORARY reshape pars_array
+  sequences <- aperm(.$dataf$pars_array, c(3, 2, 1))
+  #print(dim(.$dataf$pars_array))
+  #print(dim(sequences))
+
+  if (n < 10) {
+
+    # set R-statistic to large value
+    R_stat <- -2 * rep(1, n)
+
+  } else {
+
+      # determin chain means
+      meanSeq <- apply(sequences, 3, mean)
+      print(length(meanSeq))
+
+
+      R_stat <- 1
+
+  }
+
+  # within-chain variance (for each parameter)
+
+  # between-chain variance (for each parameter)
+
+  return(R_stat)
+}
 
 
 
@@ -410,13 +458,5 @@ set_seed <- function(.) {
   .$mcmc$runif_seed[]  <- runif((.$dataf$lp * .$wpars$mcmc_maxiter), min = 0, max = 1)
 
 }
-
-# function for organized print statements
-print_debug <- function(., j) {
-
-
-
-}
-
 
 ### END ###

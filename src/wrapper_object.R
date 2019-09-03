@@ -54,6 +54,7 @@ wrapper_object$build <- function(., ... ) {
     .$boundary_handling     <- boundary_handling
     .$boundary_handling_set <- boundary_handling_set
     # placeholder for convergence function etc
+    .$Gelman_Rubin          <- Gelman_Rubin
   }
 
   # build model
