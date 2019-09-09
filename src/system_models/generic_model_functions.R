@@ -114,7 +114,8 @@ run_met <- function(.,l) {
   #print(.$dataf$met[l,])
   #print('super obj')
   #print(.super$dataf$met[l,])
-  .$configure(vlist='env', df=.$dataf$met[l,] )
+  #.$configure(vlist='env', df=.$dataf$met[l,] )
+  .$configure(vlist='env', df=.$dataf$met[,l] )
   #.$configure(vlist='env', df=.super$dataf$met[l,] )
 
   # run model

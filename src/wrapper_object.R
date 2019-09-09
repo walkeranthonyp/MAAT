@@ -325,7 +325,7 @@ wrapper_object$mcmc <- list(
 ###########################################################################
 
 # function to combine output with met data
-wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(.$dataf$met,df[i,]))
+wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(.$dataf$met,df[,i]))
 
 # function to write ensemble output data to file
 wrapper_object$write_to_file <- function(., df=.$output(), app=F ) {
@@ -441,7 +441,7 @@ wrapper_object$.test_simple <- function(., gen_metd=F, mc=F, pr=4, oconf=F ) {
   .$model$env$ca_conc <- 400
   .$model$env$vpd     <- 1
   .$model$env$temp    <- 20
-  metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400))))
   if(gen_metd) .$dataf$met <- metdata
 
   # Define the static parameters and model functions
@@ -491,7 +491,7 @@ wrapper_object$.test <- function(.,gen_metd=T,mc=T,pr=4,oconf=F) {
   ###############################
   # can load a met dataset here
   # below a trivial met dataset is created to be used as an example
-  metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400))))
   #metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))
   if(gen_metd) .$dataf$met <- metdata
   else     { .$model$env$par <- 1000; .$model$env$ca_conc <- 400 }
@@ -606,7 +606,7 @@ wrapper_object$.test_con <- function(., mc=T, pr=4, oconf=F,
   .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
 
   # Define meteorological dataset
-  if(!is.null(metd))    .$dataf$met  <- as.matrix(expand.grid(metd))
+  if(!is.null(metd))    .$dataf$met  <- t(as.matrix(expand.grid(metd)))
 
   # Define the static model functions, parameters, and environment
   if(!is.null(sfnames)) .$static$fnames <- sfnames
@@ -652,7 +652,7 @@ wrapper_object$.test_can <- function(., metd=T, mc=T, pr=4, verbose=F ) {
   .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
 
   # define meteorological and environment dataset
-  metdata <- expand.grid(list(canopy.par_dir = 500,canopy.ca_conc = seq(10,1200,50)))
+  metdata <- t(as.matrix(expand.grid(list(canopy.par_dir = 500,canopy.ca_conc = seq(10,1200,50)))))
   if(metd) .$dataf$met <- metdata
 
   # Define the parameters and model functions that are to be varied
@@ -722,8 +722,8 @@ wrapper_object$.test_mimic <- function(., mod_mimic='clm45_non_Tacclimation', mo
   # Define meteorological and environment dataset
   # can load a met dataset here
   # below a trivial met dataset is created to be used as an example
-  metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100), leaf.ca_conc = 400))  )
-  metdata <- as.matrix(expand.grid(list(leaf.par = 2000, leaf.ca_conc = seq(50,1500,50))) )
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = seq(0,1000,100), leaf.ca_conc = 400))  ))
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = 2000, leaf.ca_conc = seq(50,1500,50))) ))
   if(metd) .$dataf$met <- metdata
 
   # Run model
@@ -1012,8 +1012,8 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_cha
   .$model$pars$syn_b_sd  <- b_sd
 
   # met data
-  .$dataf$met            <- matrix(x, length(x) ,1 )
-  colnames(.$dataf$met)  <- 'mcmc_test.linreg_x'
+  .$dataf$met            <- t(matrix(x, length(x), 1 ))
+  rownames(.$dataf$met)  <- 'mcmc_test.linreg_x'
 
   # define priors
   .$dynamic$pars_eval <- list(

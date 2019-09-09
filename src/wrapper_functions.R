@@ -16,11 +16,11 @@ source('wrapper_functions_mcmc.R')
 #####################################
 
 # expand the fnames, env, and pars input lists into matrices
-# - each row is passed to the model sequentially by each run function in the run function cascade
+# - each column is passed to the model sequentially by each run function in the run function cascade
 generate_ensemble <- function(.) {
 
-  .$dataf$fnames  <- if(!is.null(.$dynamic$fnames)) as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F)) else NULL
-  .$dataf$env     <- if(!is.null(.$dynamic$env))    as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   )) else NULL
+  .$dataf$fnames  <- if(!is.null(.$dynamic$fnames)) t(as.matrix(expand.grid(.$dynamic$fnames,stringsAsFactors=F))) else NULL
+  .$dataf$env     <- if(!is.null(.$dynamic$env))    t(as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   ))) else NULL
   .$generate_ensemble_pars()
 
   # calculate input matrix lengths - separate out as a function
@@ -31,18 +31,22 @@ generate_ensemble <- function(.) {
     .$dataf$lf <- length(.$dynamic$fnames)
   } else {
     # any type of run other than Ye process sensitivity analysis
-    .$dataf$lf <- if(is.null(.$dataf$fnames)) 1 else length(.$dataf$fnames[,1])
-    .$dataf$lp <- if(is.null(.$dataf$pars))   1 else length(.$dataf$pars[,1])
+    #.$dataf$lf <- if(is.null(.$dataf$fnames)) 1 else length(.$dataf$fnames[,1])
+    .$dataf$lf <- if(is.null(.$dataf$fnames)) 1 else dim(.$dataf$fnames)[2]
+    #.$dataf$lp <- if(is.null(.$dataf$pars))   1 else length(.$dataf$pars[,1])
+    .$dataf$lp <- if(is.null(.$dataf$pars))   1 else dim(.$dataf$pars)[2]
   }
   # enviroment matrix and met matrix
-  .$dataf$le <- if(is.null(.$dataf$env)) 1 else length(.$dataf$env[,1])
-  .$dataf$lm <- if(is.null(.$dataf$met)) 1 else length(.$dataf$met[,1])
+  #.$dataf$le <- if(is.null(.$dataf$env)) 1 else length(.$dataf$env[,1])
+  #.$dataf$lm <- if(is.null(.$dataf$met)) 1 else length(.$dataf$met[,1])
+  .$dataf$le <- if(is.null(.$dataf$env)) 1 else dim(.$dataf$env)[2]
+  .$dataf$lm <- if(is.null(.$dataf$met)) 1 else dim(.$dataf$met)[2]
 }
 
 
 # parameter matrix for factorial run
 generate_ensemble_pars_factorial <- function(.) {
-  .$dataf$pars <- if(!is.null(.$dynamic$pars)) as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F)) else NULL
+  .$dataf$pars <- if(!is.null(.$dynamic$pars)) t(as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F))) else NULL
 }
 
 
@@ -59,7 +63,7 @@ generate_ensemble_pars_SApar_saltelli <- function(.) {
   }
 
   # create pars matrix
-  .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
+  .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
 
   # remove potentially large pars list
   .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
@@ -71,7 +75,8 @@ generate_ensemble_pars_SApar_saltelli <- function(.) {
 # - here a list structure in .$dynamic$pars is created from .$dynamic$pars_eval
 generate_ensemble_pars_SAprocess_ye <- function(.) {
   # need a minimum of >1 processes
-  if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sensitivity analysis')
+  #if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sensitivity analysis')
+  if(dim(.$dataf$fnames)[1]<=1) stop('need more than one process for a process sensitivity analysis')
 
   # check input dynamic$pars* are same length
   test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
@@ -93,7 +98,7 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
 
   # create pars / proposal matrix
-  .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
+  .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
 
   if(.$wpars$mcmc_debug & .$wpars$mod_obj == 'mcmc_test') {
     # hard-code initial sample generated from prior distribution (generated from interval [-10, 10])
@@ -101,8 +106,9 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
     prop2 <- c(-8.955127,  -2.165650,   8.288627,   8.335986,  -9.420836,  -6.112619,  -4.796342,   8.128561)
     prop3 <- c(-2.757425,  -1.311214,  -9.983908,  -6.061901,  -3.076935,   8.934289,  -3.041526,  -7.045019)
     prop4 <- c(-1.342557,   9.406705,  -0.041981,  -9.757184,  -0.402050,  -4.263008,   6.564540,  -0.241696)
-    .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
-    colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
+    .$dataf$pars <- t(cbind(prop1, prop2, prop3, prop4))
+    #colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
+    rownames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
   }
 
   # remove initialisation pars list
@@ -112,8 +118,9 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   if(.$wpars$mcmc_thin_obs < 1.0) {
     if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc_thin_obs )
     thin <- floor( 1 / .$wpars$mcmc_thin_obs )
-    oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
-    .$dataf$met   <- .$dataf$met[oss,]
+    #oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
+    oss  <- seq(1, dim(.$dataf$metdata)[2], thin )
+    .$dataf$met   <- .$dataf$met[,oss]
     .$dataf$obs   <- .$dataf$obs[oss]
     #.$dataf$obsse <- .$dataf$obsse[oss]
   }
@@ -142,8 +149,10 @@ init_output_matrix_SApar_saltelli_ABi <- function(.) {
   # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
   # - dim 4 (cube rows) environment combination
   # - dim 5 (cube cols) model combination
-  .$dataf$out_saltelli <- array(0, dim=c(length(.$dataf$mout), .$wpars$n, dim(.$dataf$pars)[2], .$dataf$le, .$dataf$lf ))
-  dimnames(.$dataf$out_saltelli) <- list(names(.$dataf$mout), NULL, colnames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
+  #.$dataf$out_saltelli <- array(0, dim=c(length(.$dataf$mout), .$wpars$n, dim(.$dataf$pars)[2], .$dataf$le, .$dataf$lf ))
+  .$dataf$out_saltelli <- array(0, dim=c(length(.$dataf$mout), .$wpars$n, dim(.$dataf$pars)[1], .$dataf$le, .$dataf$lf ))
+  #dimnames(.$dataf$out_saltelli) <- list(names(.$dataf$mout), NULL, colnames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
+  dimnames(.$dataf$out_saltelli) <- list(names(.$dataf$mout), NULL, rownames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
 }
 
 
@@ -158,7 +167,6 @@ init_output_matrix_SAprocess_ye <- function(.) {
   # if met data then ... .$dataf$out     <- array(0, c(length(.$dataf$mout), .$dataf$lm, .$dataf$le, .$wpars$n, .$dataf$lfB, .$wpars$n, .$dataf$lfA  ) )
   .$dataf$out           <- array(0, c(length(.$dataf$mout), .$dataf$le, .$wpars$n, .$dataf$lfB, .$wpars$n, .$dataf$lfA  ) )
   dimnames(.$dataf$out) <- list(names(.$dataf$mout), NULL, NULL, apply(.$dataf$fnamesB, 1, toString), NULL, .$dataf$fnames )
-
 }
 
 
@@ -223,13 +231,13 @@ run0_factorial <- function(.) {
 
 # run1
 run1_factorial <- function(.,i) {
-  # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
-  # assumes that each row of the fnames matrix are independent and non-sequential
+  # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$fnames matrix to the model
+  # assumes that each column of the fnames matrix are independent and non-sequential
   # call run2
 
   # configure function names in the model
-  if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
-  if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
+  if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[,i], F )
+  if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[,i] )
 
   # call next run function
   do.call( 'rbind', {
@@ -241,13 +249,13 @@ run1_factorial <- function(.,i) {
 
 # run2
 run2_factorial <- function(.,j) {
-  # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
-  # assumes that each row of the pars matrix are independent and non-sequential
+  # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$pars matrix to the model
+  # assumes that each column of the pars matrix are independent and non-sequential
   # call run3
 
   # configure parameters in the model
-  if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[j,], F )
-  if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[j,] )
+  if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[,j], F )
+  if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[,j] )
 
   # call next run function
   funv   <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )
@@ -261,13 +269,13 @@ run2_factorial <- function(.,j) {
 
 # run3
 run3_factorial <- function(.,k) {
-  # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$env matrix to the model
-  # assumes that each row of the env matrix are independent and non-sequential
+  # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$env matrix to the model
+  # assumes that each column of the env matrix are independent and non-sequential
   # call .$model$run or .$model$run_met if met data are provided
 
   # configure environment in the model
-  if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[k,], F )
-  if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
+  if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[,k], F )
+  if(.$wpars$cverbose)      .$printc('env', .$dataf$env[,k] )
 
   # call next run function
   if(is.null(.$dataf$met)) {
@@ -323,13 +331,13 @@ run4_SApar_saltelli <- function(.) {
 
 
 run5_SApar_saltelli <- function(.,i) {
-  # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
-  # assumes that each row of the fnames matrix are independent and non-sequential
+  # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$fnames matrix to the model
+  # assumes that each column of the fnames matrix are independent and non-sequential
   # call run6
 
   # configure function names in the model
-  if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames',df=.$dataf$fnames[i,],F)
-  if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[i,])
+  if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames',df=.$dataf$fnames[,i],F)
+  if(.$wpars$cverbose) .$printc('fnames',.$dataf$fnames[,i])
 
   # call next run function
   vapply({
@@ -340,13 +348,13 @@ run5_SApar_saltelli <- function(.,i) {
 
 
 run6_SApar_saltelli <- function(.,k) {
-  # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$env matrix to the model
-  # assumes that each row of the fnames matrix are independent and non-sequential
+  # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$env matrix to the model
+  # assumes that each column of the fnames matrix are independent and non-sequential
   # call run7
 
   # configure environment in the model
-  if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[k,], F )
-  if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
+  if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[,k], F )
+  if(.$wpars$cverbose)      .$printc('env', .$dataf$env[,k] )
 
   # call parameter matrix run function
   if(is.null(.$dataf$met)){
@@ -354,8 +362,10 @@ run6_SApar_saltelli <- function(.,k) {
     # call next run function, wrapped within vapply to convert (mc)lapply list output to an array
     # returns a numeric array - model output variable (rows), sample (columns), parameter (slices)
     vapply({
-      if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$run7, mc.cores=max(1,floor(.$wpars$procs/.$dataf$le)), mc.preschedule=T )
-      else                 lapply(1:dim(.$dataf$pars)[2], .$run7 )
+      #if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[2], .$run7, mc.cores=max(1,floor(.$wpars$procs/.$dataf$le)), mc.preschedule=T )
+      #else                 lapply(1:dim(.$dataf$pars)[2], .$run7 )
+      if(.$wpars$multic) mclapply(1:dim(.$dataf$pars)[1], .$run7, mc.cores=max(1,floor(.$wpars$procs/.$dataf$le)), mc.preschedule=T )
+      else                 lapply(1:dim(.$dataf$pars)[1], .$run7 )
     },function(a) a, .$dataf$out_saltelli[,,1,1,1] )
 
   } else {
@@ -376,18 +386,23 @@ run7_SApar_saltelli <- function(.,p) {
 
 run8_SApar_saltelli <- function(.,j,pk) {
   # This wrapper function is called from an lapply or mclappy function
-  # wrapper subscripts parameter matrix AB to give the row on matrix ABi
-  # assumes that each row of the matrix are independent and non-sequential
+  # wrapper subscripts parameter matrix AB to give the column on matrix ABi
+  # assumes that each column of the matrix are independent and non-sequential
   # call .$model$run
 
-  # create index matrix to create row on matrix ABi for the .$dataf$par matrix (which is matrix A stacked on top of matrix B)
-  sub     <- rep(j-.$wpars$n, dim(.$dataf$pars)[2] )
+  # create index matrix to create column on matrix ABi for the .$dataf$par matrix (which is matrix A stacked on top of matrix B)
+  #sub     <- rep(j-.$wpars$n, dim(.$dataf$pars)[2] )
+  sub     <- rep(j-.$wpars$n, dim(.$dataf$pars)[1] )
   sub[pk] <- j
-  smat    <- cbind(sub, 1:dim(.$dataf$pars)[2] )
+  #smat    <- cbind(sub, 1:dim(.$dataf$pars)[2] )
+  smat    <- cbind(1:dim(.$dataf$pars)[1], sub )
 
   # create a matrix from vector and add names
-  psdf        <- t(.$dataf$pars[smat])
-  names(psdf) <- colnames(.$dataf$pars)
+  #psdf        <- t(.$dataf$pars[smat])
+  #names(psdf) <- colnames(.$dataf$pars)
+  # APW: perhaps an issue here
+  psdf        <- .$dataf$pars[smat]
+  names(psdf) <- rownames(.$dataf$pars)
 
   # configure parameters in the model
   if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=psdf, F )
@@ -428,12 +443,14 @@ run1_SAprocess_ye <- function(.,f) {
   # outputs an .RDS for each process segregation
 
   # create the fnames matrices for process A and process B
-  .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[f]))       as.matrix(expand.grid(.$dynamic$fnames[f] ,stringsAsFactors=F)) else stop()
-  .$dataf$fnamesB <- if(!any(is.na(.$dynamic$fnames[-f]))) as.matrix(expand.grid(.$dynamic$fnames[-f],stringsAsFactors=F)) else stop()
+  .$dataf$fnames  <- if(!is.na(.$dynamic$fnames[f]))       t(as.matrix(expand.grid(.$dynamic$fnames[f] ,stringsAsFactors=F))) else stop()
+  .$dataf$fnamesB <- if(!any(is.na(.$dynamic$fnames[-f]))) t(as.matrix(expand.grid(.$dynamic$fnames[-f],stringsAsFactors=F))) else stop()
 
-  # determine the number of the rows in the fnames process matrices
-  .$dataf$lfA     <- if(is.null(.$dataf$fnames )) 1 else length(.$dataf$fnames[,1])
-  .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)) 1 else length(.$dataf$fnamesB[,1])
+  # determine the number of the columns in the fnames process matrices
+  #.$dataf$lfA     <- if(is.null(.$dataf$fnames )) 1 else length(.$dataf$fnames[,1])
+  #.$dataf$lfB     <- if(is.null(.$dataf$fnamesB)) 1 else length(.$dataf$fnamesB[,1])
+  .$dataf$lfA     <- if(is.null(.$dataf$fnames )) 1 else dim(.$dataf$fnames)[2]
+  .$dataf$lfB     <- if(is.null(.$dataf$fnamesB)) 1 else dim(.$dataf$fnamesB)[2]
 
   # partition the parameters to process A and and process B
   .$procA_name    <- names(.$dynamic$fnames)[f]
@@ -450,13 +467,15 @@ run1_SAprocess_ye <- function(.,f) {
   }
 
   # bind the parameter vectors into run matrices
-  .$dataf$pars    <- if(!is.na(.$dynamic$pars[1])) do.call(cbind,.$dynamic$pars[.$procA_subs] ) else stop()
-  .$dataf$parsB   <- if(!is.na(.$dynamic$pars[2])) do.call(cbind,.$dynamic$pars[-.$procA_subs]) else stop()
+  .$dataf$pars    <- if(!is.na(.$dynamic$pars[1])) t(do.call(cbind,.$dynamic$pars[.$procA_subs] )) else stop()
+  .$dataf$parsB   <- if(!is.na(.$dynamic$pars[2])) t(do.call(cbind,.$dynamic$pars[-.$procA_subs])) else stop()
   .$dynamic$pars  <- lapply(.$dynamic$pars_eval,function(e) numeric(1) )
 
-  # determine the number of the rows in parameter matrices
-  .$dataf$lp      <- .$wpars$n # convert these to be the row number of the actual matrices
-  .$dataf$lpB     <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
+  # determine the number of the columns in parameter matrices
+  #.$dataf$lp      <- .$wpars$n # convert these to be the column number of the actual matrices
+  #.$dataf$lpB     <- .$dataf$lfA * .$dataf$lfB * .$wpars$n^2
+  .$dataf$lp      <- dim(.$dataf$pars)[2]
+  .$dataf$lpB     <- dim(.$dataf$parsB)[2]
 
   # initialise output array
   .$init_output_matrix()
@@ -484,15 +503,15 @@ run1_SAprocess_ye <- function(.,f) {
 
 # run2
 run2_SAprocess_ye <- function(.,g) {
-  # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
-  # assumes that each row of the fnames matrix are independent and non-sequential
+  # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$fnames matrix to the model
+  # assumes that each column of the fnames matrix are independent and non-sequential
   # call run3
 
-  print(paste('started representation:', .$dataf$fnames[g,], ', of process:', colnames(.$dataf$fnames)), quote=F )
+  print(paste('started representation:', .$dataf$fnames[,g], ', of process:', colnames(.$dataf$fnames)), quote=F )
 
   # configure function names in the model
-  if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[g,] , F )
-  if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnames[g,] )
+  if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[,g] , F )
+  if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnames[,g] )
 
   # calculate offset to correctly subset parsB matrix
   osg <- .$wpars$n * .$dataf$lfB * (g-1)
@@ -507,13 +526,13 @@ run2_SAprocess_ye <- function(.,g) {
 
 # run3
 run3_SAprocess_ye <- function(., h, offset ) {
-  # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
-  # assumes that each row of the pars matrix are independent and non-sequential
+  # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$pars matrix to the model
+  # assumes that each column of the pars matrix are independent and non-sequential
   # call run4
 
   # configure parameters in the model
-  if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[h,], F )
-  if(.$wpars$cverbose) .$printc('pars', .$dataf$pars[h,] )
+  if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[,h], F )
+  if(.$wpars$cverbose) .$printc('pars', .$dataf$pars[,h] )
 
   # calculate offset to correctly subset parsB matrix
   osh  <- offset + .$dataf$lfB * (h-1)
@@ -525,17 +544,17 @@ run3_SAprocess_ye <- function(., h, offset ) {
 
 # run4
 run4_SAprocess_ye <- function(., i, offset ) {
-  # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnamesB matrix to the model
-  # assumes that each row of the fnamesB matrix are independent and non-sequential
+  # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$fnamesB matrix to the model
+  # assumes that each column of the fnamesB matrix are independent and non-sequential
   # call run5
 
   # configure function names in the model
-  if(!is.null(.$dataf$fnamesB)) .$model$configure(vlist='fnames', df=.$dataf$fnamesB[i,], F )
-  if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnamesB[i,] )
+  if(!is.null(.$dataf$fnamesB)) .$model$configure(vlist='fnames', df=.$dataf$fnamesB[,i], F )
+  if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnamesB[,i] )
 
   # calculate offset to correctly subset parsB matrix
   os  <- offset + i
-  # oss is a vector of the row subscripts for the parsB matrix
+  # oss is a vector of the column subscripts for the parsB matrix
   oss <- (.$wpars$n*(os-1) + 1):(.$wpars$n*(os))
 
   # call process B parameter run function
@@ -545,13 +564,13 @@ run4_SAprocess_ye <- function(., i, offset ) {
 
 # run5
 run5_SAprocess_ye <- function(.,j) {
-  # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$parsB matrix to the model
-  # assumes that each row of the parsB matrix are independent and non-sequential
+  # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$parsB matrix to the model
+  # assumes that each column of the parsB matrix are independent and non-sequential
   # call run6
 
   # configure parameters in the model
-  if(!is.null(.$dataf$parsB)) .$model$configure(vlist='pars', df=.$dataf$parsB[j,], F )
-  if(.$wpars$cverbose)        .$printc('pars', .$dataf$parsB[j,] )
+  if(!is.null(.$dataf$parsB)) .$model$configure(vlist='pars', df=.$dataf$parsB[,j], F )
+  if(.$wpars$cverbose)        .$printc('pars', .$dataf$parsB[,j] )
 
   # call the environment run function
   vapply(1:.$dataf$le, .$run6, .$dataf$out[,1,1,1,1,1] )
@@ -586,12 +605,12 @@ run0_mcmc_dream <- function(.) {
 
 
 run1_mcmc_dream <- function(.,i) {
-  # assumes that each row of the fnames matrix are independent and non-sequential
+  # assumes that each column of the fnames matrix are independent and non-sequential
   # call run2
 
   # configure function names in the model
-  if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
-  if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
+  if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[,i], F )
+  if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[,i] )
 
   # evaluate model over initial proposals derived from prior
   .$dataf$out[]  <-
@@ -685,17 +704,17 @@ run2_mcmc_dream <- function(.,j) {
   numeric(0)
 }
 
-# This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
+# This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$pars matrix to the model
 #runp_mcmc <- function(.,k) {
 run3_mcmc_dream <- function(.,k) {
   # runs each chain at each iteration in MCMC
 
-  # assumes that each row of the pars matrix are independent and non-sequential
+  # assumes that each column of the pars matrix are independent and non-sequential
   # debug: note that the above assumption is valid only for DREAM, not DE-MC
 
   # configure parameters in the model
-  if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[k,], F )
-  if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[k,] )
+  if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[,k], F )
+  if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[,k] )
 
   # call model/met run function
   if(.$dataf$lm==1) .$model$run()
@@ -805,7 +824,7 @@ output_factorial  <- function(.){
     # if no vars
     } else {
       # if met data
-      if(!is.null(.$dataf$met)) cbind(.$dataf$met , .$dataf$out ) else .$dataf$out
+      if(!is.null(.$dataf$met)) cbind(t(.$dataf$met) , .$dataf$out ) else .$dataf$out
     }
   )
 }

@@ -24,8 +24,10 @@ boundary_handling_set <- function(.) {
 
 # restrict parameter proposals that are beyond the boundary
 boundary_handling <- function(., ii, jj ) {
-  if      (.$dataf$pars[ii,jj] < .$mcmc$boundary_min[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_min[jj]
-  else if (.$dataf$pars[ii,jj] > .$mcmc$boundary_max[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_max[jj]
+  #if      (.$dataf$pars[ii,jj] < .$mcmc$boundary_min[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_min[jj]
+  #else if (.$dataf$pars[ii,jj] > .$mcmc$boundary_max[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_max[jj]
+  if      (.$dataf$pars[jj,ii] < .$mcmc$boundary_min[jj]) .$dataf$pars[jj,ii] <- .$mcmc$boundary_min[jj]
+  else if (.$dataf$pars[jj,ii] > .$mcmc$boundary_max[jj]) .$dataf$pars[jj,ii] <- .$mcmc$boundary_max[jj]
 }
 
 
@@ -37,7 +39,8 @@ boundary_handling <- function(., ii, jj ) {
 proposal_generate_mcmc_demc <- function(., j ) {
 
   # scaling factor
-  d          <- ncol(.$dataf$pars)
+  #d          <- ncol(.$dataf$pars)
+  d          <- dim(.$dataf$pars)[1]
   gamma_star <- 2.38 / sqrt(d + d)
 
   # b-value should be small compared to width of target distribution
@@ -59,7 +62,8 @@ proposal_generate_mcmc_demc <- function(., j ) {
     for (jj in 1:d) {
 
       # generate proposal via Differential Evolution
-      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
+      #.$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
+      .$dataf$pars[jj,ii] <- .$dataf$pars_array[jj,ii,j-1] + gamma_star * (.$dataf$pars_array[jj,R1,j-1] - .$dataf$pars_array[jj,R2,j-1]) + uniform_r
 
       # call boundary handling function
       .$boundary_handling(ii = ii, jj = jj)
@@ -83,7 +87,8 @@ proposal_accept_mcmc_demc <- function(., j, lklihood ) {
     # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
     accept <- log(alpha[ii]) > log(runif(1, min = 0, max = 1))
 
-    .$dataf$pars_array[ii,,j]   <- if(accept) .$dataf$pars[ii,] else .$dataf$pars_array[ii,,j-1]
+    #.$dataf$pars_array[ii,,j]   <- if(accept) .$dataf$pars[ii,] else .$dataf$pars_array[ii,,j-1]
+    .$dataf$pars_array[,ii,j]   <- if(accept) .$dataf$pars[,ii] else .$dataf$pars_array[,ii,j-1]
     .$dataf$pars_lklihood[ii,j] <- if(accept) lklihood[ii]      else .$dataf$pars_lklihood[ii,j-1]
 
     # debug: store every model evaluation
@@ -105,7 +110,8 @@ init_mcmc_demc <- function(.) NULL
 init_mcmc_dream <- function(.) {
 
   # number of parameters being estimated
-  .$mcmc$d <- ncol(.$dataf$pars)
+  #.$mcmc$d <- ncol(.$dataf$pars)
+  .$mcmc$d <- dim(.$dataf$pars)[1]
 
   # preallocate memory space for algorithmic variables
   .$mcmc$J             <- numeric(.$wpars$mcmc_n_CR)
@@ -113,18 +119,21 @@ init_mcmc_dream <- function(.) {
   .$mcmc$CR            <- numeric(.$wpars$mcmc_n_CR)
   .$mcmc$p_CR          <- numeric(.$wpars$mcmc_n_CR)
   .$mcmc$R             <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$dataf$lp - 1)
-  .$mcmc$current_state <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$mcmc$d)
+  #.$mcmc$current_state <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$mcmc$d)
+  .$mcmc$current_state <- matrix(data = 0, ncol = .$dataf$lp, nrow = .$mcmc$d)
   .$mcmc$p_state       <- numeric(.$dataf$lp)
   .$mcmc$sd_state      <- numeric(.$mcmc$d)
-  .$mcmc$jump          <- matrix(data=0, nrow=.$dataf$lp,   ncol=.$mcmc$d )
+  #.$mcmc$jump          <- matrix(data=0, nrow=.$dataf$lp,   ncol=.$mcmc$d )
+  .$mcmc$jump          <- matrix(data=0, ncol=.$dataf$lp, nrow=.$mcmc$d )
   .$mcmc$draw          <- matrix(data=0, nrow=.$dataf$lp - 1, ncol=.$dataf$lp )
-  .$mcmc$lambda        <- matrix(data=0, nrow=.$dataf$lp,   ncol=1 )
+  .$mcmc$lambda        <- matrix(data=0, nrow=.$dataf$lp, ncol=1 )
 
   if(.$wpars$mcmc_debug) {
     .$mcmc$runif_seed     <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$wpars$mcmc_maxiter)
     .$mcmc$draw_seed      <- array(data = 0, dim = c(.$dataf$lp - 1, .$dataf$lp, .$wpars$mcmc_maxiter))
     .$mcmc$lambda_seed    <- array(data = 0, dim = c(.$dataf$lp, 1, .$wpars$mcmc_maxiter))
-    .$mcmc$zz_seed        <- array(data = 0, dim = c(.$dataf$lp, .$mcmc$d, .$wpars$mcmc_maxiter))
+    #.$mcmc$zz_seed        <- array(data = 0, dim = c(.$dataf$lp, .$mcmc$d, .$wpars$mcmc_maxiter))
+    .$mcmc$zz_seed        <- array(data = 0, dim = c(.$mcmc$d, .$dataf$lp, .$wpars$mcmc_maxiter))
     .$mcmc$prop_storage   <- array(data = 0, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter))
     .$mcmc$accept_storage <- array(data = 0, dim = c(.$dataf$lp, 1, .$wpars$mcmc_maxiter))
     .$mcmc$lklhd_storage  <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$wpars$mcmc_maxiter)
@@ -158,20 +167,23 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
   # current state, 'mcmc_chains' number of samples of a d-variate distribution
   # future work: play around with whether the current_state and jump matrices are absolutely essential
-  .$mcmc$current_state[] <- matrix(.$dataf$pars_array[ , , j-1], nrow = .$dataf$lp, ncol = .$mcmc$d)
+  # APW: I now think we should keep the current state and jump matrices for computational efficiency  
+  #.$mcmc$current_state[] <- matrix(.$dataf$pars_array[,,j-1], nrow = .$dataf$lp, ncol = .$mcmc$d)
+  .$mcmc$current_state[] <- matrix(.$dataf$pars_array[,,j-1])
 
   # debug: can make sure that this code is exactly analagous with Matlab version of "sort" function
   # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
   .$mcmc$draw[]                        <- apply(matrix(runif((.$dataf$lp - 1) * .$dataf$lp), .$dataf$lp - 1, .$dataf$lp), 2, function(v) sort(v, index.return = T)$ix)
-  if(.$wpars$mcmc_debug) .$mcmc$draw[] <- apply(.$mcmc$draw_seed[ , , j], 2, function(v) sort(v, index.return = T)$ix)
+  if(.$wpars$mcmc_debug) .$mcmc$draw[] <- apply(.$mcmc$draw_seed[,,j], 2, function(v) sort(v, index.return = T)$ix)
 
   # debug: can make sure this code snipit is exactly analagous to Matlab version
   # create a .$dataf$lp x 1 matrix of continuous uniform random values between -c_rand and c_rand
   .$mcmc$lambda[]                        <- matrix(runif(.$dataf$lp * 1, -.$wpars$mcmc_c_rand, .$wpars$mcmc_c_rand), .$dataf$lp)
-  if(.$wpars$mcmc_debug) .$mcmc$lambda[] <- .$mcmc$lambda_seed[ , , j]
+  if(.$wpars$mcmc_debug) .$mcmc$lambda[] <- .$mcmc$lambda_seed[,,j]
 
   # compute standard deviation of each dimension (ie,compute standard deviation of each column of current_state matrix)
-  .$mcmc$sd_state[]      <- apply(.$mcmc$current_state, 2, sd)
+  #.$mcmc$sd_state[]      <- apply(.$mcmc$current_state, 2, sd)
+  .$mcmc$sd_state[]      <- apply(.$mcmc$current_state, 1, sd)
   # debug: replace any 0's in standard deviation array with 1e-9 to avoid division by 0
   idx                    <- which(.$mcmc$sd_state == 0)
   .$mcmc$sd_state[idx]   <- 1e-9
@@ -193,7 +205,9 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
     # draw d values from uniform distribution between 0 and 1
     zz                        <- runif(.$mcmc$d)
-    if(.$wpars$mcmc_debug) zz <- .$mcmc$zz_seed[ii, 1:.$mcmc$d, j]
+    #if(.$wpars$mcmc_debug) zz <- .$mcmc$zz_seed[ii, 1:.$mcmc$d, j]
+    if(.$wpars$mcmc_debug) zz <- .$mcmc$zz_seed[1:.$mcmc$d,ii,j]
+    #if(.$wpars$mcmc_debug) zz <- .$mcmc$zz_seed[,ii,j]
 
     # derive subset A of selected dimensions
     A  <- which(zz < .$mcmc$CR[.$mcmc$id])
@@ -214,10 +228,13 @@ proposal_generate_mcmc_dream <- function(., j ) {
     gamma <- sample(c(gamma_d, 1), size = 1, replace = T, prob = c(1 - .$wpars$mcmc_p_gamma, .$wpars$mcmc_p_gamma))
 
     # compute jump differential evolution of ii-th chain
-    .$mcmc$jump[ii, A] <- .$wpars$mcmc_c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[a, A] - .$mcmc$current_state[b, A]), dim = 1)
+    #.$mcmc$jump[ii,A] <- .$wpars$mcmc_c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[A,a] - .$mcmc$current_state[A,b]), dim = 1)
+    .$mcmc$jump[A,ii] <- .$wpars$mcmc_c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[A,a] - .$mcmc$current_state[A,b]), dim = 1)
 
     # compute proposal of ii-th chain
-    .$dataf$pars[ii, 1:.$mcmc$d] <- .$mcmc$current_state[ii, 1:.$mcmc$d] + .$mcmc$jump[ii, 1:.$mcmc$d]
+    #.$dataf$pars[ii, 1:.$mcmc$d] <- .$mcmc$current_state[ii, 1:.$mcmc$d] + .$mcmc$jump[ii, 1:.$mcmc$d]
+    .$dataf$pars[1:.$mcmc$d,ii] <- .$mcmc$current_state[1:.$mcmc$d,ii] + .$mcmc$jump[1:.$mcmc$d,ii]
+    #.$dataf$pars[,ii] <- .$mcmc$current_state[,ii] + .$mcmc$jump[,ii]
 
     # call boundary handling function
     for (jj in 1:.$mcmc$d) .$boundary_handling(ii = ii, jj = jj)
@@ -234,7 +251,7 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   # debug: make sure this is being assigned at the right place in terms of function call order; also check function call order again
   # future work: play around with whether p_state assignment is absolutely essential
   # likelihood of current state
-  .$mcmc$p_state[] <- .$dataf$pars_lklihood[ ,j-1]
+  .$mcmc$p_state[] <- .$dataf$pars_lklihood[,j-1]
 
   for (ii in 1:.$dataf$lp) {
 
@@ -254,15 +271,21 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       # accept the proposal
       accept <- TRUE
 
-      .$mcmc$current_state[ii, 1:.$mcmc$d]   <- .$dataf$pars[ii, 1:.$mcmc$d]
-      .$mcmc$p_state[ii]                     <- lklihood[ii]
+      #.$mcmc$current_state[ii, 1:.$mcmc$d] <- .$dataf$pars[ii, 1:.$mcmc$d]
+      .$mcmc$current_state[1:.$mcmc$d,ii] <- .$dataf$pars[1:.$mcmc$d,ii]
+      #.$mcmc$current_state[,ii] <- .$dataf$pars[,ii]
+      .$mcmc$p_state[ii]                   <- lklihood[ii]
 
       # append accepted current_state and probability density to storage data frames
-      .$dataf$pars_array[ii, 1:.$mcmc$d, j]  <- .$mcmc$current_state[ii, 1:.$mcmc$d]
-      .$dataf$pars_lklihood[ii, j]           <- .$mcmc$p_state[ii]
+      #.$dataf$pars_array[ii, 1:.$mcmc$d, j]  <- .$mcmc$current_state[ii, 1:.$mcmc$d]
+      .$dataf$pars_array[1:.$mcmc$d,ii,j] <- .$mcmc$current_state[1:.$mcmc$d,ii]
+      #.$dataf$pars_array[,ii,j]  <- .$mcmc$current_state[,ii]
+      .$dataf$pars_lklihood[ii,j]        <- .$mcmc$p_state[ii]
 
       # if debugging, store generated proposal (regardless of whether accepted or not)
-      if (.$wpars$mcmc_debug) .$dataf$prop_storage[ii, 1:.$mcmc$d, j] <- .$dataf$pars[ii, 1:.$mcmc$d]
+      #if (.$wpars$mcmc_debug) .$dataf$prop_storage[ii, 1:.$mcmc$d, j] <- .$dataf$pars[ii, 1:.$mcmc$d]
+      if (.$wpars$mcmc_debug) .$dataf$prop_storage[1:.$mcmc$d,ii,j] <- .$dataf$pars[1:.$mcmc$d,ii]
+      #if (.$wpars$mcmc_debug) .$dataf$prop_storage[,ii,j] <- .$dataf$pars[,ii]
 
     } else {
 
@@ -270,18 +293,25 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       accept <- FALSE
 
       # set jump back to zero for p_CR
-      .$mcmc$jump[ii, 1:.$mcmc$d] <- 0
+      .$mcmc$jump[1:.$mcmc$d,ii] <- 0
+      #.$mcmc$jump[,ii] <- 0
 
       # repeat previous current_state and probability density in storage data frames
-      .$dataf$pars_array[ii, 1:.$mcmc$d, j]   <- .$dataf$pars_array[ii, 1:.$mcmc$d, j-1]
-      .$dataf$pars_lklihood[ii, j]            <- .$dataf$pars_lklihood[ii, j-1]
+      #.$dataf$pars_array[ii, 1:.$mcmc$d, j]   <- .$dataf$pars_array[ii, 1:.$mcmc$d, j-1]
+      .$dataf$pars_array[1:.$mcmc$d,ii,j]   <- .$dataf$pars_array[1:.$mcmc$d,ii,j-1]
+      #.$dataf$pars_array[,ii,j]   <- .$dataf$pars_array[,ii,j-1]
+      .$dataf$pars_lklihood[ii, j]          <- .$dataf$pars_lklihood[ii, j-1]
 
       # if debugging, store generated proposal (regardless of whether accepted or not)
-      if (.$wpars$mcmc_debug) .$dataf$prop_storage[ii, 1:.$mcmc$d, j] <- .$dataf$pars[ii, 1:.$mcmc$d]
+      #if (.$wpars$mcmc_debug) .$dataf$prop_storage[ii, 1:.$mcmc$d, j] <- .$dataf$pars[ii, 1:.$mcmc$d]
+      if (.$wpars$mcmc_debug) .$dataf$prop_storage[1:.$mcmc$d,ii,j] <- .$dataf$pars[1:.$mcmc$d,ii]
+      #if (.$wpars$mcmc_debug) .$dataf$prop_storage[,ii,j] <- .$dataf$pars[,ii]
     }
 
     # update jump distance crossover index
-    .$mcmc$J[.$mcmc$id]    <- .$mcmc$J[.$mcmc$id] + sum((.$mcmc$jump[ii, 1:.$mcmc$d] / .$mcmc$sd_state)^2)
+    #.$mcmc$J[.$mcmc$id]    <- .$mcmc$J[.$mcmc$id] + sum((.$mcmc$jump[ii, 1:.$mcmc$d] / .$mcmc$sd_state)^2)
+    .$mcmc$J[.$mcmc$id]    <- .$mcmc$J[.$mcmc$id] + sum((.$mcmc$jump[1:.$mcmc$d,ii] / .$mcmc$sd_state)^2)
+    #.$mcmc$J[.$mcmc$id]    <- .$mcmc$J[.$mcmc$id] + sum((.$mcmc$jump[,ii] / .$mcmc$sd_state)^2)
 
     # number of times index crossover is used
     .$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id] + 1
@@ -390,6 +420,8 @@ set_seed <- function(.) {
   .$mcmc$lambda_seed[] <- runif((.$dataf$lp * .$wpars$mcmc_maxiter), min = -.$wpars$mcmc_c_rand, max = .$wpars$mcmc_c_rand)
 
   # random number generation 3, set seed for zz vector in proposal_generate_mcmc_dream
+  # APW 190909: I edited the dimension order of the zz_seed array, rows n columns are now switched
+  #           : if this messes up fixing the random seed and you want help sorting it let me know 
   set.seed(1337)
   .$mcmc$zz_seed[]     <- runif((.$mcmc$d * .$dataf$lp * .$wpars$mcmc_maxiter), min = 0, max = 1)
 
