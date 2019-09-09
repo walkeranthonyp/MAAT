@@ -108,17 +108,79 @@ init_mcmc_dream <- function(.) {
   .$mcmc$d <- ncol(.$dataf$pars)
 
   # preallocate memory space for algorithmic variables
+
+  # ALJ: may not need these any more AND/OR need to figure out how these relate to new CR vars
   .$mcmc$J             <- numeric(.$wpars$mcmc_n_CR)
   .$mcmc$n_id          <- numeric(.$wpars$mcmc_n_CR)
-  .$mcmc$CR            <- numeric(.$wpars$mcmc_n_CR)
-  .$mcmc$p_CR          <- numeric(.$wpars$mcmc_n_CR)
+
   .$mcmc$R             <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$dataf$lp - 1)
   .$mcmc$current_state <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$mcmc$d)
   .$mcmc$p_state       <- numeric(.$dataf$lp)
-  .$mcmc$sd_state      <- numeric(.$mcmc$d)
   .$mcmc$jump          <- matrix(data=0, nrow=.$dataf$lp,   ncol=.$mcmc$d )
   .$mcmc$draw          <- matrix(data=0, nrow=.$dataf$lp - 1, ncol=.$dataf$lp )
   .$mcmc$lambda        <- matrix(data=0, nrow=.$dataf$lp,   ncol=1 )
+
+  if(.$wpars$mcmc_adapt_CR) {
+    # preallocate space for crossover vals
+    .$mcmc$t         <- numeric(1)
+    .$mcmc$CR_burnin <- numeric(1)
+    #.$mcmc$CR        <- numeric(.$wpars$mcmc_n_CR)
+    .$mcmc$CR        <- numeric(1)
+    .$mcmc$sd_state  <- numeric(.$mcmc$d)
+    .$mcmc$p_CR      <- numeric(.$wpars$mcmc_n_CR)
+    .$mcmc$L         <- numeric(.$wpars$mcmc_n_CR)
+    .$mcmc$delta     <- numeric(.$wpars$mcmc_n_CR)
+
+    # initialize crossover variables
+    .$mcmc$t        <- 1
+    .$mcmc$id       <- 0
+    .$mcmc$n_id[]   <- 0
+    #.$mcmc$CR       <- 1
+    #.$mcmc$delta[]  <- 1
+    .$mcmc$L[]      <- 0
+    .$mcmc$p_CR[]   <- 1 / .$wpars$mcmc_n_CR
+
+    # burn-in period for adapting crossover vals
+    .$mcmc$CR_burnin <- ceiling(.$wpars$mcmc_CR_burnin * .$wpars$mcmc_maxiter)
+
+  } else {
+
+    # note to self: temporarily commenting out all previous CR code
+
+    # crossover values
+    .$mcmc$CR[] <- 1:.$wpars$mcmc_n_CR / .$wpars$mcmc_n_CR
+
+    # selection probability of crossover values
+    .$mcmc$p_CR[] <- 1 / .$wpars$mcmc_n_CR
+
+    # vector that stores how many times crossover value indices are used
+    # ALJ: initialized to 1's in order to avoid numeric issues
+    # debug: maybe noteworthy that this was originally initialized to 0's in Vrugt's algorithm
+    # debug: play around with whether or not this makes a difference and understand its purpose better
+    #.$mcmc$n_id[] <- 1
+
+    # try inititializing n_di to 0's
+    .$mcmc$n_id[] <- 0
+
+  }
+
+  print('YOU ARE HERE - dont know why wpars allocation isnt working')
+  print(paste0('mcmc_adapt_CR = ', .$wpars$mcmc_adapt_CR))
+  print(paste0('mcmc_CR_burnin = ', .$wpars$mcmc_CR_burnin))
+  print(paste0('CR_burnin = ', .$mcmc$CR_burnin))
+
+
+  # debug: print crossover values and crossover probabilities at the end of each iteration
+  print(paste0('t = ', .$mcmc$t))
+  print(paste0('CR_burnin = ', .$mcmc$CR_burnin))
+  print('delta  = ')
+  print(.$mcmc$delta)
+  print('L = ')
+  print(.$mcmc$L)
+  print('CR = ')
+  print(.$mcmc$CR)
+  print('p_CR = ')
+  print(.$mcmc$p_CR)
 
   if(.$wpars$mcmc_debug) {
     .$mcmc$runif_seed     <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$wpars$mcmc_maxiter)
@@ -133,23 +195,6 @@ init_mcmc_dream <- function(.) {
   # index of chains for Differential Evolution
   for (ii in 1:.$dataf$lp) .$mcmc$R[ii, ] <- setdiff(1:.$dataf$lp, ii)
 
-  # crossover values
-  .$mcmc$CR[] <- 1:.$wpars$mcmc_n_CR / .$wpars$mcmc_n_CR
-
-  # selection probability of crossover values
-  .$mcmc$p_CR[] <- 1 / .$wpars$mcmc_n_CR
-
-  # vector that stores how many times crossover value indices are used
-  # ALJ: initialized to 1's in order to avoid numeric issues
-  # debug: maybe noteworthy that this was originally initialized to 0's in Vrugt's algorithm
-  # debug: play around with whether or not this makes a difference
-  .$mcmc$n_id[] <- 1
-
-  # debug: print crossover values and crossover probabilities at the end of each iteration
-  print('CR = ')
-  print(.$mcmc$CR)
-  print('p_CR = ')
-  print(.$mcmc$p_CR)
 }
 
 
@@ -157,7 +202,7 @@ init_mcmc_dream <- function(.) {
 proposal_generate_mcmc_dream <- function(., j ) {
 
   # debug
-  # print(paste0('iteration = ', j))
+  print(paste0('iteration = ', j))
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
@@ -176,11 +221,13 @@ proposal_generate_mcmc_dream <- function(., j ) {
   .$mcmc$lambda[]                        <- matrix(runif(.$dataf$lp * 1, -.$wpars$mcmc_c_rand, .$wpars$mcmc_c_rand), .$dataf$lp)
   if(.$wpars$mcmc_debug) .$mcmc$lambda[] <- .$mcmc$lambda_seed[ , , j]
 
+  # maybe can comment this out and write my own standard deviation calculation?
+
   # compute standard deviation of each dimension (ie,compute standard deviation of each column of current_state matrix)
-  .$mcmc$sd_state[]      <- apply(.$mcmc$current_state, 2, sd)
+  #.$mcmc$sd_state[]      <- apply(.$mcmc$current_state, 2, sd)
   # debug: replace any 0's in standard deviation array with 1e-9 to avoid division by 0
-  idx                    <- which(.$mcmc$sd_state == 0)
-  .$mcmc$sd_state[idx]   <- 1e-9
+  #idx                    <- which(.$mcmc$sd_state == 0)
+  #.$mcmc$sd_state[idx]   <- 1e-9
 
   # create proposals
   # future work: vectorize this for-loop to improve computational efficiency, but this is non-trivial
@@ -194,8 +241,16 @@ proposal_generate_mcmc_dream <- function(., j ) {
     a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
     b <- .$mcmc$R[ii, .$mcmc$draw[(D + 1):(2 * D), ii]]
 
+    # ALJ: i think id = m in vrugt paper????
+
     # select index of crossover value (weighted sample with replacement)
     .$mcmc$id <- sample(1:.$wpars$mcmc_n_CR, 1, replace = T, prob = .$mcmc$p_CR)
+
+    # INSERT GENERATE CROSSOVER VALUES FUNCTION CALL HERE
+    # ALJ: maybe add more things to this subroutine once i figure things out better ?????
+    if (.$wpars$mcmc_adapt_CR) .$generate_CR()
+
+    print(paste0('length of .$mcmc$id = ', length(.$mcmc$id)))
 
     # draw d values from uniform distribution between 0 and 1
     zz                        <- runif(.$mcmc$d)
@@ -203,6 +258,11 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
     # derive subset A of selected dimensions
     A  <- which(zz < .$mcmc$CR[.$mcmc$id])
+
+    # ALJ: try this instead? this seems like it would work better for adapt_CR <- F
+    #A  <- which(zz < (1 - .$mcmc$CR[.$mcmc$id]))
+
+    # ALJ: is this instead of d' = d' - 1 ????? if not, how do i put d' in here ?????
 
     #  how many dimensions are sampled
     d_star <- length(A)
@@ -212,6 +272,10 @@ proposal_generate_mcmc_dream <- function(., j ) {
       A <- which.min(zz)
       d_star <- 1
     }
+
+    print('A = ')
+    print(A)
+    print(paste0('d_star = ', d_star))
 
     # calculate jump rate
     gamma_d <- 2.38 / sqrt(2 * D * d_star)
@@ -270,6 +334,8 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       # if debugging, store generated proposal (regardless of whether accepted or not)
       if (.$wpars$mcmc_debug) .$dataf$prop_storage[ii, 1:.$mcmc$d, j] <- .$dataf$pars[ii, 1:.$mcmc$d]
 
+      # future work: make out_n dependent on whether or not mcmc_debug is true (ie, if it is, then store all model evaluations, otherwise...)
+
     } else {
 
       # reject the proposal
@@ -287,7 +353,32 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
     }
 
     # update jump distance crossover index
-    .$mcmc$J[.$mcmc$id]    <- .$mcmc$J[.$mcmc$id] + sum((.$mcmc$jump[ii, 1:.$mcmc$d] / .$mcmc$sd_state)^2)
+    #.$mcmc$J[.$mcmc$id]    <- .$mcmc$J[.$mcmc$id] + sum((.$mcmc$jump[ii, 1:.$mcmc$d] / .$mcmc$sd_state)^2)
+
+    if (.$wpars$mcmc_adapt_CR & (.$mcmc$t < .$mcmc$CR_burnin) ) {
+
+      # ALJ: probably better if I write my own sd code
+
+      # standard deviation of columns of pars_array
+      .$mcmc$sd_state[]     <- apply(.$dataf$pars_array, 2, sd)
+      idx                   <- which(.$mcmc$sd_state == 0)
+      .$mcmc$sd_state[idx]  <- 1e-9
+
+      # ALJ: make sure this math is correct; pretty sure i'm not using sum fxn correctly
+
+      # compute squared normalized jumping distance
+      #.$mcmc$delta[.$mcmc$id] <- .$mcmc$delta[.$mcmc$id] + sum(((.$dataf$pars_array[ii, 1:.$mcmc$d, .$mcmc$t] - .$dataf$pars_array[ii, 1:.$mcmc$d, .$mcmc$t-1]) / .mcmc$sd_state)^2)
+      #temp <- numeric(.$mcmc$d)
+      temp <- rep(0, .$mcmc$d)
+      for (qq in 1:.$mcmc$d) {
+        temp[qq] <- ((.$dataf$pars_array[ii, qq, .$mcmc$t] - .$dataf$pars_array[ii, qq, .$mcmc$t-1]) / .$mcmc$sd_state[qq])^2
+      }
+      .$mcmc$dleta[.$mcmc$id] <- .$mcmc$delta[.$mcmc$id] + sum(temp)
+
+
+      print('.$mcmc$delta = '); print(.$mcmc$delta)
+
+    }
 
     # number of times index crossover is used
     .$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id] + 1
@@ -298,30 +389,55 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
     out_n <- 0
     if (j > out_n)
       .$dataf$out_mcmc[ii,,(j-out_n)] <- if(accept | j == out_n + 1) .$dataf$out[ii, ] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
+
   }
 
+  # ADAPT CROSSOVER VALUES FUNCTION CALL HERE
+  if (.$wpars$mcmc_adapt_CR & (.$mcmc$t < .$mcmc$CR_burnin) ) .$adapt_CR()
+
+  # ALJ: experiment with whether or not J is the same as delta and L is the same as n_id ....
+
   # update selection probability of crossover in the first 10% of samples
-  if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
-    .$mcmc$p_CR <- .$mcmc$J    / .$mcmc$n_id
-    .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
-  }
+  #if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
+  #  .$mcmc$p_CR <- .$mcmc$J    / .$mcmc$n_id
+  #  .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
+  #}
 
   # debug: print crossover values and crossover probabilities at the end of each iteration
   print(paste0('iteration = ', j))
+  print('id = ')
+  print(.$mcmc$id)
   print('CR = ')
   print(.$mcmc$CR)
   print('p_CR = ')
   print(.$mcmc$p_CR)
+  print('n_id =')
+  print(.$mcmc$n_id)
+  print('L = ')
+  print(.$mcmc$L)
 
 }
 
 # function that generates/updates crossover values based on current probabilities
 generate_CR <- function(.) {
 
+  .$mcmc$CR[.$mcmc$id]   <- .$mcmc$id / .$wpars$mcmc_n_CR
+
+  # this might have duality with n_id?
+
+  .$mcmc$L[.$mcmc$id]    <- .$mcmc$L[.$mcmc$id] + 1
+
 }
 
 # function that adapts crossover probabilities
 adapt_CR <- function(.) {
+
+  # update probability of different CR values
+  for (m in 1:.$mcmc$n_CR) {
+    p_CR[m]  <- (.$mcmc$t * .$wpars$mcmc_chains * (.$mcmc$delta[m] / .$mcmc$L[m]) ) / sum(.$mcmc$delta)
+  }
+
+  .$mcmc$t <- .$mcmc$t + 1
 
 }
 
@@ -333,11 +449,11 @@ outlier_handling <- function(.) {
 # function that computes the R-statistic of Gelman and Rubin as a convergence diagnostic
 Gelman_Rubin <- function(., j) {
 
-  # TEMPORARY basing off of Dan's MATLAB code
+  # TEMPORARY basing off of Dan's MATLAB code -- will make more MAAT-like later
 
   # need an R_stat storage array!
 
-  # TEMPORARY dimensions
+  # TEMPORARY dimensions (rename everything to make more MAAT-like later)
   # number of stored samples
   n   <- .$wpars$mcmc_maxiter
   # dimension / number of parameters
