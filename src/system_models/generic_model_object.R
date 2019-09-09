@@ -114,6 +114,12 @@ system_model_object <-
     # run model over a meteorological (or boundary condition) dataset
     run_met           <- run_met 
     
+    # configure env from met dataset 
+    configure_met     <- configure_met 
+
+    # configure check 
+    configure_check   <- configure_check 
+
     
     ###########################################################################
     # Test functions

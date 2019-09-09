@@ -23,6 +23,9 @@ generate_ensemble <- function(.) {
   .$dataf$env     <- if(!is.null(.$dynamic$env))    t(as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   ))) else NULL
   .$generate_ensemble_pars()
 
+  # check names of ensemble matrices are character vectors
+  .$model$configure_check(vlist=env, df=.$dataf$met[,1] )
+
   # calculate input matrix lengths - separate out as a function
   # - used to set the number of iterations in the run functions
   # - if no matrix return 1
