@@ -323,7 +323,7 @@ wrapper_object$mcmc <- list(
   prop_storage   = array(1, c(1,1,1)),
   lklhd_storage  = array(1, c(1,1,1)),
   accept_storage = array(1, c(1,1,1)),
-  delta          = numeric(1),
+  del            = numeric(1),
   L              = numeric(1),
   t              = numeric(1),
   CR_burnin      = numeric(1)
