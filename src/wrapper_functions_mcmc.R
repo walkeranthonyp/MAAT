@@ -260,7 +260,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
     # ALJ: try this instead? this seems like it would work better for adapt_CR <- F
     #      A  <- which(zz < (1 - .$mcmc$CR[.$mcmc$id]))
     #      need to double check -->
-    #      A is subset of crossed-over dimensions or updated dimensions or dimensions not updating... 
+    #      A is subset of crossed-over dimensions or updated dimensions or dimensions not updating...
 
     # NEED TO FIGURE OUT A WAY TO SWITCH BACK AND FORTH BETWEEN ADAPTIVE AND NON-ADAPTIVE HERE
     # ALJ: is this instead of d' = d' - 1 ????? if not, how do i put d' in here ?????
