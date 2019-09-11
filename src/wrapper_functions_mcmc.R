@@ -240,6 +240,9 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
     # NEED TO FIGURE OUT A WAY TO SWITCH BACK AND FORTH BETWEEN ADAPTIVE AND NON-ADAPTIVE HERE
     # select index of crossover value (weighted sample with replacement)
+    # ALJ: I think this should be being sampled from a multinomial distribution
+    #      I don't think what I have right now is correct
+    #      It should be M(CR, p_CR)
     .$mcmc$id <- sample(1:.$wpars$mcmc_n_CR, 1, replace = T, prob = .$mcmc$p_CR)
 # ALJ: I'm thinking maybe an if/else statement here and using mcmc$id as an adaptive crossover parm
     # INSERT GENERATE CROSSOVER VALUES FUNCTION CALL HERE
@@ -251,7 +254,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
     if(.$wpars$mcmc_debug) zz <- .$mcmc$zz_seed[ii, 1:.$mcmc$d, j]
 
     # NEED TO FIGURE OUT A WAY TO SWITCH BACK AND FORTH BETWEEN ADAPTIVE AND NON-ADAPTIVE HERE
-# ALJ: I'm thinking maybe an if-else statement that computes A and d-star differenlty depending on adaptive criterion  
+# ALJ: I'm thinking maybe an if-else statement that computes A and d-star differenlty depending on adaptive criterion
     # derive subset A of selected dimensions
     A  <- which(zz < .$mcmc$CR[.$mcmc$id])
     # ALJ: try this instead? this seems like it would work better for adapt_CR <- F
