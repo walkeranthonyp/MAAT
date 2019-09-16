@@ -86,35 +86,39 @@ salt_nmult <- 100
 
 # parameters for MCMC run
 # MCMC likelihood (options: log, ssquared, ssquared_se )
-mcmc_lklihood  <- 'log'
+mcmc_lklihood   <- 'log'
+# MCMC outlier handling (options: none, iqr)
+mcmc_outlier    <- 'iqr'
 # number of MCMC chains to run (min 2x number of parameters estimated)
-mcmc_chains    <- 10
+mcmc_chains     <- 10
 # number of iterations / steps in MCMC chain
-mcmc_maxiter   <- 100
+mcmc_maxiter    <- 100
 # MCMC burn in to discard as a proportion of mcmc_maxiter, or number of iterations if converged sooner
-mcmc_burnin    <- 0.5
+mcmc_burnin     <- 0.5
 # MCMC thinning for posterior, as a proportion
-mcmc_thin      <- 0.1
+mcmc_thin       <- 0.1
 # MCMC thinning for observations, as a proportion
-mcmc_thin_obs  <- 1
+mcmc_thin_obs   <- 1
 # MCMC option to assume homoscedastic error in measured observations (else, heteroscedastic)
-mcmc_homosced  <- F
+mcmc_homosced   <- F
 # MCMC DREAM number chain pair proposal
-mcmc_delta     <- 3
+mcmc_delta      <- 3
 # MCMC DREAM randomization
-mcmc_c_rand    <- 0.01
+mcmc_c_rand     <- 0.01
 # MCMC DREAM ergodicicty
-mcmc_c_ergod   <- 1e-12
+mcmc_c_ergod    <- 1e-12
 # MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
-mcmc_p_gamma   <- 0.2
+mcmc_p_gamma    <- 0.2
 # MCMC DREAM number of crossover values (default value)
-mcmc_n_CR      <- 3
+mcmc_n_CR       <- 3
 # MCMC option if debugging DREAM algorithm
-mcmc_debug     <- F
+mcmc_debug      <- F
 # MCMC option whether or not to adapt crossover values
-mcmc_adapt_CR  <- T
+mcmc_adapt_CR   <- T
 # MCMC option for percent of mcmc_maxiter during which to apply crossover vlaeus
-mcmc_CR_burnin <- 0.1
+mcmc_CR_burnin  <- 0.1
+# MCMC option for checking for convergence and outlier chains ever N iterations
+mcmc_check_iter <- 10
 
 # run options
 # meteorological data file name
@@ -248,23 +252,25 @@ maat$wpars$of_type       <- of_format
 maat$wpars$of_dir        <- odir
 
 # define MCMC run parameters
-maat$wpars$mcmc           <- mcmc
-maat$wpars$mcmc_type      <- mcmc_type
-maat$wpars$mcmc_lklihood  <- mcmc_lklihood
-maat$wpars$mcmc_chains    <- mcmc_chains
-maat$wpars$mcmc_maxiter   <- mcmc_maxiter
-maat$wpars$mcmc_burnin    <- mcmc_burnin
-maat$wpars$mcmc_thin      <- mcmc_thin
-maat$wpars$mcmc_thin_obs  <- mcmc_thin_obs
-maat$wpars$mcmc_homosced  <- mcmc_homosced
-maat$wpars$mcmc_delta     <- mcmc_delta
-maat$wpars$mcmc_c_rand    <- mcmc_c_rand
-maat$wpars$mcmc_c_ergod   <- mcmc_c_ergod
-maat$wpars$mcmc_p_gamma   <- mcmc_p_gamma
-maat$wpars$mcmc_n_CR      <- mcmc_n_CR
-maat$wpars$mcmc_debug     <- mcmc_debug
-maat$wpars$mcmc_adapt_CR  <- mcmc_adapt_CR
-maat$wpars$mcmc_CR_burnin <- mcmc_CR_burnin
+maat$wpars$mcmc            <- mcmc
+maat$wpars$mcmc_type       <- mcmc_type
+maat$wpars$mcmc_lklihood   <- mcmc_lklihood
+maat$wpars$mcmc_outlier    <- mcmc_outlier
+maat$wpars$mcmc_chains     <- mcmc_chains
+maat$wpars$mcmc_maxiter    <- mcmc_maxiter
+maat$wpars$mcmc_burnin     <- mcmc_burnin
+maat$wpars$mcmc_thin       <- mcmc_thin
+maat$wpars$mcmc_thin_obs   <- mcmc_thin_obs
+maat$wpars$mcmc_homosced   <- mcmc_homosced
+maat$wpars$mcmc_delta      <- mcmc_delta
+maat$wpars$mcmc_c_rand     <- mcmc_c_rand
+maat$wpars$mcmc_c_ergod    <- mcmc_c_ergod
+maat$wpars$mcmc_p_gamma    <- mcmc_p_gamma
+maat$wpars$mcmc_n_CR       <- mcmc_n_CR
+maat$wpars$mcmc_debug      <- mcmc_debug
+maat$wpars$mcmc_adapt_CR   <- mcmc_adapt_CR
+maat$wpars$mcmc_CR_burnin  <- mcmc_CR_burnin
+maat$wpars$mcmc_check_iter <- mcmc_check_iter
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )

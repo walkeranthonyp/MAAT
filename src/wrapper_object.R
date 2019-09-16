@@ -51,10 +51,13 @@ wrapper_object$build <- function(., ... ) {
     .$proposal_accept       <- get(paste0('proposal_accept_',.$wpars$runtype))
     .$proposal_lklihood     <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc_lklihood))
     .$init_mcmc             <- get(paste0('init_',.$wpars$runtype))
+    # ALJ: need to make these boundary handling functions options, not just 2 fxns
     .$boundary_handling     <- boundary_handling
     .$boundary_handling_set <- boundary_handling_set
     # placeholder for convergence function etc
+    #  ALJ: need to make this a convergence option, not just Gelman_Rubin
     .$Gelman_Rubin          <- Gelman_Rubin
+    .$mcmc_outlier          <- get(paste0('mcmc_outlier_',.$wpars$mcmc_outlier))
   }
 
   # build model
@@ -267,36 +270,38 @@ wrapper_object$dataf  <- list(
 
 # parameters specific to the wrapper object
 wrapper_object$wpars <- list(
-  multic         = F,           # multicore the simulation
-  procs          = 6,           # number of processors to use if multic = T
-  cverbose       = F,           # write configuration output during runtime
-  UQ             = F,           # run a UQ analysis
-  runtype        = 'none',      # ensemble type - 'factorial', 'SApar_saltelli', and 'SAprocess_ye' available so far
-  of_dir         = '~/tmp',     # output directory
-  of_type        = 'csv',       # output file type - 'csv' or 'rds'
-  of_name        = '',          # output file name - excluding file extension
-  of_name_stem   = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
-  n              = numeric(1),  # parameter sample number
-  nmult          = 1,           # parameter sample number multiplier for saltelli method
-  eval_strings   = F,        # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
-  sobol_init     = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
-  unit_testing   = F,
-  mcmc_type      = 'dream',
-  mcmc_lklihood  = 'log',
-  mcmc_chains    = 10,
-  mcmc_maxiter   = 100,
-  mcmc_burnin    = 0.5,
-  mcmc_thin      = 0.1,
-  mcmc_thin_obs  = 1,
-  mcmc_homosced  = F,
-  mcmc_delta     = 3,
-  mcmc_c_rand    = 0.01,
-  mcmc_c_ergod   = 1e-12,
-  mcmc_p_gamma   = 0.2,
-  mcmc_n_CR      = 3,
-  mcmc_debug     = F,
-  mcmc_adapt_CR  = T,
-  mcmc_CR_burnin = 0.1
+  multic          = F,           # multicore the simulation
+  procs           = 6,           # number of processors to use if multic = T
+  cverbose        = F,           # write configuration output during runtime
+  UQ              = F,           # run a UQ analysis
+  runtype         = 'none',      # ensemble type - 'factorial', 'SApar_saltelli', and 'SAprocess_ye' available so far
+  of_dir          = '~/tmp',     # output directory
+  of_type         = 'csv',       # output file type - 'csv' or 'rds'
+  of_name         = '',          # output file name - excluding file extension
+  of_name_stem    = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
+  n               = numeric(1),  # parameter sample number
+  nmult           = 1,           # parameter sample number multiplier for saltelli method
+  eval_strings    = F,        # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
+  sobol_init      = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
+  unit_testing    = F,
+  mcmc_type       = 'dream',
+  mcmc_lklihood   = 'log',
+  mcmc_outlier    = 'iqr',
+  mcmc_chains     = 10,
+  mcmc_maxiter    = 100,
+  mcmc_burnin     = 0.5,
+  mcmc_thin       = 0.1,
+  mcmc_thin_obs   = 1,
+  mcmc_homosced   = F,
+  mcmc_delta      = 3,
+  mcmc_c_rand     = 0.01,
+  mcmc_c_ergod    = 1e-12,
+  mcmc_p_gamma    = 0.2,
+  mcmc_n_CR       = 3,
+  mcmc_debug      = F,
+  mcmc_adapt_CR   = T,
+  mcmc_CR_burnin  = 0.1,
+  mcmc_check_iter = 10
 )
 
 # MCMC specific data, size depends on MCMC set up

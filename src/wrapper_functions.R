@@ -165,7 +165,7 @@ init_output_matrix_SAprocess_ye <- function(.) {
 init_output_matrix_mcmc_dream <- function(.) {
 
   # create accepted proposal array
-  .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
+  .$dataf$pars_array    <- array(1, dim = c( dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
 
   # create accepted proposal likelihood matrix
   .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter )
@@ -173,16 +173,10 @@ init_output_matrix_mcmc_dream <- function(.) {
   # initialise output matrix
   .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm)
 
-  # APW: is this effectively assuming a burn-in of 50 %?
-  #      if so we need to align with the burn-in input parameters
-  # ALJ: "burn-in" in its pure form involves discarding the first 50% of MCMC samples
-  #      and I think this is just storing the model evaluations for the last 50%  of time-steps/iterations
-  #      which is not technically burn-in, but sort of funcitons like it to make the mod plots "prettier"
-  # debug: store all model evaluations (not necessary for the algorithm, but easier for debugging)
-  # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
+  # create matrix for storing chain outlier information
+  .$dataf$omega          <- matrix(NA, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter)
 
-  # APW: OK, let's align this with burn-in then,
-  #      If I understand you right we should apply the burn-in to all output arrays
+  # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
   .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
 }
 
@@ -668,19 +662,20 @@ run2_mcmc_dream <- function(.,j) {
   # likelihood function is independent of DE-MC or DREAM algorithms
   lklihood <- .$proposal_lklihood()
 
-  # print('likelihood = ')
-  # print(lklihood)
-
   # accept / reject proposals on each chain
   #get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )
   .$proposal_accept(j=j, lklihood )
 
-  # future work: insert function call to handle outlier chains here
+  # if during burn-in, check and handle outlier chains
+  # AlJ: should only use this during burn-in because it violates the balance of sampled chains and destroys reversibility
+  # ALJ: need to construct a burn-in switch/option
+  # ALJ: need to make sure this works correctly with j and function call order
+  if (j %% .$wpars$mcmc_check_iter == 0).$mcmc_outlier(j=j)
 
   # future work: insert function call to test for convergence here
   # future work: don't necessarily have to test for convergence after every iteration
   #              would maybe more efficient to test for convergence after every 5-10 iters
-  .$Gelman_Rubin(j=j)
+  #.$Gelman_Rubin(j=j)
 
   # future work: other code here for subprograms called during burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
 

@@ -196,14 +196,13 @@ init_mcmc_dream <- function(.) {
 # generate proposal using DREAM algorithm
 proposal_generate_mcmc_dream <- function(., j ) {
 
-  0# debug
-  print(paste0('iteration = ', j))
+  # debug
+  #print(paste0('iteration = ', j))
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
 
   # current state, 'mcmc_chains' number of samples of a d-variate distribution
-  # future work: play around with whether the current_state and jump matrices are absolutely essential
   .$mcmc$current_state[] <- matrix(.$dataf$pars_array[ , , j-1], nrow = .$dataf$lp, ncol = .$mcmc$d)
 
   # debug: can make sure that this code is exactly analagous with Matlab version of "sort" function
@@ -443,10 +442,6 @@ adapt_CR <- function(.) {
 
 }
 
-# function that detects and corrects outlier Markov chains
-outlier_handling <- function(.) {
-
-}
 
 # function that computes the R-statistic of Gelman and Rubin as a convergence diagnostic
 Gelman_Rubin <- function(., j) {
@@ -477,7 +472,7 @@ Gelman_Rubin <- function(., j) {
 
       # determin chain means
       meanSeq <- apply(sequences, 3, mean)
-      print(length(meanSeq))
+      #print(length(meanSeq))
 
 
       R_stat <- 1
@@ -523,7 +518,7 @@ f_proposal_lklihood_ssquared <- function(.) {
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2) )
 
   # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
-  -(obs_n/2)*log(SSR)
+  -(obs_n / 2) * log(SSR)
 }
 
 
@@ -549,7 +544,76 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
 
   # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
-  -(obs_n/2)*log(2*pi) - sum(log(obsse)) - 0.5*SSR
+  -(obs_n / 2) * log(2 * pi) - sum(log(obsse)) - 0.5 * SSR
+}
+
+
+
+# Outlier handling functions
+#####################################
+
+# no outlier handling for Markov chians
+mcmc_outlier_none <- function(.) {
+  print('No option was chosen to identify and correct outlier Markov chains during burn-in.')
+}
+
+# function that detects and corrects outlier Markov chains using the Inter Quartile-Range (IQR) statistic
+mcmc_outlier_iqr <- function(., j) {
+
+  # extract last 50% of samples of each chain
+  sbst <- .$dataf$pars_lklihood[1:.$wpars$mcmc_chains, (ceiling(j/2)):j]
+
+  # take the mean of the log of the posterior densities and store in omega
+  # IMPORANT: all current likelihood function options already return log-likelihood
+  #           so it's not necessary to take the log of sbst components here
+  #           but this may change in the future with different likelihood functions
+  for (ii in 1:.$wpars$mcmc_chains) .$dataf$omega[ii, j] <- mean(sbst[ii, ])
+
+  # determine upper and lower quantiles of the N different chains
+  q1 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains, j], prob = 0.25, type = 1)
+  q3 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains, j], prob = 0.75, type = 1)
+
+  # compute IQR statistic
+  iqr <- q3 - q1
+  # alternate way to compute IQR statistic
+  # iqr <- IQR(.$dataf$omega[1:.$wpars$mcmc_chains, j], type = 1)
+
+  # determine which chains are outliers
+  outliers <- which(.$dataf$omega[ , j] < (q1 - 2 * iqr))
+
+  # if outlier chains are detected
+  if (length(outliers) > 0) {
+
+    print(paste0('Outlier chain detected. Chain ', outliers, ' at iteration ', j))
+
+    # replace outlier(s) by randomly choosing from the remaining chains
+    replace_idx <- rep(0, length(outliers))
+    for (qq in 1:length(outliers)) {
+      # while ((replace_idx[qq] == 0) | (replace_idx[qq] == outliers[qq])) {
+      # check: make sure no elements of replace_idx are equal to any other elements of outliers
+      while ((replace_idx[qq] == 0) | (replace_idx[qq] %in% outliers)) {
+        replace_idx[qq] <- ceiling(runif(1, min = 0, max = 1) * .$wpars$mcmc_chains)
+      }
+    }
+
+    # check: make sure 2 or more outliers aren't being replaced by the same randomly-chosen chain
+    while (any(duplicated(replace_idx))) {
+      repeat_idx <- which(duplicated(replace_idx))
+      for (qq in 1:length(repeat_idx)) {
+          replace_idx[repeat_idx[qq]] <-  ceiling(runif(1, min = 0, max = 1) * .$wpars$mcmc_chains)
+      }
+    }
+
+    # replace outlier chain(s)
+    .$dataf$pars_array[outliers, 1, j] <- .$dataf$pars_array[replace_idx, 1, j]
+    .$dataf$pars_lklihood[outliers, j] <- .$dataf$pars_lklihood[replace_idx, j]
+  }
+
+  # ALJ: this can only be used during burn-in because it doesn't maintain balance between samples
+  # if outlier chain is detected, apply another burn-in period before outputting posterior moments and performing post-processing analysis
+  # so basically need to restart j
+  # ALJ: not sure how to implement this in code???
+
 }
 
 
@@ -576,5 +640,7 @@ set_seed <- function(.) {
   .$mcmc$runif_seed[]  <- runif((.$dataf$lp * .$wpars$mcmc_maxiter), min = 0, max = 1)
 
 }
+
+
 
 ### END ###
