@@ -44,6 +44,7 @@ proposal_generate_mcmc_demc <- function(., j ) {
       # call boundary handling function
       .$boundary_handling(ii = ii, jj = jj)
 
+
     }
   }
 }
@@ -271,7 +272,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
     .$dataf$pars[ii, 1:.$mcmc$d] <- .$mcmc$current_state[ii, 1:.$mcmc$d] + .$mcmc$jump[ii, 1:.$mcmc$d]
 
     # call boundary handling function
-    for (jj in 1:.$mcmc$d) .$boundary_handling(ii = ii, jj = jj)
+    for (jj in 1:.$mcmc$d) .$mcmc_bdry_handling(j=j, ii = ii, jj = jj)
 
   }
 }
@@ -431,16 +432,32 @@ adapt_CR <- function(.) {
 boundary_handling_set <- function(.) {
   # number of samples to be used in boundary handling
   n <- 1e4
-  boundary_sample     <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-  .$mcmc$boundary_min <- unlist(lapply(boundary_sample,min))
-  .$mcmc$boundary_max <- unlist(lapply(boundary_sample,max))
+  boundary_sample     <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)))
+  .$mcmc$boundary_min <- unlist(lapply(boundary_sample, min))
+  .$mcmc$boundary_max <- unlist(lapply(boundary_sample, max))
   rm(boundary_sample)
+
+  # debugging/development
+  print('max')
+  print(.$mcmc$boundary_max)
+  print('min')
+  print(.$mcmc$boundary_min)
+}
+
+mcmc_bdry_handling_none <- function(., j, ii, jj) {
+  if ((j == .$wpars$mcmc_maxiter) & (ii == .$wpars$mcmc_chains) & (jj == .$mcmc$d)) {
+    print('No option was chosen for MCMC boundary handling.')
+  }
 }
 
 
-# restrict parameter proposals that are beyond the boundary
-boundary_handling <- function(., ii, jj ) {
+# restrict parameter proposals that are beyond the boundary (set them to bound)
+mcmc_bdry_handling_bound <- function(., j, ii, jj) {
+
+  # if outside bound of parameter space, restrict proposal value to corresponding dimension minimum
   if      (.$dataf$pars[ii,jj] < .$mcmc$boundary_min[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_min[jj]
+
+  # if outside bound of parameter space, restrict proposal to corresponding dimension maximum
   else if (.$dataf$pars[ii,jj] > .$mcmc$boundary_max[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_max[jj]
 }
 

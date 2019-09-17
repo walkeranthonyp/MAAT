@@ -599,8 +599,7 @@ run1_mcmc_dream <- function(.,i) {
   .$dataf$pars_array[,,1]   <- .$dataf$pars
   .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
 
-  # Set boundary handling limits
-  # debug: temporarily remove boundary handling
+  # determine boundary handling limits for parameter space
   .$boundary_handling_set()
 
   # print(paste0('i = ', i))
