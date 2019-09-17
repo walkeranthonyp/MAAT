@@ -54,10 +54,8 @@ wrapper_object$build <- function(., ... ) {
     # ALJ: need to make these boundary handling functions options, not just 2 fxns
     .$boundary_handling     <- boundary_handling
     .$boundary_handling_set <- boundary_handling_set
-    # placeholder for convergence function etc
-    #  ALJ: need to make this a convergence option, not just Gelman_Rubin
-    .$Gelman_Rubin          <- Gelman_Rubin
-    .$mcmc_outlier          <- get(paste0('mcmc_outlier_',.$wpars$mcmc_outlier))
+    .$mcmc_outlier          <- get(paste0('mcmc_outlier_', .$wpars$mcmc_outlier))
+    .$mcmc_converge         <- get(paste0('mcmc_converge_', .$mcmc_converge))
   }
 
   # build model
@@ -287,6 +285,7 @@ wrapper_object$wpars <- list(
   mcmc_type       = 'dream',
   mcmc_lklihood   = 'log',
   mcmc_outlier    = 'iqr',
+  mcmc_converge   = 'Gelman_Rubin',
   mcmc_chains     = 10,
   mcmc_maxiter    = 100,
   mcmc_burnin     = 0.5,
@@ -331,7 +330,8 @@ wrapper_object$mcmc <- list(
   del            = numeric(1),
   L              = numeric(1),
   t              = numeric(1),
-  CR_burnin      = numeric(1)
+  CR_burnin      = numeric(1),
+  burnin         = numeric(1)
 )
 
 # Output processing functions

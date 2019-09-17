@@ -89,6 +89,8 @@ salt_nmult <- 100
 mcmc_lklihood   <- 'log'
 # MCMC outlier handling (options: none, iqr)
 mcmc_outlier    <- 'iqr'
+# MCMC convergence testing (options: none, Gelman_Rubin)
+mcmc_converge   <- 'Gelman_Rubin'
 # number of MCMC chains to run (min 2x number of parameters estimated)
 mcmc_chains     <- 10
 # number of iterations / steps in MCMC chain
@@ -256,6 +258,7 @@ maat$wpars$mcmc            <- mcmc
 maat$wpars$mcmc_type       <- mcmc_type
 maat$wpars$mcmc_lklihood   <- mcmc_lklihood
 maat$wpars$mcmc_outlier    <- mcmc_outlier
+maat$wpars$mcmc_converge   <- mcmc_converge
 maat$wpars$mcmc_chains     <- mcmc_chains
 maat$wpars$mcmc_maxiter    <- mcmc_maxiter
 maat$wpars$mcmc_burnin     <- mcmc_burnin

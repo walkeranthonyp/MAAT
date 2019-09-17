@@ -175,6 +175,7 @@ init_output_matrix_mcmc_dream <- function(.) {
 
   # create matrix for storing chain outlier information
   .$dataf$omega          <- matrix(NA, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter)
+  .$dataf$omega2         <- matrix(NA, .$wpars$mcmc_chains, ceiling(.$wpars$mcmc_maxiter / (2 * .$wpars$mcmc_check_iter)))
 
   # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
   .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
@@ -666,18 +667,15 @@ run2_mcmc_dream <- function(.,j) {
   #get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )
   .$proposal_accept(j=j, lklihood )
 
-  # if during burn-in, check and handle outlier chains
-  # AlJ: should only use this during burn-in because it violates the balance of sampled chains and destroys reversibility
-  # ALJ: need to construct a burn-in switch/option
-  # ALJ: need to make sure this works correctly with j and function call order
-  if (j %% .$wpars$mcmc_check_iter == 0).$mcmc_outlier(j=j)
+  # if during burn-in, check for and handle outlier chains
+  # ALJ: need help with restarting j & burnin proccess
+  # ALJ: need to make sure this works correctly with j and function call order!
+  if ((j %% .$wpars$mcmc_check_iter == 0) & (j <= .$mcmc$burnin)) .$mcmc_outlier(j=j)
 
-  # future work: insert function call to test for convergence here
-  # future work: don't necessarily have to test for convergence after every iteration
-  #              would maybe more efficient to test for convergence after every 5-10 iters
-  #.$Gelman_Rubin(j=j)
+  # after burnin complete, check for convergence
+  if (((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) & (j > .$mcmc$burnin)) .$mcmc_converge(j=j)
 
-  # future work: other code here for subprograms called during burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
+  # future work: other code here for subprograms called during or after burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
 
   # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function
   numeric(0)

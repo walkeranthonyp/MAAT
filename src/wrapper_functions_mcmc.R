@@ -8,30 +8,10 @@
 
 
 
-# MCMC functions
-################################
-
-# set parameter boundaries from prior distributions
-boundary_handling_set <- function(.) {
-  # number of samples to be used in boundary handling
-  n <- 1e4
-  boundary_sample     <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-  .$mcmc$boundary_min <- unlist(lapply(boundary_sample,min))
-  .$mcmc$boundary_max <- unlist(lapply(boundary_sample,max))
-  rm(boundary_sample)
-}
-
-
-# restrict parameter proposals that are beyond the boundary
-boundary_handling <- function(., ii, jj ) {
-  if      (.$dataf$pars[ii,jj] < .$mcmc$boundary_min[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_min[jj]
-  else if (.$dataf$pars[ii,jj] > .$mcmc$boundary_max[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_max[jj]
-}
-
-
-
 # DEMC functions
 ################################
+
+init_mcmc_demc <- function(.) NULL
 
 # generate proposal using DE-MC algorithm
 proposal_generate_mcmc_demc <- function(., j ) {
@@ -96,10 +76,8 @@ proposal_accept_mcmc_demc <- function(., j, lklihood ) {
 
 
 
-# DREAM functions
+# DREAM MCMC functions
 ################################
-
-init_mcmc_demc <- function(.) NULL
 
 # initialisation of DREAM algorithm
 init_mcmc_dream <- function(.) {
@@ -168,6 +146,9 @@ init_mcmc_dream <- function(.) {
     .$mcmc$n_id[] <- 1
   #}
 
+  # number of burn-in iterations
+  .$mcmc$burnin <- ceiling(.$wpars$mcmc_burnin * .$wpars$mcmc_maxiter)
+
   # debug: print crossover values and crossover probabilities at the end of each iteration
   #print('check init_mcmc_dream part')
   #print(paste0('mcmc_adapt_CR is ', .$wpars$mcmc_adapt_CR))
@@ -197,7 +178,7 @@ init_mcmc_dream <- function(.) {
 proposal_generate_mcmc_dream <- function(., j ) {
 
   # debug
-  #print(paste0('iteration = ', j))
+  print(paste0('iteration = ', j))
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
@@ -443,8 +424,41 @@ adapt_CR <- function(.) {
 }
 
 
-# function that computes the R-statistic of Gelman and Rubin as a convergence diagnostic
-Gelman_Rubin <- function(., j) {
+# boundary handling functions
+################################
+
+# set parameter boundaries from prior distributions
+boundary_handling_set <- function(.) {
+  # number of samples to be used in boundary handling
+  n <- 1e4
+  boundary_sample     <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+  .$mcmc$boundary_min <- unlist(lapply(boundary_sample,min))
+  .$mcmc$boundary_max <- unlist(lapply(boundary_sample,max))
+  rm(boundary_sample)
+}
+
+
+# restrict parameter proposals that are beyond the boundary
+boundary_handling <- function(., ii, jj ) {
+  if      (.$dataf$pars[ii,jj] < .$mcmc$boundary_min[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_min[jj]
+  else if (.$dataf$pars[ii,jj] > .$mcmc$boundary_max[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_max[jj]
+}
+
+
+
+# convergence diagnostic functions
+#####################################
+
+# no testing for convergence
+mcmc_converge_none <- function(., j) {
+  if (j == .$wpars$mcmc_maxiter) print('No option was chosen to test for MCMC convergence.')
+}
+
+
+# compute the R-statistic of Gelman and Rubin as a convergence diagnostic
+mcmc_converge_Gelman_Rubin <- function(., j) {
+
+  print('Geman-Rubin convergence test being called')
 
   # TEMPORARY basing off of Dan's MATLAB code -- will make more MAAT-like later
 
@@ -488,7 +502,7 @@ Gelman_Rubin <- function(., j) {
 
 
 
-# Likelihood functions
+# likelihood functions
 ################################
 
 # expects model output to be probability - as in the output from the mixture model
@@ -496,8 +510,6 @@ f_proposal_lklihood_log <- function(.) {
 
   # derive log density
   log(.$dataf$out)
-
-  # print(paste0('model likelihood = ', log(.$dataf$out)))
 
   return(log(.$dataf$out))
 }
@@ -549,16 +561,22 @@ f_proposal_lklihood_ssquared_se <- function(.) {
 
 
 
-# Outlier handling functions
+# outlier handling functions
 #####################################
 
 # no outlier handling for Markov chians
-mcmc_outlier_none <- function(.) {
-  print('No option was chosen to identify and correct outlier Markov chains during burn-in.')
+mcmc_outlier_none <- function(., j) {
+  if (j == .$wpars$mcmc_maxiter) print('No option was chosen to identify and correct outlier Markov chains during burn-in.')
 }
+
 
 # function that detects and corrects outlier Markov chains using the Inter Quartile-Range (IQR) statistic
 mcmc_outlier_iqr <- function(., j) {
+
+  # debug/development print statment
+  print('IQR outlier test being called')
+
+  counter <- j / .$wpars$mcmc_check_iter
 
   # extract last 50% of samples of each chain
   sbst <- .$dataf$pars_lklihood[1:.$wpars$mcmc_chains, (ceiling(j/2)):j]
@@ -567,19 +585,19 @@ mcmc_outlier_iqr <- function(., j) {
   # IMPORANT: all current likelihood function options already return log-likelihood
   #           so it's not necessary to take the log of sbst components here
   #           but this may change in the future with different likelihood functions
-  for (ii in 1:.$wpars$mcmc_chains) .$dataf$omega[ii, j] <- mean(sbst[ii, ])
+  for (ii in 1:.$wpars$mcmc_chains) .$dataf$omega[ii, counter] <- mean(sbst[ii, ])
 
   # determine upper and lower quantiles of the N different chains
-  q1 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains, j], prob = 0.25, type = 1)
-  q3 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains, j], prob = 0.75, type = 1)
+  q1 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains, counter], prob = 0.25, type = 1)
+  q3 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains, counter], prob = 0.75, type = 1)
 
   # compute IQR statistic
   iqr <- q3 - q1
   # alternate way to compute IQR statistic
-  # iqr <- IQR(.$dataf$omega[1:.$wpars$mcmc_chains, j], type = 1)
+  # iqr <- IQR(.$dataf$omega[1:.$wpars$mcmc_chains, counter], type = 1)
 
   # determine which chains are outliers
-  outliers <- which(.$dataf$omega[ , j] < (q1 - 2 * iqr))
+  outliers <- which(.$dataf$omega[ , counter] < (q1 - 2 * iqr))
 
   # if outlier chains are detected
   if (length(outliers) > 0) {
@@ -609,16 +627,15 @@ mcmc_outlier_iqr <- function(., j) {
     .$dataf$pars_lklihood[outliers, j] <- .$dataf$pars_lklihood[replace_idx, j]
   }
 
-  # ALJ: this can only be used during burn-in because it doesn't maintain balance between samples
-  # if outlier chain is detected, apply another burn-in period before outputting posterior moments and performing post-processing analysis
-  # so basically need to restart j
-  # ALJ: not sure how to implement this in code???
-
+  # identifying and correcting outliers should only be done during burn-in
+  # because it violates the balance of sampled chains and destroys reversibility
+  # if outlier chain is detected, apply another burn-in period before generating posterior moments
+  # ALJ: not sure how to implement this in code??? basically need to restart j???
 }
 
 
 
-# Debuging functions
+# debuging functions
 ################################
 
 # set seed function (to reproduce sequences of quasi-random numbers)
@@ -638,7 +655,6 @@ set_seed <- function(.) {
 
   # random number generation 4, runif(1) value used in accept/reject step
   .$mcmc$runif_seed[]  <- runif((.$dataf$lp * .$wpars$mcmc_maxiter), min = 0, max = 1)
-
 }
 
 
