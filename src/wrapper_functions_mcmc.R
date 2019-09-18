@@ -444,6 +444,7 @@ boundary_handling_set <- function(.) {
   print(.$mcmc$boundary_min)
 }
 
+# no boundary handling: a good choice when the search space is not "physically" restricted
 mcmc_bdry_handling_none <- function(., j, ii, jj) {
   if ((j == .$wpars$mcmc_maxiter) & (ii == .$wpars$mcmc_chains) & (jj == .$mcmc$d)) {
     print('No option was chosen for MCMC boundary handling.')
@@ -451,14 +452,50 @@ mcmc_bdry_handling_none <- function(., j, ii, jj) {
 }
 
 
-# restrict parameter proposals that are beyond the boundary (set them to bound)
+# restrict parameter proposals that are beyond the boundary
+# reset them back to the determined bound value
 mcmc_bdry_handling_bound <- function(., j, ii, jj) {
 
-  # if outside bound of parameter space, restrict proposal value to corresponding dimension minimum
-  if      (.$dataf$pars[ii,jj] < .$mcmc$boundary_min[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_min[jj]
+  # if outside bound of parameter space, restrict proposal value to corresponding dimension min
+  if (.$dataf$pars[ii, jj] < .$mcmc$boundary_min[jj]) .$dataf$pars[ii, jj] <- .$mcmc$boundary_min[jj]
 
-  # if outside bound of parameter space, restrict proposal to corresponding dimension maximum
-  else if (.$dataf$pars[ii,jj] > .$mcmc$boundary_max[jj]) .$dataf$pars[ii,jj] <- .$mcmc$boundary_max[jj]
+  # if outside bound of parameter space, restrict proposal to corresponding dimension max
+  else if (.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) .$dataf$pars[ii, jj] <- .$mcmc$boundary_max[jj]
+}
+
+
+# restrict parameter proposals that are beyond the boundary
+# reflect them back accros the boundary
+mcmc_bdry_handling_reflect <- function(., j, ii, jj) {
+
+  if (.$dataf$pars[ii, jj] < .$mcmc$boundary_min[jj]) {
+    .$dataf$pars[ii, jj] <- 2 * .$mcmc$boundary_min[jj] - .$dataf$pars[ii, jj]
+  } else if (.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) {
+    .$dataf$pars[ii, jj] <- 2 * .$mcmc$boundary_max[jj] - .$dataf$pars[ii, jj]
+  }
+
+  # double check: if new reflected proposal value is out of bounds
+  if ((.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) | (.$dataf$pars[ii, jj] < .$mcmc$boundary_min[jj])) {
+    .$dataf$pars[ii, jj] <- .$mcmc$boundary_min[jj] + runif(1, min = 0, max = 1) * (.$mcmc$boundary_max[jj] - .$mcmc$boundary_min[jj])
+  }
+}
+
+
+# restrict parameter proposals that are beyond the boundary
+# "fold" them back across the boundary
+# note: this boundary handling approach maintains detailed MCMC balance
+mcmc_bdry_handling_fold <- function(., j, ii, jj) {
+
+  if (.$dataf$pars[ii, jj] < .$mcmc$boundary_min[jj]) {
+    .$dataf$pars[ii, jj] <- .$mcmc$boundary_max[jj] - (.$mcmc$boundary_min[jj] - .$dataf$pars[ii, jj])
+  } else if (.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) {
+    .$dataf$pars[ii, jj] <- .$mcmc$boundary_min[jj] + (.$dataf$pars[ii, jj] - .$mcmc$boundary_max[jj])
+  }
+
+  # double check: if new reflected proposal value is out of bounds
+  if ((.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) | (.$dataf$pars[ii, jj] < .$mcmc$boundary_min[jj])) {
+    .$dataf$pars[ii, jj] <- .$mcmc$boundary_min[jj] + runif(1, min = 0, max = 1) * (.$mcmc$boundary_max[jj] - .$mcmc$boundary_min[jj])
+  }
 }
 
 
