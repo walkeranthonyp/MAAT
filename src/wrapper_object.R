@@ -280,6 +280,7 @@ wrapper_object$wpars <- list(
   eval_strings  = F,        # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
   sobol_init    = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
   unit_testing  = F,
+  mcmc          = F,
   mcmc_type     = 'dream',
   mcmc_lklihood = 'log',
   mcmc_chains   = 10,
@@ -321,11 +322,14 @@ wrapper_object$mcmc <- list(
   accept_storage = array(1, c(1,1,1))
 )
 
+
 # Output processing functions
 ###########################################################################
 
-# function to combine output with met data
-wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(.$dataf$met,df[,i]))
+# function to combine factorial ensemble with met data
+# - for each ensemble member all columns of met matirx are run
+# - this is called from an lapply to expand each each ensemble member values of fnames, pars, and env with every column of the met matrix  
+wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(t(.$dataf$met),df[i,]))
 
 # function to write ensemble output data to file
 wrapper_object$write_to_file <- function(., df=.$output(), app=F ) {
@@ -356,22 +360,29 @@ wrapper_object$print_data <- function(.,otype='data') {
     print("MAAT :: summary of data",quote=F)
     print('',quote=F)
     print('',quote=F)
-
     print("fnames ::",quote=F)
-    print(summary(.$dataf$fnames),quote=F)
+    if(!is.null(.$dataf$fnames)) print(summary(t(.$dataf$fnames)), quote=F )
+    else                         print(NULL, quote=F )
+
     print('',quote=F)
     print("pars ::",quote=F)
-    if(!.$wpars$runtype=='SAprocess_ye') print(summary(.$dataf$pars),quote=F)
+    if(!.$wpars$runtype=='SAprocess_ye') 
+      if(!is.null(.$dataf$pars)) print(summary(t(.$dataf$pars)), quote=F )
+      else                       print(NULL, quote=F )
     else {
       print(.$dynamic$pars_proc,quote=F)
       print(paste('sample n:',.$wpars$n),quote=F)
     }
+
     print('',quote=F)
     print("env ::",quote=F)
-    print(summary(.$dataf$env),quote=F)
+    if(!is.null(.$dataf$env)) print(summary(t(.$dataf$env)), quote=F )
+    else                      print(NULL, quote=F )
+
     print('',quote=F)
     print("met data ::",quote=F)
-    print(summary(.$dataf$met),quote=F)
+    if(!is.null(.$dataf$met)) print(summary(t(.$dataf$met)), quote=F )
+    else                      print(NULL, quote=F )
     print('',quote=F)
 
   } else if(otype=='run') {
@@ -379,18 +390,18 @@ wrapper_object$print_data <- function(.,otype='data') {
     print('',quote=F)
     print('',quote=F)
     print('',quote=F)
-    print(paste("MAAT :: run model",Sys.time()),quote=F)
+    print(paste("MAAT :: run model",Sys.time()), quote=F )
     print('',quote=F)
-    print(paste(.$wpars$runtype,' ensemble'),quote=F)
-    print(paste('ensemble number ::',ens_n),quote=F)
+    print(paste(.$wpars$runtype,' ensemble'), quote=F )
+    print(paste('ensemble number ::',ens_n), quote=F )
     if(!is.null(.$dataf$met)) {
-      print(paste('timesteps in met data ::',.$dataf$lm),quote=F)
-      print(paste('total number of model calls ::',ens_n*.$dataf$lm),quote=F)
+      print(paste('timesteps in met data ::',.$dataf$lm), quote=F )
+      print(paste('total number of model calls ::',ens_n*.$dataf$lm), quote=F )
     }
     print('',quote=F)
 
-    if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'),quote=F)
-    else               print(paste('serial processing.'),quote=F)
+    if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'), quote=F )
+    else               print(paste('serial processing.'), quote=F )
     print('',quote=F)
   }
 }
