@@ -336,11 +336,14 @@ wrapper_object$mcmc <- list(
   burnin         = numeric(1)
 )
 
+
 # Output processing functions
 ###########################################################################
 
-# function to combine output with met data
-wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(.$dataf$met,df[i,]))
+# function to combine factorial ensemble with met data
+# - for each ensemble member all columns of met matirx are run
+# - this is called from an lapply to expand each each ensemble member values of fnames, pars, and env with every column of the met matrix
+wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(t(.$dataf$met),df[i,]))
 
 # function to write ensemble output data to file
 wrapper_object$write_to_file <- function(., df=.$output(), app=F ) {
@@ -371,22 +374,29 @@ wrapper_object$print_data <- function(.,otype='data') {
     print("MAAT :: summary of data",quote=F)
     print('',quote=F)
     print('',quote=F)
-
     print("fnames ::",quote=F)
-    print(summary(.$dataf$fnames),quote=F)
+    if(!is.null(.$dataf$fnames)) print(summary(t(.$dataf$fnames)), quote=F )
+    else                         print(NULL, quote=F )
+
     print('',quote=F)
     print("pars ::",quote=F)
-    if(!.$wpars$runtype=='SAprocess_ye') print(summary(.$dataf$pars),quote=F)
+    if(!.$wpars$runtype=='SAprocess_ye')
+      if(!is.null(.$dataf$pars)) print(summary(t(.$dataf$pars)), quote=F )
+      else                       print(NULL, quote=F )
     else {
       print(.$dynamic$pars_proc,quote=F)
       print(paste('sample n:',.$wpars$n),quote=F)
     }
+
     print('',quote=F)
     print("env ::",quote=F)
-    print(summary(.$dataf$env),quote=F)
+    if(!is.null(.$dataf$env)) print(summary(t(.$dataf$env)), quote=F )
+    else                      print(NULL, quote=F )
+
     print('',quote=F)
     print("met data ::",quote=F)
-    print(summary(.$dataf$met),quote=F)
+    if(!is.null(.$dataf$met)) print(summary(t(.$dataf$met)), quote=F )
+    else                      print(NULL, quote=F )
     print('',quote=F)
 
   } else if(otype=='run') {
@@ -394,18 +404,18 @@ wrapper_object$print_data <- function(.,otype='data') {
     print('',quote=F)
     print('',quote=F)
     print('',quote=F)
-    print(paste("MAAT :: run model",Sys.time()),quote=F)
+    print(paste("MAAT :: run model",Sys.time()), quote=F )
     print('',quote=F)
-    print(paste(.$wpars$runtype,' ensemble'),quote=F)
-    print(paste('ensemble number ::',ens_n),quote=F)
+    print(paste(.$wpars$runtype,' ensemble'), quote=F )
+    print(paste('ensemble number ::',ens_n), quote=F )
     if(!is.null(.$dataf$met)) {
-      print(paste('timesteps in met data ::',.$dataf$lm),quote=F)
-      print(paste('total number of model calls ::',ens_n*.$dataf$lm),quote=F)
+      print(paste('timesteps in met data ::',.$dataf$lm), quote=F )
+      print(paste('total number of model calls ::',ens_n*.$dataf$lm), quote=F )
     }
     print('',quote=F)
 
-    if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'),quote=F)
-    else               print(paste('serial processing.'),quote=F)
+    if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'), quote=F )
+    else               print(paste('serial processing.'), quote=F )
     print('',quote=F)
   }
 }
@@ -456,7 +466,7 @@ wrapper_object$.test_simple <- function(., gen_metd=F, mc=F, pr=4, oconf=F ) {
   .$model$env$ca_conc <- 400
   .$model$env$vpd     <- 1
   .$model$env$temp    <- 20
-  metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400))))
   if(gen_metd) .$dataf$met <- metdata
 
   # Define the static parameters and model functions
@@ -506,7 +516,7 @@ wrapper_object$.test <- function(.,gen_metd=T,mc=T,pr=4,oconf=F) {
   ###############################
   # can load a met dataset here
   # below a trivial met dataset is created to be used as an example
-  metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400))))
   #metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))
   if(gen_metd) .$dataf$met <- metdata
   else     { .$model$env$par <- 1000; .$model$env$ca_conc <- 400 }
@@ -621,7 +631,7 @@ wrapper_object$.test_con <- function(., mc=T, pr=4, oconf=F,
   .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
 
   # Define meteorological dataset
-  if(!is.null(metd))    .$dataf$met  <- as.matrix(expand.grid(metd))
+  if(!is.null(metd))    .$dataf$met  <- t(as.matrix(expand.grid(metd)))
 
   # Define the static model functions, parameters, and environment
   if(!is.null(sfnames)) .$static$fnames <- sfnames
@@ -667,7 +677,7 @@ wrapper_object$.test_can <- function(., metd=T, mc=T, pr=4, verbose=F ) {
   .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
 
   # define meteorological and environment dataset
-  metdata <- expand.grid(list(canopy.par_dir = 500,canopy.ca_conc = seq(10,1200,50)))
+  metdata <- t(as.matrix(expand.grid(list(canopy.par_dir = 500,canopy.ca_conc = seq(10,1200,50)))))
   if(metd) .$dataf$met <- metdata
 
   # Define the parameters and model functions that are to be varied
@@ -737,8 +747,8 @@ wrapper_object$.test_mimic <- function(., mod_mimic='clm45_non_Tacclimation', mo
   # Define meteorological and environment dataset
   # can load a met dataset here
   # below a trivial met dataset is created to be used as an example
-  metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100), leaf.ca_conc = 400))  )
-  metdata <- as.matrix(expand.grid(list(leaf.par = 2000, leaf.ca_conc = seq(50,1500,50))) )
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = seq(0,1000,100), leaf.ca_conc = 400))  ))
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = 2000, leaf.ca_conc = seq(50,1500,50))) ))
   if(metd) .$dataf$met <- metdata
 
   # Run model
@@ -1027,8 +1037,8 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_cha
   .$model$pars$syn_b_sd  <- b_sd
 
   # met data
-  .$dataf$met            <- matrix(x, length(x) ,1 )
-  colnames(.$dataf$met)  <- 'mcmc_test.linreg_x'
+  .$dataf$met            <- t(matrix(x, length(x), 1 ))
+  rownames(.$dataf$met)  <- 'mcmc_test.linreg_x'
 
   # define priors
   .$dynamic$pars_eval <- list(

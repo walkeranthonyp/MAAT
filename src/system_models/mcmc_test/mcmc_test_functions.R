@@ -23,7 +23,8 @@ f_reg_func_linear_gen_obs <- function(.) {
   print('Gen obs:')
   #print(.$dataf$met)
   #print(.super$dataf$met)
-  .$env$linreg_x     <- .super$dataf$met[,'mcmc_test.linreg_x']
+  #.$env$linreg_x     <- .super$dataf$met[,'mcmc_test.linreg_x']
+  .$env$linreg_x     <- .super$dataf$met['mcmc_test.linreg_x',]
 
   # generate uncertainty on target parameters
   .$pars$a           <- rnorm(length(.$env$linreg_x), .$pars$syn_a_mu, .$pars$syn_a_sd )

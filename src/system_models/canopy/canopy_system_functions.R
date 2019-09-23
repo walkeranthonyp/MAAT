@@ -47,12 +47,11 @@ f_sys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
   .super$state$integrated$layers_Apg_lim <- if(.super$leaf$state$lim==7) .super$state$lai
   # convert reistance to conductance, minus minimum conductance, scale, add min conductance multiplied by LAI
   # A combination of Eq 35 and Eq 37f in Sellers (1992)
-  .super$state$integrated$gs             <- (1/.super$leaf$state$rs - .super$leaf$pars$g0) * fpar/k + .super$leaf$pars$g0*.super$state$lai
+  .super$state$integrated$gs             <- (1/.super$leaf$state_pars$rs - .super$leaf$pars$g0) * fpar/k + .super$leaf$pars$g0*.super$state$lai 
   # canopy mean values of Ci and Cc - not sure this is correct
   .super$state$integrated$ci             <- .super$leaf$state$ci * fpar/k / .super$state$lai
   .super$state$integrated$cc             <- .super$leaf$state$cc * fpar/k / .super$state$lai
   .super$state$integrated$cb             <- .super$leaf$state$cb * fpar/k / .super$state$lai
-
 }
 
 

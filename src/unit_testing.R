@@ -30,10 +30,13 @@ wrapper_object$run2
 wrapper_object$run3
 wrapper_object$run4
 
+wrapper_object$dataf
+wrapper_object$dynamic
+
 
 source('wrapper_object.R')
 out <- wrapper_object$.test(mc=F, oconf=F, gen_metd=F )
-out <- wrapper_object$.test(mc=T, oconf=F )
+out <- wrapper_object$.test(mc=F, oconf=F )
 out <- wrapper_object$.test(mc=T, oconf=F )
 
 library(lattice)
@@ -104,7 +107,7 @@ wrapper_object$dataf$pars
 source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=1000)
 out <- wrapper_object$.test_mcmc_mixture(mcmc_type='dream',
-                                         mcmc_maxiter=2000, mcmc_chains=8, mc=F, pr=4,
+                                         mcmc_maxiter=5000, mcmc_chains=8, mc=F, pr=4,
                                          mu_vector=c(-8, 0, 8), sd_vector=c(1, 1, 1),
                                          height_vector=c(0.1, 0.3, 0.6), mixture_scale=1e12
                                          )

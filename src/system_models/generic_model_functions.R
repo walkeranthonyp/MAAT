@@ -114,7 +114,9 @@ run_met <- function(.,l) {
   #print(.$dataf$met[l,])
   #print('super obj')
   #print(.super$dataf$met[l,])
-  .$configure(vlist='env', df=.$dataf$met[l,] )
+  #.$configure(vlist='env', df=.$dataf$met[l,] )
+  #.$configure(vlist='env', df=.$dataf$met[,l] )
+  .$configure_met(df=.$dataf$met[,l])
   #.$configure(vlist='env', df=.super$dataf$met[l,] )
 
   # run model
@@ -141,11 +143,26 @@ run_met <- function(.,l) {
 # configure functions
 ###########################################################################
 
-configure <- function(., vlist, df, init=F, o=T ) {
-  # This function is called from any of the run functions, or during model initialisation
-  # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df
+# check character names on row vectors of dataf functions  
+configure_check <- function(., vlist='env', df ) {
+  if(!is.character(names(df))) {
+    print('', quote=F )
+    print(paste('Check dataf names:',.$name,',',vlist,'.'), quote=F )
+    print('dft:', quote=F )
+    print(df, quote=F )
+    print('names(df):', quote=F )
+    print(names(df), quote=F )
+    stop('FATAL ERROR: names(df) is not a character vector, will cause strsplit to fail.')
+  }
+}
 
-  # print configure setup if requested
+
+# This function is called from any of the run functions, or during model initialisation
+# - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df
+configure <- function(., vlist, df, init=F, o=T ) {
+
+  # error catch 
+  # APW: move this to the wrapper object - it only needs tested once 
   if(!is.character(names(df))) {
     print('', quote=F )
     print(paste('Configure:',.$name,',',vlist,'.'), quote=F )
@@ -255,6 +272,29 @@ configure_child <- function(., child, vlist, df ) {
 
   .[[child]]$configure(vlist=vlist, df=df )
   numeric(0)
+}
+
+
+# configure function for meteorological / boundary conditions
+configure_met <- function(., df ) {
+
+  # split variable names at .
+  listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
+
+  # df subscripts for model object
+  mss  <- 1:length(df) 
+
+  # variable list subscripts in model object data structure
+  vlss <- match(listnames[2,], names(.[['env']]) )
+
+  # remove NAs in vlss from vlss and mss
+  if(any(is.na(vlss))) {
+    mss  <- mss[-which(is.na(vlss))]
+    vlss <- vlss[-which(is.na(vlss))]
+  }
+
+  # assign UQ variables
+  .[['env']][vlss] <- df[]
 }
 
 

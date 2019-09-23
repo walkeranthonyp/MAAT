@@ -416,7 +416,7 @@ if(!is.null(metdata)) {
     }
 
     # add to MAAT object
-    maat$dataf$met <- metdf
+    maat$dataf$met <- t(as.matrix(metdf))
 
     # remove met data file
     rm(metdf)
