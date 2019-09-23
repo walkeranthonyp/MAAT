@@ -88,25 +88,39 @@ generate_ensemble_pars_SAprocess_ye <- function(.) {
 # parameter matrix for initial proposal of MCMC
 generate_ensemble_pars_mcmc_dream <- function(.) {
 
-  # sample parameters from character string code snippets to generate initial proposal from priors
+  # ORIGINAL CODE TO GENERATE PRIOR DISTRIBUTION
+  # THIS IS WITH DIFFERNT TYPE OF INIT FILE
+  ## sample parameters from character string code snippets to generate initial proposal from priors
   n <- .$wpars$mcmc_chains
   .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-
-  # create pars / proposal matrix
+  ## create pars / proposal matrix
   .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
+  ## remove initialisation pars list
+  .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
+  #print('old dataf$pars')
+  #print(typeof(.$dataf$pars))
+  #print(.$dataf$pars)
 
-  if(.$wpars$mcmc_debug & .$wpars$mod_obj == 'mcmc_test') {
-    # hard-code initial sample generated from prior distribution (generated from interval [-10, 10])
-    prop1 <- c( 7.631916,  -5.999289,  -5.734941,   1.769624,  -1.128974,  -1.065893,   9.091345,  -9.570053)
-    prop2 <- c(-8.955127,  -2.165650,   8.288627,   8.335986,  -9.420836,  -6.112619,  -4.796342,   8.128561)
-    prop3 <- c(-2.757425,  -1.311214,  -9.983908,  -6.061901,  -3.076935,   8.934289,  -3.041526,  -7.045019)
-    prop4 <- c(-1.342557,   9.406705,  -0.041981,  -9.757184,  -0.402050,  -4.263008,   6.564540,  -0.241696)
-    .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
-    colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
-  }
+  # NEW CODE TO GENERATE PRIOR DISTRIBUTION
+  # THIS IS WITH DIFFERNT TYPE OF INIT FILE
+  # ALSO WILL HAVE TO CHANGE UNIT TESTING AND WRAPPER FUNCTIONS
+
+  # read values from character string code snippets
+  #.$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+
+  # ALJ: trying new mcmcm prior function...
+  # ALJ: would be optimal to change bdry handling functions after i get this working
+
+  # generate initial proposal from priors and create pars / proposal matrix
+  #.$mcmc_prior()
+
+  # debugging/development
+  #print('was pars matrix successfully created????')
+  #print(typeof(.$dataf$pars))
+  #print(.$dataf$pars)
 
   # remove initialisation pars list
-  .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
+  #.$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
   # if observation subsampling specified - currently evenly spaced subsampling
   if(.$wpars$mcmc_thin_obs < 1.0) {
@@ -115,7 +129,7 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
     oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
     .$dataf$met   <- .$dataf$met[oss,]
     .$dataf$obs   <- .$dataf$obs[oss]
-    #.$dataf$obsse <- .$dataf$obsse[oss]
+    .$dataf$obsse <- .$dataf$obsse[oss]
   }
 }
 
@@ -174,8 +188,7 @@ init_output_matrix_mcmc_dream <- function(.) {
   .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm)
 
   # create matrix for storing chain outlier information
-  .$dataf$omega          <- matrix(NA, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter)
-  .$dataf$omega2         <- matrix(NA, .$wpars$mcmc_chains, ceiling(.$wpars$mcmc_maxiter / (2 * .$wpars$mcmc_check_iter)))
+  .$dataf$omega          <- matrix(NA, .$wpars$mcmc_chains, ceiling(.$wpars$mcmc_maxiter / (2 * .$wpars$mcmc_check_iter)))
 
   # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
   .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
@@ -614,21 +627,8 @@ run1_mcmc_dream <- function(.,i) {
   # debug: add to proposal storage array
   # .$dataf$prop_storage[ , , 1] <- .$dataf$pars
 
-  # debug: function (1), set seed for uniform_r generation
-  # .$set_seed1()
-
-  # debug: function (3), set seed for runif(1) value chosen in accept/reject step
-  # .$set_seed3()
-
-  # debug: function (2), set seed for R1 and R2 random draw (in DE-MC)
-  # debug: call this set seed function last so it will be the seed for all remaining random draws
-  # .$set_seed2()
-
   # run initialisation part of algorithm
   .$init_mcmc()
-
-  # if debugging, predetermine random number generation
-  if (.$wpars$mcmc_debug) .$set_seed()
 
   # run MCMC
   vapply(2:.$wpars$mcmc_maxiter, .$run2, numeric(0) )

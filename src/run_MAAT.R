@@ -85,7 +85,7 @@ coef_var   <- 0.1
 salt_nmult <- 100
 
 # parameters for MCMC run
-# MCMC likelihood (options: log, ssquared, ssquared_se)
+# MCMC likelihood (options: log, ssquared, ssquared_se, ...)
 mcmc_lklihood      <- 'log'
 # MCMC outlier handling (options: none, iqr, ...)
 mcmc_outlier       <- 'iqr'
@@ -93,6 +93,8 @@ mcmc_outlier       <- 'iqr'
 mcmc_converge      <- 'Gelman_Rubin'
 # MCMC option for parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
 mcmc_bdry_handling <- 'bound'
+# MCMC option for initializing Markov chains with chosen prior distribution (options: uniform, latin, normal)
+mcmc_prior         <- 'uniform'
 # number of MCMC chains to run (min 2x number of parameters estimated)
 mcmc_chains        <- 10
 # number of iterations / steps in MCMC chain
@@ -261,6 +263,7 @@ maat$wpars$mcmc_type          <- mcmc_type
 maat$wpars$mcmc_lklihood      <- mcmc_lklihood
 maat$wpars$mcmc_outlier       <- mcmc_outlier
 maat$wpars$mcmc_bdry_handling <- mcmc_bdry_handling
+maat$wpars$mcmc_prior         <- mcmc_prior 
 maat$wpars$mcmc_converge      <- mcmc_converge
 maat$wpars$mcmc_chains        <- mcmc_chains
 maat$wpars$mcmc_maxiter       <- mcmc_maxiter

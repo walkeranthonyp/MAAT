@@ -179,7 +179,7 @@ init_mcmc_dream <- function(.) {
 proposal_generate_mcmc_dream <- function(., j ) {
 
   # debug
-  print(paste0('iteration = ', j))
+  #print(paste0('iteration = ', j))
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
@@ -425,27 +425,79 @@ adapt_CR <- function(.) {
 }
 
 
+
+# prior distribution functions
+################################
+
+# initialize chains with uniform distributions
+mcmc_prior_uniform <- function(.) {
+
+  # number of Markov chains
+  n <- .$wpars$mcmc_chains
+
+  # number of parameters (dimensionality of parameter space)
+  d <- length(.$dynamic$pars)
+
+  # determine minimums and maximums for parameter values
+  min_vals <- rep(0, d); max_vals <- rep(0, d)
+  for(i in 1:d) {
+    min_vals[i] <- .$dynamic$pars[[names(.$dynamic$pars)[i]]][['min']]
+    max_vals[i] <- .$dynamic$pars[[names(.$dynamic$pars)[i]]][['max']]
+  }
+
+  # extract parameter names
+  pars_names <- names(.$dynamic$pars)
+
+  # draw priors from uniform distribution
+  # create pars / proposal matrix
+  #.$dataf$pars <- matrix(0, nrow = n, ncol = d)
+  for (i in 1:d) {
+    #.$dataf$pars[1:n, i] <- runif(n, min = min_vals[i], max = max_vals[i])
+    nam <- paste('prior', i, sep = '')
+    assign(nam, runif(n, min = min_vals[i], max = max_vals[i]))
+  }
+
+  .$dataf$pars <- cbind(prior1, prior2, prior3, prior4)
+  print(.$dataf$pars)
+
+  # assign parameter names
+  #colnames(.$dataf$pars) <- pars_names
+}
+
+
+# initialize chains with Latin hypercube sampling
+mcmc_prior_latin <- function(.) {
+
+}
+
+
+# initialize chains with multi-normal distribution (multivariate normal distribution)
+mcmc_prior_normal <- function(.) {
+
+}
+
+
+
 # boundary handling functions
 ################################
 
 # set parameter boundaries from prior distributions
 boundary_handling_set <- function(.) {
+
   # number of samples to be used in boundary handling
   n <- 1e4
+
   boundary_sample     <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)))
+
   .$mcmc$boundary_min <- unlist(lapply(boundary_sample, min))
   .$mcmc$boundary_max <- unlist(lapply(boundary_sample, max))
-  rm(boundary_sample)
 
-  # debugging/development
-  print('max')
-  print(.$mcmc$boundary_max)
-  print('min')
-  print(.$mcmc$boundary_min)
+  rm(boundary_sample)
 }
 
 # no boundary handling: a good choice when the search space is not "physically" restricted
 mcmc_bdry_handling_none <- function(., j, ii, jj) {
+
   if ((j == .$wpars$mcmc_maxiter) & (ii == .$wpars$mcmc_chains) & (jj == .$mcmc$d)) {
     print('No option was chosen for MCMC boundary handling.')
   }
@@ -512,48 +564,28 @@ mcmc_converge_none <- function(., j) {
 # compute the R-statistic of Gelman and Rubin as a convergence diagnostic
 mcmc_converge_Gelman_Rubin <- function(., j) {
 
-  print('Geman-Rubin convergence test being called')
+  #print('Geman-Rubin convergence test being called')
 
-  # TEMPORARY basing off of Dan's MATLAB code -- will make more MAAT-like later
+  # need an R_stat storage array! (.$dataf$R_hat)
+  # need to add R_hat to output system so I can graph it
 
-  # need an R_stat storage array!
-
-  # TEMPORARY dimensions (rename everything to make more MAAT-like later)
-  # number of stored samples
-  n   <- .$wpars$mcmc_maxiter
-  # dimension / number of parameters
-  nrY <- .$mcmc$d
-  # number of Markov chains
-  m   <- .$wpars$mcmc_chains
-
-  # TEMPORARY reshape pars_array
-  sequences <- aperm(.$dataf$pars_array, c(3, 2, 1))
-  #print(dim(.$dataf$pars_array))
-  #print(dim(sequences))
-
-  if (n < 10) {
-
-    # set R-statistic to large value
-    R_stat <- -2 * rep(1, n)
-
-  } else {
-
-      # determin chain means
-      meanSeq <- apply(sequences, 3, mean)
-      #print(length(meanSeq))
-
-
-      R_stat <- 1
-
-  }
 
   # within-chain variance (for each parameter)
 
   # between-chain variance (for each parameter)
 
-  return(R_stat)
+  #return(R_stat)
 }
 
+
+# auto- correlation function
+
+# Geweke diagnostic (within chain)
+
+# Raftery and Lewis diagnostic (within chain)
+
+# post processing and plotting functions
+#########################################
 
 
 # likelihood functions
@@ -628,7 +660,7 @@ mcmc_outlier_none <- function(., j) {
 mcmc_outlier_iqr <- function(., j) {
 
   # debug/development print statment
-  print('IQR outlier test being called')
+  #print('IQR outlier test being called')
 
   counter <- j / .$wpars$mcmc_check_iter
 
@@ -688,28 +720,13 @@ mcmc_outlier_iqr <- function(., j) {
 }
 
 
+mcmc_outlier_grubbs <- function(., j) {}
 
-# debuging functions
-################################
 
-# set seed function (to reproduce sequences of quasi-random numbers)
-set_seed <- function(.) {
+mcmc_outlier_pierce <- function(., j) {}
 
-  # random number generation 1, set seed for draw matrix in proposal_generate_mcmc_dream
-  set.seed(1703)
-  .$mcmc$draw_seed[]   <- runif(((.$dataf$lp - 1) * .$dataf$lp * .$wpars$mcmc_maxiter), min = 0, max = 1)
 
-  # random number generation 2, set seed for lambda matrix in proposal_generate_mcmc_dream
-  set.seed(4050)
-  .$mcmc$lambda_seed[] <- runif((.$dataf$lp * .$wpars$mcmc_maxiter), min = -.$wpars$mcmc_c_rand, max = .$wpars$mcmc_c_rand)
-
-  # random number generation 3, set seed for zz vector in proposal_generate_mcmc_dream
-  set.seed(1337)
-  .$mcmc$zz_seed[]     <- runif((.$mcmc$d * .$dataf$lp * .$wpars$mcmc_maxiter), min = 0, max = 1)
-
-  # random number generation 4, runif(1) value used in accept/reject step
-  .$mcmc$runif_seed[]  <- runif((.$dataf$lp * .$wpars$mcmc_maxiter), min = 0, max = 1)
-}
+mcmc_outlier_chauvenet <- function(., j) {}
 
 
 

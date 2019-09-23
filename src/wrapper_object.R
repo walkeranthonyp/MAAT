@@ -54,6 +54,7 @@ wrapper_object$build <- function(., ... ) {
     .$mcmc_outlier          <- get(paste0('mcmc_outlier_', .$wpars$mcmc_outlier))
     .$mcmc_converge         <- get(paste0('mcmc_converge_', .$wpars$mcmc_converge))
     .$mcmc_bdry_handling    <- get(paste0('mcmc_bdry_handling_', .$wpars$mcmc_bdry_handling))
+    .$mcmc_prior            <- get(paste0('mcmc_prior_', .$wpars$mcmc_prior))
     .$boundary_handling_set <- boundary_handling_set
   }
 
@@ -286,6 +287,7 @@ wrapper_object$wpars <- list(
   mcmc_outlier       = 'iqr',
   mcmc_converge      = 'Gelman_Rubin',
   mcmc_bdry_handling = 'bound',
+  mcmc_prior         = 'uniform',
   mcmc_chains        = 10,
   mcmc_maxiter       = 100,
   mcmc_burnin        = 0.5,
