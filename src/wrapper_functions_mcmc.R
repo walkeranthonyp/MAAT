@@ -534,10 +534,10 @@ mcmc_bdry_handling_none <- function(., j, ii, jj) {
 mcmc_bdry_handling_bound <- function(., j, ii, jj) {
 
   # if outside bound of parameter space, restrict proposal value to corresponding dimension min
-  if (.$dataf$pars[ii, jj] < .$mcmc$boundary_min[jj]) .$dataf$pars[ii, jj] <- .$mcmc$boundary_min[jj]
+  if (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj]) .$dataf$pars[jj, ii] <- .$mcmc$boundary_min[jj]
 
   # if outside bound of parameter space, restrict proposal to corresponding dimension max
-  else if (.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) .$dataf$pars[ii, jj] <- .$mcmc$boundary_max[jj]
+  else if (.$dataf$pars[jj, ii] > .$mcmc$boundary_max[jj]) .$dataf$pars[jj, ii] <- .$mcmc$boundary_max[jj]
 }
 
 
@@ -545,15 +545,15 @@ mcmc_bdry_handling_bound <- function(., j, ii, jj) {
 # reflect them back accros the boundary
 mcmc_bdry_handling_reflect <- function(., j, ii, jj) {
 
-  if (.$dataf$pars[ii, jj] < .$mcmc$boundary_min[jj]) {
-    .$dataf$pars[ii, jj] <- 2 * .$mcmc$boundary_min[jj] - .$dataf$pars[ii, jj]
+  if (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj]) {
+    .$dataf$pars[jj, ii] <- 2 * .$mcmc$boundary_min[jj] - .$dataf$pars[jj, ii]
   } else if (.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) {
-    .$dataf$pars[ii, jj] <- 2 * .$mcmc$boundary_max[jj] - .$dataf$pars[ii, jj]
+    .$dataf$pars[jj, ii] <- 2 * .$mcmc$boundary_max[jj] - .$dataf$pars[jj, ii]
   }
 
   # double check: if new reflected proposal value is out of bounds
-  if ((.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) | (.$dataf$pars[ii, jj] < .$mcmc$boundary_min[jj])) {
-    .$dataf$pars[ii, jj] <- .$mcmc$boundary_min[jj] + runif(1, min = 0, max = 1) * (.$mcmc$boundary_max[jj] - .$mcmc$boundary_min[jj])
+  if ((.$dataf$pars[jj, ii] > .$mcmc$boundary_max[jj]) | (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj])) {
+    .$dataf$pars[jj, ii] <- .$mcmc$boundary_min[jj] + runif(1, min = 0, max = 1) * (.$mcmc$boundary_max[jj] - .$mcmc$boundary_min[jj])
   }
 }
 
@@ -563,15 +563,15 @@ mcmc_bdry_handling_reflect <- function(., j, ii, jj) {
 # note: this boundary handling approach maintains detailed MCMC balance
 mcmc_bdry_handling_fold <- function(., j, ii, jj) {
 
-  if (.$dataf$pars[ii, jj] < .$mcmc$boundary_min[jj]) {
-    .$dataf$pars[ii, jj] <- .$mcmc$boundary_max[jj] - (.$mcmc$boundary_min[jj] - .$dataf$pars[ii, jj])
-  } else if (.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) {
-    .$dataf$pars[ii, jj] <- .$mcmc$boundary_min[jj] + (.$dataf$pars[ii, jj] - .$mcmc$boundary_max[jj])
+  if (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj]) {
+    .$dataf$pars[jj, ii] <- .$mcmc$boundary_max[jj] - (.$mcmc$boundary_min[jj] - .$dataf$pars[jj, ii])
+  } else if (.$dataf$pars[jj, ii] > .$mcmc$boundary_max[jj]) {
+    .$dataf$pars[jj, ii] <- .$mcmc$boundary_min[jj] + (.$dataf$pars[jj, ii] - .$mcmc$boundary_max[jj])
   }
 
   # double check: if new reflected proposal value is out of bounds
-  if ((.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) | (.$dataf$pars[ii, jj] < .$mcmc$boundary_min[jj])) {
-    .$dataf$pars[ii, jj] <- .$mcmc$boundary_min[jj] + runif(1, min = 0, max = 1) * (.$mcmc$boundary_max[jj] - .$mcmc$boundary_min[jj])
+  if ((.$dataf$pars[jj, ii] > .$mcmc$boundary_max[jj]) | (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj])) {
+    .$dataf$pars[jj, ii] <- .$mcmc$boundary_min[jj] + runif(1, min = 0, max = 1) * (.$mcmc$boundary_max[jj] - .$mcmc$boundary_min[jj])
   }
 }
 
@@ -736,7 +736,8 @@ mcmc_outlier_iqr <- function(., j) {
     # IMPORTANT QUESTOIN: do i replace just the current iteration, or do i replace the whole sampled history???
 
     # replace outlier chain(s)
-    .$dataf$pars_array[outliers, 1, j] <- .$dataf$pars_array[replace_idx, 1, j]
+    #.$dataf$pars_array[outliers, 1, j] <- .$dataf$pars_array[replace_idx, 1, j]
+    .$dataf$pars_array[1:.$mcmc$d, outliers, j] <- .$dataf$pars_array[1:.$mcmc$d, replace_idx, j]
     .$dataf$pars_lklihood[outliers, j] <- .$dataf$pars_lklihood[replace_idx, j]
   }
 
