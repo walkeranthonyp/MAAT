@@ -673,10 +673,15 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   print(dim(t(.$dataf$out)))
   print('length of obsse')
   print(length(obsse))
+  print('type of dataf$out')
+  print(typeof(.$dataf$out))
+  print('type of dataf$obs')
+  print(typeof(.$dataf$obs))
+  #print(.$dataf$out)
 
   # calculate error residual (each chain is on rows of dataf$out, take transpose)
   #error_residual_matrix <- ( t(.$dataf$out)[sspos, ] - .$dataf$obs[sspos] ) / obsse
-  error_residual_matrix <- ( .$dataf$out[sspos, ] - .$dataf$obs[sspos] ) / obsse
+  error_residual_matrix <- ( .$dataf$out[ , sspos] - .$dataf$obs[sspos] ) / obsse
 
   print("dim of error residual matrix")
   print(dim(error_residual_matrix))
