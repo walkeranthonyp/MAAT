@@ -263,7 +263,7 @@ maat$wpars$mcmc_type          <- mcmc_type
 maat$wpars$mcmc_lklihood      <- mcmc_lklihood
 maat$wpars$mcmc_outlier       <- mcmc_outlier
 maat$wpars$mcmc_bdry_handling <- mcmc_bdry_handling
-maat$wpars$mcmc_prior         <- mcmc_prior 
+maat$wpars$mcmc_prior         <- mcmc_prior
 maat$wpars$mcmc_converge      <- mcmc_converge
 maat$wpars$mcmc_chains        <- mcmc_chains
 maat$wpars$mcmc_maxiter       <- mcmc_maxiter
@@ -416,7 +416,7 @@ if(!is.null(metdata)) {
     }
 
     # add to MAAT object
-    maat$dataf$met <- t(as.matrix(metdf))
+    maat$dataf$met <- t(as.matrix(metdf[,-1]))
 
     # remove met data file
     rm(metdf)
