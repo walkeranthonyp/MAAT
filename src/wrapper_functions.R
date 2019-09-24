@@ -140,7 +140,7 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
     oss  <- seq(1, dim(.$dataf$metdata)[2], thin )
     .$dataf$met   <- .$dataf$met[,oss]
     .$dataf$obs   <- .$dataf$obs[oss]
-    .$dataf$obsse <- .$dataf$obsse[oss]
+    #.$dataf$obsse <- .$dataf$obsse[oss]
   }
 }
 

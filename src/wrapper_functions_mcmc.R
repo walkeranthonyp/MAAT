@@ -660,6 +660,14 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   obsse <- if(.$wpars$mcmc_homosced)   rep(mean(.$dataf$obsse[sspos]), obs_n)
            else                .$dataf$obsse[sspos]
 
+  # debugging
+  print('dim of .$dataf$obs[sspos]')
+  print(dim(.$dataf$obs[sspos]))
+  print('dim of .$dataf$out[sspos, ]')
+  print(dim(.$dataf$out[sspos, ]))
+  print('dim of transpose .$dataf$out[sspos, ]')
+  print(dim(t(.$dataf$out)[sspos, ]))
+
   # calculate error residual (each chain is on rows of dataf$out, take transpose)
   error_residual_matrix <- ( t(.$dataf$out)[sspos, ] - .$dataf$obs[sspos] ) / obsse
 
