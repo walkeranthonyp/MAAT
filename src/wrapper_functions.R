@@ -140,6 +140,7 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
     oss  <- seq(1, dim(.$dataf$metdata)[2], thin )
     .$dataf$met   <- .$dataf$met[,oss]
     .$dataf$obs   <- .$dataf$obs[oss]
+    # ALJ: not sure whether this should be commented out or not?
     #.$dataf$obsse <- .$dataf$obsse[oss]
   }
 }

@@ -661,15 +661,22 @@ f_proposal_lklihood_ssquared_se <- function(.) {
            else                .$dataf$obsse[sspos]
 
   # debugging
-  print('dim of .$dataf$obs[sspos]')
-  print(dim(.$dataf$obs[sspos]))
-  print('dim of .$dataf$out[sspos, ]')
-  print(dim(.$dataf$out[sspos, ]))
-  print('dim of transpose .$dataf$out[sspos, ]')
-  print(dim(t(.$dataf$out)[sspos, ]))
+  print('lenth of sspos')
+  print(length(sspos))
+  print('dim of .$dataf$obs')
+  print(dim(.$dataf$obs))
+  print('length of .$dataf$obs')
+  print(length(.$dataf$obs))
+  print('dim of .$dataf$out')
+  print(dim(.$dataf$out))
+  print('dim of transpose .$dataf$out')
+  print(dim(t(.$dataf$out)))
 
   # calculate error residual (each chain is on rows of dataf$out, take transpose)
   error_residual_matrix <- ( t(.$dataf$out)[sspos, ] - .$dataf$obs[sspos] ) / obsse
+
+  print("dim of error residual matrix")
+  print(dim(error_residual_matrix))
 
   # calculate sum of squared error
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
