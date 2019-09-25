@@ -108,8 +108,8 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
   #print('old dataf$pars')
   #print(typeof(.$dataf$pars))
-  print('dataf$pars matrix')
-  print(.$dataf$pars)
+  #print('dataf$pars matrix')
+  #print(.$dataf$pars)
 
   # NEW CODE TO GENERATE PRIOR DISTRIBUTION
   # THIS IS WITH DIFFERNT TYPE OF INIT FILE

@@ -385,7 +385,11 @@ if(!is.null(metdata)) {
   if(file.exists(metdata)&!kill) {
     print(metdata, quote=F )
     metdf <- read.csv(metdata,strip.white=T)
-    #temporary branch; subset it here to screen out 0s from PAR column
+
+    # ALJ: screen out night-time values from met data file to shorten Sphagnum simulation iterations
+    # subset it to remove 0's and negative values
+    sub_idx <- which(metdf$EM_PAR_8100_x > 0)
+    metdf <- metdf[sub_idx, ]
 
     print(head(metdf), quote=F )
 

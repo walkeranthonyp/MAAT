@@ -700,6 +700,7 @@ f_proposal_lklihood_ssquared_se <- function(.) {
 
 # no outlier handling for Markov chians
 mcmc_outlier_none <- function(., j) {
+  # NEED TO FIX THIS; PRINT STATEMENT NOT BEING CALLED AT CORRECT TIME
   if (j == .$wpars$mcmc_maxiter) print('No option was chosen to identify and correct outlier Markov chains during burn-in.')
 }
 
