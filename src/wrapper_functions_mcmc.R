@@ -209,49 +209,48 @@ proposal_generate_mcmc_dream <- function(., j ) {
     a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
     b <- .$mcmc$R[ii, .$mcmc$draw[(D + 1):(2 * D), ii]]
 
+    # NEED TO FIGURE OUT A WAY TO SWITCH BACK AND FORTH BETWEEN ADAPTIVE AND NON-ADAPTIVE HERE
+    # ALJ: I'm thinking maybe an if/else statement here and using mcmc$id as an adaptive crossover parm
+    # ALJ: I'm thinking maybe an if-else statement that computes A and d-star differenlty depending on adaptive criterion
+
     if (.$wpars$mcmc_adapt_CR) {
 
       # ALJ: would like to maybe add more things to this subroutine once i've figured things out
       # ALJ: need to make sure that new crossover values are being generated for each chain at each iteration?
       .$generate_CR()
 
+      # ALJ: from the proposal generation step: will need an A and a d_star
+
     } else {
 
       # select index of crossover value (weighted sample with replacement)
       # ALJ: I think this should be being sampled from a multinomial distribution, and I'm not convinced that's what this is
       .$mcmc$id <- sample(1:.$wpars$mcmc_n_CR, 1, replace = T, prob = .$mcmc$p_CR)
+
+      # draw d values from uniform distribution between 0 and 1
+      zz <- runif(.$mcmc$d)
+
+      # derive subset A of selected dimensions
+      A  <- which(zz < .$mcmc$CR[.$mcmc$id])
+
+      #  how many dimensions are sampled (i.e., how many dimenstions that will be updated jointly)
+      d_star <- length(A)
+
+      # numerical check: make sure that A contains at least one value
+      if (d_star == 0) {
+        A <- which.min(zz)
+        d_star <- 1
+      }
+
+      # debug
+      #print(paste0('.$mcmc$id = ', .$mcmc$id))
+      #print('A = ')
+      #print(A)
+      #print(paste0('d_star = ', d_star))
+
     }
 
 
-
-    # draw d values from uniform distribution between 0 and 1
-    zz <- runif(.$mcmc$d)
-
-
-    # NEED TO FIGURE OUT A WAY TO SWITCH BACK AND FORTH BETWEEN ADAPTIVE AND NON-ADAPTIVE HERE
-    # ALJ: I'm thinking maybe an if-else statement that computes A and d-star differenlty depending on adaptive criterion
-    # derive subset A of selected dimensions
-    A  <- which(zz < .$mcmc$CR[.$mcmc$id])
-    # ALJ: try this instead? this seems like it would work better for adapt_CR <- F
-    #      A  <- which(zz < (1 - .$mcmc$CR[.$mcmc$id]))
-    #      need to double check -->
-    #      A is subset of crossed-over dimensions or updated dimensions or dimensions not updating...
-
-    # NEED TO FIGURE OUT A WAY TO SWITCH BACK AND FORTH BETWEEN ADAPTIVE AND NON-ADAPTIVE HERE
-    # ALJ: is this instead of d' = d' - 1 ????? if not, how do i put d' in here ?????
-    #  how many dimensions are sampled (i.e., how many dimenstions that will be updated jointly)
-    d_star <- length(A)
-    # numerical check: make sure that A contains at least one value
-    if (d_star == 0) {
-      A <- which.min(zz)
-      d_star <- 1
-    }
-
-    # debug
-    #print(paste0('.$mcmc$id = ', .$mcmc$id))
-    #print('A = ')
-    #print(A)
-    #print(paste0('d_star = ', d_star))
 
     # calculate jump rate
     gamma_d <- 2.38 / sqrt(2 * D * d_star)
@@ -261,11 +260,11 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
     # compute jump differential evolution of ii-th chain
     #.$mcmc$jump[ii,A] <- .$wpars$mcmc_c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[A,a] - .$mcmc$current_state[A,b]), dim = 1)
-    .$mcmc$jump[A,ii] <- .$wpars$mcmc_c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[A,a] - .$mcmc$current_state[A,b]), dim = 1)
+    .$mcmc$jump[A, ii] <- .$wpars$mcmc_c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[A, a] - .$mcmc$current_state[A, b]), dim = 1)
 
     # compute proposal of ii-th chain
     #.$dataf$pars[ii, 1:.$mcmc$d] <- .$mcmc$current_state[ii, 1:.$mcmc$d] + .$mcmc$jump[ii, 1:.$mcmc$d]
-    .$dataf$pars[1:.$mcmc$d,ii] <- .$mcmc$current_state[1:.$mcmc$d,ii] + .$mcmc$jump[1:.$mcmc$d,ii]
+    .$dataf$pars[1:.$mcmc$d, ii] <- .$mcmc$current_state[1:.$mcmc$d, ii] + .$mcmc$jump[1:.$mcmc$d, ii]
     #.$dataf$pars[,ii] <- .$mcmc$current_state[,ii] + .$mcmc$jump[,ii]
 
     # call boundary handling function
