@@ -697,6 +697,7 @@ run2_mcmc_dream <- function(.,j) {
   if ((j %% .$wpars$mcmc_check_iter == 0) & (j <= .$mcmc$burnin)) .$mcmc_outlier(j=j)
 
   # after burnin complete, check for convergence
+  # ALJ: not sure how/when exactly I should be checking for convergence (ask Dan)
   if (((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) & (j > .$mcmc$burnin)) .$mcmc_converge(j=j)
 
   # future work: other code here for subprograms called during or after burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
