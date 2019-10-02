@@ -332,8 +332,10 @@ wrapper_object$mcmc <- list(
   del            = numeric(1),
   L              = numeric(1),
   t              = numeric(1),
+  m              = numeric(1),
   CR_burnin      = numeric(1),
-  burnin         = numeric(1)
+  burnin         = numeric(1),
+  d_star         = numeric(1)
 )
 
 
