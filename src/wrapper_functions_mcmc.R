@@ -254,8 +254,8 @@ proposal_generate_mcmc_dream <- function(., j ) {
       for (jj in 1:.$mcmc$d) {
         if (runif(1, min = 0, max = 1) <= (1 - .$mcmc$CR)) {
           .$dataf$pars[jj, ii] <- .$mcmc$current_state[jj, ii]
-          # this doesn't work for some reason????
-          .$mcmc$d_star <- .$mcmc$d_star - 1
+          # ALJ: this is how it is in Vrugt 2009 paper, but this would go to 1 for an awfully small parameter dimension space
+          #.$mcmc$d_star <- .$mcmc$d_star - 1
         } else {
           crossover <- T
         }
@@ -264,8 +264,8 @@ proposal_generate_mcmc_dream <- function(., j ) {
       #print('new dataf$pars[1:.$mcmc$d, ii] =')
       #print(.$dataf$pars[1:.$mcmc$d, ii])
 
-      # ALJ: not really sure about the d_star here (seem's like it would go to 1 very quickly?)
-      # alternatively: d_star <- number of dimensions being updated
+      # ALJ: not really sure about the d_star above (seem's like it would go to 1 very quickly?)
+      # alternatively: d_star <- number of dimensions being updated (this is how it is in Vrugt MATLAB paper)
       .$mcmc$d_star <- length(crossover)
 
       #print(paste0('d_star = ', .$mcmc$d_star))
@@ -308,6 +308,9 @@ proposal_generate_mcmc_dream <- function(., j ) {
       # compute jump differential evolution of ii-th chain
       .$mcmc$jump[A, ii] <- .$wpars$mcmc_c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[A, a] - .$mcmc$current_state[A, b]), dim = 1)
 
+      print('mcmc$jump[1:.$mcmc$d, ii] = ')
+      print(.$mcmc$jump[1:.$mcmc$d, ii])
+
       # compute proposal of ii-th chain
       #.$dataf$pars[ii, 1:.$mcmc$d] <- .$mcmc$current_state[ii, 1:.$mcmc$d] + .$mcmc$jump[ii, 1:.$mcmc$d]
       .$dataf$pars[1:.$mcmc$d, ii] <- .$mcmc$current_state[1:.$mcmc$d, ii] + .$mcmc$jump[1:.$mcmc$d, ii]
@@ -324,7 +327,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
 # proposal acceptance function for the DREAM algorithm
 proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
-  # future work: parallelize this part
+  # future work: parallelize this part maybe?
 
   # debug: make sure this is being assigned at the right place in terms of function call order; also check function call order again
   # likelihood of current state
@@ -387,9 +390,7 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
     if (.$wpars$mcmc_adapt_CR & (.$mcmc$t < .$mcmc$CR_burnin) ) {
 
       # compute the squared normalized jumping distance
-      .$calc_del(ii = ii)
-
-      # maybe I should write my own SD code?
+      .$calc_del(j = j, ii = ii)
 
     } else if (!.$wpars$mcmc_adapt_CR) {
 
@@ -477,7 +478,7 @@ generate_CR <- function(.) {
 
 
 # function to compute the squared normalized jumping distance
-calc_del <- function(., ii) {
+calc_del <- function(., j, ii) {
 
   # compute standard deviation of each dimension/parameter
   .$mcmc$sd_state[] <- apply(.$dataf$pars_array, 1, sd)
@@ -487,10 +488,30 @@ calc_del <- function(., ii) {
   .$mcmc$sd_state[idx] <- 1e-9
 
   # debug: can check summation
-  summation <- sum(((.$dataf$pars_array[1:.$mcmc$d, ii, .$mcmc$t] - .$dataf$pars_array[1:.$mcmc$d, ii, .$mcmc$t - 1]) / .$mcmc$sd_state)^2)
-  #summation <- sum(((.$dataf$pars_array[1:.$mcmc$d, ii, j] - .$dataf$pars_array[1:.$mcmc$d, ii, j - 1]) / .$mcmc$sd_state)^2)
+  #summation <- sum(((.$dataf$pars_array[ , ii, .$mcmc$t] - .$dataf$pars_array[ , ii, (.$mcmc$t - 1)]) / .$mcmc$sd_state)^2)
+  #summation <- sum(((.$dataf$pars_array[1:.$mcmc$d, ii, .$mcmc$t] - .$dataf$pars_array[1:.$mcmc$d, ii, .$mcmc$t - 1]) / .$mcmc$sd_state)^2)
+  summation <- sum(((.$dataf$pars_array[1:.$mcmc$d, ii, j] - .$dataf$pars_array[1:.$mcmc$d, ii, j - 1]) / .$mcmc$sd_state)^2)
 
   .$mcmc$del[.$mcmc$m] <- .$mcmc$del[.$mcmc$m] + summation
+
+  # PROBLEM 1: del vector is zeros <- fixed it!
+  # PROBLEM 2: need to index m due to parallelization (ie, need to make it a vector of length chains)
+
+  #print(paste0('.$mcmc$t = ', .$mcmc$t))
+  #print(.$dataf$pars_array[ , , .$mcmc$t])
+  # problem is because t - 1 = 0 for j = 2
+  #print(paste0('j = ', j))
+  #print(.$dataf$pars_array[ , , j])
+  #print(paste0('j - 1 = ', j - 1))
+  #print(.$dataf$pars_array[ , , j - 1])
+
+  #print(paste0('chain = ', ii))
+  #print('standard deviation = ')
+  #print(.$mcmc$sd_state)
+  #print(paste0('summation = ', summation))
+  #print(paste0('m = ', .$mcmc$m))
+  #print('.$mcmc$del = ')
+  #print(.$mcmc$del)
 
 }
 
