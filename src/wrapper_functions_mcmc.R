@@ -164,12 +164,12 @@ init_mcmc_dream <- function(.) {
   for (ii in 1:.$dataf$lp) .$mcmc$R[ii, ] <- setdiff(1:.$dataf$lp, ii)
 
   # debug/dev
-  print('check init_mcmc_dream part')
-  print(paste0('mcmc_adapt_CR is ', .$wpars$mcmc_adapt_CR))
-  print('CR = ')
-  print(.$mcmc$CR)
-  print('p_CR = ')
-  print(.$mcmc$p_CR)
+  #print('check init_mcmc_dream part')
+  #print(paste0('mcmc_adapt_CR is ', .$wpars$mcmc_adapt_CR))
+  #print('CR = ')
+  #print(.$mcmc$CR)
+  #print('p_CR = ')
+  #print(.$mcmc$p_CR)
 
 }
 
@@ -178,7 +178,7 @@ init_mcmc_dream <- function(.) {
 proposal_generate_mcmc_dream <- function(., j ) {
 
   # debug
-  print(paste0('iteration = ', j))
+  #print(paste0('iteration = ', j))
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
@@ -445,14 +445,14 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   #print(.$mcmc$id)
   #print('del = ')
   #print(.$mcmc$del)
-  print('CR = ')
-  print(.$mcmc$CR)
-  print('p_CR = ')
-  print(.$mcmc$p_CR)
+  #print('CR = ')
+  #print(.$mcmc$CR)
+  #print('p_CR = ')
+  #print(.$mcmc$p_CR)
   #print('n_id =')
   #print(.$mcmc$n_id)
-  print('m = ')
-  print(.$mcmc$m)
+  #print('m = ')
+  #print(.$mcmc$m)
   #print('L = ')
   #print(.$mcmc$L)
 
