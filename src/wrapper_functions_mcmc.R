@@ -109,8 +109,8 @@ init_mcmc_dream <- function(.) {
   # ALJ: some may be redundant with above crossover vars?
   # ALJ: these are from vrugt 2009 paper and also dan lu's matlab code
   .$mcmc$t      <- numeric(1)
-  .$mcmc$m      <- numeric(1)
   .$mcmc$d_star <- numeric(1)
+  .$mcmc$m      <- numeric(.$wpars$mcmc_chains)
   .$mcmc$L      <- numeric(.$wpars$mcmc_n_CR)
   .$mcmc$del    <- numeric(.$wpars$mcmc_n_CR)
 
@@ -219,7 +219,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
     if (.$wpars$mcmc_adapt_CR) {
 
       # generate crossover probability
-      .$generate_CR()
+      .$mcmc$m[ii] <- .$generate_CR()
 
       # calculate jump rate (scaling factor)
       # ALJ: is it correct to use the d_star from the previous iteration?
@@ -270,7 +270,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
       #print(paste0('d_star = ', .$mcmc$d_star))
 
-      # numerical check
+      # numerical check (in case no dimesnions crossover/are updated)
       if (.$mcmc$d_star == 0) .$mcmc$d_star <- 1
 
       # the above code SHOULD effectively modify each dimension with probability CR each time a proposal vector is generated
@@ -308,8 +308,8 @@ proposal_generate_mcmc_dream <- function(., j ) {
       # compute jump differential evolution of ii-th chain
       .$mcmc$jump[A, ii] <- .$wpars$mcmc_c_ergod * rnorm(d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[A, a] - .$mcmc$current_state[A, b]), dim = 1)
 
-      print('mcmc$jump[1:.$mcmc$d, ii] = ')
-      print(.$mcmc$jump[1:.$mcmc$d, ii])
+      #print('mcmc$jump[1:.$mcmc$d, ii] = ')
+      #print(.$mcmc$jump[1:.$mcmc$d, ii])
 
       # compute proposal of ii-th chain
       #.$dataf$pars[ii, 1:.$mcmc$d] <- .$mcmc$current_state[ii, 1:.$mcmc$d] + .$mcmc$jump[ii, 1:.$mcmc$d]
@@ -451,7 +451,8 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   print(.$mcmc$p_CR)
   #print('n_id =')
   #print(.$mcmc$n_id)
-  #print(paste0('m = ', .$mcmc$m))
+  print('m = ')
+  print(.$mcmc$m)
   #print('L = ')
   #print(.$mcmc$L)
 
@@ -466,14 +467,18 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 generate_CR <- function(.) {
 
   # sample m from numbers 1,...,n_CR using multinomial distribution (ie, probabilities p_CR)
-  .$mcmc$m <- sample(1:.$wpars$mcmc_n_CR, size = 1, replace = T, prob = .$mcmc$p_CR)
+  # .$mcmc$m <- sample(1:.$wpars$mcmc_n_CR, size = 1, replace = T, prob = .$mcmc$p_CR)
+  m <- sample(1:.$wpars$mcmc_n_CR, size = 1, replace = T, prob = .$mcmc$p_CR)
 
   # set crossover probability/value
-  .$mcmc$CR <- .$mcmc$m / .$wpars$mcmc_n_CR
+  #.$mcmc$CR <- .$mcmc$m / .$wpars$mcmc_n_CR
+  .$mcmc$CR <- m / .$wpars$mcmc_n_CR
 
   # index of which crosover probabilities/values are selected
-  .$mcmc$L[.$mcmc$m] <- .$mcmc$L[.$mcmc$m] + 1
+  #.$mcmc$L[.$mcmc$m] <- .$mcmc$L[.$mcmc$m] + 1
+  .$mcmc$L[m] <- .$mcmc$L[m] + 1
 
+  return(m)
 }
 
 
@@ -492,7 +497,7 @@ calc_del <- function(., j, ii) {
   #summation <- sum(((.$dataf$pars_array[1:.$mcmc$d, ii, .$mcmc$t] - .$dataf$pars_array[1:.$mcmc$d, ii, .$mcmc$t - 1]) / .$mcmc$sd_state)^2)
   summation <- sum(((.$dataf$pars_array[1:.$mcmc$d, ii, j] - .$dataf$pars_array[1:.$mcmc$d, ii, j - 1]) / .$mcmc$sd_state)^2)
 
-  .$mcmc$del[.$mcmc$m] <- .$mcmc$del[.$mcmc$m] + summation
+  .$mcmc$del[.$mcmc$m[ii]] <- .$mcmc$del[.$mcmc$m[ii]] + summation
 
   # PROBLEM 1: del vector is zeros <- fixed it!
   # PROBLEM 2: need to index m due to parallelization (ie, need to make it a vector of length chains)
@@ -522,8 +527,14 @@ adapt_pCR <- function(.) {
   # note: dan's code doesn't have the multiplication by t???
   # update the probability of the different CR values being selected
   for (qq in 1:.$wpars$mcmc_n_CR) {
-    .$mcmc$p_CR[qq] <- .$mcmc$t * .$wpars$mcmc_chains * (.$mcmc$del[.$mcmc$m] / .$mcmc$L[.$mcmc$m]) / sum(.$mcmc$del)
+    .$mcmc$p_CR[qq] <- .$mcmc$t * .$wpars$mcmc_chains * (.$mcmc$del[qq] / .$mcmc$L[qq]) / sum(.$mcmc$del)
+    # note: Dan's code doesn't have multiplication by t, and Dan also normalizes p_CR
+    # might need to normalize this???? i.e., divide by sum(p_CR)
+    # this also seems to be very different from code in vrugt matlab paper
   }
+
+  # normalize p_CR
+  .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
 
 }
 
