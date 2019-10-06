@@ -105,15 +105,15 @@ template_object$cpars <- list(
 # output functions
 #######################################################################        
 
-f_object_template_run <- function(.) {
+f_output_template_run <- function(.) {
   unlist(.$state)
 }
 
-f_object_template_state <- function(.) {
+f_output_template_state <- function(.) {
   unlist(.$state)
 }
 
-f_object_template_full <- function(.) {
+f_output_template_full <- function(.) {
   c(unlist(.$state),unlist(.$statei_pars))
 }
 
