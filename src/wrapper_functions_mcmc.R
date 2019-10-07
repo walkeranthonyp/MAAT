@@ -349,19 +349,19 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       accept <- TRUE
 
       #.$mcmc$current_state[ii, 1:.$mcmc$d] <- .$dataf$pars[ii, 1:.$mcmc$d]
-      .$mcmc$current_state[1:.$mcmc$d,ii] <- .$dataf$pars[1:.$mcmc$d,ii]
+      .$mcmc$current_state[1:.$mcmc$d, ii] <- .$dataf$pars[1:.$mcmc$d, ii]
       #.$mcmc$current_state[,ii] <- .$dataf$pars[,ii]
       .$mcmc$p_state[ii]                   <- lklihood[ii]
 
       # append accepted current_state and probability density to storage data frames
       #.$dataf$pars_array[ii, 1:.$mcmc$d, j]  <- .$mcmc$current_state[ii, 1:.$mcmc$d]
-      .$dataf$pars_array[1:.$mcmc$d,ii,j] <- .$mcmc$current_state[1:.$mcmc$d,ii]
+      .$dataf$pars_array[1:.$mcmc$d, ii, j] <- .$mcmc$current_state[1:.$mcmc$d, ii]
       #.$dataf$pars_array[,ii,j]  <- .$mcmc$current_state[,ii]
-      .$dataf$pars_lklihood[ii,j]        <- .$mcmc$p_state[ii]
+      .$dataf$pars_lklihood[ii, j]        <- .$mcmc$p_state[ii]
 
       # if debugging, store generated proposal (regardless of whether accepted or not)
       #if (.$wpars$mcmc_debug) .$dataf$prop_storage[ii, 1:.$mcmc$d, j] <- .$dataf$pars[ii, 1:.$mcmc$d]
-      if (.$wpars$mcmc_debug) .$dataf$prop_storage[1:.$mcmc$d,ii,j] <- .$dataf$pars[1:.$mcmc$d,ii]
+      if (.$wpars$mcmc_debug) .$dataf$prop_storage[1:.$mcmc$d, ii, j] <- .$dataf$pars[1:.$mcmc$d, ii]
       #if (.$wpars$mcmc_debug) .$dataf$prop_storage[,ii,j] <- .$dataf$pars[,ii]
 
       # future work: make out_n dependent on whether or not mcmc_debug is true (ie, if it is, then store all model evaluations, otherwise...)
@@ -372,12 +372,12 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       accept <- FALSE
 
       # set jump back to zero for p_CR
-      .$mcmc$jump[1:.$mcmc$d,ii] <- 0
+      .$mcmc$jump[1:.$mcmc$d, ii] <- 0
       #.$mcmc$jump[,ii] <- 0
 
       # repeat previous current_state and probability density in storage data frames
       #.$dataf$pars_array[ii, 1:.$mcmc$d, j]   <- .$dataf$pars_array[ii, 1:.$mcmc$d, j-1]
-      .$dataf$pars_array[1:.$mcmc$d,ii,j]   <- .$dataf$pars_array[1:.$mcmc$d,ii,j-1]
+      .$dataf$pars_array[1:.$mcmc$d, ii, j]   <- .$dataf$pars_array[1:.$mcmc$d, ii, j-1]
       #.$dataf$pars_array[,ii,j]   <- .$dataf$pars_array[,ii,j-1]
       .$dataf$pars_lklihood[ii, j]          <- .$dataf$pars_lklihood[ii, j-1]
 
@@ -415,7 +415,6 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
   }
 
-  # ADAPT CROSSOVER VALUES FUNCTION CALL HERE
   if (.$wpars$mcmc_adapt_CR & (.$mcmc$t < .$mcmc$CR_burnin)) {
 
     # make sure to fix function names in wrapper object
@@ -424,7 +423,15 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
     .$mcmc$t <- .$mcmc$t + 1
 
-  } else if ((.$wpars$mcmc_adapt_CR) & .$mcmc$t >= .$mcmc$burnin) {
+  } else if ((.$wpars$mcmc_adapt_CR) & .$mcmc$t == .$mcmc$CR_burnin) {
+
+    print(paste0('iteration = ', j))
+    print('selection probabilities of crossover probabilities = ')
+    print(.$mcmc$p_CR)
+
+    .$mcmc$t <- .$mcmc$t + 1
+
+  } else if ((.$wpars$mcmc_adapt_CR) & .$mcmc$t > .$mcmc$CR_burnin) {
 
     .$mcmc$t <- .$mcmc$t + 1
 
@@ -798,8 +805,8 @@ mcmc_outlier_none <- function(., j) {
 # function that detects and corrects outlier Markov chains using the Inter Quartile-Range (IQR) statistic
 mcmc_outlier_iqr <- function(., j) {
 
-  # debug/development print statment
-  #print('IQR outlier test being called')
+  # debug/dev
+  print(paste0('IQR outlier test being called at iteration = ', j))
 
   counter <- j / .$wpars$mcmc_check_iter
 
@@ -851,8 +858,12 @@ mcmc_outlier_iqr <- function(., j) {
 
     # replace outlier chain(s)
     #.$dataf$pars_array[outliers, 1, j] <- .$dataf$pars_array[replace_idx, 1, j]
-    .$dataf$pars_array[1:.$mcmc$d, outliers, j] <- .$dataf$pars_array[1:.$mcmc$d, replace_idx, j]
-    .$dataf$pars_lklihood[outliers, j] <- .$dataf$pars_lklihood[replace_idx, j]
+    #.$dataf$pars_array[1:.$mcmc$d, outliers, j] <- .$dataf$pars_array[1:.$mcmc$d, replace_idx, j]
+    .$dataf$pars_array[1:.$mcmc$d, outliers, 1:j] <- .$dataf$pars_array[1:.$mcmc$d, replace_idx, 1:j]
+
+    # replace likelihood history for next iqr calculation
+    #.$dataf$pars_lklihood[outliers, j] <- .$dataf$pars_lklihood[replace_idx, j]
+    .$dataf$pars_lklihood[outliers, 1:j] <- .$dataf$pars_lklihood[replace_idx, 1:j]
   }
 
   # identifying and correcting outliers should only be done during burn-in
