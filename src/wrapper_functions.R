@@ -100,37 +100,39 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   # ORIGINAL CODE TO GENERATE PRIOR DISTRIBUTION
   # THIS IS WITH DIFFERNT TYPE OF INIT FILE
   ## sample parameters from character string code snippets to generate initial proposal from priors
-  n <- .$wpars$mcmc_chains
-  .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+  #n <- .$wpars$mcmc_chains
+  #.$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
   ## create pars / proposal matrix
-  .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
+  #.$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
   ## remove initialisation pars list
-  .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
+  #.$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
   #print('old dataf$pars')
   #print(typeof(.$dataf$pars))
+  #print(.$dataf$pars[1, 1])
   #print('dataf$pars matrix')
   #print(.$dataf$pars)
+  #print('stop here')
 
   # NEW CODE TO GENERATE PRIOR DISTRIBUTION
   # THIS IS WITH DIFFERNT TYPE OF INIT FILE
   # ALSO WILL HAVE TO CHANGE UNIT TESTING AND WRAPPER FUNCTIONS
 
   # read values from character string code snippets
-  #.$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+  n <- .$wpars$mcmc_chains
+  .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
 
-  # ALJ: trying new mcmcm prior function...
+  # ALJ: trying new mcmc prior function...
   # ALJ: would be optimal to change bdry handling functions after i get this working
 
   # generate initial proposal from priors and create pars / proposal matrix
-  #.$mcmc_prior()
+  .$mcmc_prior()
 
   # debugging/development
   #print('was pars matrix successfully created????')
-  #print(typeof(.$dataf$pars))
   #print(.$dataf$pars)
 
   # remove initialisation pars list
-  #.$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
+  .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
   # if observation subsampling specified - currently evenly spaced subsampling
   if(.$wpars$mcmc_thin_obs < 1.0) {
@@ -206,6 +208,7 @@ init_output_matrix_mcmc_dream <- function(.) {
 
   # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
   .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
+
 }
 
 init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream

@@ -447,15 +447,15 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   }
 
   # debug: print crossover values and crossover probabilities at the end of each iteration
-  #print(paste0('iteration = ', j))
+  print(paste0('iteration = ', j))
   #print('id = ')
   #print(.$mcmc$id)
   #print('del = ')
   #print(.$mcmc$del)
-  #print('CR = ')
-  #print(.$mcmc$CR)
-  #print('p_CR = ')
-  #print(.$mcmc$p_CR)
+  print('CR = ')
+  print(.$mcmc$CR)
+  print('p_CR = ')
+  print(.$mcmc$p_CR)
   #print('n_id =')
   #print(.$mcmc$n_id)
   #print('m = ')
@@ -566,23 +566,26 @@ mcmc_prior_uniform <- function(.) {
     max_vals[i] <- .$dynamic$pars[[names(.$dynamic$pars)[i]]][['max']]
   }
 
-  # extract parameter names
-  pars_names <- names(.$dynamic$pars)
-
-  # draw priors from uniform distribution
-  # create pars / proposal matrix
-  #.$dataf$pars <- matrix(0, nrow = n, ncol = d)
-  for (i in 1:d) {
-    #.$dataf$pars[1:n, i] <- runif(n, min = min_vals[i], max = max_vals[i])
-    nam <- paste('prior', i, sep = '')
-    assign(nam, runif(n, min = min_vals[i], max = max_vals[i]))
+  # draw priors from uniform distribution to create pars / proposal matrix
+  .$dataf$pars <- matrix(0, nrow = d, ncol = n)
+  for (jj in 1:d) {
+    .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
+    #nam <- paste0('dimension', jj, sep = '')
+    #nam <- runif(n, min = min_vals[jj], max = max_vals[jj])
+    #print(nam)
+    #assign(nam, runif(n, min = min_vals[jj], max = max_vals[jj]))
   }
 
-  .$dataf$pars <- cbind(prior1, prior2, prior3, prior4)
-  print(.$dataf$pars)
+  #attempt <- rbind(c(paste('dimension', 1:d)))
+  #print(dimension1)
+  #print('attempt')
+  #print(attempt)
+  #.$dataf$pars <- rbind(dimension1, dimension2, dimension3, dimension4)
 
   # assign parameter names
-  #colnames(.$dataf$pars) <- pars_names
+  rownames(.$dataf$pars) <- names(.$dynamic$pars)
+  #print(dim(.$dataf$pars))
+  #print(.$dataf$pars[1, 1])
 }
 
 
@@ -605,13 +608,18 @@ mcmc_prior_normal <- function(.) {
 # set parameter boundaries from prior distributions
 boundary_handling_set <- function(.) {
 
-  # number of samples to be used in boundary handling
-  n <- 1e4
+  boundary_sample <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)))
 
-  boundary_sample     <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)))
+  min_vals <- rep(0, length(boundary_sample))
+  max_vals <- rep(0, length(boundary_sample))
 
-  .$mcmc$boundary_min <- unlist(lapply(boundary_sample, min))
-  .$mcmc$boundary_max <- unlist(lapply(boundary_sample, max))
+  for(jj in 1:length(boundary_sample)) {
+    min_vals[jj] <- boundary_sample[[names(boundary_sample)[jj]]][['min']]
+    max_vals[jj] <- boundary_sample[[names(boundary_sample)[jj]]][['max']]
+  }
+
+  .$mcmc$boundary_min <- min_vals
+  .$mcmc$boundary_max <- max_vals
 
   rm(boundary_sample)
 }
