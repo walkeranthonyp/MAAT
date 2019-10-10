@@ -534,6 +534,7 @@ adapt_pCR <- function(.) {
   # note: dan's code doesn't have the multiplication by t???
   # update the probability of the different CR values being selected
   for (qq in 1:.$wpars$mcmc_n_CR) {
+    # if L[qq] not zero
     .$mcmc$p_CR[qq] <- .$mcmc$t * .$wpars$mcmc_chains * (.$mcmc$del[qq] / .$mcmc$L[qq]) / sum(.$mcmc$del)
     # note: Dan's code doesn't have multiplication by t, and Dan also normalizes p_CR
     # might need to normalize this???? i.e., divide by sum(p_CR)
@@ -558,6 +559,10 @@ mcmc_prior_uniform <- function(.) {
 
   # number of parameters (dimensionality of parameter space)
   d <- length(.$dynamic$pars)
+
+  print(paste0('d = ', d))
+  print(names(.$dynamic$pars))
+  print(.$dynamic$pars)
 
   # determine minimums and maximums for parameter values
   min_vals <- rep(0, d); max_vals <- rep(0, d)

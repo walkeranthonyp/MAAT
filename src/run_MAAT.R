@@ -396,10 +396,11 @@ if(!is.null(metdata)) {
     ###################################
     # future work:
     # add eval data to model object - total hack for now
-    if(mod_obj!='mcmc_test') {
-      maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
-      maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
-    }
+    #if(mod_obj!='mcmc_test') {
+    #  maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
+    #  maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
+    #}
+    maat$dataf$obs <- metdf$A
     ###################################
 
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
@@ -420,7 +421,10 @@ if(!is.null(metdata)) {
     }
 
     # add to MAAT object
-    maat$dataf$met <- t(as.matrix(metdf[,-1]))
+    # this one is for sphagnum simulations
+    #maat$dataf$met <- t(as.matrix(metdf[,-1]))
+    # this one is for aci simulations
+    maat$dataf$met <- t(as.matrix(metdf))
 
     # remove met data file
     rm(metdf)
