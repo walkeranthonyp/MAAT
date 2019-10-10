@@ -78,7 +78,7 @@ leaf_object$fnames <- list(
   tcor_jmax      = 'f_scalar_none',
   tpu            = 'f_tpu_lin',
   rd             = 'f_rd_lin_vcmax',
-  rl_rd   = 'f_scalar_none',
+  rl_rd          = 'f_scalar_none',
   gstar          = 'f_gstar_f1980',
   ri             = 'f_r_zero',
   rs             = 'f_rs_medlyn2011',
@@ -291,7 +291,7 @@ leaf_object$pars   <- list(
     Kc      = 40.49,          # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
     Ko      = 27.84,          # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
     gstar   = 4.325,          # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
-    tau     = 2600,           # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (-)
+    tau     = 2.6,           # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (kPa Pa-1)
     vomax   = numeric(1) 
   ),
   Ha = list(
@@ -421,6 +421,12 @@ f_output_leaf_sphagnum <- function(.) {
   c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim','fwdw_ratio')), 
     .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
 }
+
+f_output_leaf_WUE <- function(.) {
+  c(.$state_retrive(snames=c('A','cc','ci','ca','gstar')), 
+    gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb ) 
+}
+
 
 
 # test functions
