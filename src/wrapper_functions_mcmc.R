@@ -447,15 +447,15 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
   }
 
   # debug: print crossover values and crossover probabilities at the end of each iteration
-  print(paste0('iteration = ', j))
+  #print(paste0('iteration = ', j))
   #print('id = ')
   #print(.$mcmc$id)
   #print('del = ')
   #print(.$mcmc$del)
-  print('CR = ')
-  print(.$mcmc$CR)
-  print('p_CR = ')
-  print(.$mcmc$p_CR)
+  #print('CR = ')
+  #print(.$mcmc$CR)
+  #print('p_CR = ')
+  #print(.$mcmc$p_CR)
   #print('n_id =')
   #print(.$mcmc$n_id)
   #print('m = ')
@@ -555,31 +555,31 @@ adapt_pCR <- function(.) {
 mcmc_prior_uniform <- function(.) {
 
   # number of Markov chains
-  n <- .$wpars$mcmc_chains
+  #n <- .$wpars$mcmc_chains
 
   # number of parameters (dimensionality of parameter space)
-  d <- length(.$dynamic$pars)
+  #d <- length(.$dynamic$pars)
 
-  print(paste0('d = ', d))
-  print(names(.$dynamic$pars))
-  print(.$dynamic$pars)
+  #print(paste0('d = ', d))
+  #print(names(.$dynamic$pars))
+  #print(.$dynamic$pars)
 
   # determine minimums and maximums for parameter values
-  min_vals <- rep(0, d); max_vals <- rep(0, d)
-  for(i in 1:d) {
-    min_vals[i] <- .$dynamic$pars[[names(.$dynamic$pars)[i]]][['min']]
-    max_vals[i] <- .$dynamic$pars[[names(.$dynamic$pars)[i]]][['max']]
-  }
+  #min_vals <- rep(0, d); max_vals <- rep(0, d)
+  #for(i in 1:d) {
+  #  min_vals[i] <- .$dynamic$pars[[names(.$dynamic$pars)[i]]][['min']]
+  #  max_vals[i] <- .$dynamic$pars[[names(.$dynamic$pars)[i]]][['max']]
+  #}
 
   # draw priors from uniform distribution to create pars / proposal matrix
-  .$dataf$pars <- matrix(0, nrow = d, ncol = n)
-  for (jj in 1:d) {
-    .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
+  #.$dataf$pars <- matrix(0, nrow = d, ncol = n)
+  #for (jj in 1:d) {
+  #  .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
     #nam <- paste0('dimension', jj, sep = '')
     #nam <- runif(n, min = min_vals[jj], max = max_vals[jj])
     #print(nam)
     #assign(nam, runif(n, min = min_vals[jj], max = max_vals[jj]))
-  }
+  #}
 
   #attempt <- rbind(c(paste('dimension', 1:d)))
   #print(dimension1)
@@ -588,9 +588,33 @@ mcmc_prior_uniform <- function(.) {
   #.$dataf$pars <- rbind(dimension1, dimension2, dimension3, dimension4)
 
   # assign parameter names
-  rownames(.$dataf$pars) <- names(.$dynamic$pars)
+  #rownames(.$dataf$pars) <- names(.$dynamic$pars)
   #print(dim(.$dataf$pars))
   #print(.$dataf$pars[1, 1])
+
+  # hard-coding for sake of urgency
+  min_vals <- rep(0, 3); max_vals <- rep(0, 3)
+
+  min_vals[1] <- .$dynamic$pars$leaf.atref$vcmax$min
+  max_vals[1] <- .$dynamic$pars$leaf.atref$vcmax$max
+
+  min_vals[2] <- .$dynamic$pars$leaf.atref$jmax$min
+  max_vals[2] <- .$dynamic$pars$leaf.atref$jmax$max
+
+  min_vals[3] <- .$dynamic$pars$leaf.theta_col_cj$min
+  max_vals[3] <- .$dynamic$pars$leaf.theta_col_cj$max
+
+  n <- .$wpars$mcmc_chains
+  .$dataf$pars <- matrix(0, nrow = 3, ncol = n)
+  for (jj in 1:3) {
+    .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
+  }
+
+  rownames(.$dataf$pars) <- c('leaf.atref$vcmax', 'leaf.atref$jmax', 'leaf.theta_col_cj')
+
+  print(min_vals)
+  print(max_vals)
+  print(.$dataf$pars)
 }
 
 
@@ -613,20 +637,24 @@ mcmc_prior_normal <- function(.) {
 # set parameter boundaries from prior distributions
 boundary_handling_set <- function(.) {
 
-  boundary_sample <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)))
+  #boundary_sample <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)))
 
-  min_vals <- rep(0, length(boundary_sample))
-  max_vals <- rep(0, length(boundary_sample))
+  #min_vals <- rep(0, length(boundary_sample))
+  #max_vals <- rep(0, length(boundary_sample))
 
-  for(jj in 1:length(boundary_sample)) {
-    min_vals[jj] <- boundary_sample[[names(boundary_sample)[jj]]][['min']]
-    max_vals[jj] <- boundary_sample[[names(boundary_sample)[jj]]][['max']]
-  }
+  #for(jj in 1:length(boundary_sample)) {
+  #  min_vals[jj] <- boundary_sample[[names(boundary_sample)[jj]]][['min']]
+  #  max_vals[jj] <- boundary_sample[[names(boundary_sample)[jj]]][['max']]
+  #}
+
+  # again, temporarily hard-coding for sake of urgency
+  min_vals <- c(40.0, 70.0, 0.9)
+  max_vals <- c(150.0, 300.0, 1.0)
 
   .$mcmc$boundary_min <- min_vals
   .$mcmc$boundary_max <- max_vals
 
-  rm(boundary_sample)
+  #rm(boundary_sample)
 }
 
 # no boundary handling: a good choice when the search space is not "physically" restricted
