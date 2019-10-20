@@ -178,7 +178,7 @@ init_mcmc_dream <- function(.) {
 proposal_generate_mcmc_dream <- function(., j ) {
 
   # debug
-  #print(paste0('iteration = ', j))
+  print(paste0('iteration = ', j))
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
@@ -769,6 +769,12 @@ f_proposal_lklihood_ssquared <- function(.) {
 
   # number of measured data points
   obs_n <- length(.$dataf$obs)
+
+  # debugging
+  print('t(.$dataf$out)')
+  print(t(.$dataf$out))
+  print('.$dataf$obs')
+  print(.$dataf$obs)
 
   # calculate error residual
   # - each chain is on rows of dataf$out take transpose
