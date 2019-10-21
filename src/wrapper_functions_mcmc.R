@@ -531,7 +531,7 @@ adapt_pCR <- function(.) {
   # note: dan's code doesn't have the multiplication by t???
   # update the probability of the different CR values being selected
   for (qq in 1:.$wpars$mcmc_n_CR) {
-
+  
     if (.$mcmc$L[qq] != 0) {
       # note: Dan's code doesn't have multiplication by t, and Dan also normalizes p_CR
       .$mcmc$p_CR[qq] <- .$mcmc$t * .$wpars$mcmc_chains * (.$mcmc$del[qq] / .$mcmc$L[qq]) / sum(.$mcmc$del)
