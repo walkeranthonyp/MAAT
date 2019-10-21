@@ -357,7 +357,7 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       #.$dataf$pars_array[ii, 1:.$mcmc$d, j]  <- .$mcmc$current_state[ii, 1:.$mcmc$d]
       .$dataf$pars_array[1:.$mcmc$d, ii, j] <- .$mcmc$current_state[1:.$mcmc$d, ii]
       #.$dataf$pars_array[,ii,j]  <- .$mcmc$current_state[,ii]
-      .$dataf$pars_lklihood[ii, j]        <- .$mcmc$p_state[ii]
+      .$dataf$pars_lklihood[ii, j]          <- .$mcmc$p_state[ii]
 
       # if debugging, store generated proposal (regardless of whether accepted or not)
       #if (.$wpars$mcmc_debug) .$dataf$prop_storage[ii, 1:.$mcmc$d, j] <- .$dataf$pars[ii, 1:.$mcmc$d]
@@ -436,8 +436,8 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
     .$mcmc$t <- .$mcmc$t + 1
 
   } else if (!(.$wpars$mcmc_adapt_CR) & (j < .$mcmc$CR_burnin)) {
-  #if (j < (.$wpars$mcmc_maxiter / 10)) {
-  #if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0)) {
+  #if (j < (.$wpars$mcmc_maxiter / 10))
+  #if ((j < (.$wpars$mcmc_maxiter / 10)) & (sum(.$mcmc$J) > 0))
 
     # PRETTY SURE THIS IS WHERE THE PROBLEM IS!
     # ALJ: make sure this is component-wise division
@@ -506,9 +506,6 @@ calc_del <- function(., j, ii) {
 
   .$mcmc$del[.$mcmc$m[ii]] <- .$mcmc$del[.$mcmc$m[ii]] + summation
 
-  # PROBLEM 1: del vector is zeros <- fixed it!
-  # PROBLEM 2: need to index m due to parallelization (ie, need to make it a vector of length chains)
-
   #print(paste0('.$mcmc$t = ', .$mcmc$t))
   #print(.$dataf$pars_array[ , , .$mcmc$t])
   # problem is because t - 1 = 0 for j = 2
@@ -534,11 +531,12 @@ adapt_pCR <- function(.) {
   # note: dan's code doesn't have the multiplication by t???
   # update the probability of the different CR values being selected
   for (qq in 1:.$wpars$mcmc_n_CR) {
-    # if L[qq] not zero
-    .$mcmc$p_CR[qq] <- .$mcmc$t * .$wpars$mcmc_chains * (.$mcmc$del[qq] / .$mcmc$L[qq]) / sum(.$mcmc$del)
-    # note: Dan's code doesn't have multiplication by t, and Dan also normalizes p_CR
-    # might need to normalize this???? i.e., divide by sum(p_CR)
-    # this also seems to be very different from code in vrugt matlab paper
+
+    if ((L[qq] != 0) {
+      # note: Dan's code doesn't have multiplication by t, and Dan also normalizes p_CR
+      .$mcmc$p_CR[qq] <- .$mcmc$t * .$wpars$mcmc_chains * (.$mcmc$del[qq] / .$mcmc$L[qq]) / sum(.$mcmc$del)
+    }
+
   }
 
   # normalize p_CR
@@ -612,7 +610,9 @@ mcmc_prior_uniform <- function(.) {
 
   rownames(.$dataf$pars) <- c('leaf.atref$vcmax', 'leaf.atref$jmax', 'leaf.theta_col_cj')
 
+  print('min vals = ')
   print(min_vals)
+  print('max vals = ')
   print(max_vals)
   print(.$dataf$pars)
 }
@@ -771,10 +771,18 @@ f_proposal_lklihood_ssquared <- function(.) {
   obs_n <- length(.$dataf$obs)
 
   # debugging
-  print('t(.$dataf$out)')
-  print(t(.$dataf$out))
-  print('.$dataf$obs')
-  print(.$dataf$obs)
+  print('dim of .$dataf$obs')
+  print(dim(.$dataf$obs))
+  print('length of .$dataf$obs')
+  print(length(.$dataf$obs))
+  #print('dim of .$dataf$out')
+  #print(dim(.$dataf$out))
+  print('dim of transpose .$dataf$out')
+  print(dim(t(.$dataf$out)))
+  print('type of dataf$out')
+  print(typeof(.$dataf$out))
+  print('type of dataf$obs')
+  print(typeof(.$dataf$obs))
 
   # calculate error residual
   # - each chain is on rows of dataf$out take transpose
