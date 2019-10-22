@@ -531,7 +531,7 @@ adapt_pCR <- function(.) {
   # note: dan's code doesn't have the multiplication by t???
   # update the probability of the different CR values being selected
   for (qq in 1:.$wpars$mcmc_n_CR) {
-  
+
     if (.$mcmc$L[qq] != 0) {
       # note: Dan's code doesn't have multiplication by t, and Dan also normalizes p_CR
       .$mcmc$p_CR[qq] <- .$mcmc$t * .$wpars$mcmc_chains * (.$mcmc$del[qq] / .$mcmc$L[qq]) / sum(.$mcmc$del)
@@ -771,18 +771,20 @@ f_proposal_lklihood_ssquared <- function(.) {
   obs_n <- length(.$dataf$obs)
 
   # debugging
-  print('dim of .$dataf$obs')
-  print(dim(.$dataf$obs))
-  print('length of .$dataf$obs')
-  print(length(.$dataf$obs))
+  #print('dim of .$dataf$obs')
+  #print(dim(.$dataf$obs))
+  #print('length of .$dataf$obs')
+  #print(length(.$dataf$obs))
   #print('dim of .$dataf$out')
   #print(dim(.$dataf$out))
-  print('dim of transpose .$dataf$out')
-  print(dim(t(.$dataf$out)))
-  print('type of dataf$out')
-  print(typeof(.$dataf$out))
-  print('type of dataf$obs')
-  print(typeof(.$dataf$obs))
+  #print('dim of transpose .$dataf$out')
+  #print(dim(t(.$dataf$out)))
+  #print('type of dataf$out')
+  #print(typeof(.$dataf$out))
+  #print('type of dataf$obs')
+  #print(typeof(.$dataf$obs))
+  print('.$dataf$out = ')
+  print(.$dataf$out)
 
   # calculate error residual
   # - each chain is on rows of dataf$out take transpose
