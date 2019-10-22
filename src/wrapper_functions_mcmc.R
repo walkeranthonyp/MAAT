@@ -608,12 +608,13 @@ mcmc_prior_uniform <- function(.) {
     .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
   }
 
-  rownames(.$dataf$pars) <- c('leaf.atref$vcmax', 'leaf.atref$jmax', 'leaf.theta_col_cj')
+  rownames(.$dataf$pars) <- c('leaf.atref.vcmax', 'leaf.atref.jmax', 'leaf.theta_col_cj')
 
-  print('min vals = ')
-  print(min_vals)
-  print('max vals = ')
-  print(max_vals)
+  #print('min vals = ')
+  #print(min_vals)
+  #print('max vals = ')
+  #print(max_vals)
+  print('.$dataf$pars')
   print(.$dataf$pars)
 }
 
@@ -653,6 +654,11 @@ boundary_handling_set <- function(.) {
 
   .$mcmc$boundary_min <- min_vals
   .$mcmc$boundary_max <- max_vals
+
+  print(".$mcmc$boundary_min")
+  print(.$mcmc$boundary_min)
+  print(".$mcmc$boundary_max")
+  print(.$mcmc$boundary_max)
 
   #rm(boundary_sample)
 }
@@ -785,6 +791,7 @@ f_proposal_lklihood_ssquared <- function(.) {
   #print(typeof(.$dataf$obs))
   print('.$dataf$out = ')
   print(.$dataf$out)
+  #print(.$model$env)
 
   # calculate error residual
   # - each chain is on rows of dataf$out take transpose
