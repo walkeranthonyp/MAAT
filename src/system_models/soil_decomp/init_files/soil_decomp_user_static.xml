@@ -1,0 +1,26 @@
+<static>
+  <fnames>
+    <soil_decomp>
+      <sys>NA</sys>
+      <c1dec>NA</c1dec>
+      <c2dec>NA</c2dec>
+      <eff12>NA</eff12>
+      <eff21>NA</eff21>
+    </soil_decomp>
+  </fnames>
+  <pars>
+    <soil_decomp>
+      <ks>NA</ks>
+      <kb>NA</kb>
+      <Km>NA</Km>
+      <r>NA</r>
+      <Af>NA</Af>
+    </soil_decomp>
+  </pars>
+  <env>
+    <soil_decomp>
+      <litter>NA</litter>
+      <times>NA</times>
+    </soil_decomp>
+  </env>
+</static>

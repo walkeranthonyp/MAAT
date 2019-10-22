@@ -1,0 +1,11 @@
+<options>
+  <fnames>
+    <soil_decomp>
+      <sys>'c( 'f_sys_m2pool' )'</sys>
+      <c1dec>'c( 'f_c1dec' )'</c1dec>
+      <c2dec>'c( 'f_c2dec' )'</c2dec>
+      <eff12>'c( 'f_eff12' )'</eff12>
+      <eff21>'c( 'f_eff21' )'</eff21>
+    </soil_decomp>
+  </fnames>
+</options>

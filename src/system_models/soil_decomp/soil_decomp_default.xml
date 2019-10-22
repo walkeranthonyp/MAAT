@@ -1,0 +1,26 @@
+<default>
+  <fnames>
+    <soil_decomp>
+      <sys>'f_sys_m2pool'</sys>
+      <c1dec>'f_c1dec'</c1dec>
+      <c2dec>'f_c2dec'</c2dec>
+      <eff12>'f_eff12'</eff12>
+      <eff21>'f_eff21'</eff21>
+    </soil_decomp>
+  </fnames>
+  <pars>
+    <soil_decomp>
+      <ks>1.8e-05</ks>
+      <kb>0.007</kb>
+      <Km>900</Km>
+      <r>0.6</r>
+      <Af>1</Af>
+    </soil_decomp>
+  </pars>
+  <env>
+    <soil_decomp>
+      <litter>3.2</litter>
+      <times>2</times>
+    </soil_decomp>
+  </env>
+</default>
