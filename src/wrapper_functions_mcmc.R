@@ -799,7 +799,9 @@ f_proposal_lklihood_ssquared <- function(.) {
   #print(typeof(.$dataf$obs))
   #print('.$dataf$out = ')
   #print(.$dataf$out)
+
   print(paste0(".$model$env$ca_conc = ", .$model$env$ca_conc))
+  #print(".$model$env = "); print(.$model$env)
 
   # calculate error residual
   # - each chain is on rows of dataf$out take transpose
