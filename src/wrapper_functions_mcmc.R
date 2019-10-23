@@ -648,6 +648,14 @@ boundary_handling_set <- function(.) {
   #  max_vals[jj] <- boundary_sample[[names(boundary_sample)[jj]]][['max']]
   #}
 
+  # ORIGINAL BOUNDARY HANDLING CODE
+  # number of samples to be used in boundary handling
+  #n <- 1e4
+  #boundary_sample     <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)))
+  #.$mcmc$boundary_min <- unlist(lapply(boundary_sample, min))
+  #.$mcmc$boundary_max <- unlist(lapply(boundary_sample, max))
+  #rm(boundary_sample)
+
   # again, temporarily hard-coding for sake of urgency
   min_vals <- c(40.0, 70.0, 0.9)
   max_vals <- c(150.0, 300.0, 1.0)
@@ -789,9 +797,9 @@ f_proposal_lklihood_ssquared <- function(.) {
   #print(typeof(.$dataf$out))
   #print('type of dataf$obs')
   #print(typeof(.$dataf$obs))
-  print('.$dataf$out = ')
-  print(.$dataf$out)
-  #print(.$model$env)
+  #print('.$dataf$out = ')
+  #print(.$dataf$out)
+  print(paste0(".$model$env$ca_conc = ", .$model$env$ca_conc))
 
   # calculate error residual
   # - each chain is on rows of dataf$out take transpose

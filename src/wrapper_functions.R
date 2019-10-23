@@ -99,12 +99,12 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
 
   # ORIGINAL CODE TO GENERATE PRIOR DISTRIBUTION
   # THIS IS WITH DIFFERNT TYPE OF INIT FILE
-  ## sample parameters from character string code snippets to generate initial proposal from priors
+  # sample parameters from character string code snippets to generate initial proposal from priors
   #n <- .$wpars$mcmc_chains
   #.$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-  ## create pars / proposal matrix
+  # create pars / proposal matrix
   #.$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
-  ## remove initialisation pars list
+  # remove initialisation pars list
   #.$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
   #print('old dataf$pars')
   #print(typeof(.$dataf$pars))

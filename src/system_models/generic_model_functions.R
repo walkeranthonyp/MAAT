@@ -143,7 +143,7 @@ run_met <- function(.,l) {
 # configure functions
 ###########################################################################
 
-# check character names on row vectors of dataf functions  
+# check character names on row vectors of dataf functions
 configure_check <- function(., vlist='env', df ) {
   if(!is.character(names(df))) {
     print('', quote=F )
@@ -161,8 +161,8 @@ configure_check <- function(., vlist='env', df ) {
 # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df
 configure <- function(., vlist, df, init=F, o=T ) {
 
-  # error catch 
-  # APW: move this to the wrapper object - it only needs tested once 
+  # error catch
+  # APW: move this to the wrapper object - it only needs tested once
   if(!is.character(names(df))) {
     print('', quote=F )
     print(paste('Configure:',.$name,',',vlist,'.'), quote=F )
@@ -278,14 +278,33 @@ configure_child <- function(., child, vlist, df ) {
 # configure function for meteorological / boundary conditions
 configure_met <- function(., df ) {
 
+  # debugging
+  print('configure met function being called')
+  #print('head(df)')
+  #print(head(df))
+  #print('head(.$dataf$met)')
+  #print(head(.$dataf$met))
+
   # split variable names at .
   listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
 
+  # debugging
+  print('listnames = ')
+  print(listnames)
+
   # df subscripts for model object
-  mss  <- 1:length(df) 
+  mss  <- 1:length(df)
+
+  # debugging
+  #print('mss')
+  #print(mss)
 
   # variable list subscripts in model object data structure
   vlss <- match(listnames[2,], names(.[['env']]) )
+
+  # debugging
+  #print('vlss')
+  #print(vlss)
 
   # remove NAs in vlss from vlss and mss
   if(any(is.na(vlss))) {
@@ -293,8 +312,16 @@ configure_met <- function(., df ) {
     vlss <- vlss[-which(is.na(vlss))]
   }
 
+  # debugging
+  print('vlss = '); print(vlss)
+  print('mss = '); print(mss)
+
   # assign UQ variables
   .[['env']][vlss] <- df[]
+
+  # debugging
+  print('.[[env]][vlss]')
+  print(.[['env']][vlss])
 }
 
 
