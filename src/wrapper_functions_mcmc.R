@@ -178,7 +178,7 @@ init_mcmc_dream <- function(.) {
 proposal_generate_mcmc_dream <- function(., j ) {
 
   # debug
-  print(paste0('iteration = ', j))
+  #print(paste0('iteration = ', j))
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
@@ -800,7 +800,7 @@ f_proposal_lklihood_ssquared <- function(.) {
   #print('.$dataf$out = ')
   #print(.$dataf$out)
 
-  print(paste0(".$model$env$ca_conc = ", .$model$env$ca_conc))
+  #print(paste0(".$model$env$ca_conc = ", .$model$env$ca_conc))
   #print(".$model$env = "); print(.$model$env)
 
   # calculate error residual
