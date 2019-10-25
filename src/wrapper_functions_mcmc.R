@@ -610,10 +610,10 @@ mcmc_prior_uniform <- function(.) {
 
   rownames(.$dataf$pars) <- c('leaf.atref.vcmax', 'leaf.atref.jmax', 'leaf.theta_col_cj')
 
-  #print('min vals = ')
-  #print(min_vals)
-  #print('max vals = ')
-  #print(max_vals)
+  print('min vals = ')
+  print(min_vals)
+  print('max vals = ')
+  print(max_vals)
   print('.$dataf$pars')
   print(.$dataf$pars)
 }
@@ -657,8 +657,8 @@ boundary_handling_set <- function(.) {
   #rm(boundary_sample)
 
   # again, temporarily hard-coding for sake of urgency
-  min_vals <- c(40.0, 70.0, 0.9)
-  max_vals <- c(150.0, 300.0, 1.0)
+  min_vals <- c(100.0, 70.0, 0.9)
+  max_vals <- c(200.0, 300.0, 1.0)
 
   .$mcmc$boundary_min <- min_vals
   .$mcmc$boundary_max <- max_vals
@@ -741,17 +741,25 @@ mcmc_converge_none <- function(., j) {
 # compute the R-statistic of Gelman and Rubin as a convergence diagnostic
 mcmc_converge_Gelman_Rubin <- function(., j) {
 
-  #print('Geman-Rubin convergence test being called')
+  print('Geman-Rubin convergence test being called')
 
   # need an R_stat storage array! (.$dataf$R_hat)
   # need to add R_hat to output system so I can graph it
 
+  # number of parameters
+  d <- .$mcmc$d
 
-  # within-chain variance (for each parameter)
+  # number of Markov chains
+  N <- .$wpars$mcmc_chains
+  print(paste0('N  = ', N))
 
-  # between-chain variance (for each parameter)
+  # number of samples in each chain
+  t <- .$wpars$mcmc_maxiter
+  print(paste0('T = ', t))
 
-  #return(R_stat)
+  # maybe make these object oriented?
+  x_bar <-
+
 }
 
 
