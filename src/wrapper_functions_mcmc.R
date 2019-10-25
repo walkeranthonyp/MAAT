@@ -758,7 +758,7 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
   print(paste0('T = ', t))
 
   # maybe make these object oriented?
-  x_bar <-
+  #x_bar <-
 
 }
 
