@@ -614,18 +614,12 @@ mcmc_prior_uniform <- function(.) {
   .$mcmc$boundary_min <- min_vals
   .$mcmc$boundary_max <- max_vals
 
-  print('min vals = ')
-  print(min_vals)
-  print('max vals = ')
-  print(max_vals)
+  #print('min vals = ')
+  #print(min_vals)
+  #print('max vals = ')
+  #print(max_vals)
   #print('.$dataf$pars')
   #print(.$dataf$pars)
-}
-
-
-# initialize chains with Latin hypercube sampling
-mcmc_prior_latin <- function(.) {
-
 }
 
 
@@ -745,36 +739,105 @@ mcmc_converge_none <- function(., j) {
 # compute the R-statistic of Gelman and Rubin as a convergence diagnostic
 mcmc_converge_Gelman_Rubin <- function(., j) {
 
-  print('Geman-Rubin convergence test being called')
+  print(paste0('Geman-Rubin convergence test being called at iteration = ', j))
 
-  # need an R_stat storage array! (.$dataf$R_hat)
-  # need to add R_hat to output system so I can graph it
-
-  # number of parameters
+  # number of parameters/dimensions being sampled
   d <- .$mcmc$d
+
+  # iterate thgouth parameters with jj
 
   # number of Markov chains
   N <- .$wpars$mcmc_chains
-  print(paste0('N  = ', N))
 
-  # number of samples in each chain
+  # iterate through chains with r
+
+  # total number of samples in each chain
   t <- .$wpars$mcmc_maxiter
-  print(paste0('T = ', t))
 
-  # maybe make these object oriented?
-  #x_bar <-
+  # iterate through time samples with i
 
+  # mcmc storage array of samples
+  x <- .$dataf$pars_array
+
+  # within-chain variance
+
+  x_bar <- matrix(0, nrow = d, ncol = N)
+
+  # REALLY NOT SURE THAT I'M DOING THESE SUMMATIONS CORRECTLY
+
+  for (jj in 1:d) {
+    for (r in 1:N) {
+      # summation (probably better way to do this in the future, avoid loops)
+      for (i in ceiling(t / 2):t) {
+        x_bar[jj, r] <- x_bar[jj, r] + x[jj, r, i]
+      }
+    }
+  }
+
+  x_bar <- (2 / (t - 2)) * x_bar
+
+  W <- rep(0, d)
+
+  for (jj in 1:d) {
+    summation <- 0
+    # double summation (probably better way to do this in the future, avoid loops)
+    for (r in 1:N) {
+      for (i in ceiling(t / 2):t) {
+        summation <- summation + (x[jj, r, i] - x_bar[jj, r]) * (x[jj, r, i] - x_bar[jj, r])
+      }
+    }
+    W[jj] <- 2 / (N * (t - 2)) * summation
+  }
+
+  print('within-chain variance = '); print(W)
+
+  # between chain variance
+
+  B <- rep(0, d)
+
+  x_double_bar <- rep(0, d)
+  for (jj in 1:d) {
+    # summation (probably better way to do this in the future, avoid loops)
+    for (r in 1:N) {
+      x_double_bar[jj] <- x_double_bar[jj] + x_bar[jj, r]
+    }
+  }
+
+  x_double_bar <- (1 / N) * x_double_bar
+
+  for (jj in 1:d) {
+    # sumamtion (probably better way to do this in the future, avoid loops)
+    summation <- 0
+    for (r in 1:N) {
+      summation <- summation + (x_bar[jj, r] - x_double_bar[jj]) * (x_bar[jj, r] - x_double_bar[jj])
+    }
+    B[jj] <- (t / (2 * (N - 1))) * summation
+  }
+
+  print('between-chain variance = '); print(B)
+
+  # estimate variance of j-th paraemter of target distribution
+
+  sigma_hat <- rep(0, d)
+
+  for (jj in 1:d) {
+    sigma_hat[jj] <- ((t - 2) / t) * W[jj] + (2 / t) * B[jj]
+  }
+
+  # R-statistic of Gelman and Rubin
+  R_hat <- rep(0, d)
+
+  for (jj in 1:d) {
+    R_hat[jj] <- sqrt(((N + 1) / N) * (sigma_hat[jj] / W[jj]) - ((t - 2) / (N * t)))
+  }
+
+  print("R-statistic of Gelman and Rubin, convergence diagnostic = "); print(R_hat)
 }
 
 
-# auto- correlation function
+# auto-correlation function
 
-# Geweke diagnostic (within chain)
 
-# Raftery and Lewis diagnostic (within chain)
-
-# post processing and plotting functions
-#########################################
 
 
 # likelihood functions
@@ -957,16 +1020,6 @@ mcmc_outlier_iqr <- function(., j) {
   # if outlier chain is detected, apply another burn-in period before generating posterior moments
   # ALJ: not sure how to implement this in code??? basically need to restart j???
 }
-
-
-mcmc_outlier_grubbs <- function(., j) {}
-
-
-mcmc_outlier_pierce <- function(., j) {}
-
-
-mcmc_outlier_chauvenet <- function(., j) {}
-
 
 
 ### END ###

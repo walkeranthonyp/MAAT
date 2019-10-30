@@ -204,7 +204,7 @@ init_output_matrix_mcmc_dream <- function(.) {
   .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm)
 
   # create matrix for storing chain outlier information
-  .$dataf$omega          <- matrix(NA, .$wpars$mcmc_chains, ceiling(.$wpars$mcmc_maxiter / (2 * .$wpars$mcmc_check_iter)))
+  .$dataf$omega          <- matrix(NA, .$wpars$mcmc_chains, ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter))
 
   # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
   .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
@@ -697,11 +697,13 @@ run2_mcmc_dream <- function(.,j) {
   # if during burn-in, check for and handle outlier chains
   # ALJ: need help with restarting j & burnin proccess
   # ALJ: need to make sure this works correctly with j and function call order!
-  if ((j %% .$wpars$mcmc_check_iter == 0) & (j <= .$mcmc$burnin)) .$mcmc_outlier(j=j)
+  #if ((j %% .$wpars$mcmc_check_iter == 0) & (j <= .$mcmc$burnin)) .$mcmc_outlier(j=j)
+  if ((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) .$mcmc_outlier(j=j)
 
   # after burnin complete, check for convergence
   # ALJ: not sure how/when exactly I should be checking for convergence (ask Dan)
-  if (((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) & (j > .$mcmc$burnin)) .$mcmc_converge(j=j)
+  #if (((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) & (j > .$mcmc$burnin)) .$mcmc_converge(j=j)
+  if (j == .$wpars$mcmc_maxiter) .$mcmc_converge(j=j)
 
   # future work: other code here for subprograms called during or after burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
 
