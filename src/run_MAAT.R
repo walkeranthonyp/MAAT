@@ -400,12 +400,12 @@ if(!is.null(metdata)) {
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
     # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML
     cols  <- match(unlist(sapply(met_trans,function(l) l)),names(metdf))
-    metdf <- metdf[,cols]
+    metdf <- metdf[,cols, drop=F ]
 
     # if time variable specified put it first and don't rename it
     if('time'%in%names(met_trans)) {
-      tcol      <- which(names(met_trans)=='time')
-      metdf <- metdf[, c(tcol,c(1:length(metdf))[-tcol]) ]
+      tcol  <- which(names(met_trans)=='time')
+      metdf <- metdf[, c(tcol,c(1:length(metdf))[-tcol]), drop=F ]
 
       # rename to maat variables as defined in <mod_obj>_user_met.XML and prefix with the model object for compatibility with the configure function
       names(metdf)[1] <- 'time'

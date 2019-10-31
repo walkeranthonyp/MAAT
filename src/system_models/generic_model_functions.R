@@ -278,6 +278,9 @@ configure_child <- function(., child, vlist, df ) {
 # configure function for meteorological / boundary conditions
 configure_met <- function(., df ) {
 
+  #print('configure met')
+  #print(df)
+
   # split variable names at .
   listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
 
@@ -294,8 +297,6 @@ configure_met <- function(., df ) {
   }
 
   # assign UQ variables
-  #.[['env']][vlss] <- df[]
-  # ALJ: need to subset by mss
   .[['env']][vlss] <- df[mss]
 }
 

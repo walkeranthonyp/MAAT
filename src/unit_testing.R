@@ -23,12 +23,13 @@ source('wrapper_object.R')
 out <- wrapper_object$.test_simple()
 out <- wrapper_object$.test_simple(gen_metd=T)
 wrapper_object$build
-wrapper_object$model$fns$sys
 wrapper_object$run0
 wrapper_object$run1
 wrapper_object$run2
 wrapper_object$run3
 wrapper_object$run4
+
+wrapper_object$model$fns$sys
 
 wrapper_object$dataf
 wrapper_object$dynamic
