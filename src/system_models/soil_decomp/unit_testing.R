@@ -25,13 +25,16 @@ soil_decomp_object$fns
 names(soil_decomp_object$fns)
 soil_decomp_object$fns$as.list()
 
-soil_decomp_object$fns$c1dec
-soil_decomp_object$fns$decomposition.d.1
-soil_decomp_object$fns$decomposition.d.1(soil_decomp_object$state$c_pools[,1])
-soil_decomp_object$fns$decomposition.d.2
-soil_decomp_object$fns[["decomposition.d.2"]]()
-soil_decomp_object$fns$transfer.t.1_to_2
-soil_decomp_object$fns[["transfer.t.1_to_2"]]
+grep('transfer\\.', names(soil_decomp_object$fns), value=T )
+
+
+soil_decomp_object$fns$decomp.d1
+soil_decomp_object$fns$decomp.d1(soil_decomp_object$state$c_pools[,1])
+soil_decomp_object$fns$decomp.d2
+soil_decomp_object$fns[["decomp.d2"]]()
+soil_decomp_object$fns$transfer.t1_to_2
+soil_decomp_object$fns[["transfer.t1_to_2"]]
+soil_decomp_object$fns$transfer.t2_to_1
 
 soil_decomp_object$state
 soil_decomp_object$state$c_pools[,1]
@@ -44,7 +47,6 @@ soil_decomp_object$state$solver_out
 
 
 soil_decomp_object$env$times
-soil_decomp_object$alpha
 soil_decomp_object$fns$transfermatrix
 soil_decomp_object$fns$transfermatrix()
 soil_decomp_object$fns$DotO

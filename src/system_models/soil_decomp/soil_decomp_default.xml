@@ -2,10 +2,14 @@
   <fnames>
     <soil_decomp>
       <sys>'f_sys_m2pool'</sys>
-      <c1dec>'f_c1dec'</c1dec>
-      <c2dec>'f_c2dec'</c2dec>
-      <eff12>'f_eff12'</eff12>
-      <eff21>'f_eff21'</eff21>
+      <decomp>
+        <d1>'f_decomp_MM_microbe'</d1>
+        <d2>'f_decomp_lin'</d2>
+      </decomp>
+      <transfer>
+        <t1_to_2>'f_transfer_resploss'</t1_to_2>
+        <t2_to_1>'f_transfer_all'</t2_to_1>
+      </transfer>
     </soil_decomp>
   </fnames>
   <pars>

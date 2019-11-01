@@ -108,14 +108,7 @@ run_met <- function(.,l) {
   # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values
 
   # met data assignment
-  #print('run_met')
-  #print(l)
-  #print('this obj')
-  #print(.$dataf$met[l,])
-  #print('super obj')
-  #print(.super$dataf$met[l,])
   .$configure(vlist='env', df=.$dataf$met[l,] )
-  #.$configure(vlist='env', df=.super$dataf$met[l,] )
 
   # run model
   .$run()

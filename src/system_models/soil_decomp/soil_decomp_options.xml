@@ -2,10 +2,8 @@
   <fnames>
     <soil_decomp>
       <sys>'c( 'f_sys_m2pool' )'</sys>
-      <c1dec>'c( 'f_c1dec' )'</c1dec>
-      <c2dec>'c( 'f_c2dec' )'</c2dec>
-      <eff12>'c( 'f_eff12' )'</eff12>
-      <eff21>'c( 'f_eff21' )'</eff21>
+      <decomp>'c( 'f_decomp_lin', 'f_decomp_MM_microbe' )'</decomp>
+      <transfer>'c( 'f_transfer_all', 'f_transfermatrix', 'f_transfer_resploss' )'</transfer>
     </soil_decomp>
   </fnames>
 </options>

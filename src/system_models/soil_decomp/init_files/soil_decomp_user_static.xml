@@ -2,10 +2,14 @@
   <fnames>
     <soil_decomp>
       <sys>NA</sys>
-      <c1dec>NA</c1dec>
-      <c2dec>NA</c2dec>
-      <eff12>NA</eff12>
-      <eff21>NA</eff21>
+      <decomp>
+        <d1>NA</d1>
+        <d2>NA</d2>
+      </decomp>
+      <transfer>
+        <t1_to_2>NA</t1_to_2>
+        <t2_to_1>NA</t2_to_1>
+      </transfer>
     </soil_decomp>
   </fnames>
   <pars>

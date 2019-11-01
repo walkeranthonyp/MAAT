@@ -46,7 +46,6 @@ soil_decomp_object$configure_unique <- function(., init=F, flist=NULL ) {
     .$fns$inputrates     <- f_inputrates
     .$fns$DotO           <- f_DotO
     .$fns$DotC           <- f_DotC
-    .$fns$gen_alpha      <- f_gen_alpha
     .$fns$transfermatrix <- f_transfermatrix
     .$fns$solver_func    <- f_solver_func
   }
@@ -61,10 +60,6 @@ soil_decomp_object$configure_unique <- function(., init=F, flist=NULL ) {
 ###########################################################################
 # if run function needs to be modified - add new function here
 soil_decomp_object$run <- function(.) {
-
-  #.$fnames$transfer$t.1_to_2 <- 'f_eff12'
-  #.$fnames$transfer$t.2_to_1 <- 'f_eff21'
-  .$configure_test()
 
   # call system model
   .$fns$sys()
@@ -81,8 +76,6 @@ soil_decomp_object$run <- function(.) {
 ###########################################################################
 # add structural functions (i.e not alternative process functions)  unique to model object here
 
-
-
 # assign object variables 
 ###########################################################################
 
@@ -92,21 +85,15 @@ soil_decomp_object$fnames <- list(
   sys   = 'f_sys_m2pool',
   
   # decay/decomposition functions
-  #c1dec = 'f_c1dec',
-  #c2dec = 'f_c2dec',
-  decomposition = list(
-    d.1 = 'f_c1dec',
-    d.2 = 'f_c2dec'
+  decomp = list(
+    d1 = 'f_decomp_MM_microbe',
+    d2 = 'f_decomp_lin'
   ),
   
-  # transfer functions
-  #eff12 = 'f_eff12',
-  #eff21 = 'f_eff21'
-
   # transfer list
   transfer = list(
-    t.1_to_2 = 'f_eff12',
-    t.2_to_1 = 'f_eff21'
+    t1_to_2 = 'f_transfer_resploss',
+    t2_to_1 = 'f_transfer_all'
   )
 )
 
@@ -122,17 +109,14 @@ soil_decomp_object$env <- list(
 # state
 ####################################
 soil_decomp_object$state <- list(
-  c_pools    = matrix(c(c1 = .1, c2 = .1 ), ncol = 1),
-  solver_out = matrix(1)
+  c_pools    = matrix(c(c1=0.1, c2=0.1 ), ncol=1 )
 )
-
-soil_decomp_object$alpha <- list()
 
 
 # state parameters (i.e. calculated parameters)
 ####################################
 soil_decomp_object$state_pars <- list(
-  vcmax    = numeric(0)   
+  solver_out = matrix(1)
 )
 
 
@@ -169,7 +153,7 @@ f_output_soil_decomp_state <- function(.) {
 }
 
 f_output_soil_decomp_full <- function(.) {
-  c(unlist(.$state),unlist(.$statei_pars))
+  c(unlist(.$state),unlist(.$state_pars))
 }
 
 
@@ -177,9 +161,10 @@ f_output_soil_decomp_full <- function(.) {
 # test functions
 #######################################################################        
 
-soil_decomp_object$.test <- function(., verbose=F) {
+soil_decomp_object$.test <- function(., verbose=F ) {
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))
+  .$configure_test()
 
   .$run()
 }

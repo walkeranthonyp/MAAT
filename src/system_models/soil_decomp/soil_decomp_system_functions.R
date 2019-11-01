@@ -14,8 +14,8 @@
 
 f_sys_m2pool <- function(.) {
 
-  .super$state$solver_out  <- .$plsoda(.super$state$c_pools, c(0,1), .$solver_func )
-  .super$state$c_pools[,1] <- .super$state$solver_out[dim(.super$state$solver_out)[1],2:3]
+  .super$state_pars$solver_out <- .$plsoda(.super$state$c_pools, c(0,1), .$solver_func )
+  .super$state$c_pools[,1]     <- .super$state_pars$solver_out[dim(.super$state_pars$solver_out)[1],2:3]
 }
 
 
