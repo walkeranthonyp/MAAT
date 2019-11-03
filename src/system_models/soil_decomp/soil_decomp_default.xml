@@ -1,30 +1,51 @@
 <default>
   <fnames>
     <soil_decomp>
-      <sys>'f_sys_m2pool'</sys>
+      <sys>'f_sys_npools'</sys>
       <decomp>
-        <d1>'f_decomp_MM_microbe'</d1>
-        <d2>'f_decomp_lin'</d2>
+        <d1>'f_decomp_MM_microbe1'</d1>
+        <d2>'f_decomp_lin2'</d2>
+        <d3>'f_decomp_MM_microbe3'</d3>
       </decomp>
       <transfer>
-        <t1_to_2>'f_transfer_resploss'</t1_to_2>
-        <t2_to_1>'f_transfer_all'</t2_to_1>
+        <t1_to_2>'f_transfer_cue12'</t1_to_2>
+        <t2_to_3>'f_transfer_cue23'</t2_to_3>
+        <t3_to_2>'f_transfer_cue32'</t3_to_2>
       </transfer>
     </soil_decomp>
   </fnames>
   <pars>
     <soil_decomp>
+      <cstate0>
+        <c1>0.6</c1>
+        <c2>0.1</c2>
+        <c3>0.1</c3>
+      </cstate0>
       <ks>1.8e-05</ks>
       <kb>0.007</kb>
       <Km>900</Km>
       <r>0.6</r>
       <Af>1</Af>
+      <silt>0.2</silt>
+      <clay>0.2</clay>
+      <cuec1>0.47</cuec1>
+      <h>0.566</h>
+      <cuec3>0.47</cuec3>
+      <vmax1>0.2346</vmax1>
+      <vmax3>0.0777</vmax3>
+      <km1>101</km1>
+      <km3>250</km3>
+      <k23>0.00672</k23>
+      <mbcmax>2</mbcmax>
+      <beta>1.5</beta>
+      <maommax>26.725</maommax>
     </soil_decomp>
   </pars>
   <env>
     <soil_decomp>
       <litter>3.2</litter>
-      <times>2</times>
+      <temp>10</temp>
+      <swc>0.3</swc>
     </soil_decomp>
   </env>
 </default>

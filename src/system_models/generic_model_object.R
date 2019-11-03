@@ -33,9 +33,9 @@ system_model_object <-
     
     
     ###########################################################################
-    # main run function
+    # main run functions
     
-    run <- run 
+    run  <- run 
     
     
     ###########################################################################
@@ -112,7 +112,9 @@ system_model_object <-
     configure_test    <- configure_test 
 
     # run model over a meteorological (or boundary condition) dataset
+    init              <- NULL
     run_met           <- run_met 
+    run_met1          <- run_met1 
     
     
     ###########################################################################

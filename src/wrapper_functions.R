@@ -251,6 +251,8 @@ run2_factorial <- function(.,j) {
 
   # call next run function
   funv   <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )
+  print(.$dataf$mout)
+  print(.$model$state$cpools)
   out    <- vapply(1:.$dataf$le, .$run3, funv )
 
   # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
@@ -269,12 +271,13 @@ run3_factorial <- function(.,k) {
   if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[k,], F )
   if(.$wpars$cverbose)      .$printc('env', .$dataf$env[k,] )
 
+  #print(.$init_static)
+  #print(.$static)
+  #print(.$model$pars)
+  #print(.$model$state)
+
   # call next run function
-  if(is.null(.$dataf$met)) {
-    .$model$run()
-  } else {
-    t(vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout ))
-  }
+  if(is.null(.$dataf$met)) .$model$run() else .$model$run_met()
 }
 
 

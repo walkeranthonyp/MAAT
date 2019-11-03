@@ -27,17 +27,11 @@ setwd('soil_decomp')
 # assign object functions
 ###########################################################################
 soil_decomp_object$name <- 'soil_decomp'
-# if this new object will contain nested child objects uncomment and edit the below lines of code and delete this comment 
-# - otherwise delete all 5 lines
-#soil_decomp_object$child_list      <- list('child_name1') 
-#soil_decomp_object$build_child     <- build_child  
-#soil_decomp_object$configure_child <- configure_child  
-
 
 
 # function to configure unique elements of the object
 # - adds functions to fns that are not in fnames
-# - or functions that are derivations of other functions, in this case teh rs derived fuinctions like rs_r0 and rs_fe 
+# - or functions that are derivations of other functions, see leaf_object.R for an example case 
 ####################################
 soil_decomp_object$configure_unique <- function(., init=F, flist=NULL ) {
   if(init) {
@@ -45,7 +39,6 @@ soil_decomp_object$configure_unique <- function(., init=F, flist=NULL ) {
     .$fns$plsoda         <- plsoda
     .$fns$inputrates     <- f_inputrates
     .$fns$DotO           <- f_DotO
-    .$fns$DotC           <- f_DotC
     .$fns$transfermatrix <- f_transfermatrix
     .$fns$solver_func    <- f_solver_func
   }
@@ -56,25 +49,18 @@ soil_decomp_object$configure_unique <- function(., init=F, flist=NULL ) {
 }
 
 
-# assign unique run function
-###########################################################################
-# if run function needs to be modified - add new function here
-soil_decomp_object$run <- function(.) {
+# assign unique run & init functions
+####################################
 
-  # call system model
-  .$fns$sys()
+soil_decomp_object$init1 <- init_state
 
-  # print to screen
-  if(.$cpars$verbose) print(.$state)
-
-  # output
-  .$output()
+soil_decomp_object$init  <- function(.) {
+  .$init1()
+  .$state$cpools   = matrix(unlist(.$pars$cstate0), ncol=1 )
+  .$state$cpools_n = length(.$pars$cstate0)
 }
 
 
-# functions unique to object that do not live in fnames/fns, i.e. do not vary ever
-###########################################################################
-# add structural functions (i.e not alternative process functions)  unique to model object here
 
 # assign object variables 
 ###########################################################################
@@ -82,18 +68,23 @@ soil_decomp_object$run <- function(.) {
 # function names
 ####################################
 soil_decomp_object$fnames <- list(
-  sys   = 'f_sys_m2pool',
+  sys   = 'f_sys_npools',
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_MM_microbe',
-    d2 = 'f_decomp_lin'
+    d1 = 'f_decomp_MM_microbe1',
+    d2 = 'f_decomp_lin2',
+    d3 = 'f_decomp_MM_microbe3'
   ),
   
   # transfer list
   transfer = list(
-    t1_to_2 = 'f_transfer_resploss',
-    t2_to_1 = 'f_transfer_all'
+    t1_to_2 = 'f_transfer_cue12',
+    #t1_to_3 = 'f_transfer_all',
+    #t2_to_1 = 'f_transfer_all',
+    t2_to_3 = 'f_transfer_cue23',
+    #t3_to_1 = 'f_transfer_resploss',
+    t3_to_2 = 'f_transfer_cue32'
   )
 )
 
@@ -102,14 +93,16 @@ soil_decomp_object$fnames <- list(
 ####################################
 soil_decomp_object$env <- list(
   litter = 3.2,
-  times  = 2 
+  temp   = 10,
+  swc    = 0.3
 )
 
 
 # state
 ####################################
 soil_decomp_object$state <- list(
-  c_pools    = matrix(c(c1=0.1, c2=0.1 ), ncol=1 )
+  cpools   = matrix(1:3, ncol=1 ),
+  cpools_n = 3 
 )
 
 
@@ -123,11 +116,29 @@ soil_decomp_object$state_pars <- list(
 # parameters
 ####################################
 soil_decomp_object$pars <- list(
-  ks = 1.8e-05,
-  kb = 0.007,
-  Km = 900,
-  r  = 0.6,
-  Af = 1
+  cstate0 = list(
+    c1 = 0.6,
+    c2 = 0.1,
+    c3 = 0.1
+  ),
+  ks      = 1.8e-05,
+  kb      = 0.007,
+  Km      = 900,
+  r       = 0.6,
+  Af      = 1,
+  silt    = 0.2,
+  clay    = 0.2,
+  cuec1   = 0.47,       # currently, all cue values are the same (at the value in MEND), might need a different cue_max for density dependent function... 
+  h       = 0.566,      # humification constant
+  cuec3   = 0.47,     
+  vmax1   = 0.2346,     
+  vmax3   = 0.0777,   
+  km1     = 101,       
+  km3     = 250,       
+  k23     = 0.00672,    # microbial turnover constant
+  mbcmax  = 2,          # microbial biomass max value
+  beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
+  maommax = 26.725      # max maom capacity (calculated using Hassink formula assuming 15% clay)
 )
 
 
@@ -161,14 +172,113 @@ f_output_soil_decomp_full <- function(.) {
 # test functions
 #######################################################################        
 
-soil_decomp_object$.test <- function(., verbose=F ) {
+soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=3.2, ntimes=100 ) {
+
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))
-  .$configure_test()
+  .$configure_test() # if only used in test functions should begin with a .
 
-  .$run()
+  if(metdf) {
+    .$dataf       <- list()
+    if(length(litter)==1) litter <- rep(litter, ntimes )   
+    .$dataf$metdf <- as.data.frame(matrix(litter, ncol=1 ))
+    #colnames(.$dataf$metdf) <- 'soil_decomp.litter'  
+    names(.$dataf$metdf) <- c('soil_decomp.litter')  
+    .$dataf$lm    <- length(.$dataf$metdf[,1])
+    .$dataf$mout  <- .$output()
+    .$run_met()
+  } else {
+    .$env$litter  <- litter
+    .$run()
+  }
 }
 
+
+soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384, ntimes=36500, time=T ) {
+
+  if(verbose) str(.)
+  .$build(switches=c(F,verbose,F))
+  .$configure_test() # if only used in test functions should begin with a .
+
+  # initialise boundary data 
+  .$dataf       <- list()
+  if(length(litter)==1) litter <- rep(litter, ntimes )   
+  .$dataf$metdf <- as.data.frame(matrix(litter, ncol=1 ))
+  #colnames(.$dataf$metdf) <- 'soil_decomp.litter'  
+  names(.$dataf$metdf) <- c('soil_decomp.litter')  
+  .$dataf$lm    <- length(.$dataf$metdf[,1])
+  .$dataf$mout  <- .$output()
+
+
+  ### Run models
+  olist <- list()
+  # run default no saturation or DD model
+  olist$noSaturation  <- .$run_met()
+
+  # saturating MAOM
+  .$fnames$transfer$t2_to_3 <- 'f_transfer_sat23'
+  .$configure_test() 
+  olist$MaomMax       <- .$run_met()
+
+  # denisty dependent microbial turnover 
+  .$fnames$transfer$t2_to_3 <- 'f_transfer_cue23'
+  .$fnames$decomp$d2        <- 'f_decomp_dd2'
+  .$configure_test() 
+  olist$DDturnover    <- .$run_met()
+
+  # denisty dependent microbial cue 
+  .$fnames$transfer$t1_to_2 <- 'f_transfer_cue_dd12'
+  .$fnames$transfer$t3_to_2 <- 'f_transfer_cue_dd32'
+  .$fnames$decomp$d2        <- 'f_decomp_lin2'
+  .$configure_test() 
+  olist$DDcue         <- .$run_met()
+
+  # denisty dependent microbial turnover and cue 
+  .$fnames$decomp$d2        <- 'f_decomp_dd2'
+  .$configure_test() 
+  olist$DDturnover.DDcue <- .$run_met()
+
+  # denisty dependent microbial turnover and cue and MAOM saturation 
+  .$fnames$transfer$t2_to_3 <- 'f_transfer_sat23'
+  .$configure_test() 
+  olist$DDturnover.DDcue.MaomMax <- .$run_met()
+
+
+  # plotting functions
+  thp_plot_time <- function(mod) {
+    ylab <- expression('Pool C mass ['*gC*' '*m^-2*']')
+    matplot(t, mod, type='l', ylab=ylab, xlab='Days', lty=1,
+            ylim=c(0,max(noSaturation)*1.2), col=1:3,main=deparse(substitute(mod)) )
+    legend('topleft', c('POM','MB','MAOM'), lty=1, col=1:3, bty='n')
+  }
+ 
+  thp_plot_MBC <- function(mod) {
+    matplot(mod[,2], mod[,c(1,3)], type='l', ylab=ylab, xlab='MB C mass', lty=1,
+            xlim=c(0,max(noSaturation[,2])),
+            ylim=c(0,max(noSaturation)*1.2), col=1:2, main=deparse(substitute(mod)) )
+    legend('topleft', c('POM','MAOM'), lty=1, col=1:2, bty='n')
+  }
+  
+  par(mfrow = c(2,3))
+  if(time) { 
+    ## plotting versus time
+    thp_plot_time(olist$noSaturation)
+    thp_plot_time(olist$MaomMax)
+    thp_plot_time(olist$DDturnover)
+    thp_plot_time(olist$DDcue)
+    thp_plot_time(olist$DDturnover.DDcue)
+    thp_plot_time(olist$DDturnover.DDcue.MaomMax)
+  } else {  
+    # plotting pools vs MBC
+    thp_plot_MBC(olist$noSaturation)
+    thp_plot_MBC(olist$MaomMax)
+    thp_plot_MBC(olist$DDturnover)
+    thp_plot_MBC(olist$DDcue)
+    thp_plot_MBC(olist$DDturnover.DDcue)
+    thp_plot_MBC(olist$DDturnover.DDcue.MaomMax)
+  }
+}
+  
 
 
 ### END ###

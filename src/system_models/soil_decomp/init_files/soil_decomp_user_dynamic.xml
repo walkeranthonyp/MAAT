@@ -5,26 +5,47 @@
       <decomp>
         <d1>NA</d1>
         <d2>NA</d2>
+        <d3>NA</d3>
       </decomp>
       <transfer>
         <t1_to_2>NA</t1_to_2>
-        <t2_to_1>NA</t2_to_1>
+        <t2_to_3>NA</t2_to_3>
+        <t3_to_2>NA</t3_to_2>
       </transfer>
     </soil_decomp>
   </fnames>
   <pars>
     <soil_decomp>
+      <cstate0>
+        <c1>NA</c1>
+        <c2>NA</c2>
+        <c3>NA</c3>
+      </cstate0>
       <ks>NA</ks>
       <kb>NA</kb>
       <Km>NA</Km>
       <r>NA</r>
       <Af>NA</Af>
+      <silt>NA</silt>
+      <clay>NA</clay>
+      <cuec1>NA</cuec1>
+      <h>NA</h>
+      <cuec3>NA</cuec3>
+      <vmax1>NA</vmax1>
+      <vmax3>NA</vmax3>
+      <km1>NA</km1>
+      <km3>NA</km3>
+      <k23>NA</k23>
+      <mbcmax>NA</mbcmax>
+      <beta>NA</beta>
+      <maommax>NA</maommax>
     </soil_decomp>
   </pars>
   <env>
     <soil_decomp>
       <litter>NA</litter>
-      <times>NA</times>
+      <temp>NA</temp>
+      <swc>NA</swc>
     </soil_decomp>
   </env>
 </dynamic>

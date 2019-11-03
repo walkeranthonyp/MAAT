@@ -175,7 +175,7 @@ plsoda <-
     #     initforc <- func$initforc
     #   func <- func$func
     # }
-    print(hmax)
+    #print(hmax)
     hmax <- deSolve:::checkInput(y, times, func, rtol, atol, jacfunc, tcrit, 
                        hmin, hmax, hini, dllname)
     n <- length(y)

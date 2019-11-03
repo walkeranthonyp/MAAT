@@ -95,11 +95,27 @@ run <- function(.) {
 
 
 
-# run met function
+# init and run met functions
 # wrapper function called from an lapply function to run model over every row of a meteorology dataframe
 ###########################################################################
 
+init_state <- function(.) {
+  .$state      <- rapply(.$state, function(v) numeric(length(v)), how='replace' )
+  .$state_pars <- rapply(.$state_pars, function(v) numeric(length(v)), how='replace' )
+}
+
+
+# this currently works both when called from unit testing and from the wrapper 
+# - not 100 % sure why as when called from the wrapper .$dataf shoudl read .super$dataf
+# - maybe a result of being called from teh wraopoer and maybe . represents the object within which the function is called?
 run_met <- function(.,l) {
+   
+  if(!is.null(.$init)) .$init()
+  t(vapply(1:.$dataf$lm, .$run_met1, .$dataf$mout )) 
+}
+
+
+run_met1 <- function(.,l) {
   # assumes that each row of the dataframe are sequential
   # allows the system state at t-1 to affect the system state at time t if necessary (therefore mclapply cannot be used)
   # typically used to run the model using data collected at a specific site and to compare against observations
@@ -108,7 +124,7 @@ run_met <- function(.,l) {
   # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values
 
   # met data assignment
-  .$configure(vlist='env', df=.$dataf$met[l,] )
+  .$configure(vlist='env', df=.$dataf$met[l,,drop=F] )
 
   # run model
   .$run()
@@ -258,7 +274,7 @@ configure_test <- function(.) {
   fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
   .$fns   <- as.proto(fnslist, parent=. )
   if(!is.null(.$configure_unique)) .$configure_unique(init=T, flist=unlist(.$fnames) )
-
+  if(!is.null(.$init))             .$init()
 }
 
 

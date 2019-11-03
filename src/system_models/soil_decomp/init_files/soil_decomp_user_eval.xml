@@ -1,8 +1,8 @@
 <eval_data_translator>
   <state>
     <soil_decomp>
-      <c_pools>'column name of variable in evaldata file'</c_pools>
-      <solver_out>'column name of variable in evaldata file'</solver_out>
+      <cpools>'column name of variable in evaldata file'</cpools>
+      <cpools_n>'column name of variable in evaldata file'</cpools_n>
     </soil_decomp>
   </state>
 </eval_data_translator>
