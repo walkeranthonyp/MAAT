@@ -297,10 +297,6 @@ configure_met <- function(., df ) {
   #.[['env']][vlss] <- df[]
   # ALJ: need to subset by mss
   .[['env']][vlss] <- df[mss]
-
-  #print(paste0(".$model$env$ca_conc = ", .$model$env$ca_conc))
-
-  #print('.[[env]][vlss]'); print(.[['env']][vlss])
 }
 
 

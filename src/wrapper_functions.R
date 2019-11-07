@@ -97,39 +97,15 @@ generate_ensemble_pars_SAprocess_ye <- function(.) {
 # parameter matrix for initial proposal of MCMC
 generate_ensemble_pars_mcmc_dream <- function(.) {
 
-  # ORIGINAL CODE TO GENERATE PRIOR DISTRIBUTION
-  # THIS IS WITH DIFFERNT TYPE OF INIT FILE
-  # sample parameters from character string code snippets to generate initial proposal from priors
-  #n <- .$wpars$mcmc_chains
-  #.$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-  # create pars / proposal matrix
-  #.$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
-  # remove initialisation pars list
-  #.$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
-  #print('old dataf$pars')
-  #print(typeof(.$dataf$pars))
-  #print(.$dataf$pars[1, 1])
-  #print('dataf$pars matrix')
-  #print(.$dataf$pars)
-  #print('stop here')
-
-  # NEW CODE TO GENERATE PRIOR DISTRIBUTION
-  # THIS IS WITH DIFFERNT TYPE OF INIT FILE
-  # ALSO WILL HAVE TO CHANGE UNIT TESTING AND WRAPPER FUNCTIONS
+  # ALJ: new code to generate prior distribution
+  #      not sure if this will work with unit testing now?
+  #      also, requires initializing variables differently in init file
 
   # read values from character string code snippets
-  n <- .$wpars$mcmc_chains
   .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-
-  # ALJ: trying new mcmc prior function...
-  # ALJ: would be optimal to change bdry handling functions after i get this working
 
   # generate initial proposal from priors and create pars / proposal matrix
   .$mcmc_prior()
-
-  # debugging/development
-  #print('was pars matrix successfully created????')
-  #print(.$dataf$pars)
 
   # remove initialisation pars list
   .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
@@ -142,7 +118,6 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
     oss  <- seq(1, dim(.$dataf$metdata)[2], thin )
     .$dataf$met   <- .$dataf$met[,oss]
     .$dataf$obs   <- .$dataf$obs[oss]
-    # ALJ: not sure whether this should be commented out or not?
     #.$dataf$obsse <- .$dataf$obsse[oss]
   }
 }
@@ -204,10 +179,9 @@ init_output_matrix_mcmc_dream <- function(.) {
   .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm)
 
   # create matrix for storing chain outlier information
-  .$dataf$omega          <- matrix(NA, .$wpars$mcmc_chains, ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter))
+  .$dataf$omega         <- matrix(NA, .$wpars$mcmc_chains, ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter))
 
-  # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
-  .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
+  .$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
 
 }
 
@@ -643,27 +617,11 @@ run1_mcmc_dream <- function(.,i) {
   # determine boundary handling limits for parameter space
   .$boundary_handling_set()
 
-  # print(paste0('i = ', i))
-
-  # print('inital model evaluation = ')
-  # print(.$dataf$pars)
-  # print(.$dataf$pars_array[ , , 1])
-
-  # print('likelihood of initial model evaluation = ')
-  # print(.$dataf$pars_lklihood[ ,1])
-
-  # debug: add to proposal storage array
-  # .$dataf$prop_storage[ , , 1] <- .$dataf$pars
-
   # run initialisation part of algorithm
   .$init_mcmc()
 
   # run MCMC
   vapply(2:.$wpars$mcmc_maxiter, .$run2, numeric(0) )
-
-  # future work: insert rigorous burn-in procedure here
-  #              also, if convergence has not been reached, re-run MCMC
-  #              will need to align this with the above outut array specification
 
   # write output from MCMC
   .$write_output(i=i)
@@ -686,38 +644,28 @@ run2_mcmc_dream <- function(.,j) {
         else                 lapply(1:.$dataf$lp, .$run3 )
     })
 
-  # calculate likelihood of proposals on each chain
-  # likelihood function is independent of DE-MC or DREAM algorithms
+  # calculate likelihood of proposals on each chain (likelihood function is independent of DREAM algorithm)
   lklihood <- .$proposal_lklihood()
 
   # accept / reject proposals on each chain
-  #get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )
   .$proposal_accept(j=j, lklihood )
 
-  # if during burn-in, check for and handle outlier chains
-  # ALJ: need help with restarting j & burnin proccess
-  # ALJ: need to make sure this works correctly with j and function call order!
-  #if ((j %% .$wpars$mcmc_check_iter == 0) & (j <= .$mcmc$burnin)) .$mcmc_outlier(j=j)
+  # if test for and handle outlier chains (if outlier is detected, throw out all previous MCMC samples)
   if ((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) .$mcmc_outlier(j=j)
 
-  # after burnin complete, check for convergence
-  # ALJ: not sure how/when exactly I should be checking for convergence (ask Dan)
-  #if (((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) & (j > .$mcmc$burnin)) .$mcmc_converge(j=j)
-  if (j == .$wpars$mcmc_maxiter) .$mcmc_converge(j=j)
-
-  # future work: other code here for subprograms called during or after burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
+  # calculate convergence diagnostic (considered converged if all )
+  if ((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) .$mcmc_converge(j=j)
 
   # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function
   numeric(0)
 }
 
 # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$pars matrix to the model
-#runp_mcmc <- function(.,k) {
 run3_mcmc_dream <- function(.,k) {
   # runs each chain at each iteration in MCMC
 
   # assumes that each column of the pars matrix are independent and non-sequential
-  # debug: note that the above assumption is valid only for DREAM, not DE-MC
+  # ALJ: this assumption is valid only for DREAM, not DE-MC
 
   # configure parameters in the model
   if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[,k], F )
@@ -885,12 +833,12 @@ output_SAprocess_ye <- function(.) {
 
 # creates output for a Ye process sensitivity analysis
 output_mcmc_dream <- function(.) {
-  list(pars_array=.$dataf$pars_array,
-       pars_lklihood=.$dataf$pars_lklihood,
-       mod_out_final=.$dataf$out,
-       obs=.$dataf$obs,
-       mod_eval=.$dataf$out_mcmc,
-       prop_storage=.$dataf$prop_storage)
+  list(pars_array    = .$dataf$pars_array,
+       pars_lklihood = .$dataf$pars_lklihood,
+       mod_out_final = .$dataf$out,
+       obs           = .$dataf$obs,
+       mod_eval      = .$dataf$out_mcmc,
+       prop_storage  = .$dataf$prop_storage)
 }
 
 

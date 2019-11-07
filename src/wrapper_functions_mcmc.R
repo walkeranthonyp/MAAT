@@ -87,38 +87,25 @@ proposal_accept_mcmc_demc <- function(., j, lklihood ) {
 init_mcmc_dream <- function(.) {
 
   # number of parameters being estimated
-  #.$mcmc$d <- ncol(.$dataf$pars)
   .$mcmc$d <- dim(.$dataf$pars)[1]
 
   # preallocate memory space for algorithmic variables
   .$mcmc$p_state       <- numeric(.$dataf$lp)
   .$mcmc$R             <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$dataf$lp - 1)
-  #.$mcmc$current_state <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$mcmc$d)
   .$mcmc$current_state <- matrix(data = 0, nrow = .$mcmc$d, ncol = .$dataf$lp)
   .$mcmc$draw          <- matrix(data = 0, nrow = .$dataf$lp - 1, ncol = .$dataf$lp)
   .$mcmc$lambda        <- matrix(data = 0, nrow = .$dataf$lp, ncol = 1)
   .$mcmc$jump          <- matrix(data = 0, nrow = .$mcmc$d, ncol = .$dataf$lp)
 
   # preallocate space for crossover variables
-  # ALJ: these are non-adaptive/non-working crossover vars from vrugt matlab paper
-  .$mcmc$id   <- numeric(1)
-  .$mcmc$J    <- numeric(.$wpars$mcmc_n_CR)
-  .$mcmc$n_id <- numeric(.$wpars$mcmc_n_CR)
-
-  # preallocate space for crossover variables
-  # ALJ: some may be redundant with above crossover vars?
-  # ALJ: these are from vrugt 2009 paper and also dan lu's matlab code
-  .$mcmc$t      <- numeric(1)
-  .$mcmc$d_star <- numeric(1)
-  .$mcmc$m      <- numeric(.$wpars$mcmc_chains)
-  .$mcmc$L      <- numeric(.$wpars$mcmc_n_CR)
-  .$mcmc$del    <- numeric(.$wpars$mcmc_n_CR)
-
-  # preallocate space for crossover variables
-  # ones that are the same regardless of whther adaptive or not
+  .$mcmc$t         <- numeric(1)
+  .$mcmc$d_star    <- numeric(1)
   .$mcmc$CR_burnin <- numeric(1)
   .$mcmc$sd_state  <- numeric(.$mcmc$d)
+  .$mcmc$L         <- numeric(.$wpars$mcmc_n_CR)
+  .$mcmc$del       <- numeric(.$wpars$mcmc_n_CR)
   .$mcmc$p_CR      <- numeric(.$wpars$mcmc_n_CR)
+  .$mcmc$m         <- numeric(.$wpars$mcmc_chains)
 
   # if user chooses adaptive crossover probabilties
   if(.$wpars$mcmc_adapt_CR) {
