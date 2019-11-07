@@ -279,18 +279,17 @@ wrapper_object$wpars <- list(
   of_name_stem       = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
   n                  = numeric(1),  # parameter sample number
   nmult              = 1,           # parameter sample number multiplier for saltelli method
-  eval_strings       = F,        # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
+  eval_strings       = F,        # switch telling wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
   sobol_init         = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
   unit_testing       = F,
   mcmc_type          = 'dream',
-  mcmc_lklihood      = 'log',
+  mcmc_lklihood      = 'ssquared',
   mcmc_outlier       = 'iqr',
   mcmc_converge      = 'Gelman_Rubin',
   mcmc_bdry_handling = 'bound',
   mcmc_prior         = 'uniform',
-  mcmc_chains        = 10,
-  mcmc_maxiter       = 100,
-  mcmc_burnin        = 0.5,
+  mcmc_chains        = 7,
+  mcmc_maxiter       = 1000,
   mcmc_thin          = 0.1,
   mcmc_thin_obs      = 1,
   mcmc_homosced      = F,
@@ -299,8 +298,7 @@ wrapper_object$wpars <- list(
   mcmc_c_ergod       = 1e-12,
   mcmc_p_gamma       = 0.2,
   mcmc_n_CR          = 3,
-  mcmc_debug         = F,
-  mcmc_adapt_CR      = T,
+  mcmc_adapt_pCR     = T,
   mcmc_CR_burnin     = 0.1,
   mcmc_check_iter    = 10
 )
@@ -308,9 +306,6 @@ wrapper_object$wpars <- list(
 # MCMC specific data, size depends on MCMC set up
 wrapper_object$mcmc <- list(
   d              = numeric(1),
-  J              = numeric(1),
-  id             = numeric(1),
-  n_id           = numeric(1),
   CR             = numeric(1),
   p_CR           = numeric(1),
   R              = matrix(1,1,1),
@@ -322,19 +317,12 @@ wrapper_object$mcmc <- list(
   lambda         = matrix(1,1,1),
   boundary_min   = numeric(1),
   boundary_max   = numeric(1),
-  runif_seed     = matrix(1,1,1),
-  draw_seed      = array(1, c(1,1,1)),
-  lambda_seed    = array(1, c(1,1,1)),
-  zz_seed        = array(1, c(1,1,1)),
   prop_storage   = array(1, c(1,1,1)),
-  lklhd_storage  = array(1, c(1,1,1)),
-  accept_storage = array(1, c(1,1,1)),
   del            = numeric(1),
   L              = numeric(1),
   t              = numeric(1),
   m              = numeric(1),
   CR_burnin      = numeric(1),
-  burnin         = numeric(1),
   d_star         = numeric(1)
 )
 
