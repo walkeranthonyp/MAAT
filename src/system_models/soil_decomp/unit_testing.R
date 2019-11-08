@@ -36,7 +36,10 @@ names(soil_decomp_object$fns)
 soil_decomp_object$fns$as.list()
 
 soil_decomp_object$fns$decomp.d1
-soil_decomp_object$fns$decomp.d1(soil_decomp_object$state$cpools[,1])
+soil_decomp_object$fns$decomp.d1(soil_decomp_object$state$cpools[,1],i=1)
+soil_decomp_object$fns$decomp.d2
+soil_decomp_object$fns$decomp.d3
+
 soil_decomp_object$fns$transfer.t1_to_2
 soil_decomp_object$fns[["transfer.t1_to_2"]]
 
@@ -50,8 +53,9 @@ soil_decomp_object$fns$DotO(soil_decomp_object$state$cpools[,1])
 
 source('soil_decomp_object.R')
 olist <- soil_decomp_object$.test_3pool() 
-system.time(soil_decomp_object$.test_3pool())
-
+system.time(olist <- soil_decomp_object$.test_3pool(ntimes=365))
+system.time(olist <- soil_decomp_object$.test_3pool())
+olist
 
 
 ### END ###

@@ -3,14 +3,14 @@
     <soil_decomp>
       <sys>'f_sys_npools'</sys>
       <decomp>
-        <d1>'f_decomp_MM_microbe1'</d1>
-        <d2>'f_decomp_lin2'</d2>
-        <d3>'f_decomp_MM_microbe3'</d3>
+        <d1>'f_decomp_MM_microbe'</d1>
+        <d2>'f_decomp_lin'</d2>
+        <d3>'f_decomp_MM_microbe'</d3>
       </decomp>
       <transfer>
-        <t1_to_2>'f_transfer_cue12'</t1_to_2>
-        <t2_to_3>'f_transfer_cue23'</t2_to_3>
-        <t3_to_2>'f_transfer_cue32'</t3_to_2>
+        <t1_to_2>'f_transfer_cue'</t1_to_2>
+        <t2_to_3>'f_transfer_cue'</t2_to_3>
+        <t3_to_2>'f_transfer_cue'</t3_to_2>
       </transfer>
     </soil_decomp>
   </fnames>
@@ -39,6 +39,31 @@
       <mbcmax>2</mbcmax>
       <beta>1.5</beta>
       <maommax>26.725</maommax>
+      <cue>
+        <cue1>0.47</cue1>
+        <cue2>0.566</cue2>
+        <cue3>0.47</cue3>
+      </cue>
+      <vmax>
+        <vmax1>0.2346</vmax1>
+        <vmax2>0.2346</vmax2>
+        <vmax3>0.0777</vmax3>
+      </vmax>
+      <km>
+        <km1>101</km1>
+        <km2>101</km2>
+        <km3>250</km3>
+      </km>
+      <k>
+        <k1>0.007</k1>
+        <k2>0.00672</k2>
+        <k3>0.006</k3>
+      </k>
+      <poolmax>
+        <pmax1>2</pmax1>
+        <pmax2>2</pmax2>
+        <pmax3>26.725</pmax3>
+      </poolmax>
     </soil_decomp>
   </pars>
   <env>

@@ -39,6 +39,31 @@
       <mbcmax>NA</mbcmax>
       <beta>NA</beta>
       <maommax>NA</maommax>
+      <cue>
+        <cue1>NA</cue1>
+        <cue2>NA</cue2>
+        <cue3>NA</cue3>
+      </cue>
+      <vmax>
+        <vmax1>NA</vmax1>
+        <vmax2>NA</vmax2>
+        <vmax3>NA</vmax3>
+      </vmax>
+      <km>
+        <km1>NA</km1>
+        <km2>NA</km2>
+        <km3>NA</km3>
+      </km>
+      <k>
+        <k1>NA</k1>
+        <k2>NA</k2>
+        <k3>NA</k3>
+      </k>
+      <poolmax>
+        <pmax1>NA</pmax1>
+        <pmax2>NA</pmax2>
+        <pmax3>NA</pmax3>
+      </poolmax>
     </soil_decomp>
   </pars>
   <env>

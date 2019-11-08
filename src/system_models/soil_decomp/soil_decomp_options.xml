@@ -2,8 +2,8 @@
   <fnames>
     <soil_decomp>
       <sys>'c( 'f_sys_npools' )'</sys>
-      <decomp>'c( 'f_decomp_dd2', 'f_decomp_lin', 'f_decomp_lin2', 'f_decomp_MM_microbe', 'f_decomp_MM_microbe1', 'f_decomp_MM_microbe3' )'</decomp>
-      <transfer>'c( 'f_transfer_all', 'f_transfer_cue12', 'f_transfer_cue23', 'f_transfer_cue32', 'f_transfer_cue_dd12', 'f_transfer_cue_dd32', 'f_transfermatrix', 'f_transfer_resploss', 'f_transfer_sat23', 'f_transfer_zero13', 'f_transfer_zero21', 'f_transfer_zero31' )'</transfer>
+      <decomp>'c( 'f_decomp_dd', 'f_decomp_dd2', 'f_decomp_lin', 'f_decomp_lin2', 'f_decomp_MM_microbe', 'f_decomp_MM_microbe1', 'f_decomp_MM_microbe3' )'</decomp>
+      <transfer>'c( 'f_transfer_all', 'f_transfer_cue', 'f_transfer_cue12', 'f_transfer_cue23', 'f_transfer_cue32', 'f_transfer_cue_dd', 'f_transfer_cue_dd12', 'f_transfer_cue_dd32', 'f_transfer_cue_sat', 'f_transfermatrix', 'f_transfermatrixi', 'f_transfer_resploss', 'f_transfer_sat23', 'f_transfer_zero' )'</transfer>
     </soil_decomp>
   </fnames>
 </options>

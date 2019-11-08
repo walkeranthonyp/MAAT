@@ -39,8 +39,8 @@ soil_decomp_object$configure_unique <- function(., init=F, flist=NULL ) {
     source('../../functions/packagemod_functions.R')
     .$fns$plsoda         <- plsoda
     .$fns$inputrates     <- f_inputrates
-    .$fns$DotO           <- f_DotO
-    .$fns$transfermatrix <- f_transfermatrix
+    .$fns$DotO           <- f_DotOi
+    .$fns$transfermatrix <- f_transfermatrixi
     .$fns$solver_func    <- f_solver_func
   }
 
@@ -73,19 +73,19 @@ soil_decomp_object$fnames <- list(
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_MM_microbe1',
-    d2 = 'f_decomp_lin2',
-    d3 = 'f_decomp_MM_microbe3'
+    d1 = 'f_decomp_MM_microbe',
+    d2 = 'f_decomp_lin',
+    d3 = 'f_decomp_MM_microbe'
   ),
   
   # transfer list
   transfer = list(
-    t1_to_2 = 'f_transfer_cue12',
-    #t1_to_3 = 'f_transfer_all',
-    #t2_to_1 = 'f_transfer_all',
-    t2_to_3 = 'f_transfer_cue23',
-    #t3_to_1 = 'f_transfer_resploss',
-    t3_to_2 = 'f_transfer_cue32'
+    t1_to_2 = 'f_transfer_cue',
+    #t1_to_3 = 'f_transfer_zero',
+    #t2_to_1 = 'f_transfer_zero',
+    t2_to_3 = 'f_transfer_cue',
+    #t3_to_1 = 'f_transfer_zero',
+    t3_to_2 = 'f_transfer_cue'
   )
 )
 
@@ -139,7 +139,32 @@ soil_decomp_object$pars <- list(
   k23     = 0.00672,    # microbial turnover constant
   mbcmax  = 2,          # microbial biomass max value
   beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
-  maommax = 26.725      # max maom capacity (calculated using Hassink formula assuming 15% clay)
+  maommax = 26.725,     # max maom capacity (calculated using Hassink formula assuming 15% clay)
+  cue = list(
+    cue1 = 0.47,       # currently, all cue values are the same (at the value in MEND), might need a different cue_max for density dependent function... 
+    cue2 = 0.566,      # humification constant
+    cue3 = 0.47   
+  ),  
+  vmax = list(   
+    vmax1 = 0.2346,     
+    vmax2 = 0.2346,     
+    vmax3 = 0.0777   
+  ),       
+  km = list(   
+    km1 = 101,       
+    km2 = 101,       
+    km3 = 250
+  ),       
+  k = list(   
+    k1 = 0.007,       
+    k2 = 0.00672,    # microbial turnover constant
+    k3 = 0.006
+  ),
+  poolmax = list(       
+    pmax1 = 2,       # POM value
+    pmax2 = 2,       # microbial biomass max value
+    pmax3 = 26.725   # max maom capacity (calculated using Hassink formula assuming 15% clay)
+  )
 )
 
 
@@ -217,30 +242,30 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
   olist$noSaturation  <- .$run_met()
 
   # saturating MAOM
-  .$fnames$transfer$t2_to_3 <- 'f_transfer_sat23'
+  .$fnames$transfer$t2_to_3 <- 'f_transfer_cue_sat'
   .$configure_test() 
   olist$MaomMax       <- .$run_met()
 
   # denisty dependent microbial turnover 
-  .$fnames$transfer$t2_to_3 <- 'f_transfer_cue23'
-  .$fnames$decomp$d2        <- 'f_decomp_dd2'
+  .$fnames$transfer$t2_to_3 <- 'f_transfer_cue'
+  .$fnames$decomp$d2        <- 'f_decomp_dd'
   .$configure_test() 
   olist$DDturnover    <- .$run_met()
 
   # denisty dependent microbial cue 
-  .$fnames$transfer$t1_to_2 <- 'f_transfer_cue_dd12'
-  .$fnames$transfer$t3_to_2 <- 'f_transfer_cue_dd32'
-  .$fnames$decomp$d2        <- 'f_decomp_lin2'
+  .$fnames$transfer$t1_to_2 <- 'f_transfer_cue_sat'
+  .$fnames$transfer$t3_to_2 <- 'f_transfer_cue_sat'
+  .$fnames$decomp$d2        <- 'f_decomp_lin'
   .$configure_test() 
   olist$DDcue         <- .$run_met()
 
   # denisty dependent microbial turnover and cue 
-  .$fnames$decomp$d2        <- 'f_decomp_dd2'
+  .$fnames$decomp$d2        <- 'f_decomp_dd'
   .$configure_test() 
   olist$DDturnover.DDcue <- .$run_met()
 
   # denisty dependent microbial turnover and cue and MAOM saturation 
-  .$fnames$transfer$t2_to_3 <- 'f_transfer_sat23'
+  .$fnames$transfer$t2_to_3 <- 'f_transfer_cue_sat'
   .$configure_test() 
   olist$DDturnover.DDcue.MaomMax <- .$run_met()
 
@@ -248,15 +273,15 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
   # plotting functions
   thp_plot_time <- function(mod) {
     ylab <- expression('Pool C mass ['*gC*' '*m^-2*']')
-    matplot(t, mod, type='l', ylab=ylab, xlab='Days', lty=1,
-            ylim=c(0,max(noSaturation)*1.2), col=1:3,main=deparse(substitute(mod)) )
+    matplot(1:dim(mod)[1], mod[,1:3], type='l', ylab=ylab, xlab='Days', lty=1,
+            ylim=c(0,max(mod)*1.2), col=1:3,main=deparse(substitute(mod)) )
     legend('topleft', c('POM','MB','MAOM'), lty=1, col=1:3, bty='n')
   }
  
   thp_plot_MBC <- function(mod) {
     matplot(mod[,2], mod[,c(1,3)], type='l', ylab=ylab, xlab='MB C mass', lty=1,
-            xlim=c(0,max(noSaturation[,2])),
-            ylim=c(0,max(noSaturation)*1.2), col=1:2, main=deparse(substitute(mod)) )
+            xlim=c(0,max(mod[,2])),
+            ylim=c(0,max(mod)*1.2), col=1:2, main=deparse(substitute(mod)) )
     legend('topleft', c('POM','MAOM'), lty=1, col=1:2, bty='n')
   }
   
@@ -278,6 +303,8 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
     thp_plot_MBC(olist$DDturnover.DDcue)
     thp_plot_MBC(olist$DDturnover.DDcue.MaomMax)
   }
+
+  olist
 }
   
 
