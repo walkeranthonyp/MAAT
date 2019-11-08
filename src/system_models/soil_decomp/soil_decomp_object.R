@@ -8,6 +8,7 @@
 
 library(proto)
 source('soil_decomp_functions.R')
+source('soil_decomp_SoilR_functions.R')
 source('soil_decomp_system_functions.R')
 
 

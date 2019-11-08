@@ -9,8 +9,7 @@
 
 
 ################################
-# soil_decomp system function one
-# - 2 pool microbial model
+# soil_decomp system function 
 
 f_sys_npools <- function(.) {
   .super$state_pars$solver_out <- .$plsoda(.super$state$cpools, c(0,1), .$solver_func )

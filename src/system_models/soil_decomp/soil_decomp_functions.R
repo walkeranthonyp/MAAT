@@ -2,7 +2,7 @@
 #
 # MAAT soil_decomp process representation functions (PRFs)
 # 
-# AWalker, Matt Craig, October 2019 
+# Matt Craig, AWalker October 2019 
 # Carlos Sierra, Matthais Mueller (SoilR developers) 
 #
 ################################
@@ -65,55 +65,6 @@ f_transfer_cue_dd32 <- function(.,C,t) .super$pars$cuec3*(1-(C[2]/.super$pars$mb
                                                     
 # H2b) no density dependent CUE (i.e. constant CUE)   
 f_transfer_cue32 <- function(.,C,t) .super$pars$cuec3                                         
-
-
-
-# MODIFIED SoilR FUNCTIONS
-################################
-
-# input rate matrix, single column, rows = cpools_n
-# - this is where inputs would be divided among pools
-f_inputrates <- function(.,t) {
-  matrix(ncol = 1, c(.$env$litter, rep(0,.super$state$cpools_n-1)) )
-}
-
-
-# decomp vector, single column, rows = cpools_n
-f_DotO  <- function(.,C,t) { 
-  dnames <- grep('decomp\\.', names(.), value=T )
-  id     <- sub('decomp.d', '', dnames)
-  m      <- matrix(ncol=1, nrow=.super$state$cpools_n )
-  for(i in id) m[as.numeric(i),] <- .[[paste0('decomp.d',i)]](C=C,t=t)
-  m
-}
-
-
-# transfer matrix, square, cpools_n extent
-f_transfermatrix <- function(., C, t ) {
-  tnames <- grep('transfer\\.', names(.), value=T )
-  id     <- sub('transfer.t', '', tnames)
-  #print(id)
-  m      <- -1 * diag(nrow=.super$state$cpools_n)
-  #print(m)
-  #print(.super$state)
-  for(i in id) m[matrix(rev(as.numeric(unlist(strsplit(i,'_to_')))),nrow=1)] <- .[[paste0('transfer.t',i)]](C=C,t=t)
-  m
-}
-
-  
-## function to solve
-#f_DotC <- function(., C, t) {
-#  .$transfermatrix(C,t) %*% .$DotO(C,t) + .$inputrates(t) 
-#}
-
-
-# lsoda style function to solve
-# - parms is a dummy argument to work with lsoda
-f_solver_func <- function(., t, y, parms) {
-  YD = .$transfermatrix(y,t) %*% .$DotO(y,t) + .$inputrates(t) 
-  #YD = .$DotC(y,t)
-  list(as.vector(YD))
-}
 
 
 
