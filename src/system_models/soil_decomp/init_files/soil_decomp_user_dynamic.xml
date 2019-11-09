@@ -16,29 +16,14 @@
   </fnames>
   <pars>
     <soil_decomp>
+      <beta>NA</beta>
+      <silt>NA</silt>
+      <clay>NA</clay>
       <cstate0>
         <c1>NA</c1>
         <c2>NA</c2>
         <c3>NA</c3>
       </cstate0>
-      <ks>NA</ks>
-      <kb>NA</kb>
-      <Km>NA</Km>
-      <r>NA</r>
-      <Af>NA</Af>
-      <silt>NA</silt>
-      <clay>NA</clay>
-      <cuec1>NA</cuec1>
-      <h>NA</h>
-      <cuec3>NA</cuec3>
-      <vmax1>NA</vmax1>
-      <vmax3>NA</vmax3>
-      <km1>NA</km1>
-      <km3>NA</km3>
-      <k23>NA</k23>
-      <mbcmax>NA</mbcmax>
-      <beta>NA</beta>
-      <maommax>NA</maommax>
       <cue>
         <cue1>NA</cue1>
         <cue2>NA</cue2>

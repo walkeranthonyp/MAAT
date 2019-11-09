@@ -16,29 +16,14 @@
   </fnames>
   <pars>
     <soil_decomp>
+      <beta>1.5</beta>
+      <silt>0.2</silt>
+      <clay>0.2</clay>
       <cstate0>
         <c1>0.6</c1>
         <c2>0.1</c2>
         <c3>0.1</c3>
       </cstate0>
-      <ks>1.8e-05</ks>
-      <kb>0.007</kb>
-      <Km>900</Km>
-      <r>0.6</r>
-      <Af>1</Af>
-      <silt>0.2</silt>
-      <clay>0.2</clay>
-      <cuec1>0.47</cuec1>
-      <h>0.566</h>
-      <cuec3>0.47</cuec3>
-      <vmax1>0.2346</vmax1>
-      <vmax3>0.0777</vmax3>
-      <km1>101</km1>
-      <km3>250</km3>
-      <k23>0.00672</k23>
-      <mbcmax>2</mbcmax>
-      <beta>1.5</beta>
-      <maommax>26.725</maommax>
       <cue>
         <cue1>0.47</cue1>
         <cue2>0.566</cue2>

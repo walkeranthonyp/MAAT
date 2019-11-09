@@ -52,10 +52,10 @@ soil_decomp_object$fns$DotO(soil_decomp_object$state$cpools[,1])
 
 
 source('soil_decomp_object.R')
-olist <- soil_decomp_object$.test_3pool() 
 system.time(olist <- soil_decomp_object$.test_3pool(ntimes=365))
 system.time(olist <- soil_decomp_object$.test_3pool())
 olist
+
 
 
 ### END ###

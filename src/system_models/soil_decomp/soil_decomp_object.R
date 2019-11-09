@@ -39,8 +39,8 @@ soil_decomp_object$configure_unique <- function(., init=F, flist=NULL ) {
     source('../../functions/packagemod_functions.R')
     .$fns$plsoda         <- plsoda
     .$fns$inputrates     <- f_inputrates
-    .$fns$DotO           <- f_DotOi
-    .$fns$transfermatrix <- f_transfermatrixi
+    .$fns$DotO           <- f_DotO
+    .$fns$transfermatrix <- f_transfermatrix
     .$fns$solver_func    <- f_solver_func
   }
 
@@ -117,49 +117,63 @@ soil_decomp_object$state_pars <- list(
 # parameters
 ####################################
 soil_decomp_object$pars <- list(
+ 
+  beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
+  silt    = 0.2,
+  clay    = 0.2,
+ 
+  # initial pool mass for each pool
   cstate0 = list(
     c1 = 0.6,
     c2 = 0.1,
     c3 = 0.1
   ),
-  ks      = 1.8e-05,
-  kb      = 0.007,
-  Km      = 900,
-  r       = 0.6,
-  Af      = 1,
-  silt    = 0.2,
-  clay    = 0.2,
-  cuec1   = 0.47,       # currently, all cue values are the same (at the value in MEND), might need a different cue_max for density dependent function... 
-  h       = 0.566,      # humification constant
-  cuec3   = 0.47,     
-  vmax1   = 0.2346,     
-  vmax3   = 0.0777,   
-  km1     = 101,       
-  km3     = 250,       
-  k23     = 0.00672,    # microbial turnover constant
-  mbcmax  = 2,          # microbial biomass max value
-  beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
-  maommax = 26.725,     # max maom capacity (calculated using Hassink formula assuming 15% clay)
+  #ks      = 1.8e-05,
+  #kb      = 0.007,
+  #Km      = 900,
+  #r       = 0.6,
+  #Af      = 1,
+  #cuec1   = 0.47,       # currently, all cue values are the same (at the value in MEND), might need a different cue_max for density dependent function... 
+  #h       = 0.566,      # humification constant
+  #cuec3   = 0.47,     
+  #vmax1   = 0.2346,     
+  #vmax3   = 0.0777,   
+  #km1     = 101,       
+  #km3     = 250,       
+  #k23     = 0.00672,    # microbial turnover constant
+  #maommax = 26.725,     # max maom capacity (calculated using Hassink formula assuming 15% clay)
+  #mbcmax  = 2,          # microbial biomass max value
+
+  # Carbon use or transfer efficiency from pool i to any another 
+  # - if this varies by the 'to' pool we need another function / parameters
   cue = list(
     cue1 = 0.47,       # currently, all cue values are the same (at the value in MEND), might need a different cue_max for density dependent function... 
     cue2 = 0.566,      # humification constant
     cue3 = 0.47   
   ),  
+
+  # max turnover rate per unit microbial biomass for pool i 
   vmax = list(   
     vmax1 = 0.2346,     
     vmax2 = 0.2346,     
     vmax3 = 0.0777   
-  ),       
+  ),
+ 
+  # half-saturation constant for microbial d3ecomnp of pool i      
   km = list(   
     km1 = 101,       
     km2 = 101,       
     km3 = 250
   ),       
+
+  # turnover rate for linear decomposition
   k = list(   
     k1 = 0.007,       
     k2 = 0.00672,    # microbial turnover constant
     k3 = 0.006
   ),
+
+  # maximum size for pool i 
   poolmax = list(       
     pmax1 = 2,       # POM value
     pmax2 = 2,       # microbial biomass max value
