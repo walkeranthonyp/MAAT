@@ -183,6 +183,8 @@ init_output_matrix_mcmc_dream <- function(.) {
 
   .$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
 
+  # create matrix for storing convergence diagnostic
+  .$dataf$conv_check   <- matrix(NA, nrow = ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter), ncol = (dim(.$dataf$pars)[1] + 1))
 }
 
 init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream
@@ -831,14 +833,15 @@ output_SAprocess_ye <- function(.) {
 }
 
 
-# creates output for a Ye process sensitivity analysis
+# creates output for a MCMC simulation
 output_mcmc_dream <- function(.) {
   list(pars_array    = .$dataf$pars_array,
        pars_lklihood = .$dataf$pars_lklihood,
        mod_out_final = .$dataf$out,
        obs           = .$dataf$obs,
        mod_eval      = .$dataf$out_mcmc,
-       prop_storage  = .$dataf$prop_storage)
+       prop_storage  = .$dataf$prop_storage,
+       conv_check    = .$dataf$conv_check)
 }
 
 

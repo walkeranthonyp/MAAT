@@ -414,11 +414,14 @@ if(!is.null(metdata)) {
       names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
     }
 
+    ###################################
     # add to MAAT object
-    # this one is for sphagnum simulations
-    #maat$dataf$met <- t(as.matrix(metdf[,-1]))
-    # this one is for aci simulations
+    # future work: generalize this
+    # for sphagnum simulations
+    # maat$dataf$met <- t(as.matrix(metdf[,-1]))
+    # for ACii simulations
     maat$dataf$met <- t(as.matrix(metdf))
+    ###################################
 
     # remove met data file
     rm(metdf)

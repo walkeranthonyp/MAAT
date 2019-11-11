@@ -317,7 +317,6 @@ wrapper_object$mcmc <- list(
   lambda         = matrix(1,1,1),
   boundary_min   = numeric(1),
   boundary_max   = numeric(1),
-  prop_storage   = array(1, c(1,1,1)),
   del            = numeric(1),
   L              = numeric(1),
   t              = numeric(1),
