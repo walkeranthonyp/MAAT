@@ -373,94 +373,112 @@ adapt_pCR <- function(.) {
 # initialize chains with uniform distributions
 mcmc_prior_uniform <- function(.) {
 
+  # IMPORTANT: when initializing parameters in the init file
+  #            it needs to be in the following format:
+  #            parameter = 'list(min = value, max = value)'
+  #            if there is a nested list
+  #            it needs to be in the following format:
+  #            list = 'list(
+  #                    parameter 1 = list(min = value, max = value),
+  #                    parameter 2 = list(min = value, max = value)
+  #                   )'
+
   # number of Markov chains
   n <- .$wpars$mcmc_chains
 
-  # in case there are nested lists
-  unlist(.$dynamic$pars)
-
   # number of parameters (dimensionality of parameter space)
   d <- length(unlist(.$dynamic$pars, recursive = T)) / 2
-  print(names(unlist(.$dynamic$pars, recursive = T)))
-  print(names(.$dynamic$pars))
-  print(paste0('d = ', d))
-  #print(names(.$dynamic$pars))
-  print(.$dynamic$pars)
 
-  # replace with periods
+  # determine minimums and maximums for parameters
+  dynamic_pars_un <- unlist(.$dynamic$pars)
+  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
+  max_vals <- vals[seq(2, length(vals), 2)]
+  min_vals <- vals[seq(1, length(vals), 2)]
 
-  # determine minimums and maximums for parameter values
-  #min_vals <- rep(0, d); max_vals <- rep(0, d)
-  #for(i in 1:d) {
-  #  min_vals[i] <- .$dynamic$pars[[names(.$dynamic$pars)[i]]][['min']]
-  #  max_vals[i] <- .$dynamic$pars[[names(.$dynamic$pars)[i]]][['max']]
-  #}
-
-  # draw priors from uniform distribution to create pars / proposal matrix
-  #.$dataf$pars <- matrix(0, nrow = d, ncol = n)
-  #for (jj in 1:d) {
-  #  .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
-    #nam <- paste0('dimension', jj, sep = '')
-    #nam <- runif(n, min = min_vals[jj], max = max_vals[jj])
-    #print(nam)
-    #assign(nam, runif(n, min = min_vals[jj], max = max_vals[jj]))
-  #}
-
-  #attempt <- rbind(c(paste('dimension', 1:d)))
-  #print(dimension1)
-  #print('attempt')
-  #print(attempt)
-  #.$dataf$pars <- rbind(dimension1, dimension2, dimension3, dimension4)
-
-  # assign parameter names
-  #rownames(.$dataf$pars) <- names(.$dynamic$pars)
-  #print(dim(.$dataf$pars))
-  #print(.$dataf$pars[1, 1])
-
-  # hard-coding for sake of urgency
-  min_vals <- rep(0, 3); max_vals <- rep(0, 3)
-
-  min_vals[1] <- .$dynamic$pars$leaf.atref$vcmax$min
-  max_vals[1] <- .$dynamic$pars$leaf.atref$vcmax$max
-
-  min_vals[2] <- .$dynamic$pars$leaf.atref$jmax$min
-  max_vals[2] <- .$dynamic$pars$leaf.atref$jmax$max
-
-  min_vals[3] <- .$dynamic$pars$leaf.theta_col_cj$min
-  max_vals[3] <- .$dynamic$pars$leaf.theta_col_cj$max
-
-  n <- .$wpars$mcmc_chains
-  .$dataf$pars <- matrix(0, nrow = 3, ncol = n)
-  for (jj in 1:3) {
-    .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
-  }
-
-  rownames(.$dataf$pars) <- c('leaf.atref.vcmax', 'leaf.atref.jmax', 'leaf.theta_col_cj')
-
-  # temporary
+  # temporarily hardcode
   .$mcmc$boundary_min <- min_vals
   .$mcmc$boundary_max <- max_vals
 
-  #print('min vals = ')
-  #print(min_vals)
-  #print('max vals = ')
-  #print(max_vals)
-  #print('.$dataf$pars')
-  #print(.$dataf$pars)
+  # draw priors from uniform distribution to create pars / proposal matrix
+  .$dataf$pars <- matrix(0, nrow = d, ncol = n)
+  for (jj in 1:d) {
+    .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
+  }
+
+  # assign parameter names
+  row_names <- gsub(pattern = '.min', replacement = '', names(dynamic_pars_un))
+  row_names <- row_names[seq(1, length(row_names), 2)]
+  rownames(.$dataf$pars) <- row_names
+
 }
 
 
-# initialize chains with multi-normal distribution (multivariate normal distribution)
+# initialize chains with normal distributions
 mcmc_prior_normal <- function(.) {
 
-  # add check to see if mean and sd are not specified
+  # IMPORTANT: when initializing parameters in the init file
+  #            it needs to be in the following format:
+  #            parameter = 'list(min = value, max = value, mean = value, sd = value)'
+  #            if there is a nested list
+  #            it needs to be in the following format:
+  #            list = 'list(
+  #                    parameter 1 = list(min = value, max = value, mean = value, sd = value),
+  #                    parameter 2 = list(min = value, max = value, mean = value, sd = value)
+  #                   )'
+
+  # number of Markov chains
+  n <- .$wpars$mcmc_chains
+
+  # number of parameters (dimensionality of parameter space)
+  d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
+
+  # determine minimums and maximums for parameters
+  dynamic_pars_un <- unlist(.$dynamic$pars)
+  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
+  min_vals  <- vals[seq(1, length(vals), 4)]
+  max_vals  <- vals[seq(2, length(vals), 4)]
+  mean_vals <- vals[seq(3, length(vals), 4)]
+  sd_vals   <- vals[seq(4, length(vals), 4)]
+
+  print('min'); print(min_vals)
+  print('max'); print(max_vals)
+  print('mean'); print(mean_vals)
+  print('sd'); print(sd_vals)
+
+  # temporarily hardcode
+  .$mcmc$boundary_min <- min_vals
+  .$mcmc$boundary_max <- max_vals
+
+  # draw priors from uniform distribution to create pars / proposal matrix
+  .$dataf$pars <- matrix(0, nrow = d, ncol = n)
+  for (jj in 1:d) {
+    .$dataf$pars[jj, 1:n] <- rnorm(n, mean = mean_vals[jj], sd = sd_vals[jj])
+  }
+
+  print(.$dataf$pars)
+
+  # future work: need to do a boundary value check on .$dataf$pars
+
+  # assign parameter names
+  row_names <- gsub(pattern = '.min', replacement = '', names(dynamic_pars_un))
+  row_names <- row_names[seq(1, length(row_names), 4)]
+  rownames(.$dataf$pars) <- row_names
+
+  # future work: add check to see if mean and sd are not specified
+  #              and if not, make the mean the median of the parameter range
+  #              and make it 2-3 standard deviations to the boundary
 
 }
 
 
-# option for initializing chains when restarting MCMC algorithm
+# option for initializing chains when re-starting MCMC algorithm
 mcmc_prior_none <- function(.) {
+
   # use the last accepted proposal from previous MCMC run
+  # future work: ideally would not like to hardcode this
+  # .$dataf$pars <- c(...)
+  # rownames(.$dataf$pars) <- c(...)
+
 }
 
 
@@ -470,37 +488,10 @@ mcmc_prior_none <- function(.) {
 # set parameter boundaries from prior distributions
 boundary_handling_set <- function(.) {
 
-  #boundary_sample <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)))
+  # future work: need to generalize this
+  #              .$mcmc$boundary_min <- ...
+  #              .$mcmc$boundary_max <- ...
 
-  #min_vals <- rep(0, length(boundary_sample))
-  #max_vals <- rep(0, length(boundary_sample))
-
-  #for(jj in 1:length(boundary_sample)) {
-  #  min_vals[jj] <- boundary_sample[[names(boundary_sample)[jj]]][['min']]
-  #  max_vals[jj] <- boundary_sample[[names(boundary_sample)[jj]]][['max']]
-  #}
-
-  # ORIGINAL BOUNDARY HANDLING CODE
-  # number of samples to be used in boundary handling
-  #n <- 1e4
-  #boundary_sample     <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text = cs)))
-  #.$mcmc$boundary_min <- unlist(lapply(boundary_sample, min))
-  #.$mcmc$boundary_max <- unlist(lapply(boundary_sample, max))
-  #rm(boundary_sample)
-
-  # again, temporarily hard-coding for sake of urgency
-  #min_vals <- c(100.0, 70.0, 0.9)
-  #max_vals <- c(200.0, 300.0, 1.0)
-
-  #.$mcmc$boundary_min <- min_vals
-  #.$mcmc$boundary_max <- max_vals
-
-  print(".$mcmc$boundary_min")
-  print(.$mcmc$boundary_min)
-  print(".$mcmc$boundary_max")
-  print(.$mcmc$boundary_max)
-
-  #rm(boundary_sample)
 }
 
 
@@ -575,96 +566,60 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
   #            R_hat may sometimes be small in early iterations, looking as if it has converged,
   #            so  make sure to run algorithm for an appropriately long number of samples
 
-
-
-  # number of parameters/dimensions being sampled
-  d <- .$mcmc$d
-
-  # iterate thgouth parameters with jj
-
-  # number of Markov chains
-  N <- .$wpars$mcmc_chains
-
-  # iterate through chains with r
-
-  # total number of samples in each chain
-  t <- .$wpars$mcmc_maxiter
-
-  # iterate through time samples with i
-
-  # mcmc storage array of samples
-  x <- .$dataf$pars_array
-
   # within-chain variance
+  W <- rep(0, .$mcmc$d)
 
-  x_bar <- matrix(0, nrow = d, ncol = N)
-
-  # REALLY NOT SURE THAT I'M DOING THESE SUMMATIONS CORRECTLY
-
-  for (jj in 1:d) {
-    for (r in 1:N) {
-      # summation (probably better way to do this in the future, avoid loops)
-      for (i in ceiling(t / 2):t) {
-        x_bar[jj, r] <- x_bar[jj, r] + x[jj, r, i]
+  x_bar <- matrix(0, nrow = .$mcmc$d, ncol = .$wpars$mcmc_chains)
+  for (jj in 1:.$mcmc$d) {
+    for (r in 1:.$wpars$mcmc_chains) {
+      for (i in ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter) {
+        x_bar[jj, r] <- x_bar[jj, r] + .$dataf$pars_array[jj, r, i]
       }
     }
   }
 
-  x_bar <- (2 / (t - 2)) * x_bar
+  x_bar <- (2 / (.$wpars$mcmc_maxiter - 2)) * x_bar
 
-  W <- rep(0, d)
-
-  for (jj in 1:d) {
+  for (jj in 1:.$mcmc$d) {
     summation <- 0
-    # double summation (probably better way to do this in the future, avoid loops)
-    for (r in 1:N) {
-      for (i in ceiling(t / 2):t) {
-        summation <- summation + (x[jj, r, i] - x_bar[jj, r]) * (x[jj, r, i] - x_bar[jj, r])
+    for (r in 1:.$wpars$mcmc_chains) {
+      for (i in ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter) {
+        summation <- summation + (.$dataf$pars_array[jj, r, i] - x_bar[jj, r]) * (.$dataf$pars_array[jj, r, i] - x_bar[jj, r])
       }
     }
-    W[jj] <- 2 / (N * (t - 2)) * summation
+    W[jj] <- 2 / (.$wpars$mcmc_chains * (.$wpars$mcmc_maxiter - 2)) * summation
   }
-
-  print('within-chain variance = '); print(W)
 
   # between chain variance
+  B <- rep(0, .$mcmc$d)
 
-  B <- rep(0, d)
-
-  x_double_bar <- rep(0, d)
-  for (jj in 1:d) {
-    # summation (probably better way to do this in the future, avoid loops)
-    for (r in 1:N) {
+  x_double_bar <- rep(0, .$mcmc$d)
+  for (jj in 1:.$mcmc$d) {
+    for (r in 1:.$wpars$mcmc_chains) {
       x_double_bar[jj] <- x_double_bar[jj] + x_bar[jj, r]
     }
   }
 
-  x_double_bar <- (1 / N) * x_double_bar
+  x_double_bar <- (1 / .$wpars$mcmc_chains) * x_double_bar
 
-  for (jj in 1:d) {
-    # sumamtion (probably better way to do this in the future, avoid loops)
+  for (jj in 1:.$mcmc$d) {
     summation <- 0
-    for (r in 1:N) {
+    for (r in 1:.$wpars$mcmc_chains) {
       summation <- summation + (x_bar[jj, r] - x_double_bar[jj]) * (x_bar[jj, r] - x_double_bar[jj])
     }
-    B[jj] <- (t / (2 * (N - 1))) * summation
+    B[jj] <- (.$wpars$mcmc_maxiter / (2 * (.$wpars$mcmc_chains - 1))) * summation
   }
 
-  print('between-chain variance = '); print(B)
-
-  # estimate variance of j-th paraemter of target distribution
-
-  sigma_hat <- rep(0, d)
-
-  for (jj in 1:d) {
-    sigma_hat[jj] <- ((t - 2) / t) * W[jj] + (2 / t) * B[jj]
+  # estimate variance of jj-th paraemter of target distribution
+  sigma_hat <- rep(0, .$mcmc$d)
+  for (jj in 1:.$mcmc$d) {
+    sigma_hat[jj] <- ((.$wpars$mcmc_maxiter - 2) / .$wpars$mcmc_maxiter) * W[jj] + (2 / .$wpars$mcmc_maxiter) * B[jj]
   }
 
   # R-statistic of Gelman and Rubin
-  R_hat <- rep(0, d)
-
-  for (jj in 1:d) {
-    R_hat[jj] <- sqrt(((N + 1) / N) * (sigma_hat[jj] / W[jj]) - ((t - 2) / (N * t)))
+  R_hat <- rep(0, .$mcmc$d)
+  for (jj in 1:.$mcmc$d) {
+    R_hat[jj] <- sqrt(((.$wpars$mcmc_chains + 1) / .$wpars$mcmc_chains) * (sigma_hat[jj] / W[jj]) - ((.$wpars$mcmc_maxiter - 2) / (.$wpars$mcmc_chains * .$wpars$mcmc_maxiter)))
   }
 
   # add R_hat to storage array
@@ -672,8 +627,11 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
   R_hat_new <- append(R_hat, j, after = 0)
   .$dataf$conv_check[counter, ] <- R_hat_new
 
-  if (j == .$wpars$mcmc_maxiter) print(paste0("At iteration ", j, ", R-statistic of Gelman and Rubin = ")); print(R_hat)
-  if (j == .$wpars$mcmc_maxiter) print(.$dataf$conv_check)
+  if (j == .$wpars$mcmc_maxiter) {
+    print(paste0("At iteration ", j, ", R-statistic of Gelman and Rubin = "))
+    print(R_hat)
+  }
+
 }
 
 
