@@ -383,6 +383,10 @@ mcmc_prior_uniform <- function(.) {
   #                    parameter 2 = list(min = value, max = value)
   #                   )'
 
+  # future work: re-structure prior functions to be less dependent on the order
+  #              of terms listed in the init file
+  #              (then can also restructure boundary_handling_set)
+
   # number of Markov chains
   n <- .$wpars$mcmc_chains
 
@@ -394,10 +398,6 @@ mcmc_prior_uniform <- function(.) {
   vals <- sapply(dynamic_pars_un, function(x) x[[1]])
   max_vals <- vals[seq(2, length(vals), 2)]
   min_vals <- vals[seq(1, length(vals), 2)]
-
-  # temporarily hardcode
-  .$mcmc$boundary_min <- min_vals
-  .$mcmc$boundary_max <- max_vals
 
   # draw priors from uniform distribution to create pars / proposal matrix
   .$dataf$pars <- matrix(0, nrow = d, ncol = n)
@@ -435,29 +435,14 @@ mcmc_prior_normal <- function(.) {
   # determine minimums and maximums for parameters
   dynamic_pars_un <- unlist(.$dynamic$pars)
   vals <- sapply(dynamic_pars_un, function(x) x[[1]])
-  min_vals  <- vals[seq(1, length(vals), 4)]
-  max_vals  <- vals[seq(2, length(vals), 4)]
   mean_vals <- vals[seq(3, length(vals), 4)]
   sd_vals   <- vals[seq(4, length(vals), 4)]
-
-  print('min'); print(min_vals)
-  print('max'); print(max_vals)
-  print('mean'); print(mean_vals)
-  print('sd'); print(sd_vals)
-
-  # temporarily hardcode
-  .$mcmc$boundary_min <- min_vals
-  .$mcmc$boundary_max <- max_vals
 
   # draw priors from uniform distribution to create pars / proposal matrix
   .$dataf$pars <- matrix(0, nrow = d, ncol = n)
   for (jj in 1:d) {
     .$dataf$pars[jj, 1:n] <- rnorm(n, mean = mean_vals[jj], sd = sd_vals[jj])
   }
-
-  print(.$dataf$pars)
-
-  # future work: need to do a boundary value check on .$dataf$pars
 
   # assign parameter names
   row_names <- gsub(pattern = '.min', replacement = '', names(dynamic_pars_un))
@@ -476,8 +461,18 @@ mcmc_prior_none <- function(.) {
 
   # use the last accepted proposal from previous MCMC run
   # future work: ideally would not like to hardcode this
-  # .$dataf$pars <- c(...)
-  # rownames(.$dataf$pars) <- c(...)
+  #              currently just copying and pasting
+
+  .$dataf$pars <- matrix(c(127.1412287, 85.6479380,  0.9263817,
+                           151.1674128, 267.4227537, 0.9635282,
+                           153.8731369, 201.6820169, 0.9468014,
+                           153.7184214, 254.7146791, 0.9295626,
+                           155.9559049, 251.6358836, 0.9570725,
+                           140.8245361, 223.8698299, 0.9495525,
+                           133.0800970, 249.0815415, 0.9322175),
+                          ncol = .$wpars$mcmc_chains)
+
+  rownames(.$dataf$pars) <- c('leaf.atref.vcmax', 'leaf.atref.jmax', 'leaf.theta_col_cj')
 
 }
 
@@ -488,9 +483,36 @@ mcmc_prior_none <- function(.) {
 # set parameter boundaries from prior distributions
 boundary_handling_set <- function(.) {
 
-  # future work: need to generalize this
-  #              .$mcmc$boundary_min <- ...
-  #              .$mcmc$boundary_max <- ...
+  dynamic_pars_un <- unlist(.$dynamic$pars)
+  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
+
+  if (.$wpars$mcmc_prior == 'uniform') {
+    min_vals <- vals[seq(1, length(vals), 2)]
+    max_vals <- vals[seq(2, length(vals), 2)]
+  }
+
+  if (.$wpars$mcmc_prior == 'normal') {
+    min_vals  <- vals[seq(1, length(vals), 4)]
+    max_vals  <- vals[seq(2, length(vals), 4)]
+  }
+
+  if (.$wpars$mcmc_prior == 'none') {
+    # future work: need to figure this out
+    #              but this depends on the restart process
+  }
+
+  .$mcmc$boundary_min <- min_vals
+  .$mcmc$boundary_max <- max_vals
+
+  # if prior initialized with normal distribution, do boundary check
+  if(.$wpars$mcmc_prior == 'normal') {
+    d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
+    for (ii in 1:.$wpars$mcmc_chains) {
+      for (jj in  1:d) {
+        .$mcmc_bdry_handling(j = 1, ii = ii, jj = jj)
+      }
+    }
+  }
 
 }
 

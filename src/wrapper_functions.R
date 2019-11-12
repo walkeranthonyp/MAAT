@@ -107,6 +107,9 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   # generate initial proposal from priors and create pars / proposal matrix
   .$mcmc_prior()
 
+  # determine boundary handling limits for parameter space
+  .$boundary_handling_set()
+
   # remove initialisation pars list
   .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
@@ -617,7 +620,7 @@ run1_mcmc_dream <- function(.,i) {
   .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
 
   # determine boundary handling limits for parameter space
-  .$boundary_handling_set()
+  # .$boundary_handling_set()
 
   # run initialisation part of algorithm
   .$init_mcmc()
