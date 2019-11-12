@@ -2,6 +2,11 @@
   <fnames>
     <soil_decomp>
       <sys>NA</sys>
+      <solver>NA</solver>
+      <solver_func>NA</solver_func>
+      <inputrates>NA</inputrates>
+      <DotO>NA</DotO>
+      <transfermatrix>NA</transfermatrix>
       <decomp>
         <d1>NA</d1>
         <d2>NA</d2>

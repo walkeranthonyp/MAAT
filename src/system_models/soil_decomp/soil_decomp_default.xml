@@ -2,6 +2,11 @@
   <fnames>
     <soil_decomp>
       <sys>'f_sys_npools'</sys>
+      <solver>'plsoda'</solver>
+      <solver_func>'f_solver_func'</solver_func>
+      <inputrates>'f_inputrates'</inputrates>
+      <DotO>'f_DotO'</DotO>
+      <transfermatrix>'f_transfermatrix'</transfermatrix>
       <decomp>
         <d1>'f_decomp_MM_microbe'</d1>
         <d2>'f_decomp_lin'</d2>

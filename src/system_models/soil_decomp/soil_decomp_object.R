@@ -10,6 +10,7 @@ library(proto)
 source('soil_decomp_functions.R')
 source('soil_decomp_SoilR_functions.R')
 source('soil_decomp_system_functions.R')
+source('../../functions/packagemod_functions.R')
 
 
 
@@ -35,14 +36,7 @@ soil_decomp_object$name <- 'soil_decomp'
 # - or functions that are derivations of other functions, see leaf_object.R for an example case 
 ####################################
 soil_decomp_object$configure_unique <- function(., init=F, flist=NULL ) {
-  if(init) {
-    source('../../functions/packagemod_functions.R')
-    .$fns$plsoda         <- plsoda
-    .$fns$inputrates     <- f_inputrates
-    .$fns$DotO           <- f_DotO
-    .$fns$transfermatrix <- f_transfermatrix
-    .$fns$solver_func    <- f_solver_func
-  }
+  if(init) NULL 
 
   if(any(names(flist)=='xyz')) {
    .$fns$xyz_fe <- get(paste0(.$fnames$xyz,'_fe'), pos=1 )
@@ -69,7 +63,13 @@ soil_decomp_object$init  <- function(.) {
 # function names
 ####################################
 soil_decomp_object$fnames <- list(
-  sys   = 'f_sys_npools',
+
+  sys            = 'f_sys_npools',
+  solver         = 'plsoda',
+  solver_func    = 'f_solver_func',
+  inputrates     = 'f_inputrates',
+  DotO           = 'f_DotO',
+  transfermatrix = 'f_transfermatrix',
   
   # decay/decomposition functions
   decomp = list(
