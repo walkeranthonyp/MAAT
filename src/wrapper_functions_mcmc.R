@@ -645,13 +645,23 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
   }
 
   # add R_hat to storage array
-  counter <- j / .$wpars$mcmc_check_iter
+
+  if (j != .$wpars$mcmc_maxiter) {
+    counter <- j / .$wpars$mcmc_check_iter
+  } else if ((j == .$wpars$mcmc_maxiter) & (j %% .$wpars$mcmc_check_iter == 0)) {
+    counter <- j / .$wpars$mcmc_check_iter
+  } else {
+    # in this case ((j == .$wpars$mcmc_maxiter) & (j %% .$wpars$mcmc_check_iter != 0))
+    counter <- ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter)
+  }
+
   R_hat_new <- append(R_hat, j, after = 0)
   .$dataf$conv_check[counter, ] <- R_hat_new
 
   if (j == .$wpars$mcmc_maxiter) {
     print(paste0("At iteration ", j, ", R-statistic of Gelman and Rubin = "))
     print(R_hat)
+    print(.$dataf$conv_check)
   }
 
 }
@@ -773,7 +783,6 @@ mcmc_outlier_iqr <- function(., j) {
     .$dataf$pars_array[1:.$mcmc$d, outliers, 1:j] <- .$dataf$pars_array[1:.$mcmc$d, replace_idx, 1:j]
 
     # replace likelihood history for next iqr calculation
-    #.$dataf$pars_lklihood[outliers, j] <- .$dataf$pars_lklihood[replace_idx, j]
     .$dataf$pars_lklihood[outliers, 1:j] <- .$dataf$pars_lklihood[replace_idx, 1:j]
   }
 

@@ -187,7 +187,7 @@ init_output_matrix_mcmc_dream <- function(.) {
   .$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
 
   # create matrix for storing convergence diagnostic
-  .$dataf$conv_check   <- matrix(NA, nrow = ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter), ncol = (dim(.$dataf$pars)[1] + 1))
+  .$dataf$conv_check    <- matrix(0, nrow = ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter), ncol = (dim(.$dataf$pars)[1] + 1))
 }
 
 init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream
@@ -656,9 +656,9 @@ run2_mcmc_dream <- function(.,j) {
   .$proposal_accept(j=j, lklihood )
 
   # if test for and handle outlier chains (if outlier is detected, throw out all previous MCMC samples)
-  if ((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) .$mcmc_outlier(j=j)
+  if (j %% .$wpars$mcmc_check_iter == 0) .$mcmc_outlier(j=j)
 
-  # calculate convergence diagnostic (considered converged if all )
+  # calculate convergence diagnostic
   if ((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) .$mcmc_converge(j=j)
 
   # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function
