@@ -4,7 +4,7 @@
       <sys>'c( 'f_sys_npools' )'</sys>
       <solver>'c( 'f_solver_func' )'</solver>
       <solver_func>'c( 'f_solver_func' )'</solver_func>
-      <inputrates>'c( 'f_inputrates' )'</inputrates>
+      <input>'c( 'f_input' )'</input>
       <DotO>'c( 'f_DotO' )'</DotO>
       <transfermatrix>'c( 'f_transfermatrix' )'</transfermatrix>
       <decomp>'c( 'f_decomp_dd', 'f_decomp_lin', 'f_decomp_MM_microbe' )'</decomp>

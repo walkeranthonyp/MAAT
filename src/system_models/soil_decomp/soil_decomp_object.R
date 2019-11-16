@@ -67,7 +67,7 @@ soil_decomp_object$fnames <- list(
   sys            = 'f_sys_npools',
   solver         = 'plsoda',
   solver_func    = 'f_solver_func',
-  inputrates     = 'f_inputrates',
+  input          = 'f_input',
   DotO           = 'f_DotO',
   transfermatrix = 'f_transfermatrix',
   
@@ -128,21 +128,6 @@ soil_decomp_object$pars <- list(
     c2 = 0.1,
     c3 = 0.1
   ),
-  #ks      = 1.8e-05,
-  #kb      = 0.007,
-  #Km      = 900,
-  #r       = 0.6,
-  #Af      = 1,
-  #cuec1   = 0.47,       # currently, all cue values are the same (at the value in MEND), might need a different cue_max for density dependent function... 
-  #h       = 0.566,      # humification constant
-  #cuec3   = 0.47,     
-  #vmax1   = 0.2346,     
-  #vmax3   = 0.0777,   
-  #km1     = 101,       
-  #km3     = 250,       
-  #k23     = 0.00672,    # microbial turnover constant
-  #maommax = 26.725,     # max maom capacity (calculated using Hassink formula assuming 15% clay)
-  #mbcmax  = 2,          # microbial biomass max value
 
   # Carbon use or transfer efficiency from pool i to any another 
   # - if this varies by the 'to' pool we need another function / parameters

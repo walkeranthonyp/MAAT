@@ -251,8 +251,6 @@ run2_factorial <- function(.,j) {
 
   # call next run function
   funv   <- if(is.null(.$dataf$met)) .$dataf$mout else array(0, dim=c(.$dataf$lm, length(.$dataf$mout) ) )
-  print(.$dataf$mout)
-  print(.$model$state$cpools)
   out    <- vapply(1:.$dataf$le, .$run3, funv )
 
   # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
