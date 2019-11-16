@@ -35,7 +35,7 @@ leaf_object$name <- 'leaf'
 ####################################
 leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
   if(init) {
-    source('../../functions/general_functions.R')
+    source('../../functions/packagemod_functions.R')
     .$fns$puniroot            <- puniroot
     .$fns$assimilation        <- f_assimilation
     .$fns$assim_no_resistance <- f_solver_analytical_leaf_no_r

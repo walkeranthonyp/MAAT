@@ -273,12 +273,13 @@ run3_factorial <- function(.,k) {
   if(!is.null(.$dataf$env)) .$model$configure(vlist='env', df=.$dataf$env[,k], F )
   if(.$wpars$cverbose)      .$printc('env', .$dataf$env[,k] )
 
+  #print(.$init_static)
+  #print(.$static)
+  #print(.$model$pars)
+  #print(.$model$state)
+
   # call next run function
-  if(is.null(.$dataf$met)) {
-    .$model$run()
-  } else {
-    t(vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout ))
-  }
+  if(is.null(.$dataf$met)) .$model$run() else .$model$run_met()
 }
 
 
