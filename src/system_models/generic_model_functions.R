@@ -100,6 +100,13 @@ run <- function(.) {
 ###########################################################################
 
 run_met <- function(.,l) {
+  
+  if(!is.null(.$init)) .$init()
+  t(vapply(1:.$dataf$lm, .$run_met1, .$dataf$mout )) 
+}
+
+
+run_met1 <- function(.,l) {
   # assumes that each row of the dataframe are sequential
   # allows the system state at t-1 to affect the system state at time t if necessary (therefore mclapply cannot be used)
   # typically used to run the model using data collected at a specific site and to compare against observations
@@ -172,7 +179,8 @@ configure <- function(., vlist, df, init=F, o=T ) {
   }
 
   # df subscripts for sublist variables (slmss) and non-sublist variables (nslmss)
-  slss   <- which(listnames[3,mss]!='')
+  vlss_full <- vlss
+  slss      <- which(listnames[3,mss]!='')
   if(length(slss)>0) {
     slmss  <- mss[slss]
     nslmss <- mss[-slss]
@@ -198,7 +206,6 @@ configure <- function(., vlist, df, init=F, o=T ) {
     print(nslmss, quote=F )
     print(paste('  subscripts in:',.$name, vlist ,' for variables that are not lists:'), quote=F )
     print(vlss, quote=F )
-    #print(which(is.na(vlss)), quote=F )
     print(names(.[[vlist]]), quote=F )
   }
 
@@ -206,28 +213,28 @@ configure <- function(., vlist, df, init=F, o=T ) {
   #print(paste(.$name,'configure:', vlist, names(df), df ))
   if(length(slss)>0)    vapply( slmss, .$configure_sublist, numeric(1), vlist=vlist, df=df )
   if(length(nslmss)>0) .[[vlist]][vlss] <- df[nslmss]
-  #print(listnames)
-  #print(c(nslmss,vlss))
-  #print(paste(df[nslmss],.[[vlist]][vlss]))
 
   # assign methods to methods list
-  if(vlist=='fnames'&length(nslmss)>0) {
+  if(vlist=='fnames') {
+
     # assign all methods to methods list
     if(init) {
       fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
       .$fns   <- as.proto(fnslist, parent=. )
+
       # specific methods assignment (for methods not included in fnames)
       if(!is.null(.$configure_unique)) .$configure_unique(init=T, flist=unlist(.$fnames) )
 
-    } else {
-      flist <- unlist(.$fnames[vlss])
+    # assign methods only updatred in fnames to methods list
+    } else if(length(mss)>0) {
+      flist <- unlist(.$fnames[vlss_full])
       for(n in 1:length(flist)) {
         .$fns[[names(flist[n])]]              <- get(flist[n], pos=1 )
         environment(.$fns[[names(flist[n])]]) <- .$fns
       }
+
       # specific methods assignment (for methods not included in fnames)
       if(!is.null(.$configure_unique)) .$configure_unique(flist=flist)
-
     }
   }
 
