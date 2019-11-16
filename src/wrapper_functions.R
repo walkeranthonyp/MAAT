@@ -97,26 +97,21 @@ generate_ensemble_pars_SAprocess_ye <- function(.) {
 # parameter matrix for initial proposal of MCMC
 generate_ensemble_pars_mcmc_dream <- function(.) {
 
-  # sample parameters from character string code snippets to generate initial proposal from priors
-  n <- .$wpars$mcmc_chains
+  # ALJ: new code to generate prior distribution
+  #      not sure if this will work with unit testing now?
+  #      also, requires initializing variables differently in init file
+
+  # read values from character string code snippets
   .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
 
-  # create pars / proposal matrix
-  .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
+  # generate initial proposal from priors and create pars / proposal matrix
+  .$mcmc_prior()
 
-  if(.$wpars$mcmc_debug & .$wpars$mod_obj == 'mcmc_test') {
-    # hard-code initial sample generated from prior distribution (generated from interval [-10, 10])
-    prop1 <- c( 7.631916,  -5.999289,  -5.734941,   1.769624,  -1.128974,  -1.065893,   9.091345,  -9.570053)
-    prop2 <- c(-8.955127,  -2.165650,   8.288627,   8.335986,  -9.420836,  -6.112619,  -4.796342,   8.128561)
-    prop3 <- c(-2.757425,  -1.311214,  -9.983908,  -6.061901,  -3.076935,   8.934289,  -3.041526,  -7.045019)
-    prop4 <- c(-1.342557,   9.406705,  -0.041981,  -9.757184,  -0.402050,  -4.263008,   6.564540,  -0.241696)
-    .$dataf$pars <- t(cbind(prop1, prop2, prop3, prop4))
-    #colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
-    rownames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
-  }
+  # determine boundary handling limits for parameter space
+  .$boundary_handling_set()
 
   # remove initialisation pars list
-  .$dynamic$pars        <- lapply(.$dynamic$pars, function(e) numeric(1) )
+  .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
   # if observation subsampling specified - currently evenly spaced subsampling
   if(.$wpars$mcmc_thin_obs < 1.0) {
@@ -178,7 +173,7 @@ init_output_matrix_SAprocess_ye <- function(.) {
 init_output_matrix_mcmc_dream <- function(.) {
 
   # create accepted proposal array
-  .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
+  .$dataf$pars_array    <- array(1, dim = c( dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
 
   # create accepted proposal likelihood matrix
   .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter )
@@ -186,17 +181,13 @@ init_output_matrix_mcmc_dream <- function(.) {
   # initialise output matrix
   .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm)
 
-  # APW: is this effectively assuming a burn-in of 50 %?
-  #      if so we need to align with the burn-in input parameters
-  # ALJ: "burn-in" in its pure form involves discarding the first 50% of MCMC samples
-  #      and I think this is just storing the model evaluations for the last 50%  of time-steps/iterations
-  #      which is not technically burn-in, but sort of funcitons like it to make the mod plots "prettier"
-  # debug: store all model evaluations (not necessary for the algorithm, but easier for debugging)
-  # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
+  # create matrix for storing chain outlier information
+  .$dataf$omega         <- matrix(NA, .$wpars$mcmc_chains, ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter))
 
-  # APW: OK, let's align this with burn-in then,
-  #      If I understand you right we should apply the burn-in to all output arrays
-  .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
+  .$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
+
+  # create matrix for storing convergence diagnostic
+  .$dataf$conv_check    <- matrix(0, nrow = ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter), ncol = (dim(.$dataf$pars)[1] + 1))
 }
 
 init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream
@@ -628,44 +619,14 @@ run1_mcmc_dream <- function(.,i) {
   .$dataf$pars_array[,,1]   <- .$dataf$pars
   .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
 
-  # Set boundary handling limits
-  # debug: temporarily remove boundary handling
-  .$boundary_handling_set()
-
-  # print(paste0('i = ', i))
-
-  # print('inital model evaluation = ')
-  # print(.$dataf$pars)
-  # print(.$dataf$pars_array[ , , 1])
-
-  # print('likelihood of initial model evaluation = ')
-  # print(.$dataf$pars_lklihood[ ,1])
-
-  # debug: add to proposal storage array
-  # .$dataf$prop_storage[ , , 1] <- .$dataf$pars
-
-  # debug: function (1), set seed for uniform_r generation
-  # .$set_seed1()
-
-  # debug: function (3), set seed for runif(1) value chosen in accept/reject step
-  # .$set_seed3()
-
-  # debug: function (2), set seed for R1 and R2 random draw (in DE-MC)
-  # debug: call this set seed function last so it will be the seed for all remaining random draws
-  # .$set_seed2()
+  # determine boundary handling limits for parameter space
+  # .$boundary_handling_set()
 
   # run initialisation part of algorithm
   .$init_mcmc()
 
-  # if debugging, predetermine random number generation
-  if (.$wpars$mcmc_debug) .$set_seed()
-
   # run MCMC
   vapply(2:.$wpars$mcmc_maxiter, .$run2, numeric(0) )
-
-  # future work: insert rigorous burn-in procedure here
-  #              also, if convergence has not been reached, re-run MCMC
-  #              will need to align this with the above outut array specification
 
   # write output from MCMC
   .$write_output(i=i)
@@ -688,34 +649,28 @@ run2_mcmc_dream <- function(.,j) {
         else                 lapply(1:.$dataf$lp, .$run3 )
     })
 
-  # calculate likelihood of proposals on each chain
-  # likelihood function is independent of DE-MC or DREAM algorithms
+  # calculate likelihood of proposals on each chain (likelihood function is independent of DREAM algorithm)
   lklihood <- .$proposal_lklihood()
 
-  # print('likelihood = ')
-  # print(lklihood)
-
   # accept / reject proposals on each chain
-  #get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )
   .$proposal_accept(j=j, lklihood )
 
-  # future work: insert function call to handle outlier chains here
+  # if test for and handle outlier chains (if outlier is detected, throw out all previous MCMC samples)
+  if (j %% .$wpars$mcmc_check_iter == 0) .$mcmc_outlier(j=j)
 
-  # future work: insert function call to test for convergence here
-
-  # future work: other code here for subprograms called during burn-in (i.e., delayed rejection option and other DREAM algorithm bells and whistles)
+  # calculate convergence diagnostic
+  if ((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) .$mcmc_converge(j=j)
 
   # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function
   numeric(0)
 }
 
 # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$pars matrix to the model
-#runp_mcmc <- function(.,k) {
 run3_mcmc_dream <- function(.,k) {
   # runs each chain at each iteration in MCMC
 
   # assumes that each column of the pars matrix are independent and non-sequential
-  # debug: note that the above assumption is valid only for DREAM, not DE-MC
+  # ALJ: this assumption is valid only for DREAM, not DE-MC
 
   # configure parameters in the model
   if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[,k], F )
@@ -881,14 +836,15 @@ output_SAprocess_ye <- function(.) {
 }
 
 
-# creates output for a Ye process sensitivity analysis
+# creates output for a MCMC simulation
 output_mcmc_dream <- function(.) {
-  list(pars_array=.$dataf$pars_array,
-       pars_lklihood=.$dataf$pars_lklihood,
-       mod_out_final=.$dataf$out,
-       obs=.$dataf$obs,
-       mod_eval=.$dataf$out_mcmc,
-       prop_storage=.$dataf$prop_storage)
+  list(pars_array    = .$dataf$pars_array,
+       pars_lklihood = .$dataf$pars_lklihood,
+       mod_out_final = .$dataf$out,
+       obs           = .$dataf$obs,
+       mod_eval      = .$dataf$out_mcmc,
+       prop_storage  = .$dataf$prop_storage,
+       conv_check    = .$dataf$conv_check)
 }
 
 

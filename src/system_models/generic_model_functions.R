@@ -143,7 +143,7 @@ run_met <- function(.,l) {
 # configure functions
 ###########################################################################
 
-# check character names on row vectors of dataf functions  
+# check character names on row vectors of dataf functions
 configure_check <- function(., vlist='env', df ) {
   if(!is.character(names(df))) {
     print('', quote=F )
@@ -161,8 +161,8 @@ configure_check <- function(., vlist='env', df ) {
 # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df
 configure <- function(., vlist, df, init=F, o=T ) {
 
-  # error catch 
-  # APW: move this to the wrapper object - it only needs tested once 
+  # error catch
+  # APW: move this to the wrapper object - it only needs tested once
   if(!is.character(names(df))) {
     print('', quote=F )
     print(paste('Configure:',.$name,',',vlist,'.'), quote=F )
@@ -282,7 +282,7 @@ configure_met <- function(., df ) {
   listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
 
   # df subscripts for model object
-  mss  <- 1:length(df) 
+  mss  <- 1:length(df)
 
   # variable list subscripts in model object data structure
   vlss <- match(listnames[2,], names(.[['env']]) )
@@ -294,7 +294,9 @@ configure_met <- function(., df ) {
   }
 
   # assign UQ variables
-  .[['env']][vlss] <- df[]
+  #.[['env']][vlss] <- df[]
+  # ALJ: need to subset by mss
+  .[['env']][vlss] <- df[mss]
 }
 
 

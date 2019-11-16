@@ -85,32 +85,42 @@ coef_var   <- 0.1
 salt_nmult <- 100
 
 # parameters for MCMC run
-# MCMC likelihood (options: log, ssquared, ssquared_se )
-mcmc_lklihood <- 'log'
-# number of MCMC chains to run (min 2x number of parameters estimated)
-mcmc_chains   <- 10
+# MCMC likelihood function (options: log, ssquared, ssquared_se, ...)
+mcmc_lklihood      <- 'ssquared'
+# MCMC outlier handling (options: none, iqr)
+mcmc_outlier       <- 'iqr'
+# MCMC convergence testing (options: none, Gelman_Rubin)
+mcmc_converge      <- 'Gelman_Rubin'
+# MCMC option for parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
+mcmc_bdry_handling <- 'bound'
+# MCMC option for initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
+mcmc_prior         <- 'uniform'
+# number of MCMC chains to run (minumum = 2 * mcmc_delta + 1)
+mcmc_chains        <- 7
 # number of iterations / steps in MCMC chain
-mcmc_maxiter  <- 100
-# MCMC burn in to discard as a proportion of mcmc_maxiter, or number of iterations if converged sooner
-mcmc_burnin   <- 0.5
+mcmc_maxiter       <- 1000
 # MCMC thinning for posterior, as a proportion
-mcmc_thin     <- 0.1
+mcmc_thin          <- 0.1
 # MCMC thinning for observations, as a proportion
-mcmc_thin_obs <- 1
+mcmc_thin_obs      <- 1
 # MCMC option to assume homoscedastic error in measured observations (else, heteroscedastic)
-mcmc_homosced <- F
+mcmc_homosced      <- F
 # MCMC DREAM number chain pair proposal
-mcmc_delta    <- 3
-# MCMC DREAM randomization
-mcmc_c_rand   <- 0.01
-# MCMC DREAM ergodicicty
-mcmc_c_ergod  <- 1e-12
+mcmc_delta         <- 3
+# MCMC DREAM randomization (default value)
+mcmc_c_rand        <- 0.01
+# MCMC DREAM ergodicicty (default value)
+mcmc_c_ergod       <- 1e-12
 # MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
-mcmc_p_gamma  <- 0.2
+mcmc_p_gamma       <- 0.2
 # MCMC DREAM number of crossover values (default value)
-mcmc_n_CR     <- 3
-# MCMC option if debugging DREAM algorithm
-mcmc_debug    <- F
+mcmc_n_CR          <- 3
+# MCMC option whether or not to adapt probability of selecting crossover values
+mcmc_adapt_pCR     <- T
+# MCMC option determining how long to adapt crossover selection probabilities, as a proportion
+mcmc_CR_burnin     <- 0.1
+# MCMC option for checking for convergence and outlier chains every N iterations
+mcmc_check_iter    <- 10
 
 # run options
 # meteorological data file name
@@ -244,21 +254,26 @@ maat$wpars$of_type       <- of_format
 maat$wpars$of_dir        <- odir
 
 # define MCMC run parameters
-maat$wpars$mcmc          <- mcmc
-maat$wpars$mcmc_type     <- mcmc_type
-maat$wpars$mcmc_lklihood <- mcmc_lklihood
-maat$wpars$mcmc_chains   <- mcmc_chains
-maat$wpars$mcmc_maxiter  <- mcmc_maxiter
-maat$wpars$mcmc_burnin   <- mcmc_burnin
-maat$wpars$mcmc_thin     <- mcmc_thin
-maat$wpars$mcmc_thin_obs <- mcmc_thin_obs
-maat$wpars$mcmc_homosced <- mcmc_homosced
-maat$wpars$mcmc_delta    <- mcmc_delta
-maat$wpars$mcmc_c_rand   <- mcmc_c_rand
-maat$wpars$mcmc_c_ergod  <- mcmc_c_ergod
-maat$wpars$mcmc_p_gamma  <- mcmc_p_gamma
-maat$wpars$mcmc_n_CR     <- mcmc_n_CR
-maat$wpars$mcmc_debug    <- mcmc_debug
+maat$wpars$mcmc               <- mcmc
+maat$wpars$mcmc_type          <- mcmc_type
+maat$wpars$mcmc_lklihood      <- mcmc_lklihood
+maat$wpars$mcmc_outlier       <- mcmc_outlier
+maat$wpars$mcmc_bdry_handling <- mcmc_bdry_handling
+maat$wpars$mcmc_prior         <- mcmc_prior
+maat$wpars$mcmc_converge      <- mcmc_converge
+maat$wpars$mcmc_chains        <- mcmc_chains
+maat$wpars$mcmc_maxiter       <- mcmc_maxiter
+maat$wpars$mcmc_thin          <- mcmc_thin
+maat$wpars$mcmc_thin_obs      <- mcmc_thin_obs
+maat$wpars$mcmc_homosced      <- mcmc_homosced
+maat$wpars$mcmc_delta         <- mcmc_delta
+maat$wpars$mcmc_c_rand        <- mcmc_c_rand
+maat$wpars$mcmc_c_ergod       <- mcmc_c_ergod
+maat$wpars$mcmc_p_gamma       <- mcmc_p_gamma
+maat$wpars$mcmc_n_CR          <- mcmc_n_CR
+maat$wpars$mcmc_adapt_CR      <- mcmc_adapt_pCR
+maat$wpars$mcmc_CR_burnin     <- mcmc_CR_burnin
+maat$wpars$mcmc_check_iter    <- mcmc_check_iter
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
@@ -364,17 +379,22 @@ if(!is.null(metdata)) {
   if(file.exists(metdata)&!kill) {
     print(metdata, quote=F )
     metdf <- read.csv(metdata,strip.white=T)
-    #temporary branch; subset it here to screen out 0s from PAR column 
+
+    # ALJ: if doing a Sphagnum simulation
+    #      screen out night-time values from met data file
+    #      subset it to remove 0's and negative values
+    # sub_idx <- which(metdf$EM_PAR_8100_x > 0)
+    # metdf <- metdf[sub_idx, ]
 
     print(head(metdf), quote=F )
 
     ###################################
-    # future work:
-    # add eval data to model object - total hack for now
-    if(mod_obj!='mcmc_test') {
-      maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
-      maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
-    }
+    # future work: add eval data to model object - total hack for now
+    # for Sphagnum simulations
+    # maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
+    # maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
+    # for ACi simulations
+    maat$dataf$obs <- metdf$A
     ###################################
 
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
@@ -394,8 +414,14 @@ if(!is.null(metdata)) {
       names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
     }
 
+    ###################################
     # add to MAAT object
+    # future work: generalize this
+    # for sphagnum simulations
+    # maat$dataf$met <- t(as.matrix(metdf[,-1]))
+    # for ACii simulations
     maat$dataf$met <- t(as.matrix(metdf))
+    ###################################
 
     # remove met data file
     rm(metdf)

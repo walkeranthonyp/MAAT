@@ -98,7 +98,7 @@ f_sys_enzymek <- function(.) {
         if( .super$state$A<0 | .super$state$cc<0 | .super$state_pars$rs<0 ) {
           
           # perhaps write this flag into the leaf object
-          print(paste('solver returned negative value of A, cc, or rs; recalculate assuming rs = r0'))
+          #print(paste('solver returned negative value of A, cc, or rs; recalculate assuming rs = r0'))
 
           # temporarily reassign solver function
           .$solver <- f_solver_analytical_leaf_quad_r0
