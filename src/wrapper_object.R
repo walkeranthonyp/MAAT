@@ -51,9 +51,11 @@ wrapper_object$build <- function(., ... ) {
     .$proposal_accept       <- get(paste0('proposal_accept_',.$wpars$runtype))
     .$proposal_lklihood     <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc_lklihood))
     .$init_mcmc             <- get(paste0('init_',.$wpars$runtype))
-    .$boundary_handling     <- boundary_handling
+    .$mcmc_outlier          <- get(paste0('mcmc_outlier_', .$wpars$mcmc_outlier))
+    .$mcmc_converge         <- get(paste0('mcmc_converge_', .$wpars$mcmc_converge))
+    .$mcmc_bdry_handling    <- get(paste0('mcmc_bdry_handling_', .$wpars$mcmc_bdry_handling))
+    .$mcmc_prior            <- get(paste0('mcmc_prior_', .$wpars$mcmc_prior))
     .$boundary_handling_set <- boundary_handling_set
-    # placeholder for convergence function etc
   }
 
   # build model
@@ -266,41 +268,44 @@ wrapper_object$dataf  <- list(
 
 # parameters specific to the wrapper object
 wrapper_object$wpars <- list(
-  multic    = F,           # multicore the simulation
-  procs     = 6,           # number of processors to use if multic = T
-  cverbose  = F,           # write configuration output during runtime
-  UQ        = F,           # run a UQ analysis
-  runtype   = 'none',      # ensemble type - 'factorial', 'SApar_saltelli', and 'SAprocess_ye' available so far
-  of_dir    = '~/tmp',     # output directory
-  of_type   = 'csv',       # output file type - 'csv' or 'rds'
-  of_name   = '',          # output file name - excluding file extension
-  of_name_stem = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
-  n         = numeric(1),  # parameter sample number
-  nmult     = 1,           # parameter sample number multiplier for saltelli method
-  eval_strings  = F,        # switch tellin wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
-  sobol_init    = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
-  unit_testing  = F,
-  mcmc_type     = 'dream',
-  mcmc_lklihood = 'log',
-  mcmc_chains   = 10,
-  mcmc_maxiter  = 100,
-  mcmc_burnin   = 0.5,
-  mcmc_thin     = 0.1,
-  mcmc_thin_obs = 1,
-  mcmc_homosced = F,
-  mcmc_delta    = 3,
-  mcmc_c_rand   = 0.01,
-  mcmc_c_ergod  = 1e-12,
-  mcmc_p_gamma  = 0.2,
-  mcmc_n_CR     = 3,
-  mcmc_debug    = F
+  multic             = F,           # multicore the simulation
+  procs              = 6,           # number of processors to use if multic = T
+  cverbose           = F,           # write configuration output during runtime
+  UQ                 = F,           # run a UQ analysis
+  runtype            = 'none',      # ensemble type - 'factorial', 'SApar_saltelli', and 'SAprocess_ye' available so far
+  of_dir             = '~/tmp',     # output directory
+  of_type            = 'csv',       # output file type - 'csv' or 'rds'
+  of_name            = '',          # output file name - excluding file extension
+  of_name_stem       = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
+  n                  = numeric(1),  # parameter sample number
+  nmult              = 1,           # parameter sample number multiplier for saltelli method
+  eval_strings       = F,        # switch telling wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
+  sobol_init         = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
+  unit_testing       = F,
+  mcmc_type          = 'dream',
+  mcmc_lklihood      = 'ssquared',
+  mcmc_outlier       = 'iqr',
+  mcmc_converge      = 'Gelman_Rubin',
+  mcmc_bdry_handling = 'bound',
+  mcmc_prior         = 'uniform',
+  mcmc_chains        = 7,
+  mcmc_maxiter       = 1000,
+  mcmc_thin          = 0.1,
+  mcmc_thin_obs      = 1,
+  mcmc_homosced      = F,
+  mcmc_delta         = 3,
+  mcmc_c_rand        = 0.01,
+  mcmc_c_ergod       = 1e-12,
+  mcmc_p_gamma       = 0.2,
+  mcmc_n_CR          = 3,
+  mcmc_adapt_pCR     = T,
+  mcmc_CR_burnin     = 0.1,
+  mcmc_check_iter    = 10
 )
 
 # MCMC specific data, size depends on MCMC set up
 wrapper_object$mcmc <- list(
   d              = numeric(1),
-  J              = numeric(1),
-  n_id           = numeric(1),
   CR             = numeric(1),
   p_CR           = numeric(1),
   R              = matrix(1,1,1),
@@ -312,20 +317,22 @@ wrapper_object$mcmc <- list(
   lambda         = matrix(1,1,1),
   boundary_min   = numeric(1),
   boundary_max   = numeric(1),
-  runif_seed     = matrix(1,1,1),
-  draw_seed      = array(1, c(1,1,1)),
-  lambda_seed    = array(1, c(1,1,1)),
-  zz_seed        = array(1, c(1,1,1)),
-  prop_storage   = array(1, c(1,1,1)),
-  lklhd_storage  = array(1, c(1,1,1)),
-  accept_storage = array(1, c(1,1,1))
+  del            = numeric(1),
+  L              = numeric(1),
+  t              = numeric(1),
+  m              = numeric(1),
+  CR_burnin      = numeric(1),
+  d_star         = numeric(1)
 )
+
 
 # Output processing functions
 ###########################################################################
 
-# function to combine output with met data
-wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(.$dataf$met,df[i,]))
+# function to combine factorial ensemble with met data
+# - for each ensemble member all columns of met matirx are run
+# - this is called from an lapply to expand each each ensemble member values of fnames, pars, and env with every column of the met matrix
+wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(t(.$dataf$met),df[i,]))
 
 # function to write ensemble output data to file
 wrapper_object$write_to_file <- function(., df=.$output(), app=F ) {
@@ -356,22 +363,29 @@ wrapper_object$print_data <- function(.,otype='data') {
     print("MAAT :: summary of data",quote=F)
     print('',quote=F)
     print('',quote=F)
-
     print("fnames ::",quote=F)
-    print(summary(.$dataf$fnames),quote=F)
+    if(!is.null(.$dataf$fnames)) print(summary(t(.$dataf$fnames)), quote=F )
+    else                         print(NULL, quote=F )
+
     print('',quote=F)
     print("pars ::",quote=F)
-    if(!.$wpars$runtype=='SAprocess_ye') print(summary(.$dataf$pars),quote=F)
+    if(!.$wpars$runtype=='SAprocess_ye')
+      if(!is.null(.$dataf$pars)) print(summary(t(.$dataf$pars)), quote=F )
+      else                       print(NULL, quote=F )
     else {
       print(.$dynamic$pars_proc,quote=F)
       print(paste('sample n:',.$wpars$n),quote=F)
     }
+
     print('',quote=F)
     print("env ::",quote=F)
-    print(summary(.$dataf$env),quote=F)
+    if(!is.null(.$dataf$env)) print(summary(t(.$dataf$env)), quote=F )
+    else                      print(NULL, quote=F )
+
     print('',quote=F)
     print("met data ::",quote=F)
-    print(summary(.$dataf$met),quote=F)
+    if(!is.null(.$dataf$met)) print(summary(t(.$dataf$met)), quote=F )
+    else                      print(NULL, quote=F )
     print('',quote=F)
 
   } else if(otype=='run') {
@@ -379,18 +393,18 @@ wrapper_object$print_data <- function(.,otype='data') {
     print('',quote=F)
     print('',quote=F)
     print('',quote=F)
-    print(paste("MAAT :: run model",Sys.time()),quote=F)
+    print(paste("MAAT :: run model",Sys.time()), quote=F )
     print('',quote=F)
-    print(paste(.$wpars$runtype,' ensemble'),quote=F)
-    print(paste('ensemble number ::',ens_n),quote=F)
+    print(paste(.$wpars$runtype,' ensemble'), quote=F )
+    print(paste('ensemble number ::',ens_n), quote=F )
     if(!is.null(.$dataf$met)) {
-      print(paste('timesteps in met data ::',.$dataf$lm),quote=F)
-      print(paste('total number of model calls ::',ens_n*.$dataf$lm),quote=F)
+      print(paste('timesteps in met data ::',.$dataf$lm), quote=F )
+      print(paste('total number of model calls ::',ens_n*.$dataf$lm), quote=F )
     }
     print('',quote=F)
 
-    if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'),quote=F)
-    else               print(paste('serial processing.'),quote=F)
+    if(.$wpars$multic) print(paste('parallel processing over ::',.$wpars$procs,'cores.'), quote=F )
+    else               print(paste('serial processing.'), quote=F )
     print('',quote=F)
   }
 }
@@ -441,7 +455,7 @@ wrapper_object$.test_simple <- function(., gen_metd=F, mc=F, pr=4, oconf=F ) {
   .$model$env$ca_conc <- 400
   .$model$env$vpd     <- 1
   .$model$env$temp    <- 20
-  metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400))))
   if(gen_metd) .$dataf$met <- metdata
 
   # Define the static parameters and model functions
@@ -491,7 +505,7 @@ wrapper_object$.test <- function(.,gen_metd=T,mc=T,pr=4,oconf=F) {
   ###############################
   # can load a met dataset here
   # below a trivial met dataset is created to be used as an example
-  metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400)))
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = seq(0,1000,100),leaf.ca_conc = 400))))
   #metdata <- as.matrix(expand.grid(list(leaf.par = seq(800,1000,100),leaf.ca_conc = 400)))
   if(gen_metd) .$dataf$met <- metdata
   else     { .$model$env$par <- 1000; .$model$env$ca_conc <- 400 }
@@ -606,7 +620,7 @@ wrapper_object$.test_con <- function(., mc=T, pr=4, oconf=F,
   .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
 
   # Define meteorological dataset
-  if(!is.null(metd))    .$dataf$met  <- as.matrix(expand.grid(metd))
+  if(!is.null(metd))    .$dataf$met  <- t(as.matrix(expand.grid(metd)))
 
   # Define the static model functions, parameters, and environment
   if(!is.null(sfnames)) .$static$fnames <- sfnames
@@ -652,7 +666,7 @@ wrapper_object$.test_can <- function(., metd=T, mc=T, pr=4, verbose=F ) {
   .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
 
   # define meteorological and environment dataset
-  metdata <- expand.grid(list(canopy.par_dir = 500,canopy.ca_conc = seq(10,1200,50)))
+  metdata <- t(as.matrix(expand.grid(list(canopy.par_dir = 500,canopy.ca_conc = seq(10,1200,50)))))
   if(metd) .$dataf$met <- metdata
 
   # Define the parameters and model functions that are to be varied
@@ -722,8 +736,8 @@ wrapper_object$.test_mimic <- function(., mod_mimic='clm45_non_Tacclimation', mo
   # Define meteorological and environment dataset
   # can load a met dataset here
   # below a trivial met dataset is created to be used as an example
-  metdata <- as.matrix(expand.grid(list(leaf.par = seq(0,1000,100), leaf.ca_conc = 400))  )
-  metdata <- as.matrix(expand.grid(list(leaf.par = 2000, leaf.ca_conc = seq(50,1500,50))) )
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = seq(0,1000,100), leaf.ca_conc = 400))  ))
+  metdata <- t(as.matrix(expand.grid(list(leaf.par = 2000, leaf.ca_conc = seq(50,1500,50))) ))
   if(metd) .$dataf$met <- metdata
 
   # Run model
@@ -1012,8 +1026,8 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_cha
   .$model$pars$syn_b_sd  <- b_sd
 
   # met data
-  .$dataf$met            <- matrix(x, length(x) ,1 )
-  colnames(.$dataf$met)  <- 'mcmc_test.linreg_x'
+  .$dataf$met            <- t(matrix(x, length(x), 1 ))
+  rownames(.$dataf$met)  <- 'mcmc_test.linreg_x'
 
   # define priors
   .$dynamic$pars_eval <- list(

@@ -432,7 +432,7 @@ f_output_leaf_WUE <- function(.) {
 # test functions
 #######################################################################        
 
-leaf_object$.test <- function(., diag=F, verbose=T, cverbose=T, 
+leaf_object$.test <- function(., diag=F, verbose=F, cverbose=F, 
                               leaf.par=1000, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
   
   if(verbose) { str(.); print(.$env) }
