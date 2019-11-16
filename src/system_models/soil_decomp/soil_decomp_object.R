@@ -206,10 +206,9 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=3.2, ntimes=1
   if(metdf) {
     .$dataf       <- list()
     if(length(litter)==1) litter <- rep(litter, ntimes )   
-    .$dataf$metdf <- as.data.frame(matrix(litter, ncol=1 ))
-    #colnames(.$dataf$metdf) <- 'soil_decomp.litter'  
-    names(.$dataf$metdf) <- c('soil_decomp.litter')  
-    .$dataf$lm    <- length(.$dataf$metdf[,1])
+    .$dataf$metdf <- matrix(litter, nrow=1 )
+    rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
+    .$dataf$lm    <- length(.$dataf$metdf[1,])
     .$dataf$mout  <- .$output()
     .$run_met()
   } else {
@@ -228,10 +227,9 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
   # initialise boundary data 
   .$dataf       <- list()
   if(length(litter)==1) litter <- rep(litter, ntimes )   
-  .$dataf$metdf <- as.data.frame(matrix(litter, ncol=1 ))
-  #colnames(.$dataf$metdf) <- 'soil_decomp.litter'  
-  names(.$dataf$metdf) <- c('soil_decomp.litter')  
-  .$dataf$lm    <- length(.$dataf$metdf[,1])
+  .$dataf$metdf <- matrix(litter, nrow=1 )
+  rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
+  .$dataf$lm    <- length(.$dataf$metdf[1,])
   .$dataf$mout  <- .$output()
 
 
