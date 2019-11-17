@@ -21,6 +21,7 @@
   </fnames>
   <pars>
     <soil_decomp>
+      <n_pools>NA</n_pools>
       <beta>NA</beta>
       <silt>NA</silt>
       <clay>NA</clay>
@@ -50,9 +51,9 @@
         <k3>NA</k3>
       </k>
       <poolmax>
-        <pmax1>NA</pmax1>
-        <pmax2>NA</pmax2>
-        <pmax3>NA</pmax3>
+        <poolmax1>NA</poolmax1>
+        <poolmax2>NA</poolmax2>
+        <poolmax3>NA</poolmax3>
       </poolmax>
     </soil_decomp>
   </pars>

@@ -49,6 +49,9 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   if(.$cpars$diag) mod_out <- 'full' ### this will assign full to all child objects too could add a child switch
   .$output <- get(paste('f', 'output', .$name, .$cpars$mod_out, sep='_' ))
 
+  # build model pool structure
+  if(!is.null(.$pars$n_pools)) .$build_pool_structure()
+
   # assign default and mod mimic values to data structure
   .$configure(vlist='pars',   df=unlist(init_default$pars))
   .$configure(vlist='env',    df=unlist(init_default$env))
@@ -56,6 +59,40 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
 
   # build child objects
   if(!is.null(.$child_list)) vapply(.$child_list, .$build_child, numeric(0), mod_mimic=mod_mimic )
+}
+
+
+# function to build lists that vary in length depending on pool size
+build_pool_structure <- function(.) {
+
+  # number of model pools
+  n_pools <- .$pars$n_pools
+  print('', quote=F )
+  print(paste0('Building model pool structure with: ', n_pools, ' pools.'), quote=F )
+
+  # generate decomp list
+  if(!is.null(.$fnames$decomp)) {
+    lnames <- paste0('d',1:n_pools) # may need a variable maxnpools
+    .$fnames$decomp[lnames] <- NA  
+    #print('  decomp list:', quote=F )
+    #print(.$fnames$decomp, quote=F )
+  } 
+
+  # generate transfer list
+  if(!is.null(.$fnames$transfer)) {
+    .$fnames$transfer <- list() # allows sequential ordering of the list if list is not empty  
+    tn     <- expand.grid(1:n_pools,1:n_pools)
+    # remove tranfers from/to the same pool
+    tn     <- tn[-((1:n_pools -1)*n_pools + 1:n_pools),]
+    lnames <- apply(tn, 1, function(v) paste0('t',v[1],'_to_',v[2]) )
+    .$fnames$transfer[lnames] <- NA  
+    #print('  transfer list:', quote=F )
+    #print(.$fnames$transfer, quote=F )
+  }
+
+  # generate pars lists
+  for(l in c('cstate0', 'cue', 'vmax', 'km', 'k', 'poolmax' )) 
+    if(is.list(.$fnames[[l]])) .$fnames[[l]][paste0(l,1:n_pools)] <- 1 
 }
 
 
@@ -76,6 +113,7 @@ build_child <- function(., child_obj, mod_mimic=NULL, ... ) {
   # return nothing
   numeric(0)
 }
+
 
 
 # main run functions
@@ -106,9 +144,16 @@ init_state <- function(.) {
 
 
 # this currently works both when called from unit testing and from the wrapper 
-# - not 100 % sure why as when called from the wrapper .$dataf shoudl read .super$dataf
-# - maybe a result of being called from teh wraopoer and maybe . represents the object within which the function is called?
+# - not 100 % sure why as when called from the wrapper .$dataf should read .super$dataf
+# - maybe a result of being called from the wrapper and maybe . represents the object within which the function is called?
 run_met <- function(.,l) {
+
+  #print('')
+  #print(.$fnames$decomp)
+  #lapply( grep('decomp\\.',names(.$fns),value=T), function(char) {print(char); print(.$fns[[char]])} )
+  #print(.$fnames$transfer)
+  #lapply( grep('transfer\\.',names(.$fns),value=T), function(char) {print(char); print(.$fns[[char]])} )
+  #print('')
 
   if(!is.null(.$init)) .$init()
   t(vapply(1:.$dataf$lm, .$run_met1, .$dataf$mout )) 
@@ -236,7 +281,7 @@ configure <- function(., vlist, df, init=F, o=T ) {
 
     # assign all methods to methods list
     if(init) {
-      fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
+      fnslist <- as.list(rapply(.$fnames, function(c) if(is.na(c)) NA else get(c, pos=1 ) ))
       .$fns   <- as.proto(fnslist, parent=. )
 
       # specific methods assignment (for methods not included in fnames)
@@ -312,7 +357,7 @@ configure_met <- function(., df ) {
 configure_test <- function(.) {
 
   # configure methods
-  fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
+  fnslist <- as.list(rapply(.$fnames, function(c) if(is.na(c)) NA else get(c, pos=1 ) ))
   .$fns   <- as.proto(fnslist, parent=. )
   if(!is.null(.$configure_unique)) .$configure_unique(init=T, flist=unlist(.$fnames) )
   if(!is.null(.$init))             .$init()

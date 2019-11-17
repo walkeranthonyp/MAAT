@@ -51,8 +51,7 @@ soil_decomp_object$init1 <- init_state
 
 soil_decomp_object$init  <- function(.) {
   .$init1()
-  .$state$cpools   = matrix(unlist(.$pars$cstate0), ncol=1 )
-  .$state$cpools_n = length(.$pars$cstate0)
+  .$state$cpools = matrix(unlist(.$pars$cstate0), ncol=1 )
 }
 
 
@@ -81,10 +80,7 @@ soil_decomp_object$fnames <- list(
   # transfer list
   transfer = list(
     t1_to_2 = 'f_transfer_cue',
-    #t1_to_3 = 'f_transfer_zero',
-    #t2_to_1 = 'f_transfer_zero',
     t2_to_3 = 'f_transfer_cue',
-    #t3_to_1 = 'f_transfer_zero',
     t3_to_2 = 'f_transfer_cue'
   )
 )
@@ -102,8 +98,7 @@ soil_decomp_object$env <- list(
 # state
 ####################################
 soil_decomp_object$state <- list(
-  cpools   = matrix(1:3, ncol=1 ),
-  cpools_n = 3 
+  cpools   = matrix(1:3, ncol=1 )
 )
 
 
@@ -117,10 +112,11 @@ soil_decomp_object$state_pars <- list(
 # parameters
 ####################################
 soil_decomp_object$pars <- list(
- 
+
+  n_pools = 3,          # number of pools in model  
   beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
-  silt    = 0.2,
-  clay    = 0.2,
+  silt    = 0.2,        # soil silt content (proportion)
+  clay    = 0.2,        # soil clay content (proportion)
  
   # initial pool mass for each pool
   cstate0 = list(
@@ -160,9 +156,9 @@ soil_decomp_object$pars <- list(
 
   # maximum size for pool i 
   poolmax = list(       
-    pmax1 = 2,       # POM value
-    pmax2 = 2,       # microbial biomass max value
-    pmax3 = 26.725   # max maom capacity (calculated using Hassink formula assuming 15% clay)
+    poolmax1 = 2,       # POM value
+    poolmax2 = 2,       # microbial biomass max value
+    poolmax3 = 26.725   # max maom capacity (calculated using Hassink formula assuming 15% clay)
   )
 )
 
@@ -236,20 +232,36 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
   ### Run models
   olist <- list()
   # run default no saturation or DD model
+  print('')
+  print('')
+  print('Config: 1')
+  print('')
   olist$noSaturation  <- .$run_met()
 
   # saturating MAOM
+  print('')
+  print('')
+  print('Config: 2')
+  print('')
   .$fnames$transfer$t2_to_3 <- 'f_transfer_cue_sat'
   .$configure_test() 
   olist$MaomMax       <- .$run_met()
 
   # denisty dependent microbial turnover 
+  print('')
+  print('')
+  print('Config: 3')
+  print('')
   .$fnames$transfer$t2_to_3 <- 'f_transfer_cue'
   .$fnames$decomp$d2        <- 'f_decomp_dd'
   .$configure_test() 
   olist$DDturnover    <- .$run_met()
 
   # denisty dependent microbial cue 
+  print('')
+  print('')
+  print('Config: 4')
+  print('')
   .$fnames$transfer$t1_to_2 <- 'f_transfer_cue_sat'
   .$fnames$transfer$t3_to_2 <- 'f_transfer_cue_sat'
   .$fnames$decomp$d2        <- 'f_decomp_lin'
@@ -257,11 +269,19 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
   olist$DDcue         <- .$run_met()
 
   # denisty dependent microbial turnover and cue 
+  print('')
+  print('')
+  print('Config: 5')
+  print('')
   .$fnames$decomp$d2        <- 'f_decomp_dd'
   .$configure_test() 
   olist$DDturnover.DDcue <- .$run_met()
 
   # denisty dependent microbial turnover and cue and MAOM saturation 
+  print('')
+  print('')
+  print('Config: 6')
+  print('')
   .$fnames$transfer$t2_to_3 <- 'f_transfer_cue_sat'
   .$configure_test() 
   olist$DDturnover.DDcue.MaomMax <- .$run_met()

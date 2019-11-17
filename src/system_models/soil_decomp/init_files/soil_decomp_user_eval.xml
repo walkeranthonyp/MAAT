@@ -2,7 +2,6 @@
   <state>
     <soil_decomp>
       <cpools>'column name of variable in evaldata file'</cpools>
-      <cpools_n>'column name of variable in evaldata file'</cpools_n>
     </soil_decomp>
   </state>
 </eval_data_translator>

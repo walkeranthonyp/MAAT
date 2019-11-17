@@ -31,28 +31,31 @@ soil_decomp_object$.test(metdf=T, litter=6, ntimes=10 )
 soil_decomp_object$.test(metdf=T, litter=1:10 )
 
 soil_decomp_object$fnames
-soil_decomp_object$fns
+soil_decomp_object$fns$transfer.t1_to_3
 names(soil_decomp_object$fns)
 soil_decomp_object$fns$as.list()
+names(soil_decomp_object$fns$as.list())
 
 soil_decomp_object$fns$decomp.d1
-soil_decomp_object$fns$decomp.d1(soil_decomp_object$state$cpools[,1],i=1)
+soil_decomp_object$fns$decomp.d1(soil_decomp_object$state$cpools,i=1)
 soil_decomp_object$fns$decomp.d2
 soil_decomp_object$fns$decomp.d3
 
 soil_decomp_object$fns$transfer.t1_to_2
 soil_decomp_object$fns[["transfer.t1_to_2"]]
 
-soil_decomp_object$fns$inputrates
-soil_decomp_object$fns$inputrates()
+soil_decomp_object$fns$input
+soil_decomp_object$fns$input()
 soil_decomp_object$fns$transfermatrix
-soil_decomp_object$fns$transfermatrix()
+soil_decomp_object$fns$transfermatrix(C=soil_decomp_object$state$cpools)
 soil_decomp_object$fns$DotO
 soil_decomp_object$fns$DotO(soil_decomp_object$state$cpools[,1])
 
 
 source('soil_decomp_object.R')
+system.time(olist <- soil_decomp_object$.test_3pool(ntimes=2))
 system.time(olist <- soil_decomp_object$.test_3pool(ntimes=365))
+system.time(olist <- soil_decomp_object$.test_3pool(ntimes=3650))
 system.time(olist <- soil_decomp_object$.test_3pool())
 olist
 

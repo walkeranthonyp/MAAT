@@ -21,6 +21,7 @@
   </fnames>
   <pars>
     <soil_decomp>
+      <n_pools>3</n_pools>
       <beta>1.5</beta>
       <silt>0.2</silt>
       <clay>0.2</clay>
@@ -50,9 +51,9 @@
         <k3>0.006</k3>
       </k>
       <poolmax>
-        <pmax1>2</pmax1>
-        <pmax2>2</pmax2>
-        <pmax3>26.725</pmax3>
+        <poolmax1>2</poolmax1>
+        <poolmax2>2</poolmax2>
+        <poolmax3>26.725</poolmax3>
       </poolmax>
     </soil_decomp>
   </pars>
