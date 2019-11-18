@@ -67,7 +67,7 @@ This will help to maintain a central code-base and the principles of open scienc
 
 ### Related publications ###
 
-Walker, A. P., Ye, M., Lu, D., De Kauwe, M. G., Gu, L., Medlyn, B. E., Rogers, A., and Serbin, S. P.: The multi-assumption architecture and testbed (MAAT v1.0): R code for generating ensembles with dynamic model structure and analysis of epistemic uncertainty from multiple sources, Geosci. Model Dev., 11, 3159-3185, 2018, [doi.org/10.5194/gmd-11-3159-2018](https://doi.org/10.5194/gmd-11-3159-2018)
+Walker, A. P., Ye, M., Lu, D., De Kauwe, M. G., Gu, L., Medlyn, B. E., Rogers, A., and Serbin, S. P.: The multi-assumption architecture and testbed (MAAT v1.0): R code for generating ensembles with dynamic model structure and analysis of epistemic uncertainty from multiple sources. Geosci. Model Dev., 11, 3159-3185, 2018, [doi.org/10.5194/gmd-11-3159-2018](https://doi.org/10.5194/gmd-11-3159-2018)
 
 Dai, H., Ye, M., Walker, A.P., Chen, X., 2017. A new process sensitivity index to identify important system processes under process model and parametric uncertainty. Water Resour. Res. 53, 3476–3490. [doi.org/10.1002/2016WR019715](https://doi.org/10.1002/2016WR019715)
 

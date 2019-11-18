@@ -1,6 +1,6 @@
 ################################
 #
-# MAAT mcmc_test model object 
+# MAAT mcmc_test model object
 #
 # AWalker November 2017
 #
@@ -36,11 +36,12 @@ mcmc_test_object$configure_unique <- function(., init=F, flist=NULL ) {
    #.$fns$reg_func_gen_obs()
    .$reg_func_gen_obs <- get(paste0(.$fnames$reg_func,'_gen_obs'), pos=1 )
    .$reg_func_gen_obs()
+
   }
 }
 
 
-# assign object variables 
+# assign object variables
 ###########################################################################
 
 # function names
@@ -86,7 +87,7 @@ mcmc_test_object$pars   <- list(
 ####################################
 mcmc_test_object$env <- list(
   dummy    = 1,
-  linreg_x = 10 
+  linreg_x = 10
 )
 
 
@@ -108,15 +109,15 @@ mcmc_test_object$state_pars <- list(
 # run control parameters
 ####################################
 mcmc_test_object$cpars <- list(
-  verbose      = F,          # write diagnostic output during runtime 
-  cverbose     = F,          # write diagnostic output from configure function 
+  verbose      = F,          # write diagnostic output during runtime
+  cverbose     = F,          # write diagnostic output from configure function
   output       = 'mixture'   # type of output from run function
 )
 
 
 
 # output functions
-#######################################################################        
+#######################################################################
 
 f_output_mcmc_test_mixture <- function(.) {
   .$state$mixture_p
@@ -129,7 +130,7 @@ f_output_mcmc_test_regression <- function(.) {
 
 
 # test functions
-#######################################################################        
+#######################################################################
 
 mcmc_test_object$.test_mixture <- function(., verbose=F, cverbose=F ) {
 
