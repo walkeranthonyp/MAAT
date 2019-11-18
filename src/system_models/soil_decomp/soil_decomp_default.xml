@@ -4,7 +4,7 @@
       <sys>'f_sys_npools'</sys>
       <solver>'plsoda'</solver>
       <solver_func>'f_solver_func'</solver_func>
-      <inputrates>'f_inputrates'</inputrates>
+      <input>'f_input'</input>
       <DotO>'f_DotO'</DotO>
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <decomp>

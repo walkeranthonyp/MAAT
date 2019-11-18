@@ -116,6 +116,12 @@ system_model_object <-
     run_met           <- run_met 
     run_met1          <- run_met1 
     
+    # configure env from met dataset 
+    configure_met     <- configure_met 
+
+    # configure check 
+    configure_check   <- configure_check 
+
     
     ###########################################################################
     # Test functions

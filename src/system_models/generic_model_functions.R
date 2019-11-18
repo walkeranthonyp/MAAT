@@ -109,7 +109,7 @@ init_state <- function(.) {
 # - not 100 % sure why as when called from the wrapper .$dataf shoudl read .super$dataf
 # - maybe a result of being called from teh wraopoer and maybe . represents the object within which the function is called?
 run_met <- function(.,l) {
-   
+
   if(!is.null(.$init)) .$init()
   t(vapply(1:.$dataf$lm, .$run_met1, .$dataf$mout )) 
 }
@@ -124,7 +124,7 @@ run_met1 <- function(.,l) {
   # any "env" variables specified in the "dataf$env" dataframe but also specified in .$dataf$met will be overwritten by the .$dataf$met values
 
   # met data assignment
-  .$configure(vlist='env', df=.$dataf$met[l,,drop=F] )
+  .$configure_met(df=.$dataf$met[,l])
 
   # run model
   .$run()
@@ -150,11 +150,26 @@ run_met1 <- function(.,l) {
 # configure functions
 ###########################################################################
 
-configure <- function(., vlist, df, init=F, o=T ) {
-  # This function is called from any of the run functions, or during model initialisation
-  # - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df
+# check character names on row vectors of dataf functions
+configure_check <- function(., vlist='env', df ) {
+  if(!is.character(names(df))) {
+    print('', quote=F )
+    print(paste('Check dataf names:',.$name,',',vlist,'.'), quote=F )
+    print('dft:', quote=F )
+    print(df, quote=F )
+    print('names(df):', quote=F )
+    print(names(df), quote=F )
+    stop('FATAL ERROR: names(df) is not a character vector, will cause strsplit to fail.')
+  }
+}
 
-  # print configure setup if requested
+
+# This function is called from any of the run functions, or during model initialisation
+# - sets the values within .$fnames / .$pars / .$env / .$state to the values passed in df
+configure <- function(., vlist, df, init=F, o=T ) {
+
+  # error catch
+  # APW: move this to the wrapper object - it only needs tested once
   if(!is.character(names(df))) {
     print('', quote=F )
     print(paste('Configure:',.$name,',',vlist,'.'), quote=F )
@@ -181,7 +196,8 @@ configure <- function(., vlist, df, init=F, o=T ) {
   }
 
   # df subscripts for sublist variables (slmss) and non-sublist variables (nslmss)
-  slss   <- which(listnames[3,mss]!='')
+  vlss_full <- vlss
+  slss      <- which(listnames[3,mss]!='')
   if(length(slss)>0) {
     slmss  <- mss[slss]
     nslmss <- mss[-slss]
@@ -207,7 +223,6 @@ configure <- function(., vlist, df, init=F, o=T ) {
     print(nslmss, quote=F )
     print(paste('  subscripts in:',.$name, vlist ,' for variables that are not lists:'), quote=F )
     print(vlss, quote=F )
-    #print(which(is.na(vlss)), quote=F )
     print(names(.[[vlist]]), quote=F )
   }
 
@@ -215,28 +230,28 @@ configure <- function(., vlist, df, init=F, o=T ) {
   #print(paste(.$name,'configure:', vlist, names(df), df ))
   if(length(slss)>0)    vapply( slmss, .$configure_sublist, numeric(1), vlist=vlist, df=df )
   if(length(nslmss)>0) .[[vlist]][vlss] <- df[nslmss]
-  #print(listnames)
-  #print(c(nslmss,vlss))
-  #print(paste(df[nslmss],.[[vlist]][vlss]))
 
   # assign methods to methods list
-  if(vlist=='fnames'&length(nslmss)>0) {
+  if(vlist=='fnames') {
+
     # assign all methods to methods list
     if(init) {
       fnslist <- as.list(rapply(.$fnames, function(c) get(c, pos=1 ) ))
       .$fns   <- as.proto(fnslist, parent=. )
+
       # specific methods assignment (for methods not included in fnames)
       if(!is.null(.$configure_unique)) .$configure_unique(init=T, flist=unlist(.$fnames) )
 
-    } else {
-      flist <- unlist(.$fnames[vlss])
+    # assign methods only updatred in fnames to methods list
+    } else if(length(mss)>0) {
+      flist <- unlist(.$fnames[vlss_full])
       for(n in 1:length(flist)) {
         .$fns[[names(flist[n])]]              <- get(flist[n], pos=1 )
         environment(.$fns[[names(flist[n])]]) <- .$fns
       }
+
       # specific methods assignment (for methods not included in fnames)
       if(!is.null(.$configure_unique)) .$configure_unique(flist=flist)
-
     }
   }
 
@@ -264,6 +279,32 @@ configure_child <- function(., child, vlist, df ) {
 
   .[[child]]$configure(vlist=vlist, df=df )
   numeric(0)
+}
+
+
+# configure function for meteorological / boundary conditions
+configure_met <- function(., df ) {
+
+  #print('configure met')
+  #print(df)
+
+  # split variable names at .
+  listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
+
+  # df subscripts for model object
+  mss  <- 1:length(df)
+
+  # variable list subscripts in model object data structure
+  vlss <- match(listnames[2,], names(.[['env']]) )
+
+  # remove NAs in vlss from vlss and mss
+  if(any(is.na(vlss))) {
+    mss  <- mss[-which(is.na(vlss))]
+    vlss <- vlss[-which(is.na(vlss))]
+  }
+
+  # assign UQ variables
+  .[['env']][vlss] <- df[mss]
 }
 
 
