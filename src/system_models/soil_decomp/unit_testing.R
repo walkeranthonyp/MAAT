@@ -56,6 +56,16 @@ system.time(olist <- soil_decomp_object$.test_3pool(ntimes=365))
 system.time(olist <- soil_decomp_object$.test_3pool())
 olist
 
+source('soil_decomp_object.R')
+#default MM (vmax1 = 88, vmax3 = 171, km1 = 144, km3 = 936) from MIMICS
+soil_decomp_object$.test_rmm_yearly(revmm = F)
+#equivalent RMM
+soil_decomp_object$.test_rmm_yearly(revmm = T, vmax1 = 4, vmax3 = 6, km1 = 6, km3 = 33)
+#MM with low vmax and km
+soil_decomp_object$.test_rmm_yearly(revmm = F, vmax1 = 44, vmax3 = 86, km1 = 72, km3 = 468)
+#RMM with low vmax and km
+soil_decomp_object$.test_rmm_yearly(revmm = T, vmax1 = 2, vmax3 = 3, km1 = 3, km3 = 17)
+
 
 
 ### END ###
