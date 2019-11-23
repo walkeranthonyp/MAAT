@@ -283,6 +283,7 @@ wrapper_object$wpars <- list(
   eval_strings       = F,        # switch telling wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
   sobol_init         = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
   unit_testing       = F,
+  mcmc               = F,
   mcmc_type          = 'dream',
   mcmc_lklihood      = 'ssquared',
   mcmc_outlier       = 'iqr',
@@ -565,12 +566,12 @@ wrapper_object$.test_init <- function(.,
                       ) {
 
   # Define the static model functions, parameters, and environment
-  .$init_static <- c(sfnames, spars, senv )
+  .$init_static  <- c(sfnames, spars, senv )
   print('init_static')
   print(.$init_static)
 
   # Define the dynamic model functions, parameters, and environment
-  .$init_dynamic$leaf <- c(dfnames, dpars, denv )
+  .$init_dynamic <- c(dfnames, dpars, denv )
   print('init_dynamic')
   print(.$init_dynamic)
 
@@ -581,6 +582,47 @@ wrapper_object$.test_init <- function(.,
   print('dynamic')
   print(.$dynamic)
 
+}
+
+
+# test initialisation of pool structure 
+wrapper_object$.test_init_npools <- function(.,
+                      #metd=list(leaf.par = seq(800,1000,100), leaf.ca_conc = 400 ),
+                      sfnames=NULL,
+                      spars=NULL,
+                      senv=NULL,
+                      dfnames=NULL,
+                      dpars=list(pars=list(soil_decomp=list(n_pools=c(3,6)))),
+                      denv=NULL
+                      ) {
+
+  # Define the static model functions, parameters, and environment
+  .$init_static <- c(sfnames, spars, senv )
+  print('init_static')
+  print(.$init_static)
+
+  # Define the dynamic model functions, parameters, and environment
+  .$init_dynamic <- c(dfnames, dpars, denv )
+  print('init_dynamic')
+  print(.$init_dynamic)
+
+  # build wrapper and the model object
+  .$wpars$UQ      <- F           # run a fully factorial ensemble
+  .$wpars$runtype <- 'factorial'
+  .$wpars$mod_obj <- 'soil_decomp'
+  .$build()
+
+  print('')
+  print(.$model$fnames$decomp)
+  print(.$model$fnames$transfer)
+  print(.$model$pars$vmax)
+
+  # Run init function
+  #.$init()
+  #print('static')
+  #print(.$static)
+  #print('dynamic')
+  #print(.$dynamic)
 }
 
 

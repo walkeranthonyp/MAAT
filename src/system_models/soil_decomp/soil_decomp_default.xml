@@ -26,9 +26,9 @@
       <silt>0.2</silt>
       <clay>0.2</clay>
       <cstate0>
-        <c1>0.6</c1>
-        <c2>0.1</c2>
-        <c3>0.1</c3>
+        <cstate01>0.6</cstate01>
+        <cstate02>0.1</cstate02>
+        <cstate03>0.1</cstate03>
       </cstate0>
       <cue>
         <cue1>0.47</cue1>

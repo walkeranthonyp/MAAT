@@ -66,9 +66,22 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
 build_pool_structure <- function(.) {
 
   # number of model pools
-  n_pools <- .$pars$n_pools
+  #print(.)
+  #print(names(.))
+  n_pools <- 
+    if(!is.null(.$.super[['init_dynamic']][['pars']][[.$name]][['n_pools']])) {
+      max(.$init_dynamic$pars[[.$name]]$n_pools)
+    } else if(!is.null(.$.super[['init_static']][['pars']][[.$name]][['n_pools']])) { 
+      .$init_static$pars[[.$name]]$n_pools
+    } else .$pars$n_pools 
+  #n_pools <- .$pars$n_pools 
+  #if(!is.null(.$init_static)) if(!is.null(.$init_static$pars[[.$name]]$n_pools))
+  #     n_pools <- max(.$init_static$pars[[.$name]]$n_pools)
+  #if(!is.null(.$init_dynamic)) if(!is.null(.$init_dynamic$pars[[.$name]]$n_pools))
+  #     n_pools <- max(.$init_dynamic$pars[[.$name]]$n_pools)
+ 
   print('', quote=F )
-  print(paste0('Building model pool structure with: ', n_pools, ' pools.'), quote=F )
+  print(paste0('Building ', .$name, ' model pool structure with: ', n_pools, ' pools.'), quote=F )
 
   # generate decomp list
   if(!is.null(.$fnames$decomp)) {
@@ -91,8 +104,9 @@ build_pool_structure <- function(.) {
   }
 
   # generate pars lists
-  for(l in c('cstate0', 'cue', 'vmax', 'km', 'k', 'poolmax' )) 
-    if(is.list(.$fnames[[l]])) .$fnames[[l]][paste0(l,1:n_pools)] <- 1 
+  for(l in .$pool_pars) { 
+    if(is.list(.$pars[[l]])) .$pars[[l]][paste0(l,1:n_pools)] <- 1 
+  }
 }
 
 

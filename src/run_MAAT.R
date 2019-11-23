@@ -232,7 +232,7 @@ if((uq|mcmc)&of_format!='rds') {
 
 
 ##################################
-# Clone and build the maat wrapper and model object
+# Clone and assign arguments to the maat wrapper
 
 setwd(srcdir)
 source('wrapper_object.R')
@@ -274,13 +274,6 @@ maat$wpars$mcmc_n_CR          <- mcmc_n_CR
 maat$wpars$mcmc_adapt_CR      <- mcmc_adapt_pCR
 maat$wpars$mcmc_CR_burnin     <- mcmc_CR_burnin
 maat$wpars$mcmc_check_iter    <- mcmc_check_iter
-
-# build maat and model objects
-maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
-
-# set debugging flags
-maat$model$cpars$verbose  <- verbose
-maat$model$cpars$cverbose <- cverbose
 
 
 
@@ -332,12 +325,25 @@ print('  all dynamic fnames requested exist',quote=F)
 maat$init_static  <- init_static
 maat$init_dynamic <- init_dynamic
 
-# output static parameters used in simulation
+# output static & dynamic values used in simulation 
+# - need to move to build to get complete record of model setup (perhaps just need to move static output)
+# - could move static config to build function 
 print('',quote=F)
 print('Write record of static run variables:',quote=F)
 setwd(odir)
 listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=init_static)
 listtoXML(paste(ofname,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
+
+
+
+##################################
+# build maat wrapper and model objects
+
+maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
+
+# set debugging flags
+maat$model$cpars$verbose  <- verbose
+maat$model$cpars$cverbose <- cverbose
 
 
 

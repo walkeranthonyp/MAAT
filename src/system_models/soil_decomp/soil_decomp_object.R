@@ -28,7 +28,11 @@ setwd('soil_decomp')
 
 # assign object functions
 ###########################################################################
-soil_decomp_object$name <- 'soil_decomp'
+soil_decomp_object$name      <- 'soil_decomp'
+
+# parameter names that have a value per pool
+soil_decomp_object$pool_pars <- c('cstate0', 'cue', 'vmax', 'km', 'k', 'poolmax' )
+
 
 
 # function to configure unique elements of the object
@@ -120,9 +124,9 @@ soil_decomp_object$pars <- list(
  
   # initial pool mass for each pool
   cstate0 = list(
-    c1 = 0.6,
-    c2 = 0.1,
-    c3 = 0.1
+    cstate01 = 0.6,
+    cstate02 = 0.1,
+    cstate03 = 0.1
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
