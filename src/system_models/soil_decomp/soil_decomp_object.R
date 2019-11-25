@@ -305,8 +305,8 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
 }
 
 
-soil_decomp_object$.test_rmm_yearly <- function(., verbose=F, litter=1.4, ntimes=200, revmm = F, 
-                                                vmax1 = 88, vmax3 = 171, km1 = 144, km3 = 936) {
+soil_decomp_object$.test_var_kinetics_yearly <- function(., verbose=F, litter=1.4, ntimes=200, kinetics = 'mm', 
+                                                vmax1 = 88, vmax3 = 171, km1 = 144, km3 = 936, k1 = 1, k3 = .01) {
   
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))
@@ -323,9 +323,17 @@ soil_decomp_object$.test_rmm_yearly <- function(., verbose=F, litter=1.4, ntimes
   
   ### Run model
   # change parameters to default parms
-  if(revmm){
+  if(kinetics == 'rmm'){
     .$fnames$decomp$d1        <- 'f_decomp_RMM_microbe'
     .$fnames$decomp$d3        <- 'f_decomp_RMM_microbe'
+  } else if (kinetics == 'lin') {
+    .$fnames$decomp$d1        <- 'f_decomp_lin'
+    .$fnames$decomp$d3        <- 'f_decomp_lin'
+    .$pars$k$k1 = k1
+    .$pars$k$k3 = k3
+  } else if (kinetics == 'mm'){
+    .$fnames$decomp$d1        <- 'f_decomp_MM_microbe'
+    .$fnames$decomp$d3        <- 'f_decomp_MM_microbe'
   }
   
 
