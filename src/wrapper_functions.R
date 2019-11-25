@@ -277,6 +277,7 @@ run3_factorial <- function(.,k) {
   #print(.$static)
   #print(.$model$pars)
   #print(.$model$state)
+  print(.$model$fnames)
 
   # call next run function
   if(is.null(.$dataf$met)) .$model$run() else .$model$run_met()
