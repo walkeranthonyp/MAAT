@@ -302,34 +302,16 @@ if(xml) {
 } else source(initf)
 
 
-# check process representation functions specified in input exist
-search_fnames <-  function(v, ln ) {
-  for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop(paste('The function: ',c1,' , specified in init', ln ,'does not exist')) else 'exists'
-}
-print('',quote=F)
-print('Check static fnames requested exist:',quote=F)
-out <- lapply(init_static$fnames,
-         function(l) lapply(l, function(l1) if(is.list(l1)) lapply(l1, search_fnames, ln='static') else search_fnames(l1, ln='static' )) )
-print('  all static fnames requested exist',quote=F)
-
-print('',quote=F)
-print('Check dynamic fnames requested exist:',quote=F)
-if(!is.null(unlist(init_dynamic$fnames))) {
-  out <- lapply(init_dynamic$fnames,
-           function(l) lapply(l, function(l1) if(is.list(l1)) lapply(l1, search_fnames, ln='dynamic') else search_fnames(l1, ln='dynamic' )) )
-}
-print('  all dynamic fnames requested exist',quote=F)
-
-
 # add init lists to wrapper
 maat$init_static  <- init_static
 maat$init_dynamic <- init_dynamic
+
 
 # output static & dynamic values used in simulation 
 # - need to move to build to get complete record of model setup (perhaps just need to move static output)
 # - could move static config to build function 
 print('',quote=F)
-print('Write record of static run variables:',quote=F)
+print('Write record of static & dynamic run variables:',quote=F)
 setwd(odir)
 listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=init_static)
 listtoXML(paste(ofname,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
@@ -344,6 +326,29 @@ maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
 # set debugging flags
 maat$model$cpars$verbose  <- verbose
 maat$model$cpars$cverbose <- cverbose
+
+
+
+##################################
+# check process representation functions specified in input exist
+
+search_fnames <-  function(v, ln ) {
+  for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop(paste('The function: ',c1,' , specified in init', ln ,'does not exist')) else 'exists'
+}
+
+print('',quote=F)
+print('Check static fnames requested exist:',quote=F)
+out <- lapply(init_static$fnames,
+         function(l) lapply(l, function(l1) if(is.list(l1)) lapply(l1, search_fnames, ln='static') else search_fnames(l1, ln='static' )) )
+print('  all static fnames requested exist',quote=F)
+
+print('',quote=F)
+print('Check dynamic fnames requested exist:',quote=F)
+if(!is.null(unlist(init_dynamic$fnames))) {
+  out <- lapply(init_dynamic$fnames,
+           function(l) lapply(l, function(l1) if(is.list(l1)) lapply(l1, search_fnames, ln='dynamic') else search_fnames(l1, ln='dynamic' )) )
+}
+print('  all dynamic fnames requested exist',quote=F)
 
 
 
