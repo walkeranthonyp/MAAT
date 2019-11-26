@@ -107,6 +107,9 @@ build_pool_structure <- function(.) {
   for(l in .$pool_pars) { 
     if(is.list(.$pars[[l]])) .$pars[[l]][paste0(l,1:n_pools)] <- 1 
   }
+  
+  # generate state matrix
+  .$state$cpools <- matrix(1.01, ncol=1, nrow=n_pools )
 }
 
 
@@ -301,11 +304,11 @@ configure <- function(., vlist, df, init=F, o=T ) {
       # specific methods assignment (for methods not included in fnames)
       if(!is.null(.$configure_unique)) .$configure_unique(init=T, flist=unlist(.$fnames) )
 
-    # assign methods only updatred in fnames to methods list
+    # assign methods only updated in fnames to methods list
     } else if(length(mss)>0) {
       flist <- unlist(.$fnames[vlss_full])
       for(n in 1:length(flist)) {
-        .$fns[[names(flist[n])]]              <- get(flist[n], pos=1 )
+        .$fns[[names(flist[n])]]              <- if(is.na(flist[n])) NA else get(flist[n], pos=1 )
         environment(.$fns[[names(flist[n])]]) <- .$fns
       }
 
@@ -348,7 +351,7 @@ configure_met <- function(., df ) {
   #print(df)
 
   # split variable names at .
-  listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
+  listnames <- vapply( strsplit(names(df),'.',fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
 
   # df subscripts for model object
   mss  <- 1:length(df)

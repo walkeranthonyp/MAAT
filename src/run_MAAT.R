@@ -321,6 +321,7 @@ listtoXML(paste(ofname,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dyn
 ##################################
 # build maat wrapper and model objects
 
+setwd(srcdir)
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
 
 # set debugging flags

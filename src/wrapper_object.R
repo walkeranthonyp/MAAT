@@ -93,7 +93,6 @@ wrapper_object$run   <- function(.,verbose=T) {
     hd <- getwd()
   }
 
-  # ALJ: probably a stupid question on my part, but why is the below if-statement eval_string and not eval_strings?
   # Initialisation checks
   # need to add a check for equal par vector lengths if this is a UQ run and not eval_strings
   # for Ye et al SA method
