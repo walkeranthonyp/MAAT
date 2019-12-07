@@ -62,7 +62,6 @@
   </fnames>
   <pars>
     <leaf>
-      <diag>FALSE</diag>
       <d13c>FALSE</d13c>
       <deltaA_prop>0.15</deltaA_prop>
       <solver_min>-0.0029834</solver_min>
@@ -135,7 +134,7 @@
         <Kc>40.49</Kc>
         <Ko>27.84</Ko>
         <gstar>4.325</gstar>
-        <tau>2600</tau>
+        <tau>2.6</tau>
         <vomax>0</vomax>
       </atref>
       <Ha>

@@ -1,7 +1,7 @@
 <dynamic>
   <fnames>
     <canopy>
-      <cansys>NA</cansys>
+      <sys>NA</sys>
       <pars_init>NA</pars_init>
       <rt>NA</rt>
       <scale_n>NA</scale_n>

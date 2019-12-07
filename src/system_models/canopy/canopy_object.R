@@ -270,6 +270,8 @@ canopy_object$cpars <- list(
 # output functions
 #######################################################################        
 
+f_output_canopy_eval <- f_output_eval 
+
 f_output_canopy_state <- function(.) {
   unlist(.$state)
 }

@@ -18,13 +18,21 @@
       <lim>'column name of variable in evaldata file'</lim>
       <A_ana_rbzero>'column name of variable in evaldata file'</A_ana_rbzero>
       <A_ana_rbg0zero>'column name of variable in evaldata file'</A_ana_rbg0zero>
-      <aguess>'column name of variable in evaldata file'</aguess>
-      <faguess>'column name of variable in evaldata file'</faguess>
+      <aguess1>'column name of variable in evaldata file'</aguess1>
+      <aguess2>'column name of variable in evaldata file'</aguess2>
+      <aguess3>'column name of variable in evaldata file'</aguess3>
+      <aguess4>'column name of variable in evaldata file'</aguess4>
+      <faguess1>'column name of variable in evaldata file'</faguess1>
+      <faguess2>'column name of variable in evaldata file'</faguess2>
+      <faguess3>'column name of variable in evaldata file'</faguess3>
+      <faguess4>'column name of variable in evaldata file'</faguess4>
       <aguess_flag>'column name of variable in evaldata file'</aguess_flag>
       <iter>'column name of variable in evaldata file'</iter>
       <estimprec>'column name of variable in evaldata file'</estimprec>
-      <assim>'column name of variable in evaldata file'</assim>
-      <fA_ana_final>'column name of variable in evaldata file'</fA_ana_final>
+      <assim1>'column name of variable in evaldata file'</assim1>
+      <assim2>'column name of variable in evaldata file'</assim2>
+      <fA_ana_final1>'column name of variable in evaldata file'</fA_ana_final1>
+      <fA_ana_final2>'column name of variable in evaldata file'</fA_ana_final2>
       <A_noR>'column name of variable in evaldata file'</A_noR>
       <transition>'column name of variable in evaldata file'</transition>
       <d13c>'column name of variable in evaldata file'</d13c>

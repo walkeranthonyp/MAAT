@@ -76,6 +76,46 @@ mcmc       <- F
 # type of MCMC
 mcmc_type  <- 'dream'
 
+# run options
+# meteorological data file name
+metdata       <- NULL
+
+# evaluation data file name
+evaldata      <- NULL
+
+# load standard error from evaluation data file (T/F)
+evalse        <- F
+
+# pass code snippets as strings to generate parameter samples, see init_MAAT.R and wrapper for use
+eval_strings  <- F
+
+# initialise in the configuration of the below specified model
+# options are: clm40,
+mod_mimic     <- NULL
+
+# static and dynamic initialisation files are XMLs, if false init file is the R script named below
+xml           <- F
+
+# initialisation data file name if not an XML
+init          <- 'init_MAAT'
+
+# run i.d. - used as suffix/prefix for in/out files
+runid         <- NULL
+
+# basic output file name
+of_main       <- 'out'
+
+# model output switch
+mod_out       <- 'run'
+
+# output file format.  supported: rds, csv (default)
+of_format     <- 'csv'
+
+# verbose - ouput various things during runtime for diagnostics
+verbose       <- F
+cverbose      <- F
+
+
 # parameters for SA run
 # ensemble number for an SA/UQ style ensemble, not used if -uq- is false
 psa_n      <- 10
@@ -121,45 +161,6 @@ mcmc_adapt_pCR     <- T
 mcmc_CR_burnin     <- 0.1
 # MCMC option for checking for convergence and outlier chains every N iterations
 mcmc_check_iter    <- 10
-
-# run options
-# meteorological data file name
-metdata       <- NULL
-
-# evaluation data file name
-evaldata      <- NULL
-
-# load standard error from evaluation data file (T/F)
-evalse        <- F
-
-# pass code snippets as strings to generate parameter samples, see init_MAAT.R and wrapper for use
-eval_strings  <- F
-
-# initialise in the configuration of the below specified model
-# options are: clm40,
-mod_mimic     <- NULL
-
-# static and dynamic initialisation files are XMLs, if false init file is the R script named below
-xml           <- F
-
-# initialisation data file name if not an XML
-init          <- 'init_MAAT'
-
-# run i.d. - used as suffix/prefix for in/out files
-runid         <- NULL
-
-# basic output file name
-of_main       <- 'out'
-
-# model output switch
-mod_out       <- 'run'
-
-# output file format.  supported: rds, csv (default)
-of_format     <- 'csv'
-
-# verbose - ouput various things during runtime for diagnostics
-verbose       <- F
-cverbose      <- F
 
 
 
@@ -342,8 +343,8 @@ listtoXML(paste(ofname,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dyn
 
 
 ##################################
-# Load meteorological and environment dataset
-# - each ensemble member is run over this entire dataframe
+# Load meteorological / environment dataset
+# - each ensemble member is run over this entire dataset
 # - not used unless specified
 
 kill <- F
@@ -394,7 +395,7 @@ if(!is.null(metdata)) {
     # maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
     # maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
     # for ACi simulations
-    maat$dataf$obs <- metdf$A
+    # maat$dataf$obs <- metdf$A
     ###################################
 
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
@@ -419,12 +420,13 @@ if(!is.null(metdata)) {
     # future work: generalize this
     # for sphagnum simulations
     # maat$dataf$met <- t(as.matrix(metdf[,-1]))
-    # for ACii simulations
+    # for ACi simulations
     maat$dataf$met <- t(as.matrix(metdf))
     ###################################
 
     # remove met data file
-    rm(metdf)
+    if(is.null(evaldata)) rm(metdf) else if(evaldata!='metdata') rm(metdf)
+    
 
   } else {
     print('',quote=F)
@@ -444,12 +446,12 @@ if(!is.null(metdata)) {
 # - not used unless specified
 
 kill <- F
-if(!is.null(evaldata)&F) {
+if(!is.null(evaldata)&T) {
   # read user defined eval data translator
   setwd(pdir)
   if(file.exists(paste0(mod_obj,'_user_eval.xml'))) {
     eval_trans <- readXML(paste0(mod_obj,'_user_eval.xml'))
-    if(any(names(eval_trans$state)==mod_obj)) eval_trans <- eval_trans$env[[which(names(eval_trans$state)==mod_obj)]]
+    if(any(names(eval_trans$state)==mod_obj)) eval_trans <- eval_trans$state[[which(names(eval_trans$state)==mod_obj)]]
     else {
       print('',quote=F)
       print('Evaluation data translator file:',quote=F)
@@ -475,8 +477,11 @@ if(!is.null(evaldata)&F) {
   print(edir, quote=F )
   setwd(edir)
 
-  if(evaldata=='met') evaldata <- metdata
-  if(file.exists(evaldata)&!kill) {
+  if(evaldata=='metdata') {
+    evaldf <- metdf
+    rm(metdf)
+
+  } else if(file.exists(evaldata)&!kill) {
     print(evaldata, quote=F )
     evaldf   <- read.csv(evaldata,strip.white=T)
     print(head(evaldf), quote=F )
@@ -484,38 +489,39 @@ if(!is.null(evaldata)&F) {
     # check met and eval data sets are of same length
     if(dim(maat$dataf$met)[2]!=dim(evaldf)[2])
       stop(paste('Eval data not same length as met data: check equal length of files:', evaldata, metdata ))
-
-    # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML
-    # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML
-    cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
-    evaldf <- evaldf[,cols]
-
-    # add to MAAT object
-    maat$dataf$obs <- evaldf
-
-    # Read standard error for eval data
-    if(evalse) {
-      print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"')
-
-      # extract se data
-      cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
-      evaldfse <- evaldf[,cols]
-
-      # add to MAAT object
-      maat$dataf$obsse <- evaldfse
-    }
-
-    # remove eval data file
-    rm(evaldf)
-
+  
   } else {
     print('',quote=F)
     print('Eval data file:',quote=F)
     print(evaldata,quote=F)
     print('does not exist in:',quote=F)
     print(evaldir,quote=F)
-    stop()
+    stop('ERROR: eval file does not exist')
   }
+
+  # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML
+  # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML
+  cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
+  evaldf <- evaldf[,cols]
+
+  # add to MAAT object
+  maat$dataf$obs <- evaldf
+
+  # Read standard error for eval data
+  if(evalse) {
+    print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"')
+
+    # extract se data
+    cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
+    evaldfse <- evaldf[,cols]
+
+    # add to MAAT object
+    maat$dataf$obsse <- evaldfse
+  }
+
+  # remove eval data file
+  rm(evaldf)
+
   setwd(pdir)
 }
 

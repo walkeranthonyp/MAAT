@@ -105,6 +105,8 @@ template_object$cpars <- list(
 # output functions
 #######################################################################        
 
+f_output_template_eval <- f_output_eval 
+
 f_output_template_run <- function(.) {
   unlist(.$state)
 }

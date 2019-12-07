@@ -1,7 +1,7 @@
 <static>
   <fnames>
     <canopy_structure>
-      <canstrctsys>NA</canstrctsys>
+      <sys>NA</sys>
       <lai>NA</lai>
       <leafdem_upper>NA</leafdem_upper>
       <leafdem_lower>NA</leafdem_lower>

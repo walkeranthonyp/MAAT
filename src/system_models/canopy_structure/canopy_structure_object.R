@@ -253,6 +253,8 @@ canopy_structure_object$cpars <- list(
 # output functions
 #######################################################################        
 
+f_output_canopy_structure_eval <- f_output_eval 
+
 f_output_canopy_structure_state <- function(.) {
   unlist(.$state)
 }
