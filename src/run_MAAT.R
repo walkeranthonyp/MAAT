@@ -384,6 +384,7 @@ if(!is.null(metdata)) {
     # ALJ: if doing a Sphagnum simulation
     #      screen out night-time values from met data file
     #      subset it to remove 0's and negative values
+    # APW: thinking of a flexible way to do this, it's not that easy. Long term might need to do this in the met data itself  
     # sub_idx <- which(metdf$EM_PAR_8100_x > 0)
     # metdf <- metdf[sub_idx, ]
 
@@ -411,30 +412,28 @@ if(!is.null(metdata)) {
       # rename to maat variables as defined in <mod_obj>_user_met.XML and prefix with the model object for compatibility with the configure function
       names(metdf)[1] <- 'time'
       names(metdf)[2:length(metdf)] <- paste(mod_obj,names(met_trans)[-tcol],sep='.')
+
+      # due to matrix data structure a character time vector will mess the numeric matric up
+      # - could do something with posix convention 
+      if(!is.numeric(metdf[,1])) metdf <- metdf[,-1,drop=F ]
+
     } else {
       names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
     }
 
-    ###################################
     # add to MAAT object
-    # future work: generalize this
-    # for sphagnum simulations
-    # maat$dataf$met <- t(as.matrix(metdf[,-1]))
-    # for ACi simulations
     maat$dataf$met <- t(as.matrix(metdf))
-    ###################################
 
     # remove met data file
     if(is.null(evaldata)) rm(metdf) else if(evaldata!='metdata') rm(metdf)
     
-
   } else {
     print('',quote=F)
     print('Met data file:',quote=F)
     print(metdata,quote=F)
     print('does not exist in:',quote=F)
     print(mdir,quote=F)
-    stop()
+    stop('ERROR: metdata file does not exist')
   }
   setwd(pdir)
 }
@@ -502,7 +501,7 @@ if(!is.null(evaldata)&T) {
   # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML
   # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML
   cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
-  evaldf <- evaldf[,cols]
+  evaldf <- evaldf[,cols] # if a single column will be dropped to a vector
 
   # add to MAAT object
   maat$dataf$obs <- evaldf
