@@ -678,8 +678,9 @@ run3_mcmc_dream <- function(.,k) {
   if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[,k] )
 
   # call model/met run function
-  if(.$dataf$lm==1) .$model$run()
-  else              vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
+  if(is.null(.$dataf$met)) .$model$run() else .$model$run_met()
+  #if(.$dataf$lm==1) .$model$run()
+  #else              vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
 }
 
 run4_mcmc_dream <- run4_factorial # i.e. NULL
