@@ -76,6 +76,18 @@ mcmc       <- F
 # type of MCMC
 mcmc_type  <- 'dream'
 
+# initialise pars with output from an MCMC run
+# - used either to 'restart' an MCMC run or run a predictive 'ensemble' by sampling posterior distributions
+# - if 'ensemble' factorial must be TRUE
+parsinit_mcmc <- NULL
+# directory with MCMC data - assumed relative to pdir
+mcmcdir       <- NULL
+# output filename for MCMCM data 
+mcmcout       <- NULL
+# number of samples from MCMC posterior 
+parsinit_n    <- NULL 
+
+
 # run options
 # meteorological data file name
 metdata       <- NULL
@@ -333,7 +345,24 @@ print('  all dynamic fnames requested exist',quote=F)
 maat$init_static  <- init_static
 maat$init_dynamic <- init_dynamic
 
-# output static parameters used in simulation
+# overwrite init_dynamic$pars if parsinit specified
+if(!is.null(parsinit_mcmc)) {
+  setwd(mcmcdir)
+  mcmc_pars_array <- readRDS(mcmcout)
+  if(parsinit_mcmc=='restart') {
+    parsinit <- mcmc_pars_array[,,dim(mcmc_pars_array)[3]]
+    
+  } else if(parsinit_mcmc=='ensemble') {
+    # drop to a matrix
+    parsinit <- as.matrix(mcmc_pars_array, nrow=dim(mcmc_pars_array)[1] )
+    # need to sample from this distribtion based on a user defined option, parsinit_n
+    # sample here, could do this elsewhere but here seems best
+  }  
+
+  # add parsinit to wrapper data structure - how??
+}
+
+# output static variables used in simulation
 print('',quote=F)
 print('Write record of static run variables:',quote=F)
 setwd(odir)
