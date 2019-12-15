@@ -579,7 +579,7 @@ mcmc_bdry_handling_fold <- function(., j, ii, jj) {
 
 # option for not computing a convergence diagnostic; to be used during post-burn-in MCMC sampling
 mcmc_converge_none <- function(., j) {
-  if (j == .$wpars$mcmc_maxiter) print('No option was chosen to test for MCMC convergence.')
+  if(j==.$wpars$mcmc_maxiter) print('No option was chosen to test for MCMC convergence.')
 }
 
 
@@ -588,7 +588,7 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
 
   # IMPORTANT: beware of pseudo-convergence
   #            R_hat may sometimes be small in early iterations, looking as if it has converged,
-  #            so  make sure to run algorithm for an appropriately long number of samples
+  #            so make sure to run algorithm for an appropriately long number of samples
 
   # within-chain variance
   W <- rep(0, .$mcmc$d)
@@ -601,8 +601,8 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
       }
     }
   }
-
-  x_bar <- (2 / (.$wpars$mcmc_maxiter - 2)) * x_bar
+  #APW rewrite attempt: x_bar <- apply(.$dataf$pars_array[,,ceiling(.$wpars$mcmc_maxiter/2):.$wpars$mcmc_maxiter], 1:2, sum ) 
+  x_bar <- (2/(.$wpars$mcmc_maxiter - 2)) * x_bar
 
   for (jj in 1:.$mcmc$d) {
     summation <- 0
@@ -647,7 +647,6 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
   }
 
   # add R_hat to storage array
-
   if (j != .$wpars$mcmc_maxiter) {
     counter <- j / .$wpars$mcmc_check_iter
   } else if ((j == .$wpars$mcmc_maxiter) & (j %% .$wpars$mcmc_check_iter == 0)) {
@@ -665,7 +664,6 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
     print(R_hat)
     print(.$dataf$conv_check)
   }
-
 }
 
 
@@ -729,9 +727,9 @@ f_proposal_lklihood_ssquared_se <- function(.) {
 # outlier handling functions
 #####################################
 
-# no outlier handling for Markov chians
+# no outlier handling for Markov chains
 mcmc_outlier_none <- function(., j) {
-  if (j == .$wpars$mcmc_maxiter) print('No option was chosen to identify outlier Markov chains.')
+  if(j==.$wpars$mcmc_maxiter) print('No option was chosen to identify outlier Markov chains.')
 }
 
 

@@ -661,10 +661,10 @@ run2_mcmc_dream <- function(.,j) {
   .$proposal_accept(j=j, lklihood )
 
   # if test for and handle outlier chains (if outlier is detected, throw out all previous MCMC samples)
-  if (j %% .$wpars$mcmc_check_iter == 0) .$mcmc_outlier(j=j)
+  if(j %% .$wpars$mcmc_check_iter == 0) .$mcmc_outlier(j=j)
 
   # calculate convergence diagnostic
-  if ((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) .$mcmc_converge(j=j)
+  if((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) .$mcmc_converge(j=j)
 
   # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function
   numeric(0)
