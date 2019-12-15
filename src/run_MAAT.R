@@ -265,6 +265,7 @@ maat$wpars$eval_strings  <- eval_strings
 maat$wpars$of_name_stem  <- ofname
 maat$wpars$of_type       <- of_format
 maat$wpars$of_dir        <- odir
+maat$wpars$parsinit_read <- !is.null(parsinit_mcmc)
 
 # define MCMC run parameters
 maat$wpars$mcmc               <- mcmc
@@ -345,24 +346,40 @@ print('  all dynamic fnames requested exist',quote=F)
 maat$init_static  <- init_static
 maat$init_dynamic <- init_dynamic
 
-# overwrite init_dynamic$pars if parsinit specified
+
+# write directly to dataf$pars if parsinit specified
 if(!is.null(parsinit_mcmc)) {
+  print('')
+  print('Read input pars values from:')
+  print(mcmcdir)
+  print(mcmcout)
+
+  # read and write pars 
   setwd(mcmcdir)
   mcmc_pars_array <- readRDS(mcmcout)
+
   if(parsinit_mcmc=='restart') {
     parsinit <- mcmc_pars_array[,,dim(mcmc_pars_array)[3]]
     
   } else if(parsinit_mcmc=='ensemble') {
+    if(runtype!='factorial') {
+      print('parsinit requested but can only work with factorial runtype, requested runtype:', runtype )
+      stop('parsinit requested with incompatible runtype.')
+    } 
     # drop to a matrix
     parsinit <- as.matrix(mcmc_pars_array, nrow=dim(mcmc_pars_array)[1] )
-    # need to sample from this distribtion based on a user defined option, parsinit_n
-    # sample here, could do this elsewhere but here seems best
+    # sub-sample 
+    if(parsinit_n>=dim(parsinit)[2]) print('parsinit_n greater than samples in mcmcout')
+    parsinit <- parsinit[, sample(dim(parsinit[2], parsinit_n ))]
   }  
 
-  # add parsinit to wrapper data structure - how??
+  # add parsinit to wrapper data structure
+  .$dataf$pars <- parsinit 
 }
 
+
 # output static variables used in simulation
+# APW: this will not report pars that have been read by the above if statement
 print('',quote=F)
 print('Write record of static run variables:',quote=F)
 setwd(odir)
@@ -549,8 +566,6 @@ if(!is.null(evaldata)&T) {
 
   # remove eval data file
   rm(evaldf)
-
-  setwd(pdir)
 }
 
 
@@ -558,6 +573,7 @@ if(!is.null(evaldata)&T) {
 ##################################
 ###  Run MAAT
 
+setwd(pdir)
 for(i in 1:5) print('',quote=F)
 print(paste('Run MAAT',runtype,':'),quote=F)
 st <- system.time(maat$run())

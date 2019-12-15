@@ -463,17 +463,19 @@ mcmc_prior_none <- function(.) {
   # future work: ideally would not like to hardcode this
   #              currently just copying and pasting
 
-  .$dataf$pars <- matrix(c(127.1412287, 85.6479380,  0.9263817,
-                           151.1674128, 267.4227537, 0.9635282,
-                           153.8731369, 201.6820169, 0.9468014,
-                           153.7184214, 254.7146791, 0.9295626,
-                           155.9559049, 251.6358836, 0.9570725,
-                           140.8245361, 223.8698299, 0.9495525,
-                           133.0800970, 249.0815415, 0.9322175),
-                          ncol = .$wpars$mcmc_chains)
+  #.$dataf$pars <- matrix(c(127.1412287, 85.6479380,  0.9263817,
+  #                         151.1674128, 267.4227537, 0.9635282,
+  #                         153.8731369, 201.6820169, 0.9468014,
+  #                         153.7184214, 254.7146791, 0.9295626,
+  #                         155.9559049, 251.6358836, 0.9570725,
+  #                         140.8245361, 223.8698299, 0.9495525,
+  #                         133.0800970, 249.0815415, 0.9322175),
+  #                        ncol = .$wpars$mcmc_chains)
 
-  rownames(.$dataf$pars) <- c('leaf.atref.vcmax', 'leaf.atref.jmax', 'leaf.theta_col_cj')
-
+  #rownames(.$dataf$pars) <- c('leaf.atref.vcmax', 'leaf.atref.jmax', 'leaf.theta_col_cj')
+  print('')
+  print('dataf$pars from MCMC run:')
+  print(.$dataf$pars)
 }
 
 

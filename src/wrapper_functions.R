@@ -50,27 +50,31 @@ generate_ensemble <- function(.) {
 
 # parameter matrix for factorial run
 generate_ensemble_pars_factorial <- function(.) {
-  .$dataf$pars <- if(!is.null(.$dynamic$pars)) t(as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F))) else NULL
+  if(!.$wpars$parsinit_read) { 
+    .$dataf$pars <- if(!is.null(.$dynamic$pars)) t(as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F))) else NULL
+  }
 }
 
 
 # parameter matrix for Saltelli parameter SA
 generate_ensemble_pars_SApar_saltelli <- function(.) {
-  if(is.null(.$dynamic$pars)) {
-    if(!is.null(.$dynamic$pars_eval)) {
-      # increase parameter sample number
-      .$wpars$n <- .$wpars$n * .$wpars$nmult
-      # sample parameters from character string code snippets to generate matrices A and B
-      n <- 2 * .$wpars$n
-      .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
-    } else  stop('wrapper: pars (or pars_eval) list in vars list is empty')
+  if(!.$wpars$parsinit_read) { 
+    if(is.null(.$dynamic$pars)) {
+      if(!is.null(.$dynamic$pars_eval)) {
+        # increase parameter sample number
+        .$wpars$n <- .$wpars$n * .$wpars$nmult
+        # sample parameters from character string code snippets to generate matrices A and B
+        n <- 2 * .$wpars$n
+        .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
+      } else  stop('wrapper: pars (or pars_eval) list in vars list is empty')
+    }
+  
+    # create pars matrix
+    .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
+  
+    # remove potentially large pars list
+    .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
   }
-
-  # create pars matrix
-  .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
-
-  # remove potentially large pars list
-  .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 }
 
 
@@ -105,7 +109,7 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
 
   # generate initial proposal from priors and create pars / proposal matrix
-  .$mcmc_prior()
+  if(!.$wpars$parsinit_read) .$mcmc_prior()
 
   # determine boundary handling limits for parameter space
   .$boundary_handling_set()
