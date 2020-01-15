@@ -690,9 +690,9 @@ f_proposal_lklihood_ssquared <- function(.) {
   # calculate error residual
   error_residual_matrix <- t(.$dataf$out) - .$dataf$obs
 
-  print('you are here, ACi')
-  print('.$dataf$out'); print(.$dataf$out)
-  print('.$dataf$obs'); print(.$dataf$obs)
+  #print('you are here, ACi')
+  #print('.$dataf$out'); print(.$dataf$out)
+  #print('.$dataf$obs'); print(.$dataf$obs)
 
   # calculate sum of squared error
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))

@@ -523,18 +523,21 @@ if(!is.null(evaldata)&T) {
   setwd(edir)
 
   if(evaldata=='metdata') {
-    evaldf <- metdf
+    #evaldf <- metdf
+    evaldfobs <- metdf
     rm(metdf)
 
   } else if(file.exists(evaldata)&!kill) {
     print(evaldata, quote=F )
-    evaldf   <- read.csv(evaldata,strip.white=T)
-    print(head(evaldf), quote=F )
+    #evaldf   <- read.csv(evaldata,strip.white=T)
+    evaldfobs   <- read.csv(evaldata,strip.white=T)
+    #print(head(evaldf), quote=F )
+    print(head(evaldfobs), quote=F )
 
     # check met and eval data sets are of same length
-    #if(dim(maat$dataf$met)[2]!=dim(evaldf)[2])
     # ALJ: check 1st dimension of eval data set instead of second
-    if(dim(maat$dataf$met)[2]!=dim(evaldf)[1])
+    #if(dim(maat$dataf$met)[2]!=dim(evaldf)[2])
+    if(dim(maat$dataf$met)[2]!=dim(evaldfobs)[1])
       stop(paste('Eval data not same length as met data: check equal length of files:', evaldata, metdata ))
 
   } else {
@@ -548,8 +551,14 @@ if(!is.null(evaldata)&T) {
 
   # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML
   # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML
-  cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
-  evaldf <- evaldf[,cols] # if a single column will be dropped to a vector
+  #cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
+  cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldfobs))
+  #evaldf <- evaldf[,cols] # if a single column will be dropped to a vector
+  evaldf <- evaldfobs[,cols] # if a single column will be dropped to a vector
+
+  # debugging
+  print('you are here 2')
+  print('cols = '); print(cols)
 
   # add to MAAT object
   maat$dataf$obs <- evaldf
@@ -559,15 +568,21 @@ if(!is.null(evaldata)&T) {
     print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"')
 
     # extract se data
-    cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
-    evaldfse <- evaldf[,cols]
+    #cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
+    # ALJ: bugfix
+    #cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldfobs),'se',sep='.'))
+    cols     <- match(paste(unlist(sapply(eval_trans,function(l) l)),'se',sep='.'), names(evaldfobs))
+
+    #evaldfse <- evaldf[,cols]
+    evaldfse <- evaldfobs[,cols]
 
     # add to MAAT object
     maat$dataf$obsse <- evaldfse
   }
 
   # remove eval data file
-  rm(evaldf)
+  #rm(evaldf)
+  rm(evaldfobs)
 }
 
 
