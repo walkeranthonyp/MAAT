@@ -16,7 +16,7 @@
 # input matrix, single column, rows = cpools_n
 # - this is where inputs would be divided among pools
 f_input <- function(., t ) {
-  matrix(ncol = 1, c(.$env$litter, rep(0,.super$pars$n_pools-1)) )
+  matrix(ncol = 1, c(env$litter*(1-.super$pars$fid), 0, 0, 0, env$litter*(.super$pars$fid), 0, 0))
 }
 
 
@@ -43,7 +43,9 @@ f_transfermatrix <- function(., C, t ) {
   idm    <- apply(idm,1,function(v) v[v<=.super$pars$n_pools] )
   # call functions and create transfer matirx 
   m      <- -1 * diag(nrow=.super$pars$n_pools)
-  #print(idm) 
+  #print(idm)
+  #print(dim(idm)[1])
+  #print(m)
   for(i in 1:dim(idm)[1]) {
     ss <- idm[i,]
     #print(i) 

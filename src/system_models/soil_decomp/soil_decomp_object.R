@@ -76,16 +76,30 @@ soil_decomp_object$fnames <- list(
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_MM_microbe',
-    d2 = 'f_decomp_lin',
-    d3 = 'f_decomp_MM_microbe'
+    d1 = 'f_decomp_MM_enzpom',
+    d2 = 'f_decomp_mbc_mend',
+    d3 = 'f_decomp_MM_enzmaom',
+    d4 = 'f_decomp_dd_mend',
+    d5 = 'f_decomp_doc_mend',
+    d6 = 'f_decomp_lin',
+    d7 = 'f_decomp_lin'
   ),
   
   # transfer list
   transfer = list(
-    t1_to_2 = 'f_transfer_cue',
-    t2_to_3 = 'f_transfer_cue',
-    t3_to_2 = 'f_transfer_cue'
+    t1_to_3 = 'f_transfer_cue_remainder',
+    t1_to_5 = 'f_transfer_cue',
+    t2_to_1 = 'f_transfer_mend21',
+    t2_to_5 = 'f_transfer_mend25',
+    t2_to_6 = 'f_transfer_mend26',
+    t2_to_7 = 'f_transfer_mend27',
+    t3_to_5 = 'f_transfer_all',
+    t4_to_5 = 'f_transfer_all',
+    t5_to_2 = 'f_transfer_mend52',
+    t5_to_4 = 'f_transfer_mend54',
+    t6_to_5 = 'f_transfer_all',
+    t7_to_5 = 'f_transfer_all'
+    #######left off here#######
   )
 )
 
@@ -99,13 +113,6 @@ soil_decomp_object$env <- list(
 )
 
 
-# state
-####################################
-soil_decomp_object$state <- list(
-  cpools   = matrix(1:3, ncol=1 )
-)
-
-
 # state parameters (i.e. calculated parameters)
 ####################################
 soil_decomp_object$state_pars <- list(
@@ -113,56 +120,97 @@ soil_decomp_object$state_pars <- list(
 )
 
 
+
+
+
+# state
+####################################
+soil_decomp_object$pars <- list(n_pools = 7)
+soil_decomp_object$state <- list(
+  cpools   = matrix(1:soil_decomp_object$pars$n_pools, ncol=1 ) #changed from 3 to n_pools to generalize the matrix size, moved here after n_pools definition
+)
+
+
 # parameters
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 3,          # number of pools in model  
+  n_pools = 7,          # number of pools in model  
   beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = 0.2,        # soil silt content (proportion)
   clay    = 0.2,        # soil clay content (proportion)
+  mr      = 0.00028,     # specific maintenance factor (MEND)
+  pep     = 0.01,        #Fraction of mr allocated for production of EP
+  pem     = 0.01,        #Fraction of mr allocated for production of EM
+  Kads    = 0.006,       #Specific adsorption rate (could make this k for the DOC pool)
+  fid     = 0.0625,      #proportion of inputs allocated to DOC vs POM
  
   # initial pool mass for each pool
   cstate0 = list(
-    cstate01 = 0.6,
-    cstate02 = 0.1,
-    cstate03 = 0.1
+    cstate01 = 10,         #Initial POM pool size
+    cstate02 = 2,          #Initial MBC pool size
+    cstate03 = 5,          #Initial MAOM pool size
+    cstate04 = 0.1,        #Initial Q pool size
+    cstate05 = 1,          #Initial DOC pool size
+    cstate06 = 0.00001,    #Initial EP pool size
+    cstate07 = 0.00001     #Initial EM pool size
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
   # - if this varies by the 'to' pool we need another function / parameters
+  # MC: I've created a function cue_remainder that can allocate the remainder to another pool rather than CO2
   cue = list(
-    cue1 = 0.47,       # currently, all cue values are the same (at the value in MEND), might need a different cue_max for density dependent function... 
-    cue2 = 0.566,      # humification constant
-    cue3 = 0.47   
+    cue1 = 0.5,       #Fd from MEND
+    cue2 = 0.5,       #Gd from MEND
+    cue3 = 0.47,
+    cue4 = 0.47,
+    cue5 = 0.47,      #Ec from MEND
+    cue6 = 0.47,
+    cue7 = 0.47
   ),  
 
   # max turnover rate per unit microbial biomass for pool i 
   vmax = list(   
-    vmax1 = 0.2346,     
-    vmax2 = 0.2346,     
-    vmax3 = 0.0777   
+    vmax1 = 2.5,     
+    vmax2 = 1,     
+    vmax3 = 1,
+    vmax4 = 1,
+    vmax5 = 0.26,
+    vmax6 = 1,
+    vmax7 = 1
   ),
  
   # half-saturation constant for microbial d3ecomnp of pool i      
   km = list(   
-    km1 = 101,       
-    km2 = 101,       
-    km3 = 250
+    km1 = 50,       
+    km2 = 1,       
+    km3 = 250,
+    km4 = 1,
+    km5 = .26,
+    km6 = 1,
+    km7 = 1
   ),       
 
   # turnover rate for linear decomposition
   k = list(   
     k1 = 0.007,       
     k2 = 0.00672,    # microbial turnover constant
-    k3 = 0.006
+    k3 = 0.001,
+    k4 = 0.001,
+    k5 = 0.006,
+    k6 = 0.001,
+    k7 = 0.001
   ),
 
   # maximum size for pool i 
   poolmax = list(       
     poolmax1 = 2,       # POM value
     poolmax2 = 2,       # microbial biomass max value
-    poolmax3 = 26.725   # max maom capacity (calculated using Hassink formula assuming 15% clay)
+    poolmax3 = 26.725,   # max maom capacity (calculated using Hassink formula assuming 15% clay)
+    poolmax4 = 1.7,
+    poolmax5 = 26.725,
+    poolmax6 = 26.725,
+    poolmax7 = 26.725
   )
 )
 
@@ -197,7 +245,7 @@ f_output_soil_decomp_full <- function(.) {
 # test functions
 #######################################################################        
 
-soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=3.2, ntimes=100 ) {
+soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.00016, ntimes=100 ) {
 
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))

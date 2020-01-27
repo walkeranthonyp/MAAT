@@ -8,52 +8,94 @@
       <DotO>'f_DotO'</DotO>
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <decomp>
-        <d1>'f_decomp_MM_microbe'</d1>
-        <d2>'f_decomp_lin'</d2>
-        <d3>'f_decomp_MM_microbe'</d3>
+        <d1>'f_decomp_MM_enzpom'</d1>
+        <d2>'f_decomp_mbc_mend'</d2>
+        <d3>'f_decomp_MM_enzmaom'</d3>
+        <d4>'f_decomp_dd_mend'</d4>
+        <d5>'f_decomp_doc_mend'</d5>
+        <d6>'f_decomp_lin'</d6>
+        <d7>'f_decomp_lin'</d7>
       </decomp>
       <transfer>
-        <t1_to_2>'f_transfer_cue'</t1_to_2>
-        <t2_to_3>'f_transfer_cue'</t2_to_3>
-        <t3_to_2>'f_transfer_cue'</t3_to_2>
+        <t1_to_3>'f_transfer_cue_remainder'</t1_to_3>
+        <t1_to_5>'f_transfer_cue'</t1_to_5>
+        <t2_to_1>'f_transfer_mend21'</t2_to_1>
+        <t2_to_5>'f_transfer_mend25'</t2_to_5>
+        <t2_to_6>'f_transfer_mend26'</t2_to_6>
+        <t2_to_7>'f_transfer_mend27'</t2_to_7>
+        <t3_to_5>'f_transfer_all'</t3_to_5>
+        <t4_to_5>'f_transfer_all'</t4_to_5>
+        <t5_to_2>'f_transfer_mend52'</t5_to_2>
+        <t5_to_4>'f_transfer_mend54'</t5_to_4>
+        <t6_to_5>'f_transfer_all'</t6_to_5>
+        <t7_to_5>'f_transfer_all'</t7_to_5>
       </transfer>
     </soil_decomp>
   </fnames>
   <pars>
     <soil_decomp>
-      <n_pools>3</n_pools>
+      <n_pools>7</n_pools>
       <beta>1.5</beta>
       <silt>0.2</silt>
       <clay>0.2</clay>
+      <mr>0.00028</mr>
+      <pep>0.01</pep>
+      <pem>0.01</pem>
+      <Kads>0.006</Kads>
+      <fid>0.0625</fid>
       <cstate0>
-        <cstate01>0.6</cstate01>
-        <cstate02>0.1</cstate02>
-        <cstate03>0.1</cstate03>
+        <cstate01>10</cstate01>
+        <cstate02>2</cstate02>
+        <cstate03>5</cstate03>
+        <cstate04>0.1</cstate04>
+        <cstate05>1</cstate05>
+        <cstate06>1e-05</cstate06>
+        <cstate07>1e-05</cstate07>
       </cstate0>
       <cue>
-        <cue1>0.47</cue1>
-        <cue2>0.566</cue2>
+        <cue1>0.5</cue1>
+        <cue2>0.5</cue2>
         <cue3>0.47</cue3>
+        <cue4>0.47</cue4>
+        <cue5>0.47</cue5>
+        <cue6>0.47</cue6>
+        <cue7>0.47</cue7>
       </cue>
       <vmax>
-        <vmax1>0.2346</vmax1>
-        <vmax2>0.2346</vmax2>
-        <vmax3>0.0777</vmax3>
+        <vmax1>2.5</vmax1>
+        <vmax2>1</vmax2>
+        <vmax3>1</vmax3>
+        <vmax4>1</vmax4>
+        <vmax5>5e-04</vmax5>
+        <vmax6>1</vmax6>
+        <vmax7>1</vmax7>
       </vmax>
       <km>
-        <km1>101</km1>
-        <km2>101</km2>
+        <km1>50</km1>
+        <km2>1</km2>
         <km3>250</km3>
+        <km4>1</km4>
+        <km5>0.26</km5>
+        <km6>1</km6>
+        <km7>1</km7>
       </km>
       <k>
         <k1>0.007</k1>
         <k2>0.00672</k2>
-        <k3>0.006</k3>
+        <k3>0.001</k3>
+        <k4>0.001</k4>
+        <k5>0.006</k5>
+        <k6>0.001</k6>
+        <k7>0.001</k7>
       </k>
       <poolmax>
         <poolmax1>2</poolmax1>
         <poolmax2>2</poolmax2>
         <poolmax3>26.725</poolmax3>
+        <poolmax4>1.7</poolmax4>
+        <poolmax5>26.725</poolmax5>
+        <poolmax6>26.725</poolmax6>
+        <poolmax7>26.725</poolmax7>
       </poolmax>
     </soil_decomp>
   </pars>

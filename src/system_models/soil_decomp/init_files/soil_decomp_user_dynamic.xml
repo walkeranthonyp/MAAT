@@ -11,11 +11,24 @@
         <d1>NA</d1>
         <d2>NA</d2>
         <d3>NA</d3>
+        <d4>NA</d4>
+        <d5>NA</d5>
+        <d6>NA</d6>
+        <d7>NA</d7>
       </decomp>
       <transfer>
-        <t1_to_2>NA</t1_to_2>
-        <t2_to_3>NA</t2_to_3>
-        <t3_to_2>NA</t3_to_2>
+        <t1_to_3>NA</t1_to_3>
+        <t1_to_5>NA</t1_to_5>
+        <t2_to_1>NA</t2_to_1>
+        <t2_to_5>NA</t2_to_5>
+        <t2_to_6>NA</t2_to_6>
+        <t2_to_7>NA</t2_to_7>
+        <t3_to_5>NA</t3_to_5>
+        <t4_to_5>NA</t4_to_5>
+        <t5_to_2>NA</t5_to_2>
+        <t5_to_4>NA</t5_to_4>
+        <t6_to_5>NA</t6_to_5>
+        <t7_to_5>NA</t7_to_5>
       </transfer>
     </soil_decomp>
   </fnames>
@@ -25,35 +38,64 @@
       <beta>NA</beta>
       <silt>NA</silt>
       <clay>NA</clay>
+      <mr>NA</mr>
+      <pep>NA</pep>
+      <pem>NA</pem>
+      <Kads>NA</Kads>
+      <fid>NA</fid>
       <cstate0>
         <cstate01>NA</cstate01>
         <cstate02>NA</cstate02>
         <cstate03>NA</cstate03>
+        <cstate04>NA</cstate04>
+        <cstate05>NA</cstate05>
+        <cstate06>NA</cstate06>
+        <cstate07>NA</cstate07>
       </cstate0>
       <cue>
         <cue1>NA</cue1>
         <cue2>NA</cue2>
         <cue3>NA</cue3>
+        <cue4>NA</cue4>
+        <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
       </cue>
       <vmax>
         <vmax1>NA</vmax1>
         <vmax2>NA</vmax2>
         <vmax3>NA</vmax3>
+        <vmax4>NA</vmax4>
+        <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
       </vmax>
       <km>
         <km1>NA</km1>
         <km2>NA</km2>
         <km3>NA</km3>
+        <km4>NA</km4>
+        <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
       </km>
       <k>
         <k1>NA</k1>
         <k2>NA</k2>
         <k3>NA</k3>
+        <k4>NA</k4>
+        <k5>NA</k5>
+        <k6>NA</k6>
+        <k7>NA</k7>
       </k>
       <poolmax>
         <poolmax1>NA</poolmax1>
         <poolmax2>NA</poolmax2>
         <poolmax3>NA</poolmax3>
+        <poolmax4>NA</poolmax4>
+        <poolmax5>NA</poolmax5>
+        <poolmax6>NA</poolmax6>
+        <poolmax7>NA</poolmax7>
       </poolmax>
     </soil_decomp>
   </pars>

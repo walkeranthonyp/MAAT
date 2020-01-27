@@ -14,7 +14,7 @@
 # soil_decomp
 source('soil_decomp_object.R')
 soil_decomp_object$.test()
-soil_decomp_object$.test()
+soil_decomp_object$.test(litter=1.4)
 soil_decomp_object$.test(litter=6)
 soil_decomp_object$.test(verbose=T)
 
@@ -25,8 +25,8 @@ soil_decomp_object$pars
 soil_decomp_object$env
 soil_decomp_object$run
 
-soil_decomp_object$.test(metdf=T)
-soil_decomp_object$.test(metdf=T, ntimes=10 )
+tail(soil_decomp_object$.test(metdf=T, ntimes=8760), n=50)
+tail(soil_decomp_object$.test(metdf=T, ntimes=365 ))
 soil_decomp_object$.test(metdf=T, litter=6, ntimes=10 )
 soil_decomp_object$.test(metdf=T, litter=1:10 )
 
