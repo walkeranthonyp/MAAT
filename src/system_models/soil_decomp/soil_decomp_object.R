@@ -135,7 +135,7 @@ soil_decomp_object$state <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 7,          # number of pools in model  
+  n_pools = soil_decomp_object$pars$n_pools,          # number of pools in model  
   beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = 0.2,        # soil silt content (proportion)
   clay    = 0.2,        # soil clay content (proportion)
@@ -266,10 +266,11 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.00016, ntime
 }
 
 
-soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384, ntimes=36500, time=T ) {
+soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384, ntimes=365, time=T ) {
 
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))
+  soil_decomp_object$pars$n_pools = 3 
   .$configure_test() # if only used in test functions should begin with a .
 
   # initialise boundary data 
@@ -279,7 +280,6 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
   rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
   .$dataf$lm    <- length(.$dataf$metdf[1,])
   .$dataf$mout  <- .$output()
-
 
   ### Run models
   olist <- list()
@@ -305,7 +305,7 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
   print('Config: 3')
   print('')
   .$fnames$transfer$t2_to_3 <- 'f_transfer_cue'
-  .$fnames$decomp$d2        <- 'f_decomp_dd'
+  .$fnames$decomp$d2        <- 'f_decomp_dd_georgiou'
   .$configure_test() 
   olist$DDturnover    <- .$run_met()
 
@@ -325,7 +325,7 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
   print('')
   print('Config: 5')
   print('')
-  .$fnames$decomp$d2        <- 'f_decomp_dd'
+  .$fnames$decomp$d2        <- 'f_decomp_dd_georgiou'
   .$configure_test() 
   olist$DDturnover.DDcue <- .$run_met()
 
