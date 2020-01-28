@@ -357,7 +357,7 @@ f_rs_medlyn2011 <- function(., A=.super$state$A, c=.super$state$cb ) {
 
 f_rs_medlyn2011_fe <- function(.) {
   # f(e) component of rs from Medlyn 2011   
-  ( 1 + .super$pars$g1_medlyn / .$env$vpd^0.5 )
+  1.6 * ( 1 + .super$pars$g1_medlyn / .$env$vpd^0.5 )
 }
 
 f_rs_medlyn2011_r0 <- function(.) {
