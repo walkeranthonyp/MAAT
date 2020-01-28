@@ -636,8 +636,8 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
 
   # estimate variance of jj-th paraemter of target distribution
   sigma_hat <- rep(0, .$mcmc$d)
-  for (jj in 1:.$mcmc$d) {
-    sigma_hat[jj] <- ((.$wpars$mcmc_maxiter - 2) / .$wpars$mcmc_maxiter) * W[jj] + (2 / .$wpars$mcmc_maxiter) * B[jj]
+  for(jj in 1:.$mcmc$d) {
+    sigma_hat[jj] <- ((.$wpars$mcmc_maxiter-2)/.$wpars$mcmc_maxiter)*W[jj] + (2/.$wpars$mcmc_maxiter)*B[jj]
   }
 
   # R-statistic of Gelman and Rubin
@@ -647,16 +647,16 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
   }
 
   # add R_hat to storage array
-  if (j != .$wpars$mcmc_maxiter) {
-    counter <- j / .$wpars$mcmc_check_iter
-  } else if ((j == .$wpars$mcmc_maxiter) & (j %% .$wpars$mcmc_check_iter == 0)) {
+  if(j!=.$wpars$mcmc_maxiter) {
+    counter <- j/.$wpars$mcmc_check_iter
+  } else if((j==.$wpars$mcmc_maxiter) & (j%%.$wpars$mcmc_check_iter==0)) {
     counter <- j / .$wpars$mcmc_check_iter
   } else {
     # in this case ((j == .$wpars$mcmc_maxiter) & (j %% .$wpars$mcmc_check_iter != 0))
     counter <- ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter)
   }
 
-  R_hat_new <- append(R_hat, j, after = 0)
+  R_hat_new <- append(R_hat, j, after=0 )
   .$dataf$conv_check[counter, ] <- R_hat_new
 
   if (j == .$wpars$mcmc_maxiter) {
