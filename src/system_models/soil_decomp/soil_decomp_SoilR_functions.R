@@ -16,7 +16,11 @@
 # input matrix, single column, rows = cpools_n
 # - this is where inputs would be divided among pools
 f_input <- function(., t ) {
-  matrix(ncol = 1, c(env$litter*(1-.super$pars$fid), 0, 0, 0, env$litter*(.super$pars$fid), 0, 0))
+  #use for 3-pool
+  matrix(ncol = 1, c(env$litter*(1-.super$pars$fid), 0, 0))
+  
+  #use for 7-pool: 
+  #matrix(ncol = 1, c(env$litter*(1-.super$pars$fid), 0, 0, 0, env$litter*(.super$pars$fid), 0, 0))
 }
 
 
@@ -40,11 +44,13 @@ f_transfermatrix <- function(., C, t ) {
   # remove transfers that are not required, i.e. are 0 or from/to pools > n_pools
   id     <- id[!is.na(.super$fnames$transfer[paste0('t',id)])]
   idm    <- apply(as.matrix(id,nrow=1), 1, function(i) as.numeric(unlist(strsplit(i,'_to_'))) )
-  idm    <- apply(idm,1,function(v) v[v<=.super$pars$n_pools] )
+  #this doesn't work when there are more transfers from inclued to excluded pools
+  #idm    <- apply(idm,1,function(v) v[v<=.super$pars$n_pools] )
+  idm <- t(idm[,idm[1,] <= .super$pars$n_pools & idm[2,] <= .super$pars$n_pools])#this works
   # call functions and create transfer matirx 
   m      <- -1 * diag(nrow=.super$pars$n_pools)
-  #print(idm)
-  #print(dim(idm)[1])
+  print(idm)
+  print(dim(idm)[1])
   #print(m)
   for(i in 1:dim(idm)[1]) {
     ss <- idm[i,]
