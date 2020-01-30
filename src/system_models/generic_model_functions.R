@@ -50,7 +50,7 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   .$output <- get(paste('f', 'output', .$name, .$cpars$mod_out, sep='_' ))
 
   # build model pool structure
-  if(!is.null(.$pars$n_pools)) .$build_pool_structure()
+  if(!is.null(.$pars$n_pools)) .$build_pool_structure(init_default$pars$n_pools)
 
   # assign default and mod mimic values to data structure
   .$configure(vlist='pars',   df=unlist(init_default$pars))
@@ -63,7 +63,7 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
 
 
 # function to build lists that vary in length depending on pool size
-build_pool_structure <- function(.) {
+build_pool_structure <- function(., init_n_pools ) {
 
   # number of model pools
   #print(.)
@@ -73,12 +73,8 @@ build_pool_structure <- function(.) {
       max(.$init_dynamic$pars[[.$name]]$n_pools)
     } else if(!is.null(.$.super[['init_static']][['pars']][[.$name]][['n_pools']])) { 
       .$init_static$pars[[.$name]]$n_pools
-    } else .$pars$n_pools 
-  #n_pools <- .$pars$n_pools 
-  #if(!is.null(.$init_static)) if(!is.null(.$init_static$pars[[.$name]]$n_pools))
-  #     n_pools <- max(.$init_static$pars[[.$name]]$n_pools)
-  #if(!is.null(.$init_dynamic)) if(!is.null(.$init_dynamic$pars[[.$name]]$n_pools))
-  #     n_pools <- max(.$init_dynamic$pars[[.$name]]$n_pools)
+    #} else .$pars$n_pools 
+    } else init_n_pools 
  
   print('', quote=F )
   print(paste0('Building ', .$name, ' model pool structure with: ', n_pools, ' pools.'), quote=F )
