@@ -55,7 +55,7 @@ soil_decomp_object$init1 <- init_state
 
 soil_decomp_object$init  <- function(.) {
   .$init1()
-  .$state$cpools = matrix(unlist(.$pars$cstate0), ncol=1 )
+  .$state$cpools = matrix(unlist(.$pars$cstate0)[1:.$pars$n_pools], ncol=1 )
 }
 
 
