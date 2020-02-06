@@ -346,9 +346,6 @@ print('  all dynamic fnames requested exist',quote=F)
 maat$init_static  <- init_static
 maat$init_dynamic <- init_dynamic
 
-# bugfix
-print('test 1')
-print('!is.null(parsinit_mcmc) is '); print(!is.null(parsinit_mcmc))
 
 # write directly to dataf$pars if parsinit specified
 if(!is.null(parsinit_mcmc)) {
@@ -360,11 +357,6 @@ if(!is.null(parsinit_mcmc)) {
   # read and write pars
   setwd(mcmcdir)
   mcmc_pars_array <- readRDS(mcmcout)
-
-  # bugfix
-  # ALJ: saveRDS(object=array, file='restart_test2.RDS')
-  print('maat$wpars$parsinit_read = '); print(maat$wpars$parsinit_read)
-  print('mcmc_pars_array = '); print(mcmc_pars_array)
 
   if(parsinit_mcmc=='restart') {
     parsinit <- mcmc_pars_array[,,dim(mcmc_pars_array)[3]]
@@ -381,15 +373,14 @@ if(!is.null(parsinit_mcmc)) {
     parsinit <- parsinit[, sample(dim(parsinit[2], parsinit_n ))]
   }
 
-  # bugfix
-  # ALJ: I dont think this works with the "." object
-  maat$dataf$pars <- parsinit
+
 
   # add parsinit to wrapper data structure
   #.$dataf$pars <- parsinit
+  maat$dataf$pars <- parsinit
 
 }
-
+# bugfix: need else statement here for initial run
 
 # output static variables used in simulation
 # APW: this will not report pars that have been read by the above if statement
@@ -582,7 +573,6 @@ if(!is.null(evaldata)&T) {
 
     # extract se data
     #cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
-    # ALJ: bugfix
     #cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldfobs),'se',sep='.'))
     cols     <- match(paste(unlist(sapply(eval_trans,function(l) l)),'se',sep='.'), names(evaldfobs))
 
