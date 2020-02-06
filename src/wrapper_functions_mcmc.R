@@ -690,10 +690,6 @@ f_proposal_lklihood_ssquared <- function(.) {
   # calculate error residual
   error_residual_matrix <- t(.$dataf$out) - .$dataf$obs
 
-  #print('you are here, ACi')
-  #print('.$dataf$out'); print(.$dataf$out)
-  #print('.$dataf$obs'); print(.$dataf$obs)
-
   # calculate sum of squared error
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
 
@@ -721,11 +717,6 @@ f_proposal_lklihood_ssquared_se <- function(.) {
 
   # calculate sum of squared error
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
-
-  print('you are here, Sphagnum')
-  print('obsse'); print(obsse)
-  print('.$dataf$obsse'); print(.$dataf$obsse)
-  print('.dataf$obs'); print(.$dataf$obs)
 
   # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
   -(obs_n / 2) * log(2 * pi) - sum(log(obsse)) - 0.5 * SSR
