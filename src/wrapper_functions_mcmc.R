@@ -601,7 +601,7 @@ mcmc_converge_Gelman_Rubin <- function(., j) {
       }
     }
   }
-  #APW rewrite attempt: x_bar <- apply(.$dataf$pars_array[,,ceiling(.$wpars$mcmc_maxiter/2):.$wpars$mcmc_maxiter], 1:2, sum ) 
+  #APW rewrite attempt: x_bar <- apply(.$dataf$pars_array[,,ceiling(.$wpars$mcmc_maxiter/2):.$wpars$mcmc_maxiter], 1:2, sum )
   x_bar <- (2/(.$wpars$mcmc_maxiter - 2)) * x_bar
 
   for (jj in 1:.$mcmc$d) {

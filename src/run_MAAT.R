@@ -82,10 +82,10 @@ mcmc_type  <- 'dream'
 parsinit_mcmc <- NULL
 # directory with MCMC data - assumed relative to pdir
 mcmcdir       <- NULL
-# output filename for MCMCM data 
+# output filename for MCMC data
 mcmcout       <- NULL
-# number of samples from MCMC posterior 
-parsinit_n    <- NULL 
+# number of samples from MCMC posterior
+parsinit_n    <- NULL
 
 
 # run options
@@ -354,29 +354,33 @@ if(!is.null(parsinit_mcmc)) {
   print(mcmcdir)
   print(mcmcout)
 
-  # read and write pars 
+  # read and write pars
   setwd(mcmcdir)
   mcmc_pars_array <- readRDS(mcmcout)
 
   if(parsinit_mcmc=='restart') {
     parsinit <- mcmc_pars_array[,,dim(mcmc_pars_array)[3]]
-    
+
   } else if(parsinit_mcmc=='ensemble') {
     if(runtype!='factorial') {
       print('parsinit requested but can only work with factorial runtype, requested runtype:', runtype )
       stop('parsinit requested with incompatible runtype.')
-    } 
+    }
     # drop to a matrix
     parsinit <- as.matrix(mcmc_pars_array, nrow=dim(mcmc_pars_array)[1] )
-    # sub-sample 
+    # sub-sample
     if(parsinit_n>=dim(parsinit)[2]) print('parsinit_n greater than samples in mcmcout')
     parsinit <- parsinit[, sample(dim(parsinit[2], parsinit_n ))]
-  }  
+  }
+
+
 
   # add parsinit to wrapper data structure
-  .$dataf$pars <- parsinit 
-}
+  #.$dataf$pars <- parsinit
+  maat$dataf$pars <- parsinit
 
+}
+# bugfix: need else statement here for initial run
 
 # output static variables used in simulation
 # APW: this will not report pars that have been read by the above if statement
@@ -430,7 +434,7 @@ if(!is.null(metdata)) {
     # ALJ: if doing a Sphagnum simulation
     #      screen out night-time values from met data file
     #      subset it to remove 0's and negative values
-    # APW: thinking of a flexible way to do this, it's not that easy. Long term might need to do this in the met data itself  
+    # APW: thinking of a flexible way to do this, it's not that easy. Long term might need to do this in the met data itself
     # sub_idx <- which(metdf$EM_PAR_8100_x > 0)
     # metdf <- metdf[sub_idx, ]
 
@@ -460,7 +464,7 @@ if(!is.null(metdata)) {
       names(metdf)[2:length(metdf)] <- paste(mod_obj,names(met_trans)[-tcol],sep='.')
 
       # due to matrix data structure a character time vector will mess the numeric matric up
-      # - could do something with posix convention 
+      # - could do something with posix convention
       if(!is.numeric(metdf[,1])) metdf <- metdf[,-1,drop=F ]
 
     } else {
@@ -472,7 +476,7 @@ if(!is.null(metdata)) {
 
     # remove met data file
     if(is.null(evaldata)) rm(metdf) else if(evaldata!='metdata') rm(metdf)
-    
+
   } else {
     print('',quote=F)
     print('Met data file:',quote=F)
@@ -523,18 +527,23 @@ if(!is.null(evaldata)&T) {
   setwd(edir)
 
   if(evaldata=='metdata') {
-    evaldf <- metdf
+    #evaldf <- metdf
+    evaldfobs <- metdf
     rm(metdf)
 
   } else if(file.exists(evaldata)&!kill) {
     print(evaldata, quote=F )
-    evaldf   <- read.csv(evaldata,strip.white=T)
-    print(head(evaldf), quote=F )
+    #evaldf   <- read.csv(evaldata,strip.white=T)
+    evaldfobs   <- read.csv(evaldata,strip.white=T)
+    #print(head(evaldf), quote=F )
+    print(head(evaldfobs), quote=F )
 
     # check met and eval data sets are of same length
-    if(dim(maat$dataf$met)[2]!=dim(evaldf)[2])
+    # ALJ: check 1st dimension of eval data set instead of second
+    #if(dim(maat$dataf$met)[2]!=dim(evaldf)[2])
+    if(dim(maat$dataf$met)[2]!=dim(evaldfobs)[1])
       stop(paste('Eval data not same length as met data: check equal length of files:', evaldata, metdata ))
-  
+
   } else {
     print('',quote=F)
     print('Eval data file:',quote=F)
@@ -546,8 +555,10 @@ if(!is.null(evaldata)&T) {
 
   # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML
   # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML
-  cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
-  evaldf <- evaldf[,cols] # if a single column will be dropped to a vector
+  #cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
+  cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldfobs))
+  #evaldf <- evaldf[,cols] # if a single column will be dropped to a vector
+  evaldf <- evaldfobs[,cols] # if a single column will be dropped to a vector
 
   # add to MAAT object
   maat$dataf$obs <- evaldf
@@ -557,15 +568,20 @@ if(!is.null(evaldata)&T) {
     print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"')
 
     # extract se data
-    cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
-    evaldfse <- evaldf[,cols]
+    #cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
+    #cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldfobs),'se',sep='.'))
+    cols     <- match(paste(unlist(sapply(eval_trans,function(l) l)),'se',sep='.'), names(evaldfobs))
+
+    #evaldfse <- evaldf[,cols]
+    evaldfse <- evaldfobs[,cols]
 
     # add to MAAT object
     maat$dataf$obsse <- evaldfse
   }
 
   # remove eval data file
-  rm(evaldf)
+  #rm(evaldf)
+  rm(evaldfobs)
 }
 
 
