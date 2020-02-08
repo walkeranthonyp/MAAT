@@ -664,6 +664,7 @@ run1_mcmc_dream <- function(.,i) {
   numeric(0)
 }
 
+
 # This wrapper function is called from a vapply function to iterate / step chains in an MCMC
 run2_mcmc_dream <- function(.,j) {
   # runs in serial as each step depends on the previous step
@@ -685,8 +686,9 @@ run2_mcmc_dream <- function(.,j) {
   # accept / reject proposals on each chain
   .$proposal_accept(j=j, lklihood )
 
-  # MCMC checks 
-  if((j%%.$wpars$mcmc_check_iter==0) | (j==.$wpars$mcmc_maxiter)) {
+  # MCMC checks
+  mcmc_check <- ((j>(.$wpars$mcmc_maxiter/10))&!.$wpars$parsinit_read) & (j%%.$wpars$mcmc_check_iter==0) 
+  if( mcmc_check | (j==.$wpars$mcmc_maxiter) ) {
 
     # calculate subscript for convergence and outlier arrays 
     .$wpars$mcmc_check_ss <- 
@@ -708,6 +710,7 @@ run2_mcmc_dream <- function(.,j) {
   # return nothing - allows use of the stable vapply to call this function
   numeric(0)
 }
+
 
 # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$pars matrix to the model
 run3_mcmc_dream <- function(.,k) {
