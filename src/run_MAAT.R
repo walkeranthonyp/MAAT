@@ -213,10 +213,10 @@ if(is.null(odir)) {
 
 # create input/output filenames
 # initialisation file if not xml
-initf       <- if(is.null(runid))     paste(init,'R',sep='.') else paste(init,'_',runid,'.R',sep='')
+initf       <- if(is.null(runid))     paste(init, 'R', sep='.' ) else paste(init, '_', runid, '.R', sep='' )
 # prefix for output files
-ofname      <- if(is.null(runid))     of_main                 else paste(of_main,runid,sep='_')
-ofname      <- if(is.null(mod_mimic)) ofname                  else paste(mod_mimic,ofname,sep='_')
+ofname      <- if(is.null(runid))     of_main                    else paste(of_main, runid, sep='_' )
+ofname      <- if(is.null(mod_mimic)) ofname                     else paste(mod_mimic, ofname, sep='_' )
 
 # factorial analysis over-rides UQ analysis
 #if(!uq) factorial <- T
@@ -325,21 +325,22 @@ if(xml) {
 
 # check process representation functions specified in input exist
 search_fnames <-  function(v, ln ) {
-  for( c1 in v ) if(!(c1 %in% ls(pos=1))) stop(paste('The function: ',c1,' , specified in init', ln ,'does not exist')) else 'exists'
+  for( c1 in v ) if(!(c1 %in% ls(pos=1))) 
+    stop(paste('The function: ',c1,' , specified in init', ln ,'does not exist')) else 'exists'
 }
-print('',quote=F)
-print('Check static fnames requested exist:',quote=F)
+print('', quote=F )
+print('Check static fnames requested exist:', quote=F )
 out <- lapply(init_static$fnames,
          function(l) lapply(l, function(l1) if(is.list(l1)) lapply(l1, search_fnames, ln='static') else search_fnames(l1, ln='static' )) )
-print('  all static fnames requested exist',quote=F)
+print('  all static fnames requested exist.', quote=F )
 
-print('',quote=F)
-print('Check dynamic fnames requested exist:',quote=F)
+print('', quote=F )
+print('Check dynamic fnames requested exist:', quote=F )
 if(!is.null(unlist(init_dynamic$fnames))) {
   out <- lapply(init_dynamic$fnames,
            function(l) lapply(l, function(l1) if(is.list(l1)) lapply(l1, search_fnames, ln='dynamic') else search_fnames(l1, ln='dynamic' )) )
 }
-print('  all dynamic fnames requested exist',quote=F)
+print('  all dynamic fnames requested exist.', quote=F )
 
 
 # add init lists to wrapper
@@ -347,40 +348,60 @@ maat$init_static  <- init_static
 maat$init_dynamic <- init_dynamic
 
 
+# get mcmc filename
+if(grepl('mcmc',runtype)) maat$wpars$of_name <- paste(ofname, 'mcmc', sep='_' )
+
+
 # write directly to dataf$pars if parsinit specified
 if(!is.null(parsinit_mcmc)) {
+  if(parsinit_mcmc=='restart') mcmcout <- paste0(maat$wpars$of_name,'.RDS') 
+
   print('')
-  print('Read input pars values from:')
-  print(mcmcdir)
-  print(mcmcout)
+  print('Read input from MCMC output:')
+  print(paste('directory:',mcmcdir))
+  print(paste('filename:',mcmcout))
 
   # read and write pars
   setwd(mcmcdir)
-  mcmc_pars_array <- readRDS(mcmcout)
+  maat$dataf$mcmc_input <- readRDS(mcmcout)
+  mcmc_restart_pars_dim <- dim(maat$dataf$mcmc_input$pars_array)
 
   if(parsinit_mcmc=='restart') {
-    parsinit <- mcmc_pars_array[,,dim(mcmc_pars_array)[3]]
+    print('MCMC restart')
+    mcmc_restart_iter          <- mcmc_restart_pars_dim[3]
+    maat$wpars$mcmc_start_iter <- mcmc_restart_iter + 1 
+    maat$wpars$mcmc_maxiter    <- maat$wpars$mcmc_maxiter + mcmc_restart_iter
+    parsinit                   <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
+
+    # check dimensions consistent
+    if(mcmc_chains!=mcmc_restart_pars_dim[2]) {
+      print('mcmc_chains argument different from number of chains in MCMC restart,')
+      print(paste('overwriting mcmc_chains argument with:', mcmc_restart_pars_dim[2] ))
+      maat$mcmc_chains <- mcmc_restart_pars_dim[2]
+      # can do the same for number of parameters and other run variables
+    }
 
   } else if(parsinit_mcmc=='ensemble') {
+    print('forward run from MCMC calibrated parameters')
     if(runtype!='factorial') {
       print('parsinit requested but can only work with factorial runtype, requested runtype:', runtype )
       stop('parsinit requested with incompatible runtype.')
     }
+
     # drop to a matrix
-    parsinit <- as.matrix(mcmc_pars_array, nrow=dim(mcmc_pars_array)[1] )
+    parsinit <- as.matrix(maat$dataf$mcmc_input$pars_array, nrow=mcmc_restart_pars_dim[1] )
+
     # sub-sample
     if(parsinit_n>=dim(parsinit)[2]) print('parsinit_n greater than samples in mcmcout')
     parsinit <- parsinit[, sample(dim(parsinit[2], parsinit_n ))]
   }
 
-
-
   # add parsinit to wrapper data structure
-  #.$dataf$pars <- parsinit
+  # APW: this could be moved to the generate_pars_ensemble code
+  #      would probably help readability 
   maat$dataf$pars <- parsinit
-
 }
-# bugfix: need else statement here for initial run
+
 
 # output static variables used in simulation
 # APW: this will not report pars that have been read by the above if statement

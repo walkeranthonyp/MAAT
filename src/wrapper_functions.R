@@ -40,6 +40,7 @@ generate_ensemble <- function(.) {
     #.$dataf$lp <- if(is.null(.$dataf$pars))   1 else length(.$dataf$pars[,1])
     .$dataf$lp <- if(is.null(.$dataf$pars))   1 else dim(.$dataf$pars)[2]
   }
+
   # enviroment matrix and met matrix
   #.$dataf$le <- if(is.null(.$dataf$env)) 1 else length(.$dataf$env[,1])
   #.$dataf$lm <- if(is.null(.$dataf$met)) 1 else length(.$dataf$met[,1])
@@ -82,6 +83,7 @@ generate_ensemble_pars_SApar_saltelli <- function(.) {
 # - the paramter matrices for the Ye method are generated in run function 1
 # - here a list structure in .$dynamic$pars is created from .$dynamic$pars_eval
 generate_ensemble_pars_SAprocess_ye <- function(.) {
+
   # need a minimum of >1 processes
   #if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sensitivity analysis')
   if(dim(.$dataf$fnames)[1]<=1) stop('need more than one process for a process sensitivity analysis')
@@ -105,27 +107,28 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   #      not sure if this will work with unit testing now?
   #      also, requires initializing variables differently in init file
 
-  # read values from character string code snippets
-  .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+  if(!.$wpars$parsinit_read) { 
+    # read values from character string code snippets
+    .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
 
-  # generate initial proposal from priors and create pars / proposal matrix
-  if(!.$wpars$parsinit_read) .$mcmc_prior()
+    # generate initial proposal from priors and create pars / proposal matrix
+    .$mcmc_prior()
+
+    # remove initialisation pars list
+    .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
+  }
 
   # determine boundary handling limits for parameter space
   .$boundary_handling_set()
-
-  # remove initialisation pars list
-  .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
   # if observation subsampling specified - currently evenly spaced subsampling
   if(.$wpars$mcmc_thin_obs < 1.0) {
     if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc_thin_obs )
     thin <- floor( 1 / .$wpars$mcmc_thin_obs )
-    #oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
     oss  <- seq(1, dim(.$dataf$metdata)[2], thin )
     .$dataf$met   <- .$dataf$met[,oss]
     .$dataf$obs   <- .$dataf$obs[oss]
-    #.$dataf$obsse <- .$dataf$obsse[oss]
+    if(!is.null(.$dataf$obsse)) .$dataf$obsse <- .$dataf$obsse[oss]
   }
 }
 
@@ -176,22 +179,36 @@ init_output_matrix_SAprocess_ye <- function(.) {
 
 init_output_matrix_mcmc_dream <- function(.) {
 
-  # create accepted proposal array
-  .$dataf$pars_array    <- array(1, dim = c( dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
+  # accepted proposal array
+  .$dataf$pars_array    <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter ))
 
-  # create accepted proposal likelihood matrix
+  # accepted proposal likelihood matrix
   .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter )
 
   # initialise output matrix
-  .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm)
+  .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm )
+  .$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter ))
 
-  # create matrix for storing chain outlier information
-  .$dataf$omega         <- matrix(NA, .$wpars$mcmc_chains, ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter))
-
-  .$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
+  # matrix for storing chain outlier information
+  check_iter_n          <- ceiling(.$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter)
+  .$dataf$omega         <- matrix(NA, .$wpars$mcmc_chains, check_iter_n )
 
   # create matrix for storing convergence diagnostic
-  .$dataf$conv_check    <- matrix(0, nrow = ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter), ncol = (dim(.$dataf$pars)[1] + 1))
+  # APW: I think the dimensions are in the wrong order here
+  #      I assume that the pars dim is filled more rapdily than the check_iter dim 
+  .$dataf$conv_check    <- matrix(0, ncol=check_iter_n, nrow=(dim(.$dataf$pars)[1]+1) )
+
+  # if a restart assign values from restart
+  if(.$wpars$parsinit_read) { 
+    .$dataf$pars_array[,,1:.$mcmc_start_iter]   <- .$dataf$mcmc_input$pars_array
+    .$dataf$pars_lklihood[,1:.$mcmc_start_iter] <- .$dataf$mcmc_input$pars_lklihood
+    .$dataf$out_mcmc[,,1:.$mcmc_start_iter]     <- .$dataf$mcmc_input$out_mcmc
+    # APW: there is the potential for these two arrays to be 1 short in the final dimension
+    check_iter_n_restart                        <- dim(.$dataf$mcmc_input$omega)[2] 
+    #.$dataf$omega[,1:check_iter_n_restart]      <- .$dataf$mcmc_input$omega
+    .$dataf$conv_check[,1:check_iter_n_restart] <- .$dataf$mcmc_input$conv_check
+    .$dataf$mcmc_input <- NULL
+  }
 }
 
 init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream
@@ -589,6 +606,14 @@ run8_SAprocess_ye <- run4_factorial # i.e. NULL
 
 run0_mcmc_dream <- function(.) {
 
+  # MCMC run cannot run with more that one model
+  if(.$dataf$lf>1) {
+    print('MCMC cannot run with more that one process representation due to')
+    print('current output file naming. Also to avoid the risk of specifying')
+    print('parameters to estimate that do not belong to a specified process representation.')
+    stop('More than one process representation requested, not compatible with MCMC run.')
+  }
+
   # if more than one model output has been specified, stop
   if(length(.$dataf$mout)!=1) stop('No current method to run MCMC with multiple model outputs')
 
@@ -613,25 +638,25 @@ run1_mcmc_dream <- function(.,i) {
   if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[,i], F )
   if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[,i] )
 
-  # evaluate model over initial proposals derived from prior
-  .$dataf$out[]  <-
-    do.call( 'rbind', {
-        if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run3, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
-        else                 lapply(1:.$dataf$lp, .$run3 )
-    })
-
-  # add to pars array and calculate likelihood of initial proposal
-  .$dataf$pars_array[,,1]   <- .$dataf$pars
-  .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
-
-  # determine boundary handling limits for parameter space
-  # .$boundary_handling_set()
+  # if not a restart
+  if(!.$wpars$parsinit_read) { 
+    # evaluate model over initial proposals derived from prior
+    .$dataf$out[]  <-
+      do.call( 'rbind', {
+          if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run3, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
+          else                 lapply(1:.$dataf$lp, .$run3 )
+      })
+  
+    # add to pars array and calculate likelihood of initial proposal
+    .$dataf$pars_array[,,1]   <- .$dataf$pars
+    .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
+  }
 
   # run initialisation part of algorithm
   .$init_mcmc()
 
   # run MCMC
-  vapply(2:.$wpars$mcmc_maxiter, .$run2, numeric(0) )
+  vapply(.$wpars$mcmc_start_iter:.$wpars$mcmc_maxiter, .$run2, numeric(0) )
 
   # write output from MCMC
   .$write_output(i=i)
@@ -660,13 +685,16 @@ run2_mcmc_dream <- function(.,j) {
   # accept / reject proposals on each chain
   .$proposal_accept(j=j, lklihood )
 
-  # if test for and handle outlier chains (if outlier is detected, throw out all previous MCMC samples)
-  if(j %% .$wpars$mcmc_check_iter == 0) .$mcmc_outlier(j=j)
+  # test for and handle outlier chains (if outlier is detected, restart burn-in)
+  if(j%%.$wpars$mcmc_check_iter==0) {
+    .$mcmc_outlier(j=j)
+    .$mcmc_converge(j=j)
+  }
 
   # calculate convergence diagnostic
-  if((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) .$mcmc_converge(j=j)
+  if(j==.$wpars$mcmc_maxiter) .$mcmc_converge(j=j)
 
-  # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function
+  # return nothing - allows use of the stable vapply to call this function
   numeric(0)
 }
 
@@ -744,8 +772,11 @@ write_output_SAprocess_ye <- function(.,f) {
 
 # write MCMC output list
 write_output_mcmc_dream <- function(.,i) {
-  .$wpars$of_name <- paste(ofname, 'mcmc', 'f', i, sep='_' )
+  #.$wpars$of_name <- paste(ofname, 'mcmc', 'f', i, sep='_' )
   .$write_to_file()
+
+  df <- .$output(iter_out_start=1, iter_out_end=.$wpars$mcmc$j_start_burnin-1 )
+  saveRDS(df, paste0(.$wpars$of_name, '_history', '.RDS'))
 }
 
 
@@ -843,14 +874,16 @@ output_SAprocess_ye <- function(.) {
 
 
 # creates output for a MCMC simulation
-output_mcmc_dream <- function(.) {
-  list(pars_array    = .$dataf$pars_array,
-       pars_lklihood = .$dataf$pars_lklihood,
-       mod_out_final = .$dataf$out,
-       obs           = .$dataf$obs,
-       mod_eval      = .$dataf$out_mcmc,
-       prop_storage  = .$dataf$prop_storage,
-       conv_check    = .$dataf$conv_check)
+output_mcmc_dream <- function(., iter_out_start=.$wpars$mcmc$j_start_burnin, iter_out_end=.$wpars$mcmc_maxiter ) {
+  list(
+    pars_array    = .$dataf$pars_array[,,iter_out_start:iter_out_end],
+    pars_lklihood = .$dataf$pars_lklihood[,iter_out_start:iter_out_end],
+    mod_out_final = .$dataf$out,
+    obs           = .$dataf$obs,
+    mod_eval      = .$dataf$out_mcmc[,,iter_out_start:iter_out_end],
+    #prop_storage  = .$dataf$prop_storage[,,a:b], # APW: couldn't find this anywhere else
+    conv_check    = .$dataf$conv_check[,iter_out_start:iter_out_end]
+  )
 }
 
 

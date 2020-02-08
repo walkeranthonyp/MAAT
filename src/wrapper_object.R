@@ -143,11 +143,13 @@ wrapper_object$run6 <- function(.,n) {}
 wrapper_object$run7 <- function(.,o) {}
 wrapper_object$run8 <- function(.,p) {}
 
+
 # print function for run cascade
 wrapper_object$printc <- function(.,r1,r2) {
   print(r1,quote=F)
   print(r2,quote=F)
 }
+
 
 # takes a >=3 D array and stacks it into a 2D matrix
 wrapper_object$stack <- function(., a ) {
@@ -181,6 +183,7 @@ wrapper_object$init <- function(.) {
   if(.$wpars$UQ|.$wpars$mcmc) .$init_uq()
 }
 
+
 # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
 wrapper_object$init_uq <- function(.) {
 
@@ -205,12 +208,14 @@ wrapper_object$init_uq <- function(.) {
 }
 
 
+
 # Wrapper object data struture
 ###########################################################################
 
 # initialisation lists
 wrapper_object$init_static  <- NULL
 wrapper_object$init_dynamic <- NULL
+
 
 # static variables
 # each element in the below list is a character or numeric vector to overwrite default initialisation values
@@ -219,6 +224,7 @@ wrapper_object$static <- list(
   pars   = NULL,
   env    = NULL
 )
+
 
 # dynamic variables
 # all elements expected to be of class 'list'
@@ -239,6 +245,7 @@ wrapper_object$dynamic <- list(
   env       = NULL
 )
 
+
 # input/output matrices and dataframes
 # with an associated length for input matrices
 wrapper_object$dataf  <- list(
@@ -258,13 +265,15 @@ wrapper_object$dataf  <- list(
   le      = NULL,
   lm      = NULL,
   # output matrices / arrays
+  mcmc_input   = NULL,    # list of output matrices and arrays from a previous MCMC run 
   mout         = NULL,    # example model output vector, for setting up vapply functions
   out          = NULL,    # output matrix
   out_saltelli = NULL,    # saltelli output list
   # observation matrices /dataframes
-  obs     = NULL,         # a dataframe of observations against which to valiadate/ calculate likelihood of model
-  obsse   = NULL          # a dataframe of observation errors for the obs data, must exactly match the above dataframe
+  obs          = NULL,    # a dataframe of observations against which to valiadate/ calculate likelihood of model
+  obsse        = NULL     # a dataframe of observation errors for the obs data, must exactly match the above dataframe
 )
+
 
 # parameters specific to the wrapper object
 wrapper_object$wpars <- list(
@@ -291,6 +300,7 @@ wrapper_object$wpars <- list(
   mcmc_prior         = 'uniform',
   mcmc_chains        = 7,
   mcmc_maxiter       = 1000,
+  mcmc_start_iter    = 2,
   mcmc_thin          = 0.1,
   mcmc_thin_obs      = 1,
   mcmc_homosced      = F,
@@ -303,6 +313,7 @@ wrapper_object$wpars <- list(
   mcmc_CR_burnin     = 0.1,
   mcmc_check_iter    = 10
 )
+
 
 # MCMC specific data, size depends on MCMC set up
 wrapper_object$mcmc <- list(
@@ -327,6 +338,7 @@ wrapper_object$mcmc <- list(
 )
 
 
+
 # Output processing functions
 ###########################################################################
 
@@ -335,14 +347,17 @@ wrapper_object$mcmc <- list(
 # - this is called from an lapply to expand each each ensemble member values of fnames, pars, and env with every column of the met matrix
 wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(t(.$dataf$met),df[i,]))
 
+
 # function to write ensemble output data to file
 wrapper_object$write_to_file <- function(., df=.$output(), app=F ) {
 
   setwd(.$wpars$of_dir)
-  if(.$wpars$of_type=='csv')      write.table(format(df,width=12),paste(.$wpars$of_name,'.csv',sep=''),quote=F,row.names=F,col.names=!app,sep=',',append=app)
-  else if(.$wpars$of_type=='rds') saveRDS(df,paste(.$wpars$of_name,'RDS',sep='.'))
+  if(.$wpars$of_type=='csv')      write.table(format(df,width=12), paste(.$wpars$of_name,'.csv',sep=''), 
+                                              quote=F, row.names=F, col.names=!app, sep=',', append=app )
+  else if(.$wpars$of_type=='rds') saveRDS(df, paste(.$wpars$of_name,'RDS',sep='.') )
   else print(paste('No methods for output file format:',.$wpars$of_type))
 }
+
 
 
 # Print functions
