@@ -664,14 +664,14 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
 #    counter <- ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter)
 #  }
   # APW: this counter is calculated in multiple places - can make a variable in the data structure and just calculate once
-  if((j==.$wpars$mcmc_maxiter) & (j%%.$wpars$mcmc_check_iter!=0)) {
-    counter <- ceiling(.$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter)
-  } else {
-    counter <- j/.$wpars$mcmc_check_iter
-  }
+  #if((j==.$wpars$mcmc_maxiter) & (j%%.$wpars$mcmc_check_iter!=0)) {
+  #  counter <- ceiling(.$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter)
+  #} else {
+  #  counter <- j/.$wpars$mcmc_check_iter
+  #}
 
   R_hat_new <- append(R_hat, j, after=0 )
-  .$dataf$conv_check[,counter] <- R_hat_new
+  .$dataf$conv_check[,.$wpars$mcmc_check_ss] <- R_hat_new
 
   if (j == .$wpars$mcmc_maxiter) {
     print(paste0("At iteration ", j, ", R-statistic of Gelman and Rubin = "))
@@ -742,7 +742,7 @@ f_proposal_lklihood_ssquared_se <- function(.) {
 #####################################
 
 # no outlier handling for Markov chains
-mcmc_outlier_none <- function(., j) {
+mcmc_outlier_none <- function(.,j) {
   if(j==.$wpars$mcmc_maxiter) print('No option was chosen to identify outlier Markov chains.')
 }
 
@@ -750,8 +750,11 @@ mcmc_outlier_none <- function(., j) {
 # function that detects and corrects outlier Markov chains using the Inter Quartile-Range (IQR) statistic
 mcmc_outlier_iqr <- function(.,j) {
 
-  counter <- j/.$wpars$mcmc_check_iter
-  .$wpars$mcmc$j_burnin50 <- .$wpars$mcmc$j_start_burnin + ceiling(j/2)
+  #counter <- j/.$wpars$mcmc_check_iter
+
+  #.$wpars$mcmc$j_burnin50 <- 
+  #   if(.$wpars$mcmc$outlier_detected|!.$wpars$parsinit_read) .$wpars$mcmc$j_start_burnin + ceiling(j/2)
+  #   else                                                     j - ceiling((j+.$wpars$mcmc_start_iter-1)/2)
 
   # extract last 50% of samples of each chain
   # APW: isn't the 1:chains indexing unnecessary here? That's the full extent of the dimension right?
@@ -759,22 +762,22 @@ mcmc_outlier_iqr <- function(.,j) {
   sbst <- .$dataf$pars_lklihood[1:.$wpars$mcmc_chains, .$wpars$mcmc$j_burnin50:j]
 
   # take the mean of the log of the posterior densities and store in omega
-  # IMPORANT: all current likelihood function options already return log-likelihood
-  #           so it's not necessary to take the log of sbst components here
-  #           but this may change in the future with different likelihood functions
+  # IMPORTANT: all current likelihood function options already return log-likelihood
+  #            so it's not necessary to take the log of sbst components here
+  #            but this may change in the future with different likelihood functions
   # APW: can use an apply function here instead of for loop
-  #      .$dataf$omega[,counter] <- apply(sbst, 1, mean )
-  for (ii in 1:.$wpars$mcmc_chains) .$dataf$omega[ii, counter] <- mean(sbst[ii, ])
+  #      .$dataf$omega[,.$wpars$mcmc_check_ss] <- apply(sbst, 1, mean )
+  for (ii in 1:.$wpars$mcmc_chains) .$dataf$omega[ii,.$wpars$mcmc_check_ss] <- mean(sbst[ii, ])
 
   # determine upper and lower quantiles of N different chains
-  q1 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains, counter], prob = 0.25, type = 1)
-  q3 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains, counter], prob = 0.75, type = 1)
+  q1 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains,.$wpars$mcmc_check_ss], prob = 0.25, type = 1)
+  q3 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains,.$wpars$mcmc_check_ss], prob = 0.75, type = 1)
 
   # compute IQR statistic
   iqr <- q3-q1
 
   # determine which chains are outliers
-  outliers <- which(.$dataf$omega[,counter]<(q1-2*iqr))
+  outliers <- which(.$dataf$omega[,.$wpars$mcmc_check_ss]<(q1-2*iqr))
 
   # if outlier chains are detected
   if (length(outliers) > 0) {
@@ -807,6 +810,7 @@ mcmc_outlier_iqr <- function(.,j) {
     .$dataf$pars_lklihood[outliers,j] <- .$dataf$pars_lklihood[replace_idx,j]
 
     # restart burn-in
+    .$wpars$outlier_detected    <- T
     .$wpars$mcmc$j_start_burnin <- j 
   }
 
@@ -818,6 +822,7 @@ mcmc_outlier_iqr <- function(.,j) {
   # future work: if outlier is detected, throw out all previous MCMC samples
   #              this is currently done manually in post-processing
   #              maybe automate this moving forward?
+  # APW: done - as yet untested
 }
 
 

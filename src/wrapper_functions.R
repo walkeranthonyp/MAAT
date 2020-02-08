@@ -685,14 +685,25 @@ run2_mcmc_dream <- function(.,j) {
   # accept / reject proposals on each chain
   .$proposal_accept(j=j, lklihood )
 
-  # test for and handle outlier chains (if outlier is detected, restart burn-in)
-  if(j%%.$wpars$mcmc_check_iter==0) {
-    .$mcmc_outlier(j=j)
+  # MCMC checks 
+  if((j%%.$wpars$mcmc_check_iter==0) | (j==.$wpars$mcmc_maxiter)) {
+
+    # calculate subscript for convergence and outlier arrays 
+    .$wpars$mcmc_check_ss <- 
+      if(j==.$wpars$mcmc_maxiter) ceiling(.$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter)
+      else                        j/.$wpars$mcmc_check_iter
+
+    # calculate 50 % of current post-outlier samples
+    .$wpars$mcmc$j_burnin50 <- 
+      if(.$wpars$mcmc$outlier_detected|!.$wpars$parsinit_read) .$wpars$mcmc$j_start_burnin + ceiling(j/2)
+      else                                                     j - ceiling((j+.$wpars$mcmc_start_iter-1)/2)
+
+    # test for and handle outlier chains 
+    if(j%%.$wpars$mcmc_check_iter==0) .$mcmc_outlier(j=j)
+
+    # test for convergence 
     .$mcmc_converge(j=j)
   }
-
-  # calculate convergence diagnostic
-  if(j==.$wpars$mcmc_maxiter) .$mcmc_converge(j=j)
 
   # return nothing - allows use of the stable vapply to call this function
   numeric(0)
@@ -775,7 +786,7 @@ write_output_mcmc_dream <- function(.,i) {
   #.$wpars$of_name <- paste(ofname, 'mcmc', 'f', i, sep='_' )
   .$write_to_file()
 
-  df <- .$output(iter_out_start=1, iter_out_end=.$wpars$mcmc$j_start_burnin-1 )
+  df <- .$output(iter_out_start=1, iter_out_end=.$wpars$mcmc$j_burnin50-1 )
   saveRDS(df, paste0(.$wpars$of_name, '_history', '.RDS'))
 }
 
@@ -874,7 +885,7 @@ output_SAprocess_ye <- function(.) {
 
 
 # creates output for a MCMC simulation
-output_mcmc_dream <- function(., iter_out_start=.$wpars$mcmc$j_start_burnin, iter_out_end=.$wpars$mcmc_maxiter ) {
+output_mcmc_dream <- function(., iter_out_start=.$wpars$mcmc$j_burnin50, iter_out_end=.$wpars$mcmc_maxiter ) {
   list(
     pars_array    = .$dataf$pars_array[,,iter_out_start:iter_out_end],
     pars_lklihood = .$dataf$pars_lklihood[,iter_out_start:iter_out_end],

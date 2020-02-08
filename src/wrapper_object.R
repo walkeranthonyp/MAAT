@@ -311,12 +311,16 @@ wrapper_object$wpars <- list(
   mcmc_n_CR          = 3,
   mcmc_adapt_pCR     = T,
   mcmc_CR_burnin     = 0.1,
+  mcmc_check_ss      = numeric(1),
   mcmc_check_iter    = 10
 )
 
 
 # MCMC specific data, size depends on MCMC set up
 wrapper_object$mcmc <- list(
+  outlier_detected = F,
+  j_start_burnin = 1,
+  j_burnin50     = numeric(1),
   d              = numeric(1),
   CR             = numeric(1),
   p_CR           = numeric(1),
