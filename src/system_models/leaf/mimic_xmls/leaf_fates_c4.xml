@@ -1,61 +1,45 @@
 <options>
   <fnames>
     <leaf>
-      <!-- photorespiratory compensation point, gamma star; farquhar 1980 calculate from Kc and Ko, 
-      f_gstar_constref will get a specified value at 25 and scale according to gstar_tcor, f_gstar_c1991 calculates from tau the CO2:O2 specificity ratio -->
-      <gstar>'f_gstar_constref'</gstar>
+      <assimilation>'f_assimilation_c4'</assimilation>
       <!-- calculate Vcmax at <reftemp.vcmax> -->
       <vcmax>'f_vcmax_constant'</vcmax>
-      <!-- calculate Jmax at <reftemp.jmax> -->
-      <jmax>'f_jmax_lin'</jmax>
-      <!-- calculate TPU at <reftemp.tpu>, f(Vcmax) -->
-      <tpu>'f_tpu_lin'</tpu>
+      <!-- calculate k for PEPC at <reftemp.k_pepc> -->
+      <k_pepc>'f_k_pepc_lin'</k_pepc>
       <!-- increasing component of temperature scaling for biochemical rates -->
       <tcor_asc>
-        <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
-        <jmax>'f_tcor_asc_Arrhenius'</jmax>
-        <tpu>'f_tcor_asc_Arrhenius'</tpu>
-        <gstar>'f_tcor_asc_Arrhenius'</gstar>
-        <Kc>'f_tcor_asc_Arrhenius'</Kc>
-        <Ko>'f_tcor_asc_Arrhenius'</Ko>
-        <rd>'f_tcor_asc_Arrhenius'</rd>
+        <vcmax>'f_tcor_asc_Q10'</vcmax>
+        <k_pepc>'f_tcor_asc_Q10'</k_pepc>
+        <rd>'f_tcor_asc_Q10'</rd>
       </tcor_asc>
       <!-- decreasing component of temperature scaling for biopchemical rates -->
       <tcor_des>
-        <vcmax>'f_tcor_des_modArrhenius'</vcmax>
-        <jmax>'f_tcor_des_modArrhenius'</jmax>
-        <tpu>'f_tcor_des_modArrhenius'</tpu>
-        <rd>'f_tcor_des_modArrhenius'</rd>
+        <vcmax>'f_tcor_des_cox2001'</vcmax>
+        <rd>'f_tcor_des_collatz1992'</rd>
       </tcor_des>
       <!-- dependence of TPU & Rd temperature scaling on Vcmax -->
       <tcor_dep>
-        <tpu>'f_tcor_dep_independent'</tpu>
         <rd>'f_tcor_dep_independent'</rd>
       </tcor_dep>
       <!-- function to determine delta S (entropy term) for rd, vcmax, & jmax; can be used for temperature acclimation -->
       <deltaS>
         <vcmax>'f_deltaS_constant'</vcmax>
-        <jmax>'f_deltaS_constant'</jmax>
-        <tpu>'f_deltaS_constant'</tpu>
-        <rd>'f_deltaS_constant'</rd>
       </deltaS>
       <!-- electron transport -->
-      <etrans>'f_etrans_farquharwong1984'</etrans>
+      <etrans>'f_etrans_collatz1991'</etrans>
       <!-- RuBP saturated gross carboxylation rate -->
-      <Acg>'f_Acg_farquhar1980'</Acg>
+      <Acg>'f_Acg_c4_collatz1992'</Acg>
       <!-- RuBP limited gross carboxylation rate -->
-      <Ajg>'f_Ajg_generic'</Ajg>
+      <Ajg>'f_Ajg_c4_collatz1992'</Ajg>
       <!-- TPU limited gross carboxylation rate, mostly all variants of this are special cases of that presented in von Caemmerer 2000 -->
-      <Apg>'f_Apg_vonc2000'</Apg>
+      <Apg>'f_Apg_ic4_pepc_collatz1992'</Apg>
       <!-- gas diffusion function, Fick's law; can apply a zero bound as gs solution can be negative at low ci -->
       <gas_diff>'f_gas_diff_ficks_ci'</gas_diff>
       <!-- calculate Rd at <reftemp.rd>, f(Vcmax), f(N), -->
       <rd>'f_rd_lin_N'</rd>
-      <!-- scaling of Rd in the dark to rd in the light, default is fixed ratio with ratio set to 1 -->
-      <rl_rd>'f_rl_rd_fixed'</rl_rd_scalar>
       <!-- internal resistance to CO2 transport -->
       <ri>'f_r_zero'</ri>
-      <!-- stomatal resistance to H2O & CO2 transport, constant CiCa is implicit in LPJ and Cox 1998 does something similar for JULES -->
+      <!-- stomatal resistance to H2O & CO2 transport -->
       <rs>'f_rs_ball1987'</rs>
       <!-- leaf boundary layer resistance to H2O & CO2 transport -->
       <rb>'f_r_zero'</rb>
@@ -63,7 +47,7 @@
       <solver>'f_solver_brent'</solver>
       <!-- function passed to solver -->
       <residual_func>'f_residual_func_leaf_Ar'</residual_func>
-      <!-- selection of limiting rate function, straight miniimum Farquhar 1980 or smoothed Collatz 1991 -->
+      <!-- selection of limiting rate function, straight minimum Farquhar 1980 or smoothed Collatz 1991 -->
       <Alim>'f_Alim_collatz1991'</Alim>
     </leaf>
   </fnames>
@@ -75,33 +59,18 @@
       <a>0.85</a>
       <!-- fraction of absorbed light not absorbed by light harvesting complexes, 0-1
       this effectively sets the intrisic quantum efficiency (alpha_i) where alpha_i = 0.5(1-f) -->
-      <f>0.15</f>
-      <!-- ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless) -->
-      <ko_kc_ratio>0.21</ko_kc_ratio> 
-      <!-- empirical smoothing of farquhar and wong 1984 electron transport, 0-1 --> 
-      <theta_j>0.7</theta_j>
+      <f>0.6</f>
       <!--  empirical smoothing of collatz 1991 limiting rate selection function, theta in Collatz notation, Acg or Ajg, 0-1 --> 
       <theta_col_cj>0.999</theta_col_cj>
       <!-- empirical smoothing of collatz 1991 limiting rate selection function, beta in Collatz notation, (Acg or Ajg) or Apg, 0-1 --> 
       <theta_col_cjp>0.999</theta_col_cjp>
-      <!-- intercept & slope of Jmax25 to Vcmax25 area linear relationship -->
-      <ajv_25>0</ajv_25>
-      <bjv_25>1.67</bjv_25>
-      <!-- intercept & slope of TPU25 to Vcmax25 area linear relationship, intercept of zero slope of 0.16667 is equivalent to Collatz 1991 Vcmax/2 but in von Caemmerer's notation  -->
-      <atv_25>0</atv_25>
-      <btv_25>0.16667</btv_25>
-      <!-- fraction of phosphate not returned to the chloroplast -->
-      <Apg_alpha>0</Apg_alpha>
       <!-- minimum stomatal conductance, mol H2O m-2s-1 -->
-      <g0>0.01</g0>
+      <g0>0.04</g0>
       <!-- stomatal conductance to environment slope parameter -->
       <g1_ball>8</g1_ball>
-      <!-- diffusivity of CO2 in water -->
-      <co2_diff>1.7e-09</co2_diff>
-      <!-- ratio of HCO to CO2 in solution -->
-      <hco_co2_ratio>0</hco_co2_ratio>
-      <!-- ratio of HCO to CO2 diffusivity in water -->
-      <hco_co2_diff_ratio>0.56</hco_co2_diff_ratio>
+      <!-- intercept & slope of k_pepc to vcmax -->
+      <akv_25>0.0</akv_25>
+      <bkv_25>20000</bkv_25>
       <!-- intercept & slope of Rd25 to leaf N area linear relationship -->
       <a_rdn_25>0.5</a_rdn_25>
       <b_rdn_25>0.15</b_rdn_25>
@@ -117,48 +86,33 @@
       <reftemp>
         <rd>25</rd>
         <vcmax>25</vcmax>
-        <jmax>25</jmax>
-        <tpu>25</tpu>
-        <Kc>25</Kc>
-        <Ko>25</Ko>
-        <gstar>25</gstar>
+        <k_pepc>25</k_pepc>
       </reftemp>
       <!-- constants at reference temperature for temperature sensitive parameters -->
       <atref>
         <rd>0.716</rd>
-        <vcmax>50</vcmax>
-        <Kc>40.49</Kc>
-        <Ko>27.84</Ko>
-        <gstar>4.275</gstar>
+        <vcmax>39</vcmax>
       </atref>
-      <!-- activation energy for temperature sensitive parameters -->
-      <Ha>
-        <vcmax>65330</vcmax>
-        <jmax>43540</jmax>
-        <rd>46390</rd>
-        <tpu>53100</tpu>
-        <Kc>79430</Kc>
-        <Ko>36380</Ko>
-        <gstar>37830</gstar>
-      </Ha>
       <!-- Q10 for temperature sensitive parameters -->
       <q10>
+        <vcmax>2</vcmax>
         <rd>2</rd>
+        <k_pepc>2</k_pepc>
       </q10>
-      <!-- deactivation energy for temperature sensitive parameters -->
-      <Hd>
-        <vcmax>149250</vcmax>
-        <jmax>152040</jmax>
-        <tpu>150650</tpu>
-        <rd>150650</rd>
-      </Hd>
-      <!-- deltaS for temperature sensitive parameters -->
-      <deltaS>
-        <vcmax>485</vcmax>
-        <jmax>495</jmax>
-        <tpu>490</tpu>
-        <rd>490</rd>
-      </deltaS>
+      <!-- upper and lower temperatures for Cox temperature scaling for temperature sensitive parameters -->
+      <tupp_cox>
+        <vcmax>40</vcmax>
+        <rd>55</rd>
+      </tupp_cox>
+      <tlow_cox>
+        <vcmax>15</vcmax>
+      </tlow_cox>
+      <exp_cox>
+        <!-- for vcmax this is not strictly accurate, two different values are used: 0.3 and 0.2 for each of the exponential terms -->
+        <!-- this is different from Collatz 1992 -->
+        <vcmax>0.25</vcmax>
+        <rd>1.3</rd>
+      </exp_cox>
       <!-- universal gas constant -->
       <R>8.31446</R>
     </leaf>
