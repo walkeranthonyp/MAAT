@@ -361,9 +361,10 @@ f_solver_analytical_leaf_quad_r0 <- function(.) {
   # determine cc/ci based on Amin
   .super$state_pars$rs[] <- r0 
   .super$state$cb[]      <- .$gas_diff(A=Amin)
-  .super$state$cc[]      <-.super$state$ci <- .$gas_diff(A=Amin, r=1.6*.super$state_pars$rs, c=.super$state$cb )
+  .super$state$ci[]      <- .$gas_diff(A=Amin, r=1.6*.super$state_pars$rs, c=.super$state$cb )
+  .super$state$cc[]      <- .$gas_diff(A=Amin, r=.super$state_pars$ri,     c=.super$state$ci )
     
-  # recalculate Ag for each limiting process
+  # recalculate Ag for each limiting process - prob needed only for C3
   # necessary if Alim is Collatz smoothing as it reduces A, decoupling A from cc calculated in the quadratic solution 
   .super$state$Acg[] <- .$Acg() * .super$state$cc
   .super$state$Ajg[] <- .$Ajg() * .super$state$cc
@@ -374,6 +375,32 @@ f_solver_analytical_leaf_quad_r0 <- function(.) {
 }
 
 
+# solves A analytically by assuming rs is equal to 1/g0 
+f_solver_analytical_leaf_c4_r0 <- function(.) {
+  # combines all rate limiting processes
+
+  r0 <- .$rs_r0() 
+  r  <- 1.4*.super$state_pars$rb + 1.6*r0 + .super$state_pars$ri
+
+  # calculate Ag for each limiting process
+  .super$state$Acg[] <- .$Acg()
+  .super$state$Ajg[] <- .$Ajg()
+  .super$state$Apg[] <- .$Apg_r0soln(r)
+
+  # determine rate limiting cycle 
+  Amin <- .$Alim() - .super$state$rd 
+  
+  # determine cc/ci based on Amin
+  .super$state_pars$rs[] <- r0 
+  .super$state$cb[]      <- .$gas_diff(A=Amin)
+  .super$state$ci[]      <- .$gas_diff(A=Amin, r=1.6*.super$state_pars$rs, c=.super$state$cb )
+  .super$state$cc[]      <- .$gas_diff(A=Amin, r=.super$state_pars$ri,     c=.super$state$ci )
+    
+  # return net A
+  Amin
+}
+
+  
 # Calculate assimilation assuming zero resistance to CO2 diffusion from the atmosphere to the site of carboxylation
 f_solver_analytical_leaf_no_r <- function(.,...) {
   # This function can be used to calculate the stomatal limitation to photosynthesis when rb and ri are assumed zero 

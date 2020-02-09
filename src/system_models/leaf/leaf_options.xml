@@ -2,12 +2,13 @@
   <fnames>
     <leaf>
       <sys>'c( 'f_sys_enzymek' )'</sys>
-      <solver>'c( 'f_solver_analytical_leaf_no_r', 'f_solver_analytical_leaf_quad', 'f_solver_analytical_leaf_quad_r0', 'f_solver_analytical_leaf_simple', 'f_solver_brent', 'f_solver_brent_diag', 'f_solver_semiana_leaf_Ar' )'</solver>
+      <solver>'c( 'f_solver_analytical_leaf_c4_r0', 'f_solver_analytical_leaf_no_r', 'f_solver_analytical_leaf_quad', 'f_solver_analytical_leaf_quad_r0', 'f_solver_analytical_leaf_simple', 'f_solver_brent', 'f_solver_brent_diag', 'f_solver_semiana_leaf_Ar' )'</solver>
       <residual_func>'c( 'f_residual_func_leaf_Ar', 'f_residual_func_leaf_Ar_no_rs' )'</residual_func>
+      <assimilation>'c( 'f_assimilation_c3', 'f_assimilation_c4' )'</assimilation>
       <semiana>'c( 'f_semiana_brent', 'f_semiana_quad', 'f_semiana_three' )'</semiana>
-      <Acg>'c( 'f_Acg_farquhar1980' )'</Acg>
-      <Ajg>'c( 'f_Ajg_generic' )'</Ajg>
-      <Apg>'c( 'f_Apg_foley1996', 'f_Apg_none', 'f_Apg_vonc2000' )'</Apg>
+      <Acg>'c( 'f_Acg_c4_collatz1992', 'f_Acg_farquhar1980' )'</Acg>
+      <Ajg>'c( 'f_Ajg_c4_collatz1992', 'f_Ajg_generic' )'</Ajg>
+      <Apg>'c( 'f_Apg_c4_pepc_collatz1992', 'f_Apg_c4_pepc_collatz1992_r0soln', 'f_Apg_foley1996', 'f_Apg_none', 'f_Apg_vonc2000' )'</Apg>
       <etrans>'c( 'f_etrans_collatz1991', 'f_etrans_farquhar1980', 'f_etrans_farquharwong1984', 'f_etrans_harley1992' )'</etrans>
       <gas_diff>'c( 'f_gas_diff_ficks_ci', 'f_gas_diff_ficks_ci_bound0' )'</gas_diff>
       <Alim>'c( 'f_Alim_collatz1991', 'f_Alim_farquhar1980' )'</Alim>
@@ -15,6 +16,7 @@
       <jmax>'c( 'f_jmax_constant', 'f_jmax_lin', 'f_jmax_power' )'</jmax>
       <tcor_jmax>'c( 'f_tcor_jmax_lin' )'</tcor_jmax>
       <tpu>'c( 'f_tpu_constant', 'f_tpu_lin' )'</tpu>
+      <k_pepc>'c( 'f_k_pepc_constant', 'f_k_pepc_lin' )'</k_pepc>
       <rd>'c( 'f_rd_constant', 'f_rd_lin_N', 'f_rd_lin_vcmax', 'f_rd_lin_vcmax_t' )'</rd>
       <rl_rd>'c( 'f_rl_rd_fixed', 'f_rl_rd_lloyd1995' )'</rl_rd>
       <gstar>'c( 'f_gstar_c1991', 'f_gstar_constant', 'f_gstar_constref', 'f_gstar_f1980' )'</gstar>

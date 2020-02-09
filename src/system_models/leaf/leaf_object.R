@@ -31,13 +31,15 @@ leaf_object$name <- 'leaf'
 
 # function to configure unique elements of the object
 # - adds functions to fns that are not in fnames
-# - or functions that are derivations of other functions, in this case teh rs derived fuinctions like rs_r0 and rs_fe 
+# - or functions that are derivations of other functions:
+#    -- in this case the rs derived functions like rs_r0 and rs_fe 
+#    -- or an anlytical soln for c4 PEPC limited A when rs = r0 
 ####################################
 leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
   if(init) {
     source('../../functions/packagemod_functions.R')
     .$fns$puniroot            <- puniroot
-    .$fns$assimilation        <- f_assimilation
+    #.$fns$assimilation        <- f_assimilation
     .$fns$assim_no_resistance <- f_solver_analytical_leaf_no_r
     .$fns$transition_cc       <- transition_cc
     .$fns$analytical_simple   <- f_solver_analytical_leaf_simple 
@@ -53,6 +55,9 @@ leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
    .$fns$rs_fe <- get(paste0(.$fnames$rs,'_fe'), pos=1 )
    .$fns$rs_r0 <- get(paste0(.$fnames$rs,'_r0'), pos=1 )
   }
+
+  if(any(names(flist)=='Apg'))
+    if(grepl('c4',flist[['Apg']])) .$fns$Apg_r0soln <- get(paste0(.$fnames$Apg,'_r0soln'), pos=1 )
 }
 
 
@@ -66,6 +71,7 @@ leaf_object$fnames <- list(
   sys            = 'f_sys_enzymek', 
   solver         = 'f_solver_brent',
   residual_func  = 'f_residual_func_leaf_Ar',
+  assimilation   = 'f_assimilation_c3',
   semiana        = 'f_semiana_quad',
   Acg            = 'f_Acg_farquhar1980',
   Ajg            = 'f_Ajg_generic',
@@ -77,6 +83,7 @@ leaf_object$fnames <- list(
   jmax           = 'f_jmax_power',
   tcor_jmax      = 'f_scalar_none',
   tpu            = 'f_tpu_lin',
+  k_pepc         = 'f_k_pepc_constant',
   rd             = 'f_rd_lin_vcmax',
   rl_rd          = 'f_scalar_none',
   gstar          = 'f_gstar_f1980',
@@ -89,6 +96,7 @@ leaf_object$fnames <- list(
     vcmax          = 'f_tcor_asc_Arrhenius',
     jmax           = 'f_tcor_asc_Arrhenius',
     tpu            = 'f_tcor_asc_Arrhenius',
+    k_pepc         = 'f_tcor_asc_Arrhenius',
     rd             = 'f_tcor_asc_Arrhenius',
     gstar          = 'f_tcor_asc_quadratic_bf1985',
     tau            = 'f_tcor_asc_Q10',
@@ -99,6 +107,7 @@ leaf_object$fnames <- list(
     vcmax          = 'f_tcor_des_modArrhenius',
     jmax           = 'f_tcor_des_modArrhenius',
     tpu            = 'f_tcor_des_modArrhenius',
+    k_pepc         = 'f_tcor_des_modArrhenius',
     rd             = 'f_scalar_none'
   ),
   tcor_dep = list(
@@ -110,12 +119,14 @@ leaf_object$fnames <- list(
     rd             = 'f_deltaS',
     vcmax          = 'f_deltaS',
     jmax           = 'f_deltaS',
-    tpu            = 'f_deltaS'
+    tpu            = 'f_deltaS',
+    k_pepc         = 'f_deltaS'
   ),
   q10 = list(
     rd             = 'f_q10_constant',
     vcmax          = 'f_q10_constant',
     jmax           = 'f_q10_constant',
+    k_pepc         = 'f_q10_constant',
     tau            = 'f_q10_constant',
     Kc             = 'f_q10_constant',
     Ko             = 'f_q10_constant'
@@ -187,24 +198,26 @@ leaf_object$solver_out = NULL
 # state parameters (i.e. calculated parameters)
 ####################################
 leaf_object$state_pars <- list(
-  vcmax    = numeric(1),   # umol m-2 s-1
-  vcmaxlt  = numeric(1),   # umol m-2 s-1
-  jmax     = numeric(1),   # umol m-2 s-1
-  jmaxlt   = numeric(1),   # umol m-2 s-1
-  tpu      = numeric(1),   # umol m-2 s-1
-  tpult    = numeric(1),   # umol m-2 s-1
-  rd       = numeric(1),   # umol m-2 s-1; respiration at reftemp
-  Kc       = numeric(1),   #  Pa
-  Ko       = numeric(1),   # kPa
-  Km       = numeric(1),   #  Pa
-  gstar    = numeric(1),   #  Pa
-  tau      = numeric(1),   #  -
-  gamma    = numeric(1),   #  Pa
-  rb       = numeric(1),   # m2s mol-1 H2O
-  rs       = numeric(1),   # m2s mol-1 H2O
-  ri       = numeric(1),   # m2s mol-1 CO2     
-  alpha    = numeric(1),   # mol electrons mol-1 absorbed photosynthetically active photons
-  cica_chi = numeric(1)    # Ci:Ca ratio 
+  vcmax     = numeric(1),  # umol m-2 s-1
+  vcmaxlt   = numeric(1),  # umol m-2 s-1
+  jmax      = numeric(1),  # umol m-2 s-1
+  jmaxlt    = numeric(1),  # umol m-2 s-1
+  tpu       = numeric(1),  # umol m-2 s-1
+  tpult     = numeric(1),  # umol m-2 s-1
+  k_pepc    = numeric(1),  # umol m-2 s-1
+  k_pepc_lt = numeric(1),  # umol m-2 s-1
+  rd        = numeric(1),  # umol m-2 s-1; respiration at reftemp
+  Kc        = numeric(1),  #  Pa
+  Ko        = numeric(1),  # kPa
+  Km        = numeric(1),  #  Pa
+  gstar     = numeric(1),  #  Pa
+  tau       = numeric(1),  #  -
+  gamma     = numeric(1),  #  Pa
+  rb        = numeric(1),  # m2s mol-1 H2O
+  rs        = numeric(1),  # m2s mol-1 H2O
+  ri        = numeric(1),  # m2s mol-1 CO2     
+  alpha     = numeric(1),  # mol electrons mol-1 absorbed photosynthetically active photons
+  cica_chi  = numeric(1)   # Ci:Ca ratio 
 )
 
 
@@ -217,26 +230,29 @@ leaf_object$pars   <- list(
   solver_max    = 51.8364435, # upper bracket for numerical solver  
 
   # photosynthetic parameters
-  a             = 0.80,       # fraction of PAR absorbed by leaf                       (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
-  f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
-  ko_kc_ratio   = 0.21,       # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)
-  theta_j       = 0.90,       # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
-  theta_col_cj  = 0.95,       # curvature of 1st limitation quadratic, theta, in Collatz 1991  (unitless)
-  theta_col_cjp = 0.98,       # curvature of 2nd limitation quadratic, beta, in Collatz 1991   (unitless)
-  avn_25        = 10,         # intercept of linear vcmax25 to leaf N relationship     (umolm-2s-1)
-  bvn_25        = 30,         # slope of linear vcmax25 to leaf N relationship         (umolm-2s-1g-1 N)
-  ajv_25        = 29,         # intercept of linear jmax25 to vcmax25 relationship     (umolm-2s-1)
-  bjv_25        = 1.63,       # slope of linear jmax25 to vcmax25 relationship         (unitless)
-  a_jvt_25      = 2.59,       # intercept of linear jmax25:vcmax25 relationship to temperature   (e C-1)
-  b_jvt_25      = -0.035,     # slope of linear jmax25:vcmax25 relationship to temperature       (e C-1 oC-1)
-  e_ajv_25      = 1.01,       # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
-  e_bjv_25      = 0.89,       # slope of log-log jmax25 to vcmax25 relationship        (unitless)
-  atv_25        = 0,          # intercept of linear tpu25 to vcmax25 relationship      (umolm-2s-1)
-  btv_25        = 1/6,        # slope of linear tpu25 to vcmax25 relationship          (unitless)
-  flnr          = 0.09,       # fraction of leafN in RuBisCO -- PFT specific           (unitless)
-  fnr           = 7.16,       # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
-  Rsa           = 60,         # specific activity of RuBisCO                           ()
-  Apg_alpha     = 0,          # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
+  a                    = 0.80,    # fraction of PAR absorbed by leaf                       (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
+  f                    = 0.23,    # fraction of absorbed PAR not collected by photosystems (unitless)
+  quantum_yield_to_eff = 4.0,     # electrons required per carboxylation                   (unitless)
+  ko_kc_ratio          = 0.21,    # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)
+  theta_j              = 0.90,    # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
+  theta_col_cj         = 0.95,    # curvature of 1st limitation quadratic, theta, in Collatz 1991  (unitless)
+  theta_col_cjp        = 0.98,    # curvature of 2nd limitation quadratic, beta, in Collatz 1991   (unitless)
+  avn_25               = 10,      # intercept of linear vcmax25 to leaf N relationship     (umolm-2s-1)
+  bvn_25               = 30,      # slope of linear vcmax25 to leaf N relationship         (umolm-2s-1g-1 N)
+  ajv_25               = 29,      # intercept of linear jmax25 to vcmax25 relationship     (umolm-2s-1)
+  bjv_25               = 1.63,    # slope of linear jmax25 to vcmax25 relationship         (unitless)
+  a_jvt_25             = 2.59,    # intercept of linear jmax25:vcmax25 relationship to temperature   (e C-1)
+  b_jvt_25             = -0.035,  # slope of linear jmax25:vcmax25 relationship to temperature       (e C-1 oC-1)
+  e_ajv_25             = 1.01,    # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
+  e_bjv_25             = 0.89,    # slope of log-log jmax25 to vcmax25 relationship        (unitless)
+  atv_25               = 0,       # intercept of linear tpu25 to vcmax25 relationship      (umolm-2s-1)
+  btv_25               = 1/6,     # slope of linear tpu25 to vcmax25 relationship          (unitless)
+  akv_25               = 0,       # intercept of linear k_pepc25 to vcmax25 relationship   (umolm-2s-1)
+  bkv_25               = 2e4,     # slope of linear k_pepc25 to vcmax25 relationship       (unitless)
+  flnr                 = 0.09,    # fraction of leafN in RuBisCO -- PFT specific           (unitless)
+  fnr                  = 7.16,    # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
+  Rsa                  = 60,      # specific activity of RuBisCO                           ()
+  Apg_alpha            = 0,       # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
 
   # resistance parameters
   g0            = 0.01,       # Medlyn 2011 min gs                                     (molm-2s-1)
@@ -274,24 +290,26 @@ leaf_object$pars   <- list(
   
   # temperature response parameters
   reftemp = list(
-    rd    = 25,               # reference temperature at which rd scalar = 1            (oC) 
-    vcmax = 25,               # reference temperature at which Vcmax scalar = 1         (oC) 
-    jmax  = 25,               # reference temperature at which Jmax scalar = 1          (oC)
-    tpu   = 25,               # reference temperature at which TPU scalar = 1           (oC)
-    Kc    = 25,               # reference temperature at which Kc scalar = 1            (oC)
-    Ko    = 25,               # reference temperature at which Ko scalar = 1            (oC)
-    gstar = 25,               # reference temperature at which gamma star scalar = 1    (oC)
-    tau   = 25                # reference temperature at which tau scalar = 1           (oC)
+    rd     = 25,               # reference temperature at which rd scalar = 1            (oC) 
+    vcmax  = 25,               # reference temperature at which Vcmax scalar = 1         (oC) 
+    jmax   = 25,               # reference temperature at which Jmax scalar = 1          (oC)
+    tpu    = 25,               # reference temperature at which TPU scalar = 1           (oC)
+    k_pepc = 25,               # reference temperature at which k_pepc scalar = 1        (oC)
+    Kc     = 25,               # reference temperature at which Kc scalar = 1            (oC)
+    Ko     = 25,               # reference temperature at which Ko scalar = 1            (oC)
+    gstar  = 25,               # reference temperature at which gamma star scalar = 1    (oC)
+    tau    = 25                # reference temperature at which tau scalar = 1           (oC)
   ),
   atref = list(
-    rd      = 2,              # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
-    vcmax   = 50,             # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
-    jmax    = 100,            # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
-    tpu     = 5,              # tpu at ref temp (usually 25oC)   - used to set TPU as a parameter                       (umolm-2s-1)
+    rd      = 2,              # rd at ref temp (usually 25oC)     - used to set rd as a parameter                        (umolm-2s-1) 
+    vcmax   = 50,             # vcmax at ref temp (usually 25oC)  - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
+    jmax    = 100,            # jmax at ref temp (usually 25oC)   - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
+    tpu     = 5,              # tpu at ref temp (usually 25oC)    - used to set TPU as a parameter                       (umolm-2s-1)
+    k_pepc  = 7e5,            # k_pepc at ref temp (usually 25oC) - used to set k_pepc as a parameter                       (umolm-2s-1)
     Kc      = 40.49,          # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
     Ko      = 27.84,          # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
     gstar   = 4.325,          # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
-    tau     = 2.6,           # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (kPa Pa-1)
+    tau     = 2.6,            # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (kPa Pa-1)
     vomax   = numeric(1) 
   ),
   Ha = list(
@@ -299,29 +317,33 @@ leaf_object$pars   <- list(
     vcmax      = 69830,       # activation energy of Vcmax                              (J mol-1)
     jmax       = 100280,      # activation energy of Jmax                               (J mol-1)
     tpu        = 69830,       # activation energy of TPU                                (J mol-1)
+    k_pepc     = 69830,       # activation energy of k_pepc                             (J mol-1)
     Kc         = 79430,       # activation energy of Kc                                 (J mol-1)
     Ko         = 36380,       # activation energy of Ko                                 (J mol-1)
     gstar      = 37830,       # activation energy of gamma star                         (J mol-1)
     tau        = -41572,      # activation energy of tau                                (J mol-1)
-    vomax      = 60110        # activation energy of Vomax                              (J mol-1)i
+    vomax      = 60110        # activation energy of Vomax                              (J mol-1)
   ),
   Hd = list(
     rd         = 200000,      # deactivation energy of rd                               (J mol-1)
     vcmax      = 200000,      # deactivation energy of Vcmax                            (J mol-1)
     jmax       = 200000,      # deactivation energy of Jmax                             (J mol-1)
-    tpu        = 200000       # deactivation energy of TPU                              (J mol-1)i
+    tpu        = 200000,      # deactivation energy of TPU                              (J mol-1)
+    k_pepc     = 200000       # deactivation energy of k_pepc                           (J mol-1)
   ),
   Topt = list(
     rd       = 27.56,         #  temperature optimum of rd                               (oC)
     vcmax    = 27.56,         #  temperature optimum of Vcmax                            (oC)
     jmax     = 19.89,         #  temperature optimum of Jmax                             (oC)
-    tpu      = 27.56          #  temperature optimum of TPU                              (oC)
+    tpu      = 27.56,         #  temperature optimum of TPU                              (oC)
+    k_pepc   = 27.56          #  temperature optimum of k_pepc                           (oC)
   ),
   deltaS = list(
     rd     = numeric(1),      # 
     vcmax  = numeric(1),      # 
     jmax   = numeric(1),      #
-    tpu    = numeric(1)       #
+    tpu    = numeric(1),      #
+    k_pepc = numeric(1)       #
   ),
   a_deltaS_t = list(
     rd     = 490,             # linear temperature response of rd deltaS   
@@ -340,6 +362,7 @@ leaf_object$pars   <- list(
     vcmax     = 2,            # Q10 of Vcmax                                            (-)
     jmax      = 2,            # Q10 of Jmax                                             (-)
     tpu       = 2,            # Q10 of TPU                                              (-)
+    k_pepc    = 2,            # Q10 of k_pepc                                           (-)
     Kc        = 2,            # Q10 of Kc                                               (-)
     Ko        = 2,            # Q10 of Ko                                               (-)
     tau       = 0.57          # Q10 of tau                                              (-)
@@ -454,7 +477,6 @@ leaf_object$.test <- function(., diag=F, verbose=F, cverbose=F,
 leaf_object$.test_residual_func <- function(., diag=F, verbose=T, cverbose=T,
                                             centrala=5, range=3, inc=range/20,
                                             leaf.par=200, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
-  
   if(verbose) str(.)
   .$build(switches=c(diag,verbose,cverbose))
   
@@ -529,8 +551,9 @@ leaf_object$.test_tscalar <- function(., diag=F, verbose=F, cverbose=F,
 }
 
 
-leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,1500,50), rs='f_rs_medlyn2011', rb='f_r_zero', 
-                      verbose=F, cverbose=F, diag=F, output='all_lim' ) {
+leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,1500,50), 
+                                  rs='f_rs_medlyn2011', rb='f_r_zero', 
+                                  verbose=F, cverbose=F, diag=F, output='all_lim' ) {
   
   if(verbose) str(.)
   .$build(mod_out=output, switches=c(diag,verbose,cverbose) )
@@ -540,6 +563,21 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
   .$fnames$ri            <- 'f_r_zero'
   .$fnames$rb            <- rb
   .$fnames$rs            <- rs
+ 
+  # C4 configuration  
+  .$fnames$assimilation  <- 'f_assimilation_c4'
+  .$fnames$etrans        <- 'f_etrans_collatz1991'
+  .$fnames$Acg           <- 'f_Acg_c4_collatz1992'
+  .$fnames$Ajg           <- 'f_Ajg_c4_collatz1992'
+  .$fnames$Apg           <- 'f_Apg_c4_pepc_collatz1992'
+  .$fnames$Alim          <- 'f_Alim_collatz1991'
+  .$pars$atref$vcmax     <- 39
+  .$pars$theta_col_cj    <- 0.83
+  .$pars$theta_col_cjp   <- 0.93
+  .$pars$f               <- 0.68
+  .$pars$f               <- 0.464
+  .$pars$g1_medlyn       <- 2.0
+  .$pars$g0              <- 0.08
   
   # configure methods
   .$configure_test()
@@ -566,8 +604,9 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
 }
 
 
-leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50),rs='f_rs_medlyn2011',
-                                        verbose=F,cverbose=F,output=F,diag=F) {
+leaf_object$.test_aci_light <- function(., leaf.par=seq(10,2000,50), leaf.ca_conc=seq(1,1200,50),
+                                        rs='f_rs_medlyn2011',
+                                        verbose=F, cverbose=F, output=F, diag=F ) {
   
   if(verbose) str(.)
   .$build(mod_out='all_lim', switches=c(diag,verbose,cverbose) )
@@ -576,6 +615,21 @@ leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=
   .$fnames$rs            <- rs
   .$fnames$residual_func <- 'f_residual_func_leaf_Ar'
   .$fnames$solver        <- 'f_solver_brent'
+  
+  # C4 configuration  
+  .$fnames$assimilation  <- 'f_assimilation_c4'
+  .$fnames$etrans        <- 'f_etrans_collatz1991'
+  .$fnames$Acg           <- 'f_Acg_c4_collatz1992'
+  .$fnames$Ajg           <- 'f_Ajg_c4_collatz1992'
+  .$fnames$Apg           <- 'f_Apg_c4_pepc_collatz1992'
+  .$fnames$Alim          <- 'f_Alim_collatz1991'
+  .$pars$atref$vcmax     <- 39
+  .$pars$theta_col_cj    <- 0.83
+  .$pars$theta_col_cjp   <- 0.93
+  .$pars$f               <- 0.68
+  .$pars$f               <- 0.464
+  .$pars$g1_medlyn       <- 2.0
+  .$pars$g0              <- 0.08
   
   # configure methods
   .$configure_test()
@@ -605,14 +659,13 @@ leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=
                ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'), xlab=expression('PAR ['*mu*mol*' '*m^-2*s-1*']'),
                panel=function(subscripts=subscripts, ... ) {
                  if(diag) {
-                   #                        panel.abline(v=.$dataf$out_full$transition[subscripts][1])
                    panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$leaf.par[subscripts], col='black' )                       
                  }
                  panel.xyplot(subscripts=subscripts, ... )
                })
   
-  print(p1,split=c(1,1,2,1),more=T)
-  print(p2,split=c(2,1,2,1),more=F)
+  print(p1, split=c(1,1,2,1), more=T )
+  print(p2, split=c(2,1,2,1), more=F )
   if(output) .$dataf$out_full
 }
 

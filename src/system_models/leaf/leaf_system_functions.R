@@ -30,23 +30,25 @@ f_sys_enzymek <- function(.) {
   .super$state_pars$vcmax   <- .$vcmax()
   .super$state_pars$jmax    <- .$jmax()
   .super$state_pars$tpu     <- .$tpu()
+  .super$state_pars$k_pepc  <- .$k_pepc()
   .super$state_pars$rd      <- .$rd()
   .super$state_pars$alpha   <- 0.5 * (1-.super$pars$f)
 
   # kinetic pars & temperature dependence
   # - if the solver involves the energy balance all of this needs to go in the solver
-  .super$state_pars$Kc      <- .super$pars$atref[['Kc']] * .[['tcor_asc.Kc']](.,'Kc')
-  .super$state_pars$Ko      <- .super$pars$atref[['Ko']] * .[['tcor_asc.Ko']](.,'Ko')
-  .super$state_pars$Km      <- .super$state_pars$Kc * (1+(.super$state$oi/.super$state_pars$Ko))
-  .super$state_pars$gstar   <- .$gstar()
-  .super$state_pars$vcmaxlt <- .super$state_pars$vcmax * .[['tcor_asc.vcmax']](.,'vcmax') * .[['tcor_des.vcmax']](.,'vcmax')
-  .super$state_pars$jmaxlt  <- .super$state_pars$jmax  * .[['tcor_asc.jmax']](.,'jmax')   * .[['tcor_des.jmax']](.,'jmax')
-  .super$state_pars$tpult   <- .super$state_pars$tpu   * .[['tcor_dep.tpu']](.,'tpu')
+  .super$state_pars$Kc        <- .super$pars$atref[['Kc']] * .[['tcor_asc.Kc']](.,'Kc')
+  .super$state_pars$Ko        <- .super$pars$atref[['Ko']] * .[['tcor_asc.Ko']](.,'Ko')
+  .super$state_pars$Km        <- .super$state_pars$Kc * (1+(.super$state$oi/.super$state_pars$Ko))
+  .super$state_pars$gstar     <- .$gstar()
+  .super$state_pars$vcmaxlt   <- .super$state_pars$vcmax  * .[['tcor_asc.vcmax']](.,'vcmax')   * .[['tcor_des.vcmax']](.,'vcmax')
+  .super$state_pars$jmaxlt    <- .super$state_pars$jmax   * .[['tcor_asc.jmax']](.,'jmax')     * .[['tcor_des.jmax']](.,'jmax')
+  .super$state_pars$tpult     <- .super$state_pars$tpu    * .[['tcor_dep.tpu']](.,'tpu')
+  .super$state_pars$k_pepc_lt <- .super$state_pars$k_pepc * .[['tcor_asc.k_pepc']](.,'k_pepc') * .[['tcor_des.k_pepc']](.,'k_pepc')
 
   # conductance/resistance terms
   # - if either of these functions become a function of co2 or assimilation they can be easily moved into the solver
-  .super$state_pars$rb      <- .$rb()
-  .super$state_pars$ri      <- .$ri()
+  .super$state_pars$rb <- .$rb()
+  .super$state_pars$ri <- .$ri()
 
   # print state parameters to screen
   if(.super$cpars$verbose) {
@@ -74,18 +76,22 @@ f_sys_enzymek <- function(.) {
     }
 
     # calculate assimilation
-    if(.$fnames$rs=='f_rs_constant' & .super$state_pars$ri==0 & .super$state_pars$rb==0 ) .$solver <- f_solver_analytical_leaf_quad
+    solve_analytically <- (.$fnames$rs=='f_rs_constant') & (.super$state_pars$ri==0) & (.super$state_pars$rb==0) 
+    if(solve_analytically) .$solver <- f_solver_analytical_leaf_quad
     .super$state$A <- .$solver()
 
     # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
     .super$state$lim <- c(2,3,7)[which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T))]
 
     # after the fact calculations
-    if(!grepl('analytical',.$fnames$solver)) {
-      # calculate Ag for each limiting process
-      .super$state$Acg     <- .super$state$Acg * .super$state$cc
-      .super$state$Ajg     <- .super$state$Ajg * .super$state$cc
-      .super$state$Apg     <- .super$state$Apg * .super$state$cc
+    if(!grepl('analytical',.super$fnames$solver)) {
+
+      if(grepl('c3',.super$fnames$assimilation)) {
+        # calculate Ag for each limiting process
+        .super$state$Acg     <- .super$state$Acg * .super$state$cc
+        .super$state$Ajg     <- .super$state$Ajg * .super$state$cc
+        .super$state$Apg     <- .super$state$Apg * .super$state$cc
+      }
 
       # calculate intermediate state variables
       .super$state$cb      <- .$gas_diff(A=.super$state$A, r=1.4*.super$state_pars$rb, c=.super$state$ca )
@@ -96,23 +102,25 @@ f_sys_enzymek <- function(.) {
       # if rs is negative (occurs when A is negative) recalculate with fixed rs at 1/g0
       if(!is.na(.super$state$A)) {
         if( .super$state$A<0 | .super$state$cc<0 | .super$state_pars$rs<0 ) {
-          
+           
           # perhaps write this flag into the leaf object
           #print(paste('solver returned negative value of A, cc, or rs; recalculate assuming rs = r0'))
 
           # temporarily reassign solver function
-          .$solver <- f_solver_analytical_leaf_quad_r0
+          .$solver <- if(grepl('c3',.super$fnames$assimilation)) f_solver_analytical_leaf_quad_r0
+                      else                                       f_solver_analytical_leaf_c4_r0
 
           # calculate assimilation
-          .super$state$A       <- .$solver()
+          .super$state$A   <- .$solver()
           # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
-          .super$state$lim     <- c(3,7)[which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T))]
+          .super$state$lim <- c(2,3,7)[which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T))]
 
           # reassign solver
           .$solver <- get(.super$fnames$solver)
-    }}}
+      }}
+    }
 
-    if(.$fnames$rs=='f_rs_constant' & .super$state_pars$ri==0 & .super$state_pars$rb==0 ) .$solver <- get(.$fnames$solver)
+    if(solve_analytically) .$solver <- get(.super$fnames$solver)
 
   # if PAR <= 0
   } else {
