@@ -125,6 +125,7 @@
       <rl_rd_lloyd_b>0.05</rl_rd_lloyd_b>
       <a_rdv_25_t>0.015</a_rdv_25_t>
       <b_rdv_25_t>-5e-04</b_rdv_25_t>
+      <home_temp>25</home_temp>
       <reftemp>
         <rd>25</rd>
         <vcmax>25</vcmax>
