@@ -125,6 +125,7 @@
       <rl_rd_lloyd_b>NA</rl_rd_lloyd_b>
       <a_rdv_25_t>NA</a_rdv_25_t>
       <b_rdv_25_t>NA</b_rdv_25_t>
+      <home_temp>NA</home_temp>
       <reftemp>
         <rd>NA</rd>
         <vcmax>NA</vcmax>

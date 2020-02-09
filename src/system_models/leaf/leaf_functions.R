@@ -273,6 +273,7 @@ f_vcmax_clm <- function(.) {
   .super$state$leafN_area * .super$pars$flnr * .super$pars$fnr * .super$pars$Rsa  
 }
 
+
 # jmax
 f_jmax_constant <- function(.) {
   .super$pars$atref$jmax
@@ -286,6 +287,7 @@ f_jmax_lin <- function(.) {
   .super$pars$ajv_25 + .super$state_pars$vcmax * .super$pars$bjv_25 * .$tcor_jmax(.)    
 }
 
+# scale JV ratio by temperature, returns a scalar
 f_tcor_jmax_lin <- function(.) {
   (.super$pars$a_jvt_25 + .super$pars$b_jvt_25 * .super$state$leaf_temp ) /
     (.super$pars$a_jvt_25 + .super$pars$b_jvt_25 * 25 )
@@ -739,7 +741,7 @@ f_deltaS_constant <- function(., var, ... ) {
   .super$pars$deltaS[[var]]
 }
 
-#calculate delta S from T opt (temp where t scaling peaks) in oC
+# calculate delta S from T opt (temp where t scaling peaks) in oC
 f_deltaS <- function(., var, ... ) {
   #Medlyn 2002
   
@@ -748,11 +750,23 @@ f_deltaS <- function(., var, ... ) {
   .super$pars$Hd[[var]]/Toptk + (.super$pars$R*log(.super$pars$Ha[[var]]/(.super$pars$Hd[[var]] - .super$pars$Ha[[var]])))
 }
 
-#calculate delta S as a function of growth temp
+# calculate deltaS as a function of growth temp
 f_deltaS_lin_t <- function(., var, ... ) {
 
   # CLM limits the range of growth temps 
   .super$pars$a_deltaS_t[[var]] + .super$state$leaf_temp * .super$pars$b_deltaS_t[[var]] 
+}
+
+# calculate deltaS as a function of growth temp and 'home' temp
+# Kumarathunge et al 2019 New Phytologist
+f_deltaS_lin_thome <- function(., var, ... ) {
+
+  # currently just setting home temp to also be leaf temp 
+  .super$pars$home_temp[] <- .super$state$leaf_temp 
+  
+  # CLM limits the range of growth temps 
+  .super$pars$a_deltaS_t[[var]] + .super$state$home_temp * .super$pars$b_deltaS_t[[var]] + 
+    (.super$state$leaf_temp - .super$pars$home_temp ) * .super$pars$b_deltaS_t[[var]]  
 }
 
 # Q10

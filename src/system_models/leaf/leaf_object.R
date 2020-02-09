@@ -283,12 +283,13 @@ leaf_object$pars   <- list(
   a_rdn_25      = 0.5,        # intercept of linear rd25 to leaf N area relationship    (umolm-2s-1)
   b_rdn_25      = 0.15,       # slope of linear rd25 to leaf N area relationship        (unitless)
   rl_rd_ratio   = 1,          # ratio of non-photorespiratory respiration in the light to respiration in the dark  (unitless)
-  rl_rd_lloyd_a = 0.5,        # intercept of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from mercado 2007 (unitless) 
-  rl_rd_lloyd_b = 0.05,       # slope of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from mercado 2007 (?)
+  rl_rd_lloyd_a = 0.5,        # intercept of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from Mercado 2007 (unitless) 
+  rl_rd_lloyd_b = 0.05,       # slope of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from Mercado 2007 (?)
   a_rdv_25_t    = 0.015,      # intercept of b_rdv_25 relationship to temperature       (umolm-2s-1)
   b_rdv_25_t    = -0.0005,    # slope of b_rdv_25 relationship to temperature           (unitless)
   
   # temperature response parameters
+  home_temp = 25,              # mean temperature under which species evolved, 'home' temp Kumarathunge 2019 (oC) 
   reftemp = list(
     rd     = 25,               # reference temperature at which rd scalar = 1            (oC) 
     vcmax  = 25,               # reference temperature at which Vcmax scalar = 1         (oC) 

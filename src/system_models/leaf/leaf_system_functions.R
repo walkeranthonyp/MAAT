@@ -57,9 +57,9 @@ f_sys_enzymek <- function(.) {
 
   # calculate physiological state
   # electron transport rate
-  .super$state$J <- .$etrans()
+  .super$state$J  <- .$etrans()
   # respiration
-  .super$state$rd  <- .super$state_pars$rd * .[['tcor_dep.rd']](.,'rd')
+  .super$state$rd <- .super$state_pars$rd * .[['tcor_dep.rd']](.,'rd')
 
   # if PAR > 0
   if(.super$env$par > 0) {
