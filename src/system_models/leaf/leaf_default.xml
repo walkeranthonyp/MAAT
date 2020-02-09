@@ -4,6 +4,7 @@
       <sys>'f_sys_enzymek'</sys>
       <solver>'f_solver_brent'</solver>
       <residual_func>'f_residual_func_leaf_Ar'</residual_func>
+      <assimilation>'f_assimilation_c3'</assimilation>
       <semiana>'f_semiana_quad'</semiana>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
@@ -15,6 +16,7 @@
       <jmax>'f_jmax_power'</jmax>
       <tcor_jmax>'f_scalar_none'</tcor_jmax>
       <tpu>'f_tpu_lin'</tpu>
+      <k_pepc>'f_k_pepc_constant'</k_pepc>
       <rd>'f_rd_lin_vcmax'</rd>
       <rl_rd>'f_scalar_none'</rl_rd>
       <gstar>'f_gstar_f1980'</gstar>
@@ -27,6 +29,7 @@
         <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
         <jmax>'f_tcor_asc_Arrhenius'</jmax>
         <tpu>'f_tcor_asc_Arrhenius'</tpu>
+        <k_pepc>'f_tcor_asc_Arrhenius'</k_pepc>
         <rd>'f_tcor_asc_Arrhenius'</rd>
         <gstar>'f_tcor_asc_quadratic_bf1985'</gstar>
         <tau>'f_tcor_asc_Q10'</tau>
@@ -37,6 +40,7 @@
         <vcmax>'f_tcor_des_modArrhenius'</vcmax>
         <jmax>'f_tcor_des_modArrhenius'</jmax>
         <tpu>'f_tcor_des_modArrhenius'</tpu>
+        <k_pepc>'f_tcor_des_modArrhenius'</k_pepc>
         <rd>'f_scalar_none'</rd>
       </tcor_des>
       <tcor_dep>
@@ -49,11 +53,13 @@
         <vcmax>'f_deltaS'</vcmax>
         <jmax>'f_deltaS'</jmax>
         <tpu>'f_deltaS'</tpu>
+        <k_pepc>'f_deltaS'</k_pepc>
       </deltaS>
       <q10>
         <rd>'f_q10_constant'</rd>
         <vcmax>'f_q10_constant'</vcmax>
         <jmax>'f_q10_constant'</jmax>
+        <k_pepc>'f_q10_constant'</k_pepc>
         <tau>'f_q10_constant'</tau>
         <Kc>'f_q10_constant'</Kc>
         <Ko>'f_q10_constant'</Ko>
@@ -62,13 +68,13 @@
   </fnames>
   <pars>
     <leaf>
-      <diag>FALSE</diag>
       <d13c>FALSE</d13c>
       <deltaA_prop>0.15</deltaA_prop>
       <solver_min>-0.0029834</solver_min>
       <solver_max>51.8364435</solver_max>
       <a>0.8</a>
       <f>0.23</f>
+      <quantum_yield_to_eff>4</quantum_yield_to_eff>
       <ko_kc_ratio>0.21</ko_kc_ratio>
       <theta_j>0.9</theta_j>
       <theta_col_cj>0.95</theta_col_cj>
@@ -83,6 +89,8 @@
       <e_bjv_25>0.89</e_bjv_25>
       <atv_25>0</atv_25>
       <btv_25>0.166666666666667</btv_25>
+      <akv_25>0</akv_25>
+      <bkv_25>20000</bkv_25>
       <flnr>0.09</flnr>
       <fnr>7.16</fnr>
       <Rsa>60</Rsa>
@@ -122,6 +130,7 @@
         <vcmax>25</vcmax>
         <jmax>25</jmax>
         <tpu>25</tpu>
+        <k_pepc>25</k_pepc>
         <Kc>25</Kc>
         <Ko>25</Ko>
         <gstar>25</gstar>
@@ -132,10 +141,11 @@
         <vcmax>50</vcmax>
         <jmax>100</jmax>
         <tpu>5</tpu>
+        <k_pepc>7e+05</k_pepc>
         <Kc>40.49</Kc>
         <Ko>27.84</Ko>
         <gstar>4.325</gstar>
-        <tau>2600</tau>
+        <tau>2.6</tau>
         <vomax>0</vomax>
       </atref>
       <Ha>
@@ -143,6 +153,7 @@
         <vcmax>69830</vcmax>
         <jmax>100280</jmax>
         <tpu>69830</tpu>
+        <k_pepc>69830</k_pepc>
         <Kc>79430</Kc>
         <Ko>36380</Ko>
         <gstar>37830</gstar>
@@ -154,18 +165,21 @@
         <vcmax>2e+05</vcmax>
         <jmax>2e+05</jmax>
         <tpu>2e+05</tpu>
+        <k_pepc>2e+05</k_pepc>
       </Hd>
       <Topt>
         <rd>27.56</rd>
         <vcmax>27.56</vcmax>
         <jmax>19.89</jmax>
         <tpu>27.56</tpu>
+        <k_pepc>27.56</k_pepc>
       </Topt>
       <deltaS>
         <rd>0</rd>
         <vcmax>0</vcmax>
         <jmax>0</jmax>
         <tpu>0</tpu>
+        <k_pepc>0</k_pepc>
       </deltaS>
       <a_deltaS_t>
         <rd>490</rd>
@@ -184,6 +198,7 @@
         <vcmax>2</vcmax>
         <jmax>2</jmax>
         <tpu>2</tpu>
+        <k_pepc>2</k_pepc>
         <Kc>2</Kc>
         <Ko>2</Ko>
         <tau>0.57</tau>

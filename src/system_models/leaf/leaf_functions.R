@@ -18,9 +18,9 @@ f_none <- function(.) {
 ################################
 
 # Calculate assimilation for a given cc (.super$state$cc)
-# - code block common to all assimilation solvers
+# - code block common to all C3 assimilation solvers
 # - calculates Ag/cc, determines limiting rate, calculates and returns net A
-f_assimilation <- function(.) {
+f_assimilation_c3 <- function(.) {
  
   # calculate Ag / cc for each limiting process
   .super$state$Acg[] <- .$Acg()
@@ -32,6 +32,22 @@ f_assimilation <- function(.) {
   
   # calculate & return net A
   Amin*.super$state$cc - Amin*.super$state_pars$gstar - .super$state$rd
+}
+  
+  
+# C4 assimilation function   
+f_assimilation_c4 <- function(.) {
+ 
+  # calculate Ag for each limiting process
+  .super$state$Acg[] <- .$Acg()
+  .super$state$Ajg[] <- .$Ajg()
+  .super$state$Apg[] <- .$Apg()
+  
+  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
+  Amin <- .$Alim() 
+  
+  # calculate & return net A
+  Amin - .super$state$rd
 }
   
 
@@ -66,6 +82,12 @@ f_Acg_farquhar1980 <- function(., cc=.super$state$cc ) {
     (cc + .super$state_pars$Km)
 }
 
+# Carboxylation limitaion for C4 photosynthesis
+f_Acg_c4_collatz1992 <- function(., ... ) {   
+  .super$state_pars$vcmaxlt 
+}
+
+
 # electron transport limitation
 f_Ajg_generic <- function(., cc=.super$state$cc ) { 
   # generic eq to calculate light limited photosynthetic rate 
@@ -73,8 +95,14 @@ f_Ajg_generic <- function(., cc=.super$state$cc ) {
   # umol m-2 s-1
   
   # calculate gross electron transport limited carboxylation rate / cc 
-  .super$state$J / (4*(cc+2*.super$state_pars$gstar))     
+  .super$state$J / ( .super$pars$quantum_yield_to_eff * (cc+2*.super$state_pars$gstar) )     
 }
+
+# converts electron transport to gross carboxylation reactions
+f_Ajg_c4_collatz1992 <- function(., ... ) { 
+  .super$state$J / .super$pars$quantum_yield_to_eff 
+}
+
 
 # Farquhar 1980 and others
 f_etrans_farquhar1980 <- function(.){
@@ -151,8 +179,17 @@ f_Apg_foley1996 <- function(., cc=.super$state$cc ) {
 # no triose phosphate limitation
 f_Apg_none <- function(.) {
   # returns NA which is ignored in limiting rate selection functions 
-  
   NA
+}
+
+# PEPC limitation for C4 (i.e. not TPU limitation but it is the third possible limitation for C4) 
+f_Apg_c4_pepc_collatz1992 <- function(., cc=.super$state$cc ) {
+  cc * .super$state_pars$k_pepc_lt / .super$env$atm_press
+}
+
+# PEPC limitation for C4 - solution when rs = r0 
+f_Apg_c4_pepc_collatz1992_r0soln <- function(.,r) {
+  .super$state$ca * .super$state_pars$k_pepc_lt / (.super$env$atm_press*(1 + r*.super$state_pars$k_pepc_lt*1e-6))
 }
 
 
@@ -262,6 +299,16 @@ f_tpu_constant <- function(.) {
 
 f_tpu_lin <- function(.) {
   .super$pars$atv_25 + .super$state_pars$vcmax * .super$pars$btv_25    
+}
+
+
+# k PEPC  
+f_k_pepc_constant <- function(.) {
+  .super$pars$atref$k_pepc
+}
+
+f_k_pepc_lin <- function(.) {
+  .super$pars$akv_25 + .super$state_pars$vcmax * .super$pars$bkv_25    
 }
 
 
@@ -662,6 +709,15 @@ f_tcor_des_collatz1991 <- function(., var, ... ) {
   
   1 / ( 1 + exp((Tsk*deltaS-.super$pars$Hd[[var]]) / (Tsk*.super$pars$R)) )
 }
+
+
+# descending component of temperature scaling from Collatz etal 1991
+f_tcor_des_collatz1992 <- function(., var, ... ) {
+  # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
+
+  1 / (1 + exp(.super$pars$exp_cox[[var]]*(.super$state$leaf_temp-.super$pars$tupp_cox[[var]])))  
+}
+
 
 # descending component of temperature scaling from Cox etal 2001
 f_tcor_des_cox2001 <- function(., var, ... ) {
