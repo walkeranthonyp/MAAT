@@ -293,6 +293,19 @@ f_tcor_jmax_lin <- function(.) {
     (.super$pars$a_jvt_25 + .super$pars$b_jvt_25 * 25 )
 }
 
+# Kumarathunge et al 2019 New Phytologist
+f_tcor_jmax_lin_thome <- function(., var, ... ) {
+
+  # currently just setting home temp to also be leaf temp 
+  .super$pars$home_temp[] <- .super$state$leaf_temp 
+  
+  # CLM limits the range of growth temps 
+  ( .super$pars$a_jvt_25[[var]] + .super$state$home_temp * .super$pars$b_jvt_25[[var]] + 
+    (.super$state$leaf_temp - .super$pars$home_temp ) * .super$pars$c_jvt_25[[var]] )  / 
+    (.super$pars$a_jvt_25[[var]] + 25*.super$pars$b_jvt_25[[var]] ) 
+ 
+}
+
 
 # TPU
 f_tpu_constant <- function(.) {
@@ -598,6 +611,7 @@ f_scalar_none <- function(...) {
   1
 }
 
+
 # temperature scaling is identical to that of Vcmax
  f_tcor_dep_dependent<- function(., ... ) {
   .super$state_pars$vcmaxlt / .super$state_pars$vcmax
@@ -608,6 +622,7 @@ f_tcor_dep_independent <- function(., var ) {
 
   .[[paste('tcor_asc',var,sep='.')]](., var=var ) * .[[paste('tcor_des',var,sep='.')]](., var=var )
 }
+
 
 # temperature dependence functions that cannot be separated into ascending and decending components
 f_tcor_asc_bethy <- function(., var, ... ) { 
@@ -629,6 +644,7 @@ f_tcor_asc_quadratic_bf1985 <- function(., var, ... ) {
   1 + (.super$pars$gstar_bf_b*(.super$state$leaf_temp-.super$pars$reftemp[[var]]) + .super$pars$gstar_bf_a*(.super$state$leaf_temp-.super$pars$reftemp[[var]])^2) / .super$pars$gstar_bf_c
 }
 
+
 # Ascending components of the temperature response function - can be run alone for an increasing repsonse only
 f_tcor_asc_Arrhenius <- function(., var, ... ) {
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
@@ -649,6 +665,7 @@ f_tcor_asc_Arrhenius <- function(., var, ... ) {
   exp( .super$pars$Ha[[var]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
 }
 
+
 # Q10 temperature scaling
 f_tcor_asc_Q10 <- function(., var, ... ) {
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
@@ -662,6 +679,7 @@ f_tcor_asc_Q10 <- function(., var, ... ) {
   q10 ^ ((.super$state$leaf_temp - .super$pars$reftemp[[var]])/10)
   
 }
+
 
 # Descending components of the temperature response function 
 f_tcor_des_modArrhenius <- function(., var, ... ) {
@@ -694,6 +712,7 @@ f_tcor_des_modArrhenius <- function(., var, ... ) {
     (1 + exp((Tsk*deltaS-.super$pars$Hd[[var]]) / (Tsk*.super$pars$R)) )  
   
 }
+
 
 # descending component of temperature scaling from Collatz etal 1991
 f_tcor_des_collatz1991 <- function(., var, ... ) {
@@ -766,8 +785,9 @@ f_deltaS_lin_thome <- function(., var, ... ) {
   
   # CLM limits the range of growth temps 
   .super$pars$a_deltaS_t[[var]] + .super$state$home_temp * .super$pars$b_deltaS_t[[var]] + 
-    (.super$state$leaf_temp - .super$pars$home_temp ) * .super$pars$b_deltaS_t[[var]]  
+    (.super$state$leaf_temp - .super$pars$home_temp ) * .super$pars$c_deltaS_t[[var]]  
 }
+
 
 # Q10
 f_q10_constant <- function(., var, ... ) {
@@ -775,6 +795,7 @@ f_q10_constant <- function(., var, ... ) {
   
   .super$pars$q10[[var]]
 }
+
 
 # calculate q10 as a function of T
 f_q10_lin_t <- function(., var, ... ) {
@@ -789,6 +810,7 @@ f_gstar_constant <- function(., ... ) {
   .super$pars$atref$gstar
 }
 
+
 # calculates Gamma star as a function of Kc & Ko, and thus their combined temperature dependence
 f_gstar_f1980 <- function(., ... ) {
   # Farquhar 1980 Eq 38
@@ -797,12 +819,14 @@ f_gstar_f1980 <- function(., ... ) {
   .super$pars$ko_kc_ratio * .super$state_pars$Kc*.super$state$oi/(2*.super$state_pars$Ko)
 }
 
+
 # takes a defined ref temperature value of gstar and scales to leaf temp
 f_gstar_constref <- function(.) {
   # this will probably not give the correct response to a change in atmospheric pressure
   
   .super$pars$atref$gstar * .[['tcor_asc.gstar']](var='gstar') 
 }
+
 
 # calculates gstar at leaftemp from tau
 f_gstar_c1991 <- function(.) {

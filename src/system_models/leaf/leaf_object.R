@@ -243,6 +243,7 @@ leaf_object$pars   <- list(
   bjv_25               = 1.63,    # slope of linear jmax25 to vcmax25 relationship         (unitless)
   a_jvt_25             = 2.59,    # intercept of linear jmax25:vcmax25 relationship to temperature   (e C-1)
   b_jvt_25             = -0.035,  # slope of linear jmax25:vcmax25 relationship to temperature       (e C-1 oC-1)
+  c_jvt_25             = -0.0202, # slope of linear jmax25:vcmax25 relationship to temperature*Thome (e C-1 oC-1)
   e_ajv_25             = 1.01,    # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
   e_bjv_25             = 0.89,    # slope of log-log jmax25 to vcmax25 relationship        (unitless)
   atv_25               = 0,       # intercept of linear tpu25 to vcmax25 relationship      (umolm-2s-1)
@@ -357,6 +358,12 @@ leaf_object$pars   <- list(
     vcmax  = -1.07,           # linear temperature response of vcmax deltaS (Kattge & Knorr)
     jmax   = -0.75,           # linear temperature response of jmax deltaS (Kattge & Knorr)
     tpu    = 0                # linear temperature response of tpu deltaS (Kattge & Knorr)
+  ),
+  c_deltaS_t = list(
+    rd     = numeric(1),      # linear temperature response of rd deltaS
+    vcmax  = numeric(1),      # linear temperature response of vcmax deltaS 
+    jmax   = -0.52,           # linear temperature response of jmax deltaS inc Thome (Kumarathunge)
+    tpu    = numeric(1)       # linear temperature response of tpu deltaS 
   ),
   q10 = list(
     rd        = 2,            # Q10 of Rd                                               (-)
