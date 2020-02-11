@@ -14,7 +14,7 @@
       <Alim>'c( 'f_Alim_collatz1991', 'f_Alim_farquhar1980' )'</Alim>
       <vcmax>'c( 'f_vcmax_clm', 'f_vcmax_constant', 'f_vcmax_lin' )'</vcmax>
       <jmax>'c( 'f_jmax_constant', 'f_jmax_lin', 'f_jmax_power' )'</jmax>
-      <tcor_jmax>'c( 'f_tcor_jmax_lin' )'</tcor_jmax>
+      <tcor_jmax>'c( 'f_tcor_jmax_lin', 'f_tcor_jmax_lin_thome' )'</tcor_jmax>
       <tpu>'c( 'f_tpu_constant', 'f_tpu_lin' )'</tpu>
       <k_pepc>'c( 'f_k_pepc_constant', 'f_k_pepc_lin' )'</k_pepc>
       <rd>'c( 'f_rd_constant', 'f_rd_lin_N', 'f_rd_lin_vcmax', 'f_rd_lin_vcmax_t' )'</rd>

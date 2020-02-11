@@ -85,6 +85,7 @@
       <bjv_25>NA</bjv_25>
       <a_jvt_25>NA</a_jvt_25>
       <b_jvt_25>NA</b_jvt_25>
+      <c_jvt_25>NA</c_jvt_25>
       <e_ajv_25>NA</e_ajv_25>
       <e_bjv_25>NA</e_bjv_25>
       <atv_25>NA</atv_25>
@@ -194,6 +195,12 @@
         <jmax>NA</jmax>
         <tpu>NA</tpu>
       </b_deltaS_t>
+      <c_deltaS_t>
+        <rd>NA</rd>
+        <vcmax>NA</vcmax>
+        <jmax>NA</jmax>
+        <tpu>NA</tpu>
+      </c_deltaS_t>
       <q10>
         <rd>NA</rd>
         <vcmax>NA</vcmax>
