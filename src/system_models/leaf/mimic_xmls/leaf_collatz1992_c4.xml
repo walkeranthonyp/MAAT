@@ -15,7 +15,7 @@
       <!-- decreasing component of temperature scaling for biopchemical rates -->
       <tcor_des>
         <rd>'f_tcor_des_collatz1992'</rd>
-        <vcmax>'f_tcor_des_cox2001'</vcam>
+        <vcmax>'f_tcor_des_cox2001'</vcmax>
       </tcor_des>
       <!-- dependence of TPU & Rd temperature scaling on Vcmax -->
       <tcor_dep>
@@ -49,8 +49,6 @@
   </fnames>
   <pars>
     <leaf>
-      <!-- output diagnostics like transition point and non-stomatal limited photosynthesis, T/F -->
-      <diag>F</diag>
       <!-- fraction of incident light absorbed by leaf, 0-1 -->
       <a>0.8</a>
       <!-- fraction of absorbed light not absorbed by light harvesting complexes, 0-1

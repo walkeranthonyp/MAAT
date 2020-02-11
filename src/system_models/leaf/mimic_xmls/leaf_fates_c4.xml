@@ -32,7 +32,7 @@
       <!-- RuBP limited gross carboxylation rate -->
       <Ajg>'f_Ajg_c4_collatz1992'</Ajg>
       <!-- TPU limited gross carboxylation rate, mostly all variants of this are special cases of that presented in von Caemmerer 2000 -->
-      <Apg>'f_Apg_ic4_pepc_collatz1992'</Apg>
+      <Apg>'f_Apg_c4_pepc_collatz1992'</Apg>
       <!-- gas diffusion function, Fick's law; can apply a zero bound as gs solution can be negative at low ci -->
       <gas_diff>'f_gas_diff_ficks_ci'</gas_diff>
       <!-- calculate Rd at <reftemp.rd>, f(Vcmax), f(N), -->
@@ -53,8 +53,6 @@
   </fnames>
   <pars>
     <leaf>
-      <!-- output diagnostics like transition point and non-stomatal limited photosynthesis, T/F -->
-      <diag>F</diag>
       <!-- fraction of incident light absorbed by leaf, 0-1 -->
       <a>0.85</a>
       <!-- fraction of absorbed light not absorbed by light harvesting complexes, 0-1

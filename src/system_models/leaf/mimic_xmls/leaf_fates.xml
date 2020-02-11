@@ -52,7 +52,7 @@
       <!-- calculate Rd at <reftemp.rd>, f(Vcmax), f(N), -->
       <rd>'f_rd_lin_N'</rd>
       <!-- scaling of Rd in the dark to rd in the light, default is fixed ratio with ratio set to 1 -->
-      <rl_rd>'f_rl_rd_fixed'</rl_rd_scalar>
+      <rl_rd>'f_rl_rd_fixed'</rl_rd>
       <!-- internal resistance to CO2 transport -->
       <ri>'f_r_zero'</ri>
       <!-- stomatal resistance to H2O & CO2 transport, constant CiCa is implicit in LPJ and Cox 1998 does something similar for JULES -->
@@ -69,8 +69,6 @@
   </fnames>
   <pars>
     <leaf>
-      <!-- output diagnostics like transition point and non-stomatal limited photosynthesis, T/F -->
-      <diag>F</diag>
       <!-- fraction of incident light absorbed by leaf, 0-1 -->
       <a>0.85</a>
       <!-- fraction of absorbed light not absorbed by light harvesting complexes, 0-1
@@ -96,12 +94,6 @@
       <g0>0.01</g0>
       <!-- stomatal conductance to environment slope parameter -->
       <g1_ball>8</g1_ball>
-      <!-- diffusivity of CO2 in water -->
-      <co2_diff>1.7e-09</co2_diff>
-      <!-- ratio of HCO to CO2 in solution -->
-      <hco_co2_ratio>0</hco_co2_ratio>
-      <!-- ratio of HCO to CO2 diffusivity in water -->
-      <hco_co2_diff_ratio>0.56</hco_co2_diff_ratio>
       <!-- intercept & slope of Rd25 to leaf N area linear relationship -->
       <a_rdn_25>0.5</a_rdn_25>
       <b_rdn_25>0.15</b_rdn_25>
