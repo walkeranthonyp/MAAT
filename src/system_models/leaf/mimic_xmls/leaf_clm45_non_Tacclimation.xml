@@ -49,7 +49,6 @@
   </fnames>
   <pars>
     <leaf>
-      <diag>F</diag>
       <a>0.85</a>
       <f>0.15</f>
       <theta_j>0.7</theta_j>

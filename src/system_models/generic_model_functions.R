@@ -29,7 +29,7 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
 
   # read model mimic setup
   if(!is.null(mod_mimic)) {
-    if(grepl(mod_mimic,list.files('../mimic_xmls'))) {
+    if(any(grepl(mod_mimic,list.files('./mimic_xmls')))) {
       setwd('mimic_xmls')
       print(paste(.$name,'mimic:',mod_mimic), quote=F )
       init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
