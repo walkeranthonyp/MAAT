@@ -287,7 +287,7 @@ maat$wpars$mcmc_p_gamma       <- mcmc_p_gamma
 maat$wpars$mcmc_n_CR          <- mcmc_n_CR
 maat$wpars$mcmc_adapt_CR      <- mcmc_adapt_pCR
 maat$wpars$mcmc_CR_burnin     <- mcmc_CR_burnin
-maat$wpars$mcmc_check_iter    <- mcmc_check_iter
+maat$wpars$mcmc_check_iter    <- max(mcmc_check_iter, 4) #ALJ: prevents numerical error in indexing
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
@@ -325,7 +325,7 @@ if(xml) {
 
 # check process representation functions specified in input exist
 search_fnames <-  function(v, ln ) {
-  for( c1 in v ) if(!(c1 %in% ls(pos=1))) 
+  for( c1 in v ) if(!(c1 %in% ls(pos=1)))
     stop(paste('The function: ',c1,' , specified in init', ln ,'does not exist')) else 'exists'
 }
 print('', quote=F )
@@ -354,7 +354,7 @@ if(grepl('mcmc',runtype)) maat$wpars$of_name <- paste(ofname, 'mcmc', sep='_' )
 
 # write directly to dataf$pars if parsinit specified
 if(!is.null(parsinit_mcmc)) {
-  if(parsinit_mcmc=='restart') mcmcout <- paste0(maat$wpars$of_name,'.RDS') 
+  if(parsinit_mcmc=='restart') mcmcout <- paste0(maat$wpars$of_name,'.RDS')
 
   print('')
   print('Read input from MCMC output:')
@@ -369,7 +369,7 @@ if(!is.null(parsinit_mcmc)) {
   if(parsinit_mcmc=='restart') {
     print('MCMC restart')
     mcmc_restart_iter          <- mcmc_restart_pars_dim[3]
-    maat$wpars$mcmc_start_iter <- mcmc_restart_iter + 1 
+    maat$wpars$mcmc_start_iter <- mcmc_restart_iter + 1
     maat$wpars$mcmc_maxiter    <- maat$wpars$mcmc_maxiter + mcmc_restart_iter
     parsinit                   <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
 
@@ -398,7 +398,7 @@ if(!is.null(parsinit_mcmc)) {
 
   # add parsinit to wrapper data structure
   # APW: this could be moved to the generate_pars_ensemble code
-  #      would probably help readability 
+  #      would probably help readability
   maat$dataf$pars <- parsinit
 }
 

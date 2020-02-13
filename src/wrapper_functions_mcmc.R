@@ -42,7 +42,6 @@ proposal_generate_mcmc_demc <- function(., j ) {
 
       # call boundary handling function
       .$boundary_handling(ii = ii, jj = jj)
-
     }
   }
 }
@@ -133,6 +132,15 @@ init_mcmc_dream <- function(.) {
 
 # generate proposal using DREAM algorithm
 proposal_generate_mcmc_dream <- function(., j ) {
+
+  # debugging
+  print('beginning of proposal generation'); print(paste0('j = ',j))
+  print('.$wpars$parsinit_read'); print(.$wpars$parsinit_read)
+  print('.$mcmc$j_burnin50'); print(.$mcmc$j_burnin50)
+  print('.$wpars$mcmc_maxiter'); print(.$wpars$mcmc_maxiter)
+  print('dim(.$dataf$conv_check)'); print(dim(.$dataf$conv_check))
+  print('nrow, dim(.$dataf$pars)[1]+1'); print(dim(.$dataf$pars)[1]+1)
+  print('.$dataf$conv_check'); print(.$dataf$conv_check)
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
@@ -225,7 +233,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
       # calculate jump rate (scaling factor)
       gamma_d <- 2.38 / sqrt(2 * D * .$mcmc$d_star)
 
-      # when gamma = 1, jump between different modes of the posterior 
+      # when gamma = 1, jump between different modes of the posterior
       # approx every 5 iterations with default p_gamma = 0.2
       gamma <- sample(c(gamma_d, 1), size = 1, replace = T, prob = c(1 - .$wpars$mcmc_p_gamma, .$wpars$mcmc_p_gamma))
 
@@ -512,7 +520,6 @@ boundary_handling_set <- function(.) {
       }
     }
   }
-
 }
 
 
@@ -588,32 +595,33 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   #            so make sure to run algorithm for an appropriately long number of samples
 
   # within-chain variance
-  W <- rep(0, .$mcmc$d)
+  #W <- rep(0, .$mcmc$d)
+  W <- numeric(.$mcmc$d)
 
   # APW: Why is it that here we're calculating convergence using indexes:
-  #      ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter 
-  #      this is calculating convergence based on pars that have not yet been determined 
-  
+  #      ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter
+  #      this is calculating convergence based on pars that have not yet been determined
+
   x_bar <- matrix(0, nrow = .$mcmc$d, ncol = .$wpars$mcmc_chains)
   for (jj in 1:.$mcmc$d) {
     for (r in 1:.$wpars$mcmc_chains) {
       #for (i in ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter) {
-      for (i in .$wpars$mcmc$j_burnin50:j) {
+      for (i in .$mcmc$j_burnin50:j) {
         x_bar[jj, r] <- x_bar[jj, r] + .$dataf$pars_array[jj, r, i]
       }
     }
   }
-  #APW rewrite attempt: x_bar <- apply(.$dataf$pars_array[,,.$wpars$mcmc$j_burnin50:j], 1:2, sum )
+  #APW rewrite attempt: x_bar <- apply(.$dataf$pars_array[,,.$mcmc$j_burnin50:j], 1:2, sum )
   x_bar <- (2/(.$wpars$mcmc_maxiter - 2)) * x_bar
 
   # effective number of iterations since burnin began
-  iter_effective <- j - .$wpars$mcmc$j_start_burnin + 1
+  iter_effective <- j - .$mcmc$j_start_burnin + 1
 
   for (jj in 1:.$mcmc$d) {
     summation <- 0
     for (r in 1:.$wpars$mcmc_chains) {
       #for (i in ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter) {
-      for (i in .$wpars$mcmc$j_burnin50:j) {
+      for (i in .$mcmc$j_burnin50:j) {
         x_bar[jj, r] <- x_bar[jj, r] + .$dataf$pars_array[jj, r, i]
         summation <- summation + (.$dataf$pars_array[jj, r, i] - x_bar[jj, r]) * (.$dataf$pars_array[jj, r, i] - x_bar[jj, r])
       }
@@ -623,7 +631,8 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   }
 
   # between chain variance
-  B <- rep(0, .$mcmc$d)
+  #B <- rep(0, .$mcmc$d)
+  B <- numeric(.$mcmc$d)
 
   x_double_bar <- rep(0, .$mcmc$d)
   for (jj in 1:.$mcmc$d) {
@@ -649,11 +658,12 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   }
 
   # R-statistic of Gelman and Rubin
-  R_hat <- rep(0, .$mcmc$d)
+  #R_hat <- rep(0, .$mcmc$d)
+  R_hat <- numeric(.$mcmc$d)
   for (jj in 1:.$mcmc$d) {
     R_hat[jj] <- sqrt(((.$wpars$mcmc_chains + 1)/.$wpars$mcmc_chains) * (sigma_hat[jj]/W[jj]) - ((iter_effective - 2)/(.$wpars$mcmc_chains*iter_effective)))
   }
-  
+
   # add R_hat to storage array
 #  if(j!=.$wpars$mcmc_maxiter) {
 #    counter <- j/.$wpars$mcmc_check_iter
@@ -672,6 +682,17 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
 
   R_hat_new <- append(R_hat, j, after=0 )
   .$dataf$conv_check[,.$wpars$mcmc_check_ss] <- R_hat_new
+
+  # debugging
+  print(paste0('convergence test, j = ',j))
+  #print(paste0('.$wpars$mcmc_check_ss = ',.$wpars$mcmc_check_ss))
+  #print('R_hat'); print(R_hat_new)
+  if (j == .$wpars$mcmc_maxiter) {
+    print('.$dataf$conv_check')
+    print(.$dataf$conv_check)
+    print(paste0('iter_out_start_thin = ', .$mcmc$j_burnin50/.$wpars$mcmc_maxiter))
+    print(paste0('iter_out_end_thin = ', .$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter ))
+  }
 
   if (j == .$wpars$mcmc_maxiter) {
     print(paste0("At iteration ", j, ", R-statistic of Gelman and Rubin = "))
@@ -752,14 +773,14 @@ mcmc_outlier_iqr <- function(.,j) {
 
   #counter <- j/.$wpars$mcmc_check_iter
 
-  #.$wpars$mcmc$j_burnin50 <- 
-  #   if(.$wpars$mcmc$outlier_detected|!.$wpars$parsinit_read) .$wpars$mcmc$j_start_burnin + ceiling(j/2)
+  #.$mcmc$j_burnin50 <-
+  #   if(.$mcmc$outlier_detected|!.$wpars$parsinit_read) .$mcmc$j_start_burnin + ceiling(j/2)
   #   else                                                     j - ceiling((j+.$wpars$mcmc_start_iter-1)/2)
 
   # extract last 50% of samples of each chain
   # APW: isn't the 1:chains indexing unnecessary here? That's the full extent of the dimension right?
-  #      also, sbst is just an intermediary variable that's only used once, i suggest getting rid of it 
-  sbst <- .$dataf$pars_lklihood[1:.$wpars$mcmc_chains, .$wpars$mcmc$j_burnin50:j]
+  #      also, sbst is just an intermediary variable that's only used once, i suggest getting rid of it
+  sbst <- .$dataf$pars_lklihood[1:.$wpars$mcmc_chains, .$mcmc$j_burnin50:j]
 
   # take the mean of the log of the posterior densities and store in omega
   # IMPORTANT: all current likelihood function options already return log-likelihood
@@ -810,8 +831,8 @@ mcmc_outlier_iqr <- function(.,j) {
     .$dataf$pars_lklihood[outliers,j] <- .$dataf$pars_lklihood[replace_idx,j]
 
     # restart burn-in
-    .$wpars$outlier_detected    <- T
-    .$wpars$mcmc$j_start_burnin <- j 
+    .$mcmc$outlier_detected <- T
+    .$mcmc$j_start_burnin   <- j
   }
 
   # IMPORTANT: identifying and correcting outliers should only be done during burn-in
