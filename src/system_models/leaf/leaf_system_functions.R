@@ -1,4 +1,4 @@
-################################
+##############################
 #
 # Leaf system functions
 #
@@ -27,12 +27,12 @@ f_sys_enzymek <- function(.) {
 
   # calculate state parameters
   # photosynthetic parameters
-  .super$state_pars$vcmax   <- .$vcmax()
-  .super$state_pars$jmax    <- .$jmax()
-  .super$state_pars$tpu     <- .$tpu()
-  .super$state_pars$k_pepc  <- .$k_pepc()
-  .super$state_pars$rd      <- .$rd()
-  .super$state_pars$alpha   <- 0.5 * (1-.super$pars$f)
+  .super$state_pars$vcmax     <- .$vcmax()
+  .super$state_pars$jmax      <- .$jmax()
+  .super$state_pars$tpu       <- .$tpu()
+  .super$state_pars$k_pepc    <- .$k_pepc()
+  .super$state_pars$rd        <- .$rd()
+  .super$state_pars$alpha     <- 0.5 * (1-.super$pars$f)
 
   # kinetic pars & temperature dependence
   # - if the solver involves the energy balance all of this needs to go in the solver
@@ -61,37 +61,33 @@ f_sys_enzymek <- function(.) {
   # respiration
   .super$state$rd <- .super$state_pars$rd * .[['tcor_dep.rd']](.,'rd')
 
-  # if PAR > 0
+  # if PAR > 0, run photosynthesis
   if(.super$env$par > 0) {
-    # run photosynthesis
-    # account for decreased respiration in the light
-    .super$state$rd  <- .$rl_rd() * .super$state$rd
-    .super$state_pars$gamma   <- (-.super$state_pars$vcmaxlt * .super$state_pars$gstar - .super$state$rd * .super$state_pars$Km) / (.super$state$rd - .super$state_pars$vcmaxlt)
 
-    # diagnostic calculations
-    if(.super$cpars$diag) {
-      # these need assigning in fns
-      .super$state$A_noR      <- .$fns$assim_no_resistance()
-      .super$state$transition <- .$fns$transition_cc()
-    }
+    # account for decreased respiration in the light
+    .super$state$rd         <- .$rl_rd() * .super$state$rd
+    .super$state_pars$gamma <- (-.super$state_pars$vcmaxlt * .super$state_pars$gstar - .super$state$rd * .super$state_pars$Km) / (.super$state$rd - .super$state_pars$vcmaxlt)
+
+    # calculate assimilation with no resistence term 
+    if(.super$cpars$diag) .super$state$A_noR <- .$fns$assim_no_resistance()
 
     # calculate assimilation
     solve_analytically <- (.$fnames$rs=='f_rs_constant') & (.super$state_pars$ri==0) & (.super$state_pars$rb==0) 
     if(solve_analytically) .$solver <- f_solver_analytical_leaf_quad
     .super$state$A <- .$solver()
 
-    # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
-    .super$state$lim <- c(2,3,7)[which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T))]
-
     # after the fact calculations
+    # APW: need to handle cc calculation for C4 plants
+    #      just set to a constant high value somewhere, maybe could add cc for PEPC limitation but maybe not necessary  
     if(!grepl('analytical',.super$fnames$solver)) {
 
       if(grepl('c3',.super$fnames$assimilation)) {
         # calculate Ag for each limiting process
-        .super$state$Acg     <- .super$state$Acg * .super$state$cc
-        .super$state$Ajg     <- .super$state$Ajg * .super$state$cc
-        .super$state$Apg     <- .super$state$Apg * .super$state$cc
-      }
+        # APW: something is not working here, or elsewhere, to calculate these gross rates 
+        .super$state$Acg[] <- .super$state$Acg * .super$state$cc
+        .super$state$Ajg[] <- .super$state$Ajg * .super$state$cc
+        .super$state$Apg[] <- .super$state$Apg * .super$state$cc
+      } 
 
       # calculate intermediate state variables
       .super$state$cb      <- .$gas_diff(A=.super$state$A, r=1.4*.super$state_pars$rb, c=.super$state$ca )
@@ -111,27 +107,40 @@ f_sys_enzymek <- function(.) {
                       else                                       f_solver_analytical_leaf_c4_r0
 
           # calculate assimilation
-          .super$state$A   <- .$solver()
-          # assign the limitation state a numerical code - assumes the minimum is the dominant limiting rate
-          .super$state$lim <- c(2,3,7)[which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg),na.rm=T))]
+          .super$state$A <- .$solver()
 
-          # reassign solver
+          # reassign original solver
           .$solver <- get(.super$fnames$solver)
       }}
     }
 
+    # reassign original solver
     if(solve_analytically) .$solver <- get(.super$fnames$solver)
+
+    # assign the limitation state a numerical code - assumes the minimum is the primary limiting rate
+    lim              <- min(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg), na.rm=T )
+    lim_ss           <- which(c(.super$state$Acg,.super$state$Ajg,.super$state$Apg)==lim)
+    .super$state$lim <- c(2,3,7)[lim_ss]
+
+    # diagnostic calculations
+    if(.super$cpars$diag & grepl('c3',.super$fnames$assimilation)) { 
+      .super$state$transition       <- .$fns$transition_cc()
+      .super$state$photorespiration <- .$fns$photorespiration(Ag=lim)
+    }
 
   # if PAR <= 0
   } else {
     # assume infinite conductances when concentration gradient is small
     # - this ignores the build up of CO2 within the leaf due to respiration and high rs
     .super$state$cc <- .super$state$ci <- .super$state$cb <- .super$state$ca
-    .super$state$A_noR      <- NA
-    .super$state$transition <- NA
-    .super$state$A          <- -.super$state$rd
-    .super$state$lim        <- 0
-    .super$state_pars$rs    <- .$rs()
+    .super$state$A       <- -.super$state$rd
+    .super$state$lim     <- 0
+    .super$state_pars$rs <- .$rs()
+    if(.super$cpars$diag) { 
+      .super$state$A_noR            <- NA
+      .super$state$transition       <- NA
+      .super$state$photorespiration <- NA
+    }
   }
 }
 

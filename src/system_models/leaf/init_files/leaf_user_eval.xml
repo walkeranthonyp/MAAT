@@ -27,6 +27,7 @@
       <fA_ana_final>'column name of variable in evaldata file'</fA_ana_final>
       <A_noR>'column name of variable in evaldata file'</A_noR>
       <transition>'column name of variable in evaldata file'</transition>
+      <photorespiration>'column name of variable in evaldata file'</photorespiration>
       <d13c>'column name of variable in evaldata file'</d13c>
     </leaf>
   </state>

@@ -39,7 +39,6 @@ leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
   if(init) {
     source('../../functions/packagemod_functions.R')
     .$fns$puniroot            <- puniroot
-    #.$fns$assimilation        <- f_assimilation
     .$fns$assim_no_resistance <- f_solver_analytical_leaf_no_r
     .$fns$transition_cc       <- transition_cc
     .$fns$analytical_simple   <- f_solver_analytical_leaf_simple 
@@ -68,30 +67,31 @@ leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
 # function names
 ####################################
 leaf_object$fnames <- list(
-  sys            = 'f_sys_enzymek', 
-  solver         = 'f_solver_brent',
-  residual_func  = 'f_residual_func_leaf_Ar',
-  assimilation   = 'f_assimilation_c3',
-  semiana        = 'f_semiana_quad',
-  Acg            = 'f_Acg_farquhar1980',
-  Ajg            = 'f_Ajg_generic',
-  Apg            = 'f_Apg_vonc2000',            
-  etrans         = 'f_etrans_harley1992',
-  gas_diff       = 'f_gas_diff_ficks_ci',
-  Alim           = 'f_Alim_farquhar1980',
-  vcmax          = 'f_vcmax_lin',
-  jmax           = 'f_jmax_power',
-  tcor_jmax      = 'f_scalar_none',
-  tpu            = 'f_tpu_lin',
-  k_pepc         = 'f_k_pepc_constant',
-  rd             = 'f_rd_lin_vcmax',
-  rl_rd          = 'f_scalar_none',
-  gstar          = 'f_gstar_f1980',
-  ri             = 'f_r_zero',
-  rs             = 'f_rs_medlyn2011',
-  rb             = 'f_rb_leafdim',
-  cica_ratio     = 'f_cica_ratio_constant',             
-  d13c           = 'f_d13c_classical',             
+  sys              = 'f_sys_enzymek', 
+  solver           = 'f_solver_brent',
+  residual_func    = 'f_residual_func_leaf_Ar',
+  assimilation     = 'f_assimilation_c3',
+  photorespiration = 'f_photorespiration_f1980',
+  semiana          = 'f_semiana_quad',
+  Acg              = 'f_Acg_farquhar1980',
+  Ajg              = 'f_Ajg_generic',
+  Apg              = 'f_Apg_vonc2000',            
+  etrans           = 'f_etrans_harley1992',
+  gas_diff         = 'f_gas_diff_ficks_ci',
+  Alim             = 'f_Alim_farquhar1980',
+  vcmax            = 'f_vcmax_lin',
+  jmax             = 'f_jmax_power',
+  tcor_jmax        = 'f_scalar_none',
+  tpu              = 'f_tpu_lin',
+  k_pepc           = 'f_k_pepc_constant',
+  rd               = 'f_rd_lin_vcmax',
+  rl_rd            = 'f_scalar_none',
+  gstar            = 'f_gstar_f1980',
+  ri               = 'f_r_zero',
+  rs               = 'f_rs_medlyn2011',
+  rb               = 'f_rb_leafdim',
+  cica_ratio       = 'f_cica_ratio_constant',             
+  d13c             = 'f_d13c_classical',             
   tcor_asc = list(
     vcmax          = 'f_tcor_asc_Arrhenius',
     jmax           = 'f_tcor_asc_Arrhenius',
@@ -175,18 +175,19 @@ leaf_object$state <- list(
   lim = numeric(1),                # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
 
   # diagnostic state
-  A_ana_rbzero   = numeric(1),     # rate of carboxylation assuming zero boundary layer resistance to CO2 diffusion (umol m-2 s-1)
-  A_ana_rbg0zero = numeric(1),     # rate of carboxylation assuming zero boundary layer resistance & zero minimum stomatal conductance to CO2 diffusion (umol m-2 s-1)
-  aguess         = numeric(4),     # value of three guesses and solution from semi-analytical solver  (umol m-2 s-1)
-  faguess        = numeric(4),     # value of solver function on three guesses and solution from semi-analytical solver  (umol m-2 s-1)
-  aguess_flag    = numeric(1),     # flag for first guess from semi-analytical solver
-  iter           = numeric(1),     # number of iterations to solve solver function in Brent uniroot
-  estimprec      = numeric(1),     # estimated precision of solve from uniroot solver function 
-  assim          = numeric(2),     # roots of fitted quadratic in semi-analytical solver
-  fA_ana_final   = numeric(2),     # value of solver function for final gusee from semi-analytical solver  (umol m-2 s-1)
-  A_noR          = numeric(1),     # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
-  transition     = numeric(1),     # cc at the transition point where wc = wj                        (Pa)
-  d13c           = numeric(1)      # delta 13 C concentration of assimilated C 
+  A_ana_rbzero     = numeric(1),   # rate of carboxylation assuming zero boundary layer resistance to CO2 diffusion (umol m-2 s-1)
+  A_ana_rbg0zero   = numeric(1),   # rate of carboxylation assuming zero boundary layer resistance & zero minimum stomatal conductance to CO2 diffusion (umol m-2 s-1)
+  aguess           = numeric(4),   # value of three guesses and solution from semi-analytical solver  (umol m-2 s-1)
+  faguess          = numeric(4),   # value of solver function on three guesses and solution from semi-analytical solver  (umol m-2 s-1)
+  aguess_flag      = numeric(1),   # flag for first guess from semi-analytical solver
+  iter             = numeric(1),   # number of iterations to solve solver function in Brent uniroot
+  estimprec        = numeric(1),   # estimated precision of solve from uniroot solver function 
+  assim            = numeric(2),   # roots of fitted quadratic in semi-analytical solver
+  fA_ana_final     = numeric(2),   # value of solver function for final gusee from semi-analytical solver (umol m-2 s-1)
+  A_noR            = numeric(1),   # rate of carboxylation assuming zero resistance to CO2 diffusion      (umol m-2 s-1)
+  transition       = numeric(1),   # cc at the transition point where wc = wj                             (Pa)
+  photorespiration = numeric(1),   # photorespiration                                                     (umol CO2 m-2 s-1)
+  d13c             = numeric(1)    # delta 13 C concentration of assimilated C 
 )
 
 
@@ -405,11 +406,11 @@ leaf_object$pars   <- list(
 # run control parameters
 ####################################
 leaf_object$cpars <- list(
-  diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
-  verbose       = F,          # write diagnostic output during runtime 
+  diag      = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
+  verbose   = F,          # write diagnostic output during runtime 
   cverbose  = F,          # write diagnostic output on the solver during runtime 
-  cverbose      = F,          # write configuration output during runtime 
-  output        = 'slim'      # type of output from run function
+  cverbose  = F,          # write configuration output during runtime 
+  output    = 'slim'      # type of output from run function
 )
 
 
