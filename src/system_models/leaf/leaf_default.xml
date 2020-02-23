@@ -5,6 +5,7 @@
       <solver>'f_solver_brent'</solver>
       <residual_func>'f_residual_func_leaf_Ar'</residual_func>
       <assimilation>'f_assimilation_c3'</assimilation>
+      <photorespiration>'f_photorespiration_f1980'</photorespiration>
       <semiana>'f_semiana_quad'</semiana>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>

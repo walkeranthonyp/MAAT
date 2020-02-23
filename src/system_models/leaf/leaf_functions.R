@@ -819,6 +819,17 @@ f_gstar_f1980 <- function(., ... ) {
   .super$pars$ko_kc_ratio * .super$state_pars$Kc*.super$state$oi/(2*.super$state_pars$Ko)
 }
 
+# calculates Gamma star as a function of Kc & Ko, and thus their combined temperature dependence
+f_photorespiration_f1980 <- function(., Ag ) {
+
+  # Farquhar 1980 Eq 17, 18, 1 
+  #Ag * .super$pars$ko_kc_ratio * (.super$state$oi/.super$state_pars$Ko) / 
+  # (.super$state$cc/.super$state_pars$Kc) / 2
+
+  # based on last line of C3 assimilation function, Farquhar 1980 Eq 1
+  Ag - .super$state$A - .super$state$rd
+}
+
 
 # takes a defined ref temperature value of gstar and scales to leaf temp
 f_gstar_constref <- function(.) {

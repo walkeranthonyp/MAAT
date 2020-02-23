@@ -160,7 +160,7 @@ of_format     <- 'csv'
 # verbose - ouput various things during runtime for diagnostics
 verbose       <- F
 cverbose      <- F
-
+diag          <- F
 
 
 ##################################
@@ -279,8 +279,10 @@ maat$wpars$mcmc_check_iter    <- mcmc_check_iter
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
 
 # set debugging flags
+# APW: these could now be set as an argument to build 
 maat$model$cpars$verbose  <- verbose
 maat$model$cpars$cverbose <- cverbose
+maat$model$cpars$diag     <- diag
 
 
 
