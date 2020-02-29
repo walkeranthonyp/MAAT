@@ -373,6 +373,11 @@ if(!is.null(parsinit_mcmc)) {
     maat$wpars$mcmc_maxiter    <- maat$wpars$mcmc_maxiter + mcmc_restart_iter
     parsinit                   <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
 
+    # debugging
+    print(paste0('mcmc_restart_iter = ', mcmc_restart_iter))
+    print(paste0('maat$wpars$mcmc_start_iter = ', maat$wpars$mcmc_start_iter))
+    print(paste0('new mcmc_maxiter = ', maat$wpars$mcmc_maxiter))
+
     # check dimensions consistent
     if(mcmc_chains!=mcmc_restart_pars_dim[2]) {
       print('mcmc_chains argument different from number of chains in MCMC restart,')
@@ -400,6 +405,11 @@ if(!is.null(parsinit_mcmc)) {
   # APW: this could be moved to the generate_pars_ensemble code
   #      would probably help readability
   maat$dataf$pars <- parsinit
+
+  # debugging
+  #print('YOU ARE HERE')
+  #row.names(maat$dataf$pars) <- c('leaf.atref.vcmax','leaf.atref.jmax','leaf.theta_col_cj')
+  #print('row.names(maat$dataf$pars)'); print(maat$dataf$pars)
 }
 
 

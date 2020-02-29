@@ -134,13 +134,15 @@ init_mcmc_dream <- function(.) {
 proposal_generate_mcmc_dream <- function(., j ) {
 
   # debugging
-  print('beginning of proposal generation'); print(paste0('j = ',j))
-  print('.$wpars$parsinit_read'); print(.$wpars$parsinit_read)
-  print('.$mcmc$j_burnin50'); print(.$mcmc$j_burnin50)
-  print('.$wpars$mcmc_maxiter'); print(.$wpars$mcmc_maxiter)
-  print('dim(.$dataf$conv_check)'); print(dim(.$dataf$conv_check))
-  print('nrow, dim(.$dataf$pars)[1]+1'); print(dim(.$dataf$pars)[1]+1)
-  print('.$dataf$conv_check'); print(.$dataf$conv_check)
+  #print('beginning of proposal generation'); print(paste0('j = ',j))
+  #print('.$wpars$parsinit_read'); print(.$wpars$parsinit_read)
+  #print('.$mcmc$j_burnin50'); print(.$mcmc$j_burnin50)
+  #print('.$wpars$mcmc_maxiter'); print(.$wpars$mcmc_maxiter)
+  #print('dim(.$dataf$conv_check)'); print(dim(.$dataf$conv_check))
+  #print('nrow, dim(.$dataf$pars)[1]+1'); print(dim(.$dataf$pars)[1]+1)
+  #print('.$dataf$conv_check'); print(.$dataf$conv_check)
+  #print('names(.$dataf$pars)'); print(names(.$dataf$pars))
+  print(paste0('j = ',j))
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[] <- 0
@@ -176,6 +178,10 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
     if (.$wpars$mcmc_adapt_pCR) {
       # modify each dimension with probability CR each time a proposal vector is generated
+
+      # debugging
+      #print('you are here 1')
+      print(paste0('error occurring in generate_CR fxn here'))
 
       # generate crossover probability
       .$mcmc$m[ii] <- .$generate_CR()
@@ -300,6 +306,11 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
   if (.$wpars$mcmc_adapt_pCR & (.$mcmc$t < .$mcmc$CR_burnin)) {
 
+    # debugging
+    print('if-statement triggered calling .$adapt_pCR()')
+    print('.$mcmc$t'); print(.$mcmc$t)
+    print('.$mcmc$CR_burnin'); print(.$mcmc$CR_burnin)
+
     # update the selection probability of crossover probabilities/values
     .$adapt_pCR()
 
@@ -325,6 +336,11 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
 
 # function that generates/updates crossover values based on current probabilities
 generate_CR <- function(.) {
+
+  # debugging
+  print('in generate_CR function')
+  #print('.$wpars$mcmc_n_CR'); print(.$wpars$mcmc_n_CR)
+  print('.$mcmc$p_CR'); print(.$mcmc$p_CR)
 
   # sample m from numbers 1,...,n_CR using multinomial distribution (with probabilities p_CR)
   m <- sample(1:.$wpars$mcmc_n_CR, size = 1, replace = T, prob = .$mcmc$p_CR)
@@ -353,11 +369,26 @@ calc_del <- function(., j, ii) {
 
   .$mcmc$del[.$mcmc$m[ii]] <- .$mcmc$del[.$mcmc$m[ii]] + summation
 
+  # debugging
+  print('calc_del function being called')
+  #print('.$mcmc$sd_state'); print(.$mcmc$sd_state)
+  print('summation = '); print(summation)
+  print('.$dataf$pars_array[,ii,j]'); print(.$dataf$pars_array[,ii,j])
+  print('.$dataf$pars_array[,ii,j-1]'); print(.$dataf$pars_array[,ii,j-1])
+
 }
 
 
 # function that adapts crossover probabilities
 adapt_pCR <- function(.) {
+
+  # debugging
+  print('adapt_pCR function being called')
+  #print('.$mcmc$L'); print(.$mcmc$L)
+  #print('.$wpars$mcmc_chains'); print(.$wpars$mcmc_chains)
+  print('.$mcmc$del'); print(.$mcmc$del)
+  # t is re-initialized to 1 in a restart
+  # .$mcmc$ del is zero though?
 
   # update the probability of the different crossover values being selected
   for (qq in 1:.$wpars$mcmc_n_CR) {
@@ -684,20 +715,19 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   .$dataf$conv_check[,.$wpars$mcmc_check_ss] <- R_hat_new
 
   # debugging
-  print(paste0('convergence test, j = ',j))
+  #print(paste0('convergence test, j = ',j))
   #print(paste0('.$wpars$mcmc_check_ss = ',.$wpars$mcmc_check_ss))
   #print('R_hat'); print(R_hat_new)
-  if (j == .$wpars$mcmc_maxiter) {
-    print('.$dataf$conv_check')
-    print(.$dataf$conv_check)
-    print(paste0('iter_out_start_thin = ', .$mcmc$j_burnin50/.$wpars$mcmc_maxiter))
-    print(paste0('iter_out_end_thin = ', .$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter ))
-  }
+  #if (j == .$wpars$mcmc_maxiter) {
+  #  print('.$dataf$conv_check')
+  #  print(.$dataf$conv_check)
+  #  print(paste0('iter_out_start_thin = ', .$mcmc$j_burnin50/.$wpars$mcmc_maxiter))
+  #  print(paste0('iter_out_end_thin = ', .$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter ))
+  #}
 
   if (j == .$wpars$mcmc_maxiter) {
-    print(paste0("At iteration ", j, ", R-statistic of Gelman and Rubin = "))
-    print(R_hat)
-    print(.$dataf$conv_check)
+    print(paste0("At iteration ", j, ", R-statistic of Gelman and Rubin = ")); print(R_hat)
+    print('Convergence criterion:'); print(.$dataf$conv_check)
   }
 }
 

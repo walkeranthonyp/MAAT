@@ -180,6 +180,9 @@ init_output_matrix_mcmc_dream <- function(.) {
   # accepted proposal array
   .$dataf$pars_array    <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter ))
 
+  # ALJ: need the parameter names to carry through to a restart
+  if(!.$wpars$parsinit_read) row.names(.$dataf$pars_array) <- row.names(.$dataf$pars)
+
   # accepted proposal likelihood matrix
   .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter )
 
@@ -198,11 +201,17 @@ init_output_matrix_mcmc_dream <- function(.) {
 
   # if a restart assign values from restart
   if(.$wpars$parsinit_read) {
-    .$dataf$pars_array[,,1:.$mcmc_start_iter]   <- .$dataf$mcmc_input$pars_array
-    .$dataf$pars_lklihood[,1:.$mcmc_start_iter] <- .$dataf$mcmc_input$pars_lklihood
-    .$dataf$out_mcmc[,,1:.$mcmc_start_iter]     <- .$dataf$mcmc_input$out_mcmc
+    #.$dataf$pars_array[,,1:.$wpars$mcmc_start_iter]   <- .$dataf$mcmc_input$pars_array
+    .$dataf$pars_array[,,1:.$wpars$mcmc_start_iter-1]   <- .$dataf$mcmc_input$pars_array
+    #.$dataf$pars_lklihood[,1:.$wpars$mcmc_start_iter] <- .$dataf$mcmc_input$pars_lklihood
+    .$dataf$pars_lklihood[,1:.$wpars$mcmc_start_iter-1] <- .$dataf$mcmc_input$pars_lklihood
+    # ALJ: could try to find more efficient way to store/read in model evaluations
+    #.$dataf$out_mcmc[,,1:.$wpars$mcmc_start_iter]     <- .$dataf$mcmc_input$out_mcmc
+    .$dataf$out_mcmc[,,1:.$wpars$mcmc_start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
     # APW: there is the potential for these two arrays to be 1 short in the final dimension
-    check_iter_n_restart                        <- dim(.$dataf$mcmc_input$omega)[2]
+    # ALJ: check_iter_n_restart = 0 b/c there is not a .$dataf$mcmc_input$omega
+    #check_iter_n_restart                        <- dim(.$dataf$mcmc_input$omega)[2]
+    check_iter_n_restart                        <- dim(.$dataf$mcmc_input$conv_check)[2]
     #.$dataf$omega[,1:check_iter_n_restart]      <- .$dataf$mcmc_input$omega
     .$dataf$conv_check[,1:check_iter_n_restart] <- .$dataf$mcmc_input$conv_check
     .$dataf$mcmc_input <- NULL
@@ -893,7 +902,8 @@ output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, iter_out_end=
     pars_lklihood = .$dataf$pars_lklihood[,iter_out_start:iter_out_end],
     mod_out_final = .$dataf$out,
     obs           = .$dataf$obs,
-    mod_eval      = .$dataf$out_mcmc[,,iter_out_start:iter_out_end],
+    #mod_eval      = .$dataf$out_mcmc[,,iter_out_start:iter_out_end],
+    out_mcmc      = .$dataf$out_mcmc[,,iter_out_start:iter_out_end],
     conv_check    = .$dataf$conv_check[,iter_out_start_thin:iter_out_end_thin]
   )
 }
