@@ -125,7 +125,7 @@ f_sys_enzymek <- function(.) {
     # diagnostic calculations
     if(.super$cpars$diag & grepl('c3',.super$fnames$assimilation)) { 
       .super$state$transition       <- .$fns$transition_cc()
-      .super$state$photorespiration <- .$fns$photorespiration(Ag=lim)
+      .super$state$photorespiration <- .$fns$photorespiration()
     }
 
   # if PAR <= 0
