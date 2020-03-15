@@ -437,6 +437,16 @@ f_rs_medlyn_lin2015 <- function(., A=.super$state$A, c=.super$state$cb ) {
 f_rs_medlyn_lin2015_fe <- f_rs_medlyn2011_fe
 f_rs_medlyn_lin2015_r0 <- f_rs_medlyn2011_r0
 
+f_rs_dewar2019 <- function(., A=.super$state$A, c=.super$state$cb ) {
+  # expects c in Pa
+  # output in m2s mol-1 h2o
+  
+  1 / ( .super$pars$g0 + .$rs_fe()*A*.super$env$atm_press*1e-6/(c-.super$state_pars$gamma) ) 
+}
+
+f_rs_dewar2019_fe  <- f_rs_medlyn2011_fe
+f_rs_dewar2019_r0  <- f_rs_medlyn2011_r0
+
 
 # Leuning et al 1995 eq for stomatal resistance
 f_rs_leuning1995 <- function(., A=.super$state$A, c=.super$state$cb ) {
@@ -820,14 +830,11 @@ f_gstar_f1980 <- function(., ... ) {
 }
 
 # calculates Gamma star as a function of Kc & Ko, and thus their combined temperature dependence
-f_photorespiration_f1980 <- function(., Ag ) {
-
-  # Farquhar 1980 Eq 17, 18, 1 
-  #Ag * .super$pars$ko_kc_ratio * (.super$state$oi/.super$state_pars$Ko) / 
-  # (.super$state$cc/.super$state_pars$Kc) / 2
+f_photorespiration_f1980 <- function(.) {
 
   # based on last line of C3 assimilation function, Farquhar 1980 Eq 1
-  Ag - .super$state$A - .super$state$rd
+  Amin <- .$Alim() 
+  Amin - .super$state$A - .super$state$rd
 }
 
 
