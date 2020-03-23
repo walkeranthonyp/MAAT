@@ -620,58 +620,66 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   # APW: Why is it that here we're calculating convergence using indexes:
   #      ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter
   #      this is calculating convergence based on pars that have not yet been determined
+  # ALJ: thanks for catching this bug! it should be corrected now
 
   x_bar <- matrix(0, nrow = .$mcmc$d, ncol = .$wpars$mcmc_chains)
-  for (jj in 1:.$mcmc$d) {
-    for (r in 1:.$wpars$mcmc_chains) {
-      #for (i in ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter) {
-      for (i in .$mcmc$j_burnin50:j) {
-        x_bar[jj, r] <- x_bar[jj, r] + .$dataf$pars_array[jj, r, i]
-      }
-    }
-  }
-  #APW rewrite attempt: x_bar <- apply(.$dataf$pars_array[,,.$mcmc$j_burnin50:j], 1:2, sum )
+  #for (jj in 1:.$mcmc$d) {
+  #  for (r in 1:.$wpars$mcmc_chains) {
+  #    #for (i in ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter) {
+  #    for (i in .$mcmc$j_burnin50:j) {
+  #      x_bar[jj, r] <- x_bar[jj, r] + .$dataf$pars_array[jj, r, i]
+  #    }
+  #  }
+  #}
+  x_bar <- apply(.$dataf$pars_array[,,.$mcmc$j_burnin50:j], 1:2, sum)
   x_bar <- (2/(.$wpars$mcmc_maxiter - 2)) * x_bar
 
-  # effective number of iterations since burnin began
+  # effective number of iterations since burn-in began
   iter_effective <- j - .$mcmc$j_start_burnin + 1
 
-  for (jj in 1:.$mcmc$d) {
-    summation <- 0
-    for (r in 1:.$wpars$mcmc_chains) {
-      #for (i in ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter) {
-      for (i in .$mcmc$j_burnin50:j) {
-        x_bar[jj, r] <- x_bar[jj, r] + .$dataf$pars_array[jj, r, i]
-        summation <- summation + (.$dataf$pars_array[jj, r, i] - x_bar[jj, r]) * (.$dataf$pars_array[jj, r, i] - x_bar[jj, r])
-      }
-    }
-    #W[jj] <- 2 / (.$wpars$mcmc_chains * (.$wpars$mcmc_maxiter - 2)) * summation
-    W[jj] <- 2 / (.$wpars$mcmc_chains*(iter_effective-2))*summation
-  }
+  #for (jj in 1:.$mcmc$d) {
+  #  summation <- 0
+  #  for (r in 1:.$wpars$mcmc_chains) {
+  #    #for (i in ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter) {
+  #    for (i in .$mcmc$j_burnin50:j) {
+  #      x_bar[jj, r] <- x_bar[jj, r] + .$dataf$pars_array[jj, r, i]
+  #      summation <- summation + (.$dataf$pars_array[jj, r, i] - x_bar[jj, r]) * (.$dataf$pars_array[jj, r, i] - x_bar[jj, r])
+  #    }
+  #  }
+  x_bar <- apply(.$dataf$pars_array[,,.$mcmc$j_burnin50:j], 1:2, sum)
+  summation <- apply(((.$dataf$pars_array[,,.$mcmc$j_burnin50:j]-x_bar[,])^2), 1:2, sum)
+  #W[jj] <- 2 / (.$wpars$mcmc_chains * (.$wpars$mcmc_maxiter - 2)) * summation
+  #W[jj] <- 2 / (.$wpars$mcmc_chains*(iter_effective-2))*summation
+  W <- 2 / (.$wpars$mcmc_chains*(iter_effective-2))*summation
+  #}
 
   # between chain variance
   #B <- rep(0, .$mcmc$d)
   B <- numeric(.$mcmc$d)
 
   x_double_bar <- rep(0, .$mcmc$d)
-  for (jj in 1:.$mcmc$d) {
-    for (r in 1:.$wpars$mcmc_chains) {
-      x_double_bar[jj] <- x_double_bar[jj] + x_bar[jj, r]
-    }
-  }
+  #for (jj in 1:.$mcmc$d) {
+  #  for (r in 1:.$wpars$mcmc_chains) {
+  #    x_double_bar[jj] <- x_double_bar[jj] + x_bar[jj, r]
+  #  }
+  #}
+  x_double_bar <- apply(x_bar[,], 1:2, sum)
 
   x_double_bar <- (1 / .$wpars$mcmc_chains) * x_double_bar
 
-  for (jj in 1:.$mcmc$d) {
-    summation <- 0
-    for (r in 1:.$wpars$mcmc_chains) {
-      summation <- summation + (x_bar[jj, r] - x_double_bar[jj]) * (x_bar[jj, r] - x_double_bar[jj])
-    }
-    B[jj] <- (iter_effective / (2 * (.$wpars$mcmc_chains - 1))) * summation
-  }
+  #for (jj in 1:.$mcmc$d) {
+  #  summation <- 0
+  #  for (r in 1:.$wpars$mcmc_chains) {
+  #    summation <- summation + (x_bar[jj, r] - x_double_bar[jj]) * (x_bar[jj, r] - x_double_bar[jj])
+  #  }
+  summation <- apply(((x_bar[,]-x_double_bar[])^2), 1:2, sum)
+  #B[jj] <- (iter_effective / (2 * (.$wpars$mcmc_chains - 1))) * summation
+  B <- (iter_effective / (2 * (.$wpars$mcmc_chains - 1))) * summation
+  #}
 
   # estimate variance of jj-th paraemter of target distribution
-  sigma_hat <- rep(0, .$mcmc$d)
+  #sigma_hat <- rep(0, .$mcmc$d)
+  sigma_hat <- numeric(.$mcmc$d)
   for(jj in 1:.$mcmc$d) {
     sigma_hat[jj] <- ((iter_effective-2)/iter_effective)*W[jj] + (2/iter_effective)*B[jj]
   }
@@ -684,14 +692,14 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   }
 
   # add R_hat to storage array
-#  if(j!=.$wpars$mcmc_maxiter) {
-#    counter <- j/.$wpars$mcmc_check_iter
-#  } else if((j==.$wpars$mcmc_maxiter) & (j%%.$wpars$mcmc_check_iter==0)) {
-#    counter <- j / .$wpars$mcmc_check_iter
-#  } else {
-#    # in this case ((j == .$wpars$mcmc_maxiter) & (j %% .$wpars$mcmc_check_iter != 0))
-#    counter <- ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter)
-#  }
+  # if(j!=.$wpars$mcmc_maxiter) {
+  #    counter <- j/.$wpars$mcmc_check_iter
+  #  } else if((j==.$wpars$mcmc_maxiter) & (j%%.$wpars$mcmc_check_iter==0)) {
+  #    counter <- j / .$wpars$mcmc_check_iter
+  #  } else {
+  #    # in this case ((j == .$wpars$mcmc_maxiter) & (j %% .$wpars$mcmc_check_iter != 0))
+  #    counter <- ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter)
+  #  }
   # APW: this counter is calculated in multiple places - can make a variable in the data structure and just calculate once
   #if((j==.$wpars$mcmc_maxiter) & (j%%.$wpars$mcmc_check_iter!=0)) {
   #  counter <- ceiling(.$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter)
@@ -699,6 +707,7 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   #  counter <- j/.$wpars$mcmc_check_iter
   #}
 
+  # append corresponting iteration number to R_hat vector
   R_hat_new <- append(R_hat, j, after=0 )
   .$dataf$conv_check[,.$wpars$mcmc_check_ss] <- R_hat_new
 
@@ -785,17 +794,14 @@ mcmc_outlier_iqr <- function(.,j) {
   #   else                                                     j - ceiling((j+.$wpars$mcmc_start_iter-1)/2)
 
   # extract last 50% of samples of each chain
-  # APW: isn't the 1:chains indexing unnecessary here? That's the full extent of the dimension right?
-  #      also, sbst is just an intermediary variable that's only used once, i suggest getting rid of it
-  sbst <- .$dataf$pars_lklihood[1:.$wpars$mcmc_chains, .$mcmc$j_burnin50:j]
+  #sbst <- .$dataf$pars_lklihood[,.$mcmc$j_burnin50:j]
 
   # take the mean of the log of the posterior densities and store in omega
   # IMPORTANT: all current likelihood function options already return log-likelihood
   #            so it's not necessary to take the log of sbst components here
   #            but this may change in the future with different likelihood functions
-  # APW: can use an apply function here instead of for loop
-  #      .$dataf$omega[,.$wpars$mcmc_check_ss] <- apply(sbst, 1, mean )
-  for (ii in 1:.$wpars$mcmc_chains) .$dataf$omega[ii,.$wpars$mcmc_check_ss] <- mean(sbst[ii, ])
+  #for (ii in 1:.$wpars$mcmc_chains) .$dataf$omega[ii,.$wpars$mcmc_check_ss] <- mean(sbst[ii, ])
+  .$dataf$omega[,.$wpars$mcmc_check_ss] <- apply(.$dataf$pars_lklihood[,.$mcmc$j_burnin50:j], 1, mean)
 
   # determine upper and lower quantiles of N different chains
   q1 <- quantile(.$dataf$omega[1:.$wpars$mcmc_chains,.$wpars$mcmc_check_ss], prob = 0.25, type = 1)
@@ -844,13 +850,8 @@ mcmc_outlier_iqr <- function(.,j) {
 
   # IMPORTANT: identifying and correcting outliers should only be done during burn-in
   #            because it violates the balance of sampled chains and destroys reversibility
-  #            if outlier chain is detected, discard all previous sample history append
+  #            if outlier chain is detected, discard all previous sample history, then append
   #            and apply another burn-in period before generating posterior moments
-
-  # future work: if outlier is detected, throw out all previous MCMC samples
-  #              this is currently done manually in post-processing
-  #              maybe automate this moving forward?
-  # APW: done - as yet untested
 }
 
 
