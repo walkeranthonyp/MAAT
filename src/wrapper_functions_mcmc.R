@@ -609,109 +609,43 @@ mcmc_converge_none <- function(.,j) {
 # subroutine calculating the R-statistic of Gelman and Rubin (convergence diagnostic)
 mcmc_converge_Gelman_Rubin <- function(.,j) {
 
-  # IMPORTANT: beware of pseudo-convergence
-  #            R_hat may sometimes be small in early iterations, looking as if it has converged,
-  #            so make sure to run algorithm for an appropriately long number of samples
+  # effective number of iterations since burn-in began
+  # ALJ: this needs to equivalent to the total number of "usable" time samples in each chain?
+  iter_effective <- j-.$mcmc$j_start_burnin+1
+  half_effective <- iter_effective/2
 
   # within-chain variance
-  #W <- rep(0, .$mcmc$d)
   W <- numeric(.$mcmc$d)
 
-  # APW: Why is it that here we're calculating convergence using indexes:
-  #      ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter
-  #      this is calculating convergence based on pars that have not yet been determined
-  # ALJ: thanks for catching this bug! it should be corrected now
+  x_bar <- matrix(0, nrow=.$mcmc$d, ncol=.$wpars$mcmc_chains)
+  x_bar <- (2/(iter_effective-2)) * apply(.$dataf$pars_array[,,half_effective:iter_effective], 1:2, sum)
 
-  x_bar <- matrix(0, nrow = .$mcmc$d, ncol = .$wpars$mcmc_chains)
-  #for (jj in 1:.$mcmc$d) {
-  #  for (r in 1:.$wpars$mcmc_chains) {
-  #    #for (i in ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter) {
-  #    for (i in .$mcmc$j_burnin50:j) {
-  #      x_bar[jj, r] <- x_bar[jj, r] + .$dataf$pars_array[jj, r, i]
-  #    }
-  #  }
-  #}
-  x_bar <- apply(.$dataf$pars_array[,,.$mcmc$j_burnin50:j], 1:2, sum)
-  x_bar <- (2/(.$wpars$mcmc_maxiter - 2)) * x_bar
+  summation <- numeric(.$mcmc$d)
+  for (jj in 1:.$mcmc$d) summation[jj] <- sum((.$dataf$pars_array[jj,,half_effective:iter_effective]-x_bar[jj,])^2)
 
-  # effective number of iterations since burn-in began
-  iter_effective <- j - .$mcmc$j_start_burnin + 1
+  W <- 2/(.$wpars$mcmc_chains*(iter_effective-2))*summation
 
-  #for (jj in 1:.$mcmc$d) {
-  #  summation <- 0
-  #  for (r in 1:.$wpars$mcmc_chains) {
-  #    #for (i in ceiling(.$wpars$mcmc_maxiter / 2):.$wpars$mcmc_maxiter) {
-  #    for (i in .$mcmc$j_burnin50:j) {
-  #      x_bar[jj, r] <- x_bar[jj, r] + .$dataf$pars_array[jj, r, i]
-  #      summation <- summation + (.$dataf$pars_array[jj, r, i] - x_bar[jj, r]) * (.$dataf$pars_array[jj, r, i] - x_bar[jj, r])
-  #    }
-  #  }
-  x_bar <- apply(.$dataf$pars_array[,,.$mcmc$j_burnin50:j], 1:2, sum)
-  summation <- apply(((.$dataf$pars_array[,,.$mcmc$j_burnin50:j]-x_bar[,])^2), 1:2, sum)
-  #W[jj] <- 2 / (.$wpars$mcmc_chains * (.$wpars$mcmc_maxiter - 2)) * summation
-  #W[jj] <- 2 / (.$wpars$mcmc_chains*(iter_effective-2))*summation
-  W <- 2 / (.$wpars$mcmc_chains*(iter_effective-2))*summation
-  #}
-
-  # between chain variance
-  #B <- rep(0, .$mcmc$d)
+  # between-chain variance
   B <- numeric(.$mcmc$d)
 
-  x_double_bar <- rep(0, .$mcmc$d)
-  #for (jj in 1:.$mcmc$d) {
-  #  for (r in 1:.$wpars$mcmc_chains) {
-  #    x_double_bar[jj] <- x_double_bar[jj] + x_bar[jj, r]
-  #  }
-  #}
-  x_double_bar <- apply(x_bar[,], 1:2, sum)
+  x_double_bar <- numeric(.$mcmc$d)
+  x_double_bar <- (1/.$wpars$mcmc_chains) * apply(x_bar[,], 1, sum)
 
-  x_double_bar <- (1 / .$wpars$mcmc_chains) * x_double_bar
+  summation <- apply(((x_bar[,]-x_double_bar[])^2), 1, sum)
 
-  #for (jj in 1:.$mcmc$d) {
-  #  summation <- 0
-  #  for (r in 1:.$wpars$mcmc_chains) {
-  #    summation <- summation + (x_bar[jj, r] - x_double_bar[jj]) * (x_bar[jj, r] - x_double_bar[jj])
-  #  }
-  summation <- apply(((x_bar[,]-x_double_bar[])^2), 1:2, sum)
-  #B[jj] <- (iter_effective / (2 * (.$wpars$mcmc_chains - 1))) * summation
-  B <- (iter_effective / (2 * (.$wpars$mcmc_chains - 1))) * summation
-  #}
+  B <- (iter_effective/(2*(.$wpars$mcmc_chains-1)))*summation
 
   # estimate variance of jj-th paraemter of target distribution
-  #sigma_hat <- rep(0, .$mcmc$d)
-  sigma_hat <- numeric(.$mcmc$d)
-  for(jj in 1:.$mcmc$d) {
-    sigma_hat[jj] <- ((iter_effective-2)/iter_effective)*W[jj] + (2/iter_effective)*B[jj]
-  }
+  sigma_hat <- ((iter_effective-2)/iter_effective)*W + (2/iter_effective)*B
 
   # R-statistic of Gelman and Rubin
-  #R_hat <- rep(0, .$mcmc$d)
-  R_hat <- numeric(.$mcmc$d)
-  for (jj in 1:.$mcmc$d) {
-    R_hat[jj] <- sqrt(((.$wpars$mcmc_chains + 1)/.$wpars$mcmc_chains) * (sigma_hat[jj]/W[jj]) - ((iter_effective - 2)/(.$wpars$mcmc_chains*iter_effective)))
-  }
+  R_hat <- sqrt(((.$wpars$mcmc_chains+1)/.$wpars$mcmc_chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc_chains*iter_effective)))
 
-  # add R_hat to storage array
-  # if(j!=.$wpars$mcmc_maxiter) {
-  #    counter <- j/.$wpars$mcmc_check_iter
-  #  } else if((j==.$wpars$mcmc_maxiter) & (j%%.$wpars$mcmc_check_iter==0)) {
-  #    counter <- j / .$wpars$mcmc_check_iter
-  #  } else {
-  #    # in this case ((j == .$wpars$mcmc_maxiter) & (j %% .$wpars$mcmc_check_iter != 0))
-  #    counter <- ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter)
-  #  }
-  # APW: this counter is calculated in multiple places - can make a variable in the data structure and just calculate once
-  #if((j==.$wpars$mcmc_maxiter) & (j%%.$wpars$mcmc_check_iter!=0)) {
-  #  counter <- ceiling(.$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter)
-  #} else {
-  #  counter <- j/.$wpars$mcmc_check_iter
-  #}
-
-  # append corresponting iteration number to R_hat vector
-  R_hat_new <- append(R_hat, j, after=0 )
+  # append corresponding effective iteration number to R_hat vector
+  R_hat_new <- append(R_hat, iter_effective, after=0 )
   .$dataf$conv_check[,.$wpars$mcmc_check_ss] <- R_hat_new
 
-  if (j == .$wpars$mcmc_maxiter) {
+  if (j==.$wpars$mcmc_maxiter) {
     print(paste0("At iteration ", j, ", R-statistic of Gelman and Rubin = ")); print(R_hat)
     print('Convergence criterion:'); print(.$dataf$conv_check)
   }
