@@ -615,27 +615,21 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   half_effective <- iter_effective/2
 
   # within-chain variance
-  W <- numeric(.$mcmc$d)
-
-  x_bar <- matrix(0, nrow=.$mcmc$d, ncol=.$wpars$mcmc_chains)
-  x_bar <- (2/(iter_effective-2)) * apply(.$dataf$pars_array[,,half_effective:iter_effective], 1:2, sum)
-
+  #W <- numeric(.$mcmc$d)
+  #x_bar <- matrix(0, nrow=.$mcmc$d, ncol=.$wpars$mcmc_chains)
+  x_bar     <- (2/(iter_effective-2)) * apply(.$dataf$pars_array[,,half_effective:iter_effective], 1:2, sum)
   summation <- numeric(.$mcmc$d)
   for (jj in 1:.$mcmc$d) summation[jj] <- sum((.$dataf$pars_array[jj,,half_effective:iter_effective]-x_bar[jj,])^2)
-
-  W <- 2/(.$wpars$mcmc_chains*(iter_effective-2))*summation
+  W         <- 2/(.$wpars$mcmc_chains*(iter_effective-2))*summation
 
   # between-chain variance
-  B <- numeric(.$mcmc$d)
-
-  x_double_bar <- numeric(.$mcmc$d)
+  #B <- numeric(.$mcmc$d)
+  #x_double_bar <- numeric(.$mcmc$d)
   x_double_bar <- (1/.$wpars$mcmc_chains) * apply(x_bar[,], 1, sum)
+  summation    <- apply(((x_bar[,]-x_double_bar[])^2), 1, sum)
+  B            <- (iter_effective/(2*(.$wpars$mcmc_chains-1)))*summation
 
-  summation <- apply(((x_bar[,]-x_double_bar[])^2), 1, sum)
-
-  B <- (iter_effective/(2*(.$wpars$mcmc_chains-1)))*summation
-
-  # estimate variance of jj-th paraemter of target distribution
+  # estimate variance of jjth parameter of target distribution
   sigma_hat <- ((iter_effective-2)/iter_effective)*W + (2/iter_effective)*B
 
   # R-statistic of Gelman and Rubin

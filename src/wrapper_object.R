@@ -277,43 +277,44 @@ wrapper_object$dataf  <- list(
 
 # parameters specific to the wrapper object
 wrapper_object$wpars <- list(
-  multic             = F,             # multicore the simulation
-  procs              = 6,             # number of processors to use if multic = T
-  cverbose           = F,             # write configuration output during runtime
-  UQ                 = F,             # run a UQ analysis
-  runtype            = 'none',        # ensemble type - 'factorial', 'SApar_saltelli', and 'SAprocess_ye' available so far
-  of_dir             = '~/tmp',       # output directory
-  of_type            = 'csv',         # output file type - 'csv' or 'rds'
-  of_name            = '',            # output file name - excluding file extension
-  of_name_stem       = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
-  n                  = numeric(1),    # parameter sample number
-  parsinit_read      = F,             # parameter samples have been read from a file
-  nmult              = 1,             # parameter sample number multiplier for saltelli method
-  eval_strings       = F,             # switch telling wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
-  sobol_init         = T,             # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
-  unit_testing       = F,
+  multic        = F,             # multicore the simulation
+  procs         = 6,             # number of processors to use if multic = T
+  cverbose      = F,             # write configuration output during runtime
+  UQ            = F,             # run a UQ analysis
+  runtype       = 'none',        # ensemble type - 'factorial', 'SApar_saltelli', and 'SAprocess_ye' available so far
+  of_dir        = '~/tmp',       # output directory
+  of_type       = 'csv',         # output file type - 'csv' or 'rds'
+  of_name       = '',            # output file name - excluding file extension
+  of_name_stem  = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
+  n             = numeric(1),    # parameter sample number
+  parsinit_read = F,             # parameter samples have been read from a file
+  nmult         = 1,             # parameter sample number multiplier for saltelli method
+  eval_strings  = F,             # switch telling wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
+  sobol_init    = T,             # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
+  unit_testing  = F,
+
   mcmc_pars = list(
-              run_type      = 'dream',
-              lklihood      = 'ssquared',
-              outlier       = 'iqr',
-              mcmc_converge = 'Gelman_Rubin',
-              bdry_handling = 'bound',
-              init_prior    = 'uniform',
-              chains        = 7,
-              maxiter       = 1000,
-              start_iter    = 2,
-              thin          = 0.1,
-              thin_obs      = 1,
-              homosced      = F,
-              chain_delta   = 3,
-              c_rand        = 0.01,
-              c_ergod       = 1e-12,
-              p_gamma       = 0.2,
-              n_CR          = 3,
-              adapt_pCR     = T,
-              CR_burnin     = 0.1,
-              check_ss      = numeric(1),
-              check_iter    = 10
+    run_type      = 'dream',
+    lklihood      = 'ssquared',
+    outlier       = 'iqr',
+    mcmc_converge = 'Gelman_Rubin',
+    bdry_handling = 'bound',
+    init_prior    = 'uniform',
+    chains        = 7,
+    maxiter       = 1000,
+    start_iter    = 2,
+    thin          = 0.1,
+    thin_obs      = 1,
+    homosced      = F,
+    chain_delta   = 3,
+    c_rand        = 0.01,
+    c_ergod       = 1e-12,
+    p_gamma       = 0.2,
+    n_CR          = 3,
+    adapt_pCR     = T,
+    CR_burnin     = 0.1,
+    check_ss      = numeric(1),
+    check_iter    = 10
   )
 )
 
@@ -326,13 +327,13 @@ wrapper_object$mcmc <- list(
   d                = numeric(1),
   CR               = numeric(1),
   p_CR             = numeric(1),
-  R                = matrix(1,1,1),
-  current_state    = matrix(1,1,1),
+  R                = matrix(),
+  current_state    = matrix(),
   p_state          = numeric(1),
   sd_state         = numeric(1),
-  jump             = matrix(1,1,1),
-  draw             = matrix(1,1,1),
-  lambda           = matrix(1,1,1),
+  jump             = matrix(),
+  draw             = matrix(),
+  lambda           = matrix(),
   boundary_min     = numeric(1),
   boundary_max     = numeric(1),
   del              = numeric(1),
