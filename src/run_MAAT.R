@@ -368,18 +368,36 @@ if(!is.null(parsinit_mcmc)) {
 
   if(parsinit_mcmc=='restart') {
     print('MCMC restart')
+    
+    # define beginning and end iteration counters 
     mcmc_restart_iter          <- mcmc_restart_pars_dim[3]
     maat$wpars$mcmc$start_iter <- mcmc_restart_iter + 1
     maat$wpars$mcmc$maxiter    <- maat$wpars$mcmc$maxiter + mcmc_restart_iter
-    parsinit                   <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
+    
+    # assign starting parameter values 
+    parsinit <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
 
-    # check dimensions consistent
-    if(mcmc_chains!=mcmc_restart_pars_dim[2]) {
-      print('mcmc_chains argument different from number of chains in MCMC restart,')
-      print(paste('overwriting mcmc_chains argument with:', mcmc_restart_pars_dim[2] ))
-      maat$mcmc_chains <- mcmc_restart_pars_dim[2]
-      # can do the same for number of parameters and other run variables
-    }
+    # update user-defined MCMC parameters passed from restart
+    maat$wpars$mcmc$chains    <- maat$dataf$mcmc_input$wpars$mcmc$chains
+    maat$wpars$mcmc$n_CR      <- maat$dataf$mcmc_input$wpars$mcmc$n_CR
+    maat$wpars$mcmc$adapt_pCR <- maat$dataf$mcmc_input$wpars$mcmc$adapt_pCR
+    maat$wpars$mcmc$CR_burnin <- maat$dataf$mcmc_input$wpars$mcmc$CR_burnin
+
+    # update MCMC variables passed from restart
+    maat$mcmc$CR   <- maat$dataf$mcmc_input$mcmc$CR
+    maat$mcmc$p_CR <- maat$dataf$mcmc_input$mcmc$p_CR
+    maat$mcmc$del  <- maat$dataf$mcmc_input$mcmc$del
+    maat$mcmc$L    <- maat$dataf$mcmc_input$mcmc$L
+    maat$mcmc$t    <- maat$dataf$mcmc_input$mcmc$t
+    maat$mcmc$m    <- maat$dataf$mcmc_input$mcmc$m 
+
+    ## check dimensions consistent
+    #if(mcmc_chains!=mcmc_restart_pars_dim[2]) {
+    #  print('mcmc_chains argument different from number of chains in MCMC restart,')
+    #  print(paste('overwriting mcmc_chains argument with:', mcmc_restart_pars_dim[2] ))
+    #  maat$mcmc_chains <- mcmc_restart_pars_dim[2]
+    #  # can do the same for number of parameters and other run variables
+    #}
 
   } else if(parsinit_mcmc=='ensemble') {
     print('forward run from MCMC calibrated parameters')
@@ -400,7 +418,6 @@ if(!is.null(parsinit_mcmc)) {
   # APW: this could be moved to the generate_pars_ensemble code
   #      would probably help readability
   maat$dataf$pars <- parsinit
-
 }
 
 

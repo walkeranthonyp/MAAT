@@ -209,18 +209,13 @@ init_output_matrix_mcmc_dream <- function(.) {
 
   # if a restart assign values from restart
   if(.$wpars$parsinit_read) {
-    #.$dataf$pars_array[,,1:.$wpars$mcmc$start_iter]   <- .$dataf$mcmc_input$pars_array
     .$dataf$pars_array[,,1:.$wpars$mcmc$start_iter-1]   <- .$dataf$mcmc_input$pars_array
-    #.$dataf$pars_lklihood[,1:.$wpars$mcmc$start_iter] <- .$dataf$mcmc_input$pars_lklihood
     .$dataf$pars_lklihood[,1:.$wpars$mcmc$start_iter-1] <- .$dataf$mcmc_input$pars_lklihood
     # ALJ: could try to find more efficient way to store/read in model evaluations
-    #.$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter]     <- .$dataf$mcmc_input$out_mcmc
     .$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
     # APW: there is the potential for these two arrays to be 1 short in the final dimension
     # ALJ: check_iter_n_restart = 0 b/c there is not a .$dataf$mcmc_input$omega
-    #check_iter_n_restart                        <- dim(.$dataf$mcmc_input$omega)[2]
     check_iter_n_restart                        <- dim(.$dataf$mcmc_input$conv_check)[2]
-    #.$dataf$omega[,1:check_iter_n_restart]      <- .$dataf$mcmc_input$omega
     .$dataf$conv_check[,1:check_iter_n_restart] <- .$dataf$mcmc_input$conv_check
     .$dataf$mcmc_input <- NULL
   }
@@ -909,8 +904,9 @@ output_SAprocess_ye <- function(.) {
 }
 
 # creates output for a MCMC simulation
-#output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, iter_out_end=.$wpars$mcmc$maxiter, iter_out_start_thin=ceiling(.$wpars$mcmc$maxiter/.$mcmc$j_burnin50), iter_out_end_thin=ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) ) {
-output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, iter_out_end=.$wpars$mcmc$maxiter, iter_out_start_thin=ceiling(.$wpars$mcmc$maxiter/.$mcmc$j_burnin50), iter_out_end_thin=ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) ) {
+output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, iter_out_end=.$wpars$mcmc$maxiter, 
+                              iter_out_start_thin=ceiling(.$wpars$mcmc$maxiter/.$mcmc$j_burnin50), 
+                              iter_out_end_thin=ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) ) {
   list(
     pars_array    = .$dataf$pars_array[,,iter_out_start:iter_out_end],
     pars_lklihood = .$dataf$pars_lklihood[,iter_out_start:iter_out_end],
@@ -918,7 +914,27 @@ output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, iter_out_end=
     obs           = .$dataf$obs,
     #mod_eval      = .$dataf$out_mcmc[,,iter_out_start:iter_out_end],
     out_mcmc      = .$dataf$out_mcmc[,,iter_out_start:iter_out_end],
-    conv_check    = .$dataf$conv_check[,iter_out_start_thin:iter_out_end_thin]
+    conv_check    = .$dataf$conv_check[,iter_out_start_thin:iter_out_end_thin],
+
+    # user defined MCMC parameters that need preserving
+    wpars = list(
+      mcmc = list(
+        chains    = .$wpars$mcmc$chains,
+        n_CR      = .$wpars$mcmc$n_CR,
+        adapt_pCR = .$wpars$mcmc$adapt_pCR,
+        CR_burnin = .$wpars$mcmc$CR_burnin
+      )
+    ),
+
+    # dynamic MCMC variables that need preserving
+    mcmc = list(
+      CR   = .$mcmc$CR,
+      p_CR = .$mcmc$p_CR,
+      del  = .$mcmc$del,
+      L    = .$mcmc$L,
+      t    = .$mcmc$t,
+      m    = .$mcmc$m 
+    )
   )
 }
 
