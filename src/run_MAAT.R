@@ -269,25 +269,25 @@ maat$wpars$parsinit_read <- !is.null(parsinit_mcmc)
 
 maat$wpars$mcmc                    <- mcmc
 # define MCMC run parameters (sublist of wpars)
-maat$wpars$mcmc_pars$run_type      <- run_type
-maat$wpars$mcmc_pars$lklihood      <- lklihood
-maat$wpars$mcmc_pars$outlier       <- outlier
-maat$wpars$mcmc_pars$bdry_handling <- bdry_handling
-maat$wpars$mcmc_pars$init_prior    <- init_prior
-maat$wpars$mcmc_pars$converge      <- converge
-maat$wpars$mcmc_pars$chains        <- chains
-maat$wpars$mcmc_pars$maxiter       <- maxiter
-maat$wpars$mcmc_pars$thin          <- thin
-maat$wpars$mcmc_pars$thin_obs      <- thin_obs
-maat$wpars$mcmc_pars$homosced      <- homosced
-maat$wpars$mcmc_pars$chain_delta   <- chain_delta
-maat$wpars$mcmc_pars$c_rand        <- c_rand
-maat$wpars$mcmc_pars$c_ergod       <- c_ergod
-maat$wpars$mcmc_pars$p_gamma       <- p_gamma
-maat$wpars$mcmc_pars$n_CR          <- n_CR
-maat$wpars$mcmc_pars$adapt_CR      <- adapt_pCR
-maat$wpars$mcmc_pars$CR_burnin     <- CR_burnin
-maat$wpars$mcmc_pars$check_iter    <- max(mcmc_check_iter, 4) #ALJ: prevents numerical error in indexing
+maat$wpars$mcmc$run_type      <- run_type
+maat$wpars$mcmc$lklihood      <- lklihood
+maat$wpars$mcmc$outlier       <- outlier
+maat$wpars$mcmc$bdry_handling <- bdry_handling
+maat$wpars$mcmc$init_prior    <- init_prior
+maat$wpars$mcmc$converge      <- converge
+maat$wpars$mcmc$chains        <- chains
+maat$wpars$mcmc$maxiter       <- maxiter
+maat$wpars$mcmc$thin          <- thin
+maat$wpars$mcmc$thin_obs      <- thin_obs
+maat$wpars$mcmc$homosced      <- homosced
+maat$wpars$mcmc$chain_delta   <- chain_delta
+maat$wpars$mcmc$c_rand        <- c_rand
+maat$wpars$mcmc$c_ergod       <- c_ergod
+maat$wpars$mcmc$p_gamma       <- p_gamma
+maat$wpars$mcmc$n_CR          <- n_CR
+maat$wpars$mcmc$adapt_CR      <- adapt_pCR
+maat$wpars$mcmc$CR_burnin     <- CR_burnin
+maat$wpars$mcmc$check_iter    <- max(mcmc_check_iter, 4) #ALJ: prevents numerical error in indexing
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
@@ -369,8 +369,8 @@ if(!is.null(parsinit_mcmc)) {
   if(parsinit_mcmc=='restart') {
     print('MCMC restart')
     mcmc_restart_iter          <- mcmc_restart_pars_dim[3]
-    maat$wpars$mcmc_start_iter <- mcmc_restart_iter + 1
-    maat$wpars$mcmc_maxiter    <- maat$wpars$mcmc_maxiter + mcmc_restart_iter
+    maat$wpars$mcmc$start_iter <- mcmc_restart_iter + 1
+    maat$wpars$mcmc$maxiter    <- maat$wpars$mcmc$maxiter + mcmc_restart_iter
     parsinit                   <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
 
     # check dimensions consistent

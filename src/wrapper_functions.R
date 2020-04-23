@@ -120,12 +120,12 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
   # if observation subsampling specified - currently evenly spaced subsampling
-  #if(.$wpars$mcmc_thin_obs < 1.0) {
-  #  if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc_thin_obs )
-  #  thin <- floor( 1 / .$wpars$mcmc_thin_obs )
-  if(.$wpars$mcmc_pars$thin_obs < 1.0) {
-    if(.$wpars$mcmc_pars$thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc_pars$thin_obs )
-    thin <- floor( 1 / .$wpars$mcmc_pars$thin_obs )
+  #if(.$wpars$mcmc$thin_obs < 1.0) {
+  #  if(.$wpars$mcmc$thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc$thin_obs )
+  #  thin <- floor( 1 / .$wpars$mcmc$thin_obs )
+  if(.$wpars$mcmc$thin_obs < 1.0) {
+    if(.$wpars$mcmc$thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc$thin_obs )
+    thin <- floor( 1 / .$wpars$mcmc$thin_obs )
     oss  <- seq(1, dim(.$dataf$metdata)[2], thin )
     .$dataf$met   <- .$dataf$met[,oss]
     .$dataf$obs   <- .$dataf$obs[oss]
@@ -181,26 +181,26 @@ init_output_matrix_SAprocess_ye <- function(.) {
 init_output_matrix_mcmc_dream <- function(.) {
 
   # accepted proposal array
-  #.$dataf$pars_array    <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter ))
-  .$dataf$pars_array    <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_pars$maxiter ))
+  #.$dataf$pars_array    <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc$maxiter ))
+  .$dataf$pars_array    <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc$maxiter ))
 
   # ALJ: need the parameter names to carry through to a restart
   if(!.$wpars$parsinit_read) row.names(.$dataf$pars_array) <- row.names(.$dataf$pars)
 
   # accepted proposal likelihood matrix
-  #.$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter )
-  .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_pars$chains, .$wpars$mcmc_pars$maxiter )
+  #.$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc$chains, .$wpars$mcmc$maxiter )
+  .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc$chains, .$wpars$mcmc$maxiter )
 
   # initialise output matrix
   .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm )
-  #.$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter ))
-  .$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_pars$maxiter ))
+  #.$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc$maxiter ))
+  .$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc$maxiter ))
 
   # matrix for storing chain outlier information
-  #check_iter_n          <- ceiling(.$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter)
-  #.$dataf$omega         <- matrix(NA, .$wpars$mcmc_chains, check_iter_n )
-  check_iter_n          <- ceiling(.$wpars$mcmc_pars$maxiter/.$wpars$mcmc_pars$check_iter)
-  .$dataf$omega         <- matrix(NA, .$wpars$mcmc_pars$chains, check_iter_n )
+  #check_iter_n          <- ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter)
+  #.$dataf$omega         <- matrix(NA, .$wpars$mcmc$chains, check_iter_n )
+  check_iter_n          <- ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter)
+  .$dataf$omega         <- matrix(NA, .$wpars$mcmc$chains, check_iter_n )
 
   # create matrix for storing convergence diagnostic
   # APW: I think the dimensions are in the wrong order here
@@ -209,13 +209,13 @@ init_output_matrix_mcmc_dream <- function(.) {
 
   # if a restart assign values from restart
   if(.$wpars$parsinit_read) {
-    #.$dataf$pars_array[,,1:.$wpars$mcmc_start_iter]   <- .$dataf$mcmc_input$pars_array
-    .$dataf$pars_array[,,1:.$wpars$mcmc_pars$start_iter-1]   <- .$dataf$mcmc_input$pars_array
-    #.$dataf$pars_lklihood[,1:.$wpars$mcmc_start_iter] <- .$dataf$mcmc_input$pars_lklihood
-    .$dataf$pars_lklihood[,1:.$wpars$mcmc_pars$start_iter-1] <- .$dataf$mcmc_input$pars_lklihood
+    #.$dataf$pars_array[,,1:.$wpars$mcmc$start_iter]   <- .$dataf$mcmc_input$pars_array
+    .$dataf$pars_array[,,1:.$wpars$mcmc$start_iter-1]   <- .$dataf$mcmc_input$pars_array
+    #.$dataf$pars_lklihood[,1:.$wpars$mcmc$start_iter] <- .$dataf$mcmc_input$pars_lklihood
+    .$dataf$pars_lklihood[,1:.$wpars$mcmc$start_iter-1] <- .$dataf$mcmc_input$pars_lklihood
     # ALJ: could try to find more efficient way to store/read in model evaluations
-    #.$dataf$out_mcmc[,,1:.$wpars$mcmc_start_iter]     <- .$dataf$mcmc_input$out_mcmc
-    .$dataf$out_mcmc[,,1:.$wpars$mcmc_pars$start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
+    #.$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter]     <- .$dataf$mcmc_input$out_mcmc
+    .$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
     # APW: there is the potential for these two arrays to be 1 short in the final dimension
     # ALJ: check_iter_n_restart = 0 b/c there is not a .$dataf$mcmc_input$omega
     #check_iter_n_restart                        <- dim(.$dataf$mcmc_input$omega)[2]
@@ -672,7 +672,7 @@ run1_mcmc_dream <- function(.,i) {
   .$init_mcmc()
 
   # run MCMC
-  vapply(.$wpars$mcmc_start_iter:.$wpars$mcmc_maxiter, .$run2, numeric(0) )
+  vapply(.$wpars$mcmc$start_iter:.$wpars$mcmc$maxiter, .$run2, numeric(0) )
 
   # write output from MCMC
   .$write_output(i=i)
@@ -703,27 +703,27 @@ run2_mcmc_dream <- function(.,j) {
   .$proposal_accept(j=j, lklihood )
 
   # MCMC checks
-  #mcmc_check <- ((j>(.$wpars$mcmc_maxiter/10))&!.$wpars$parsinit_read) & (j%%.$wpars$mcmc_check_iter==0)
-  #if( mcmc_check | (j==.$wpars$mcmc_maxiter) ) {
-  mcmc_check <- ((j>(.$wpars$mcmc_pars$maxiter/10))&!.$wpars$parsinit_read) & (j%%.$wpars$mcmc_pars$check_iter==0)
-  if( mcmc_check | (j==.$wpars$mcmc_pars$maxiter) ) {
+  #mcmc_check <- ((j>(.$wpars$mcmc$maxiter/10))&!.$wpars$parsinit_read) & (j%%.$wpars$mcmc$check_iter==0)
+  #if( mcmc_check | (j==.$wpars$mcmc$maxiter) ) {
+  mcmc_check <- ((j>(.$wpars$mcmc$maxiter/10))&!.$wpars$parsinit_read) & (j%%.$wpars$mcmc$check_iter==0)
+  if( mcmc_check | (j==.$wpars$mcmc$maxiter) ) {
 
     # calculate subscript for convergence and outlier arrays
-    #.$wpars$mcmc_check_ss <-
-    #  if(j==.$wpars$mcmc_maxiter) ceiling(.$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter)
-    #  else                        j/.$wpars$mcmc_check_iter
-    .$wpars$mcmc_pars$check_ss <-
-      if(j==.$wpars$mcmc_pars$maxiter) ceiling(.$wpars$mcmc_pars$maxiter/.$wpars$mcmc_pars$check_iter)
-      else                        j/.$wpars$mcmc_pars$check_iter
+    #.$wpars$mcmc$check_ss <-
+    #  if(j==.$wpars$mcmc$maxiter) ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter)
+    #  else                        j/.$wpars$mcmc$check_iter
+    .$wpars$mcmc$check_ss <-
+      if(j==.$wpars$mcmc$maxiter) ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter)
+      else                        j/.$wpars$mcmc$check_iter
 
     # calculate 50 % of current post-outlier samples
     .$mcmc$j_burnin50 <-
       if(.$mcmc$outlier_detected|!.$wpars$parsinit_read) .$mcmc$j_start_burnin + ceiling(j/2)
-      else                                               j - ceiling((j+.$wpars$mcmc_pars$start_iter-1)/2)
+      else                                               j - ceiling((j+.$wpars$mcmc$start_iter-1)/2)
 
     # test for and handle outlier chains
     # ALJ: is this if-statement redundant or do we need an if-statement for converge fxn?
-    if(j%%.$wpars$mcmc_pars$check_iter==0) .$mcmc_outlier(j=j)
+    if(j%%.$wpars$mcmc$check_iter==0) .$mcmc_outlier(j=j)
 
     # test for convergence
     .$mcmc_converge(j=j)
@@ -909,8 +909,8 @@ output_SAprocess_ye <- function(.) {
 }
 
 # creates output for a MCMC simulation
-#output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, iter_out_end=.$wpars$mcmc_maxiter, iter_out_start_thin=ceiling(.$wpars$mcmc_maxiter/.$mcmc$j_burnin50), iter_out_end_thin=ceiling(.$wpars$mcmc_maxiter/.$wpars$mcmc_check_iter) ) {
-output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, iter_out_end=.$wpars$mcmc_pars$maxiter, iter_out_start_thin=ceiling(.$wpars$mcmc_pars$maxiter/.$mcmc$j_burnin50), iter_out_end_thin=ceiling(.$wpars$mcmc_pars$maxiter/.$wpars$mcmc_pars$check_iter) ) {
+#output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, iter_out_end=.$wpars$mcmc$maxiter, iter_out_start_thin=ceiling(.$wpars$mcmc$maxiter/.$mcmc$j_burnin50), iter_out_end_thin=ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) ) {
+output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, iter_out_end=.$wpars$mcmc$maxiter, iter_out_start_thin=ceiling(.$wpars$mcmc$maxiter/.$mcmc$j_burnin50), iter_out_end_thin=ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) ) {
   list(
     pars_array    = .$dataf$pars_array[,,iter_out_start:iter_out_end],
     pars_lklihood = .$dataf$pars_lklihood[,iter_out_start:iter_out_end],

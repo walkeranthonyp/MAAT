@@ -50,12 +50,12 @@ wrapper_object$build <- function(., ... ) {
   if(grepl('mcmc',.$wpars$runtype)) {
     .$proposal_generate     <- get(paste0('proposal_generate_',.$wpars$runtype))
     .$proposal_accept       <- get(paste0('proposal_accept_',.$wpars$runtype))
-    .$proposal_lklihood     <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc_lklihood))
+    .$proposal_lklihood     <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc$lklihood))
     .$init_mcmc             <- get(paste0('init_',.$wpars$runtype))
-    .$mcmc_outlier          <- get(paste0('mcmc_outlier_', .$wpars$mcmc_outlier))
-    .$mcmc_converge         <- get(paste0('mcmc_converge_', .$wpars$mcmc_converge))
-    .$mcmc_bdry_handling    <- get(paste0('mcmc_bdry_handling_', .$wpars$mcmc_bdry_handling))
-    .$mcmc_prior            <- get(paste0('mcmc_prior_', .$wpars$mcmc_prior))
+    .$mcmc_outlier          <- get(paste0('mcmc_outlier_', .$wpars$mcmc$outlier))
+    .$mcmc_converge         <- get(paste0('mcmc_converge_', .$wpars$mcmc$converge))
+    .$mcmc_bdry_handling    <- get(paste0('mcmc_bdry_handling_', .$wpars$mcmc$bdry_handling))
+    .$mcmc_prior            <- get(paste0('mcmc_prior_', .$wpars$mcmc$prior))
     .$boundary_handling_set <- boundary_handling_set
   }
 
@@ -937,10 +937,10 @@ wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
   .$wpars$procs         <- pr           # number of cores to use if above is true
   .$wpars$UQ            <- T            # run a UQ/SA style ensemble
   .$wpars$UQtype        <- 'mcmc'       # MCMC ensemble
-  .$wpars$mcmc_type     <- mcmc_type    # MCMC type, 'demc' or 'dream'
-  .$wpars$mcmc_chains   <- mcmc_chains  # MCMC number of chains
-  .$wpars$mcmc_maxiter  <- mcmc_maxiter # MCMC max number of steps / iterations on each chain
-  .$wpars$mcmc_lklihood <- 'log'        # MCMC likelihood function
+  .$wpars$mcmc$type     <- mcmc_type    # MCMC type, 'demc' or 'dream'
+  .$wpars$mcmc$chains   <- mcmc_chains  # MCMC number of chains
+  .$wpars$mcmc$maxiter  <- mcmc_maxiter # MCMC max number of steps / iterations on each chain
+  .$wpars$mcmc$lklihood <- 'log'        # MCMC likelihood function
   .$build(mod_out='mixture', switches=c(diag,verbose,cverbose) )
 
   # set model system function
@@ -1024,15 +1024,15 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_cha
   .$wpars$unit_testing  <- T
   .$wpars$verbose       <- verbose
   .$wpars$cverbose      <- cverbose
-  .$wpars$mcmc_lklihood <- mcmc_lklihood # MCMC likelihood function
+  .$wpars$mcmc$lklihood <- mcmc_lklihood # MCMC likelihood function
   .$wpars$multic        <- mc            # multicore the ensemble
   .$wpars$procs         <- pr            # number of cores to use if above is true
   .$wpars$UQ            <- T             # run a UQ/SA style ensemble
   .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble
-  .$wpars$mcmc_type     <- mcmc_type     # MCMC type, 'demc' or 'dream'
-  .$wpars$mcmc_chains   <- mcmc_chains   # MCMC number of chains
-  .$wpars$mcmc_homosced <- mcmc_homosced # MCMC homoscedastic error
-  .$wpars$mcmc_maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
+  .$wpars$mcmc$type     <- mcmc_type     # MCMC type, 'demc' or 'dream'
+  .$wpars$mcmc$chains   <- mcmc_chains   # MCMC number of chains
+  .$wpars$mcmc$homosced <- mcmc_homosced # MCMC homoscedastic error
+  .$wpars$mcmc$maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
   .$build(mod_out='regression', switches=c(diag,verbose,cverbose) )
 
   # Define static variables
