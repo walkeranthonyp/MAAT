@@ -265,7 +265,7 @@ wrapper_object$dataf  <- list(
   le      = NULL,
   lm      = NULL,
   # output matrices / arrays
-  mcmc_input   = NULL,    # list of output matrices and arrays from a previous MCMC run 
+  mcmc_input   = NULL,    # list of output matrices and arrays from a previous MCMC run
   mout         = NULL,    # example model output vector, for setting up vapply functions
   out          = NULL,    # output matrix
   out_saltelli = NULL,    # saltelli output list
@@ -292,53 +292,55 @@ wrapper_object$wpars <- list(
   eval_strings       = F,             # switch telling wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
   sobol_init         = T,             # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
   unit_testing       = F,
-  mcmc_type          = 'dream',
-  mcmc_lklihood      = 'ssquared',
-  mcmc_outlier       = 'iqr',
-  mcmc_converge      = 'Gelman_Rubin',
-  mcmc_bdry_handling = 'bound',
-  mcmc_prior         = 'uniform',
-  mcmc_chains        = 7,
-  mcmc_maxiter       = 1000,
-  mcmc_start_iter    = 2,
-  mcmc_thin          = 0.1,
-  mcmc_thin_obs      = 1,
-  mcmc_homosced      = F,
-  mcmc_delta         = 3,
-  mcmc_c_rand        = 0.01,
-  mcmc_c_ergod       = 1e-12,
-  mcmc_p_gamma       = 0.2,
-  mcmc_n_CR          = 3,
-  mcmc_adapt_pCR     = T,
-  mcmc_CR_burnin     = 0.1,
-  mcmc_check_ss      = numeric(1),
-  mcmc_check_iter    = 10
+  mcmc_pars = list(
+              run_type      = 'dream',
+              lklihood      = 'ssquared',
+              outlier       = 'iqr',
+              mcmc_converge = 'Gelman_Rubin',
+              bdry_handling = 'bound',
+              init_prior    = 'uniform',
+              chains        = 7,
+              maxiter       = 1000,
+              start_iter    = 2,
+              thin          = 0.1,
+              thin_obs      = 1,
+              homosced      = F,
+              chain_delta   = 3,
+              c_rand        = 0.01,
+              c_ergod       = 1e-12,
+              p_gamma       = 0.2,
+              n_CR          = 3,
+              adapt_pCR     = T,
+              CR_burnin     = 0.1,
+              check_ss      = numeric(1),
+              check_iter    = 10
+  )
 )
 
 
 # MCMC specific data, size depends on MCMC set up
 wrapper_object$mcmc <- list(
   outlier_detected = F,
-  j_start_burnin = 1,
-  j_burnin50     = numeric(1),
-  d              = numeric(1),
-  CR             = numeric(1),
-  p_CR           = numeric(1),
-  R              = matrix(1,1,1),
-  current_state  = matrix(1,1,1),
-  p_state        = numeric(1),
-  sd_state       = numeric(1),
-  jump           = matrix(1,1,1),
-  draw           = matrix(1,1,1),
-  lambda         = matrix(1,1,1),
-  boundary_min   = numeric(1),
-  boundary_max   = numeric(1),
-  del            = numeric(1),
-  L              = numeric(1),
-  t              = numeric(1),
-  m              = numeric(1),
-  CR_burnin      = numeric(1),
-  d_star         = numeric(1)
+  j_start_burnin   = 1,
+  j_burnin50       = numeric(1),
+  d                = numeric(1),
+  CR               = numeric(1),
+  p_CR             = numeric(1),
+  R                = matrix(1,1,1),
+  current_state    = matrix(1,1,1),
+  p_state          = numeric(1),
+  sd_state         = numeric(1),
+  jump             = matrix(1,1,1),
+  draw             = matrix(1,1,1),
+  lambda           = matrix(1,1,1),
+  boundary_min     = numeric(1),
+  boundary_max     = numeric(1),
+  del              = numeric(1),
+  L                = numeric(1),
+  t                = numeric(1),
+  m                = numeric(1),
+  CR_burnin        = numeric(1),
+  d_star           = numeric(1)
 )
 
 
@@ -356,7 +358,7 @@ wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(t(.$dataf
 wrapper_object$write_to_file <- function(., df=.$output(), app=F ) {
 
   setwd(.$wpars$of_dir)
-  if(.$wpars$of_type=='csv')      write.table(format(df,width=12), paste(.$wpars$of_name,'.csv',sep=''), 
+  if(.$wpars$of_type=='csv')      write.table(format(df,width=12), paste(.$wpars$of_name,'.csv',sep=''),
                                               quote=F, row.names=F, col.names=!app, sep=',', append=app )
   else if(.$wpars$of_type=='rds') saveRDS(df, paste(.$wpars$of_name,'RDS',sep='.') )
   else print(paste('No methods for output file format:',.$wpars$of_type))

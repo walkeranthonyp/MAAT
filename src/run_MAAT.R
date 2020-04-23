@@ -267,27 +267,27 @@ maat$wpars$of_type       <- of_format
 maat$wpars$of_dir        <- odir
 maat$wpars$parsinit_read <- !is.null(parsinit_mcmc)
 
-# define MCMC run parameters
-maat$wpars$mcmc               <- mcmc
-maat$wpars$mcmc_type          <- mcmc_type
-maat$wpars$mcmc_lklihood      <- mcmc_lklihood
-maat$wpars$mcmc_outlier       <- mcmc_outlier
-maat$wpars$mcmc_bdry_handling <- mcmc_bdry_handling
-maat$wpars$mcmc_prior         <- mcmc_prior
-maat$wpars$mcmc_converge      <- mcmc_converge
-maat$wpars$mcmc_chains        <- mcmc_chains
-maat$wpars$mcmc_maxiter       <- mcmc_maxiter
-maat$wpars$mcmc_thin          <- mcmc_thin
-maat$wpars$mcmc_thin_obs      <- mcmc_thin_obs
-maat$wpars$mcmc_homosced      <- mcmc_homosced
-maat$wpars$mcmc_delta         <- mcmc_delta
-maat$wpars$mcmc_c_rand        <- mcmc_c_rand
-maat$wpars$mcmc_c_ergod       <- mcmc_c_ergod
-maat$wpars$mcmc_p_gamma       <- mcmc_p_gamma
-maat$wpars$mcmc_n_CR          <- mcmc_n_CR
-maat$wpars$mcmc_adapt_CR      <- mcmc_adapt_pCR
-maat$wpars$mcmc_CR_burnin     <- mcmc_CR_burnin
-maat$wpars$mcmc_check_iter    <- mcmc_check_iter
+maat$wpars$mcmc                    <- mcmc
+# define MCMC run parameters (sublist of wpars)
+maat$wpars$mcmc_pars$run_type      <- run_type
+maat$wpars$mcmc_pars$lklihood      <- lklihood
+maat$wpars$mcmc_pars$outlier       <- outlier
+maat$wpars$mcmc_pars$bdry_handling <- bdry_handling
+maat$wpars$mcmc_pars$init_prior    <- init_prior
+maat$wpars$mcmc_pars$converge      <- converge
+maat$wpars$mcmc_pars$chains        <- chains
+maat$wpars$mcmc_pars$maxiter       <- maxiter
+maat$wpars$mcmc_pars$thin          <- thin
+maat$wpars$mcmc_pars$thin_obs      <- thin_obs
+maat$wpars$mcmc_pars$homosced      <- homosced
+maat$wpars$mcmc_pars$chain_delta   <- chain_delta
+maat$wpars$mcmc_pars$c_rand        <- c_rand
+maat$wpars$mcmc_pars$c_ergod       <- c_ergod
+maat$wpars$mcmc_pars$p_gamma       <- p_gamma
+maat$wpars$mcmc_pars$n_CR          <- n_CR
+maat$wpars$mcmc_pars$adapt_CR      <- adapt_pCR
+maat$wpars$mcmc_pars$CR_burnin     <- CR_burnin
+maat$wpars$mcmc_pars$check_iter    <- max(mcmc_check_iter, 4) #ALJ: prevents numerical error in indexing
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
@@ -325,7 +325,7 @@ if(xml) {
 
 # check process representation functions specified in input exist
 search_fnames <-  function(v, ln ) {
-  for( c1 in v ) if(!(c1 %in% ls(pos=1))) 
+  for( c1 in v ) if(!(c1 %in% ls(pos=1)))
     stop(paste('The function: ',c1,' , specified in init', ln ,'does not exist')) else 'exists'
 }
 print('', quote=F )
@@ -354,7 +354,7 @@ if(grepl('mcmc',runtype)) maat$wpars$of_name <- paste(ofname, 'mcmc', sep='_' )
 
 # write directly to dataf$pars if parsinit specified
 if(!is.null(parsinit_mcmc)) {
-  if(parsinit_mcmc=='restart') mcmcout <- paste0(maat$wpars$of_name,'.RDS') 
+  if(parsinit_mcmc=='restart') mcmcout <- paste0(maat$wpars$of_name,'.RDS')
 
   print('')
   print('Read input from MCMC output:')
@@ -369,7 +369,7 @@ if(!is.null(parsinit_mcmc)) {
   if(parsinit_mcmc=='restart') {
     print('MCMC restart')
     mcmc_restart_iter          <- mcmc_restart_pars_dim[3]
-    maat$wpars$mcmc_start_iter <- mcmc_restart_iter + 1 
+    maat$wpars$mcmc_start_iter <- mcmc_restart_iter + 1
     maat$wpars$mcmc_maxiter    <- maat$wpars$mcmc_maxiter + mcmc_restart_iter
     parsinit                   <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
 
@@ -398,8 +398,9 @@ if(!is.null(parsinit_mcmc)) {
 
   # add parsinit to wrapper data structure
   # APW: this could be moved to the generate_pars_ensemble code
-  #      would probably help readability 
+  #      would probably help readability
   maat$dataf$pars <- parsinit
+
 }
 
 
