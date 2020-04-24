@@ -136,42 +136,42 @@ coef_var   <- 0.1
 # multiplier on process ensemble n for Saltelli ensemble n
 salt_nmult <- 100
 
-# parameters for MCMC run
-# MCMC likelihood function (options: log, ssquared, ssquared_se, ...)
+# MCMC parameters
+# likelihood function (options: log, ssquared, ssquared_se, ...)
 mcmc_lklihood      <- 'ssquared'
-# MCMC outlier handling (options: none, iqr)
+# outlier handling (options: none, iqr)
 mcmc_outlier       <- 'iqr'
-# MCMC convergence testing (options: none, Gelman_Rubin)
+# convergence testing (options: none, Gelman_Rubin)
 mcmc_converge      <- 'Gelman_Rubin'
-# MCMC option for parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
+# parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
 mcmc_bdry_handling <- 'bound'
-# MCMC option for initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
+# initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
 mcmc_prior         <- 'uniform'
-# number of MCMC chains to run (minumum = 2 * mcmc_delta + 1)
+# number of chains to run (minumum = 2 * mcmc_delta + 1)
 mcmc_chains        <- 7
-# number of iterations / steps in MCMC chain
+# number of iterations / steps in chain
 mcmc_maxiter       <- 1000
-# MCMC thinning for posterior, as a proportion
+# thinning for posterior, as a proportion
 mcmc_thin          <- 0.1
-# MCMC thinning for observations, as a proportion
+# thinning for observations, as a proportion
 mcmc_thin_obs      <- 1
-# MCMC option to assume homoscedastic error in measured observations (else, heteroscedastic)
+# option to assume homoscedastic error in measured observations (else, heteroscedastic)
 mcmc_homosced      <- F
-# MCMC DREAM number chain pair proposal
+# DREAM number chain pair proposal
 mcmc_delta         <- 3
-# MCMC DREAM randomization (default value)
+# DREAM randomization (default value)
 mcmc_c_rand        <- 0.01
-# MCMC DREAM ergodicicty (default value)
+# DREAM ergodicicty (default value)
 mcmc_c_ergod       <- 1e-12
-# MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
+# DREAM probability of unit jump rate (probability gamma = 1) (default value)
 mcmc_p_gamma       <- 0.2
-# MCMC DREAM number of crossover values (default value)
+# DREAM number of crossover values (default value)
 mcmc_n_CR          <- 3
-# MCMC option whether or not to adapt probability of selecting crossover values
+# adapt probability of selecting crossover values
 mcmc_adapt_pCR     <- T
-# MCMC option determining how long to adapt crossover selection probabilities, as a proportion
-mcmc_CR_burnin     <- 0.1
-# MCMC option for checking for convergence and outlier chains every N iterations
+# if true, numberof iteration to adapt crossover selection probabilities
+mcmc_CR_burnin     <- 1e4
+# checking for convergence and outlier chains every N iterations
 mcmc_check_iter    <- 10
 
 

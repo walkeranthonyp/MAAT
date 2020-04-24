@@ -293,7 +293,7 @@ wrapper_object$wpars <- list(
   sobol_init    = T,             # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
   unit_testing  = F,
 
-  mcmc_pars = list(
+  mcmc = list(
     run_type      = 'dream',
     lklihood      = 'ssquared',
     outlier       = 'iqr',
@@ -312,7 +312,7 @@ wrapper_object$wpars <- list(
     p_gamma       = 0.2,
     n_CR          = 3,
     adapt_pCR     = T,
-    CR_burnin     = 0.1,
+    CR_burnin     = 1e4,
     check_ss      = numeric(1),
     check_iter    = 10
   )
@@ -340,7 +340,7 @@ wrapper_object$mcmc <- list(
   L                = numeric(1),
   t                = numeric(1),
   m                = numeric(1),
-  CR_burnin        = numeric(1),
+  CR_burnin        = T,
   d_star           = numeric(1)
 )
 

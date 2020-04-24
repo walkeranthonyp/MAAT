@@ -89,9 +89,10 @@ init_mcmc_dream <- function(.) {
   .$mcmc$jump          <- matrix(data = 0, nrow = .$mcmc$d, ncol = .$dataf$lp)
 
   # preallocate space for crossover variables
-  .$mcmc$t         <- numeric(1)
-  .$mcmc$d_star    <- numeric(1)
-  .$mcmc$CR_burnin <- numeric(1)
+  # APW: commenting out where variables already declared and do do have a varaible extent 
+  #.$mcmc$t         <- numeric(1)
+  #.$mcmc$d_star    <- numeric(1)
+  #.$mcmc$CR_burnin <- numeric(1)
   .$mcmc$sd_state  <- numeric(.$mcmc$d)
   .$mcmc$L         <- numeric(.$wpars$mcmc$n_CR)
   .$mcmc$del       <- numeric(.$wpars$mcmc$n_CR)
@@ -123,7 +124,7 @@ init_mcmc_dream <- function(.) {
   }
 
   # burn-in period for adapting crossover selection probabilities
-  .$mcmc$CR_burnin <- ceiling(.$wpars$mcmc$CR_burnin * .$wpars$mcmc$maxiter)
+  #.$mcmc$CR_burnin <- ceiling(.$wpars$mcmc$CR_burnin * .$wpars$mcmc$maxiter)
 
   # index of chains for Differential Evolution
   for (ii in 1:.$dataf$lp) .$mcmc$R[ii, ] <- setdiff(1:.$dataf$lp, ii)
@@ -246,28 +247,28 @@ proposal_generate_mcmc_dream <- function(., j ) {
 
 
 # proposal acceptance function for the DREAM algorithm
-proposal_accept_mcmc_dream <- function(., j, lklihood) {
+proposal_accept_mcmc_dream <- function(., j, lklihood ) {
 
   # likelihood of current state
-  .$mcmc$p_state[] <- .$dataf$pars_lklihood[ , j-1]
+  .$mcmc$p_state[] <- .$dataf$pars_lklihood[, j-1]
 
   # iterate through chains
   for (ii in 1:.$dataf$lp) {
 
     # Metropolis acceptance probability
-    alpha <- min(1, exp(lklihood[ii] - .$mcmc$p_state[ii]))
+    alpha <- min(1, exp(lklihood[ii] - .$mcmc$p_state[ii] ))
 
-    if (alpha > runif(1, min = 0, max = 1)) {
+    if(alpha>runif(1, min=0, max=1 )) {
 
       # accept proposal
       accept <- TRUE
 
-      .$mcmc$current_state[1:.$mcmc$d, ii] <- .$dataf$pars[1:.$mcmc$d, ii]
-      .$mcmc$p_state[ii]                   <- lklihood[ii]
+      .$mcmc$current_state[1:.$mcmc$d,ii] <- .$dataf$pars[1:.$mcmc$d,ii]
+      .$mcmc$p_state[ii]                  <- lklihood[ii]
 
       # append accepted proposal and probability density to storage arrays
-      .$dataf$pars_array[1:.$mcmc$d, ii, j] <- .$mcmc$current_state[1:.$mcmc$d, ii]
-      .$dataf$pars_lklihood[ii, j]          <- .$mcmc$p_state[ii]
+      .$dataf$pars_array[1:.$mcmc$d,ii,j] <- .$mcmc$current_state[1:.$mcmc$d,ii]
+      .$dataf$pars_lklihood[ii,j]         <- .$mcmc$p_state[ii]
 
     } else {
 
@@ -275,45 +276,58 @@ proposal_accept_mcmc_dream <- function(., j, lklihood) {
       accept <- FALSE
 
       # reset jump back to zero
-      .$mcmc$jump[1:.$mcmc$d, ii] <- 0
+      .$mcmc$jump[1:.$mcmc$d,ii] <- 0
 
       # repeat previous accepted proposal and probability density in storage arrays
-      .$dataf$pars_array[1:.$mcmc$d, ii, j] <- .$dataf$pars_array[1:.$mcmc$d, ii, j-1]
-      .$dataf$pars_lklihood[ii, j]          <- .$dataf$pars_lklihood[ii, j-1]
+      .$dataf$pars_array[1:.$mcmc$d,ii,j] <- .$dataf$pars_array[1:.$mcmc$d,ii,j-1]
+      .$dataf$pars_lklihood[ii,j]         <- .$dataf$pars_lklihood[ii,j-1]
 
     }
 
     # compute squared normalized jumping distance
-    if (.$wpars$mcmc$adapt_pCR & (.$mcmc$t < .$mcmc$CR_burnin)) .$calc_del(j = j, ii = ii)
+    #if (.$wpars$mcmc$adapt_pCR & (.$mcmc$t < .$mcmc$CR_burnin)) .$calc_del(j = j, ii = ii)
+    if(.$wpars$mcmc$adapt_pCR & .$mcmc$CR_burnin) .$calc_del(j=j, ii=ii )
 
-    # APW: not a huge deal, but this is not quite right in the case where j==out_n+1 but not accepted as it adds the output from the rejected proposal
+    # APW: not a huge deal, but this is not quite right in the case where j==out_n+1 but not accepted 
+    #      as it adds the output from the rejected proposal
     # write output (model evaluations)
-    .$dataf$out_mcmc[ii, , j] <- if(accept | j == 1) .$dataf$out[ii, ] else .$dataf$out_mcmc[ii, , (j - 1)]
+    .$dataf$out_mcmc[ii,,j] <- if(accept | j==1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-1)]
 
   }
 
-  if (.$wpars$mcmc$adapt_pCR & (.$mcmc$t < .$mcmc$CR_burnin)) {
+  #if (.$wpars$mcmc$adapt_pCR & (.$mcmc$t < .$mcmc$CR_burnin)) {
+  if(.$wpars$mcmc$adapt_pCR) {
 
     # debugging
     #print('if-statement triggered calling .$adapt_pCR()')
     #print('.$mcmc$t'); print(.$mcmc$t)
     #print('.$mcmc$CR_burnin'); print(.$mcmc$CR_burnin)
 
-    # update the selection probability of crossover probabilities/values
-    .$adapt_pCR()
+    #if(.$mcmc$t < .$mcmc$CR_burnin) {
+    if(.$mcmc$CR_burnin) { 
+
+      # update the selection probability of crossover probabilities/values
+      # APW: update the jump_n selection probabilities
+      .$adapt_pCR()
+
+      if(.$mcmc$t==.$wpars$mcmc$CR_burnin) {
+        print('Adapted selection probabilities of crossover values = '); print(.$mcmc$p_CR)
+        .$mcmc$CR_burnin <- F
+      }
+    } 
+    #.$mcmc$t <- .$mcmc$t + 1
+
+    #} else if (.$wpars$mcmc$adapt_pCR & .$mcmc$t == .$mcmc$CR_burnin) {
+
+    #print('Adapted selection probabilities of crossover values = '); print(.$mcmc$p_CR)
+
+    #.$mcmc$t <- .$mcmc$t + 1
+
+    #} else if (.$wpars$mcmc$adapt_pCR & (.$mcmc$t > .$mcmc$CR_burnin)) {
+    #  .$mcmc$t <- .$mcmc$t + 1
+    #}
 
     .$mcmc$t <- .$mcmc$t + 1
-
-  } else if (.$wpars$mcmc$adapt_pCR & .$mcmc$t == .$mcmc$CR_burnin) {
-
-    print('Adapted selection probabilities of crossover values = '); print(.$mcmc$p_CR)
-
-    .$mcmc$t <- .$mcmc$t + 1
-
-  } else if (.$wpars$mcmc$adapt_pCR & (.$mcmc$t > .$mcmc$CR_burnin)) {
-
-    .$mcmc$t <- .$mcmc$t + 1
-
   }
 }
 
