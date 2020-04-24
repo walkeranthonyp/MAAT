@@ -168,7 +168,7 @@ mcmc_p_gamma       <- 0.2
 # DREAM number of crossover values (default value)
 mcmc_n_CR          <- 3
 # adapt probability of selecting crossover values
-mcmc_adapt_pCR     <- T
+#mcmc_adapt_pCR     <- T
 # if true, numberof iteration to adapt crossover selection probabilities
 mcmc_CR_burnin     <- 1e4
 # checking for convergence and outlier chains every N iterations
@@ -267,7 +267,7 @@ maat$wpars$of_type       <- of_format
 maat$wpars$of_dir        <- odir
 maat$wpars$parsinit_read <- !is.null(parsinit_mcmc)
 
-maat$wpars$mcmc                    <- mcmc
+maat$wpars$mcmc          <- mcmc
 # define MCMC run parameters (sublist of wpars)
 maat$wpars$mcmc$run_type      <- run_type
 maat$wpars$mcmc$lklihood      <- lklihood
@@ -285,7 +285,8 @@ maat$wpars$mcmc$c_rand        <- c_rand
 maat$wpars$mcmc$c_ergod       <- c_ergod
 maat$wpars$mcmc$p_gamma       <- p_gamma
 maat$wpars$mcmc$n_CR          <- n_CR
-maat$wpars$mcmc$adapt_CR      <- adapt_pCR
+#maat$wpars$mcmc$adapt_CR      <- adapt_pCR
+maat$wpars$mcmc$adapt_CR      <- T
 maat$wpars$mcmc$CR_burnin     <- CR_burnin
 maat$wpars$mcmc$check_iter    <- max(mcmc_check_iter, 4) #ALJ: prevents numerical error in indexing
 
@@ -358,8 +359,8 @@ if(!is.null(parsinit_mcmc)) {
 
   print('')
   print('Read input from MCMC output:')
-  print(paste('directory:',mcmcdir))
-  print(paste('filename:',mcmcout))
+  print(paste('  directory:',mcmcdir))
+  print(paste('  filename:',mcmcout))
 
   # read and write pars
   setwd(mcmcdir)
@@ -368,6 +369,8 @@ if(!is.null(parsinit_mcmc)) {
 
   if(parsinit_mcmc=='restart') {
     print('MCMC restart')
+    print('  No MCMC parameters will be read as command line arguments,')
+    print('  all set from original MCMCM run')
     
     # define beginning and end iteration counters 
     mcmc_restart_iter          <- mcmc_restart_pars_dim[3]
@@ -378,10 +381,11 @@ if(!is.null(parsinit_mcmc)) {
     parsinit <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
 
     # update user-defined MCMC parameters passed from restart
-    maat$wpars$mcmc$chains    <- maat$dataf$mcmc_input$wpars$mcmc$chains
-    maat$wpars$mcmc$n_CR      <- maat$dataf$mcmc_input$wpars$mcmc$n_CR
-    maat$wpars$mcmc$adapt_pCR <- maat$dataf$mcmc_input$wpars$mcmc$adapt_pCR
-    maat$wpars$mcmc$CR_burnin <- maat$dataf$mcmc_input$wpars$mcmc$CR_burnin
+    #maat$wpars$mcmc$chains    <- maat$dataf$mcmc_input$wpars$mcmc$chains
+    #maat$wpars$mcmc$n_CR      <- maat$dataf$mcmc_input$wpars$mcmc$n_CR
+    #maat$wpars$mcmc$adapt_pCR <- maat$dataf$mcmc_input$wpars$mcmc$adapt_pCR
+    #maat$wpars$mcmc$CR_burnin <- maat$dataf$mcmc_input$wpars$mcmc$CR_burnin
+    maat$wpars$mcmc <- maat$dataf$mcmc_input$wpars$mcmc
 
     # update MCMC variables passed from restart
     maat$mcmc$CR   <- maat$dataf$mcmc_input$mcmc$CR

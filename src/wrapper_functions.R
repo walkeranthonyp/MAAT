@@ -916,14 +916,15 @@ output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, iter_out_end=
     out_mcmc      = .$dataf$out_mcmc[,,iter_out_start:iter_out_end],
     conv_check    = .$dataf$conv_check[,iter_out_start_thin:iter_out_end_thin],
 
-    # user defined MCMC parameters that need preserving
+    # user defined MCMC parameters
     wpars = list(
-      mcmc = list(
-        chains    = .$wpars$mcmc$chains,
-        n_CR      = .$wpars$mcmc$n_CR,
-        adapt_pCR = .$wpars$mcmc$adapt_pCR,
-        CR_burnin = .$wpars$mcmc$CR_burnin
-      )
+      mcmc = .$wpars$mcmc
+      #mcmc = list(
+      #  chains    = .$wpars$mcmc$chains,
+      #  n_CR      = .$wpars$mcmc$n_CR,
+      #  adapt_pCR = .$wpars$mcmc$adapt_pCR,
+      #  CR_burnin = .$wpars$mcmc$CR_burnin
+      #)
     ),
 
     # dynamic MCMC variables that need preserving

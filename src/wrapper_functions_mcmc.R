@@ -78,50 +78,58 @@ proposal_accept_mcmc_demc <- function(., j, lklihood ) {
 init_mcmc_dream <- function(.) {
 
   # number of parameters being estimated
-  .$mcmc$d <- dim(.$dataf$pars)[1]
+  .$mcmc$d      <- dim(.$dataf$pars)[1]
+  .$mcmc$d_star <- .$mcmc$d
 
   # preallocate memory space for algorithmic variables
   .$mcmc$p_state       <- numeric(.$dataf$lp)
-  .$mcmc$R             <- matrix(data = 0, nrow = .$dataf$lp, ncol = .$dataf$lp - 1)
-  .$mcmc$current_state <- matrix(data = 0, nrow = .$mcmc$d, ncol = .$dataf$lp)
-  .$mcmc$draw          <- matrix(data = 0, nrow = .$dataf$lp - 1, ncol = .$dataf$lp)
-  .$mcmc$lambda        <- matrix(data = 0, nrow = .$dataf$lp, ncol = 1)
-  .$mcmc$jump          <- matrix(data = 0, nrow = .$mcmc$d, ncol = .$dataf$lp)
-
+  .$mcmc$R             <- matrix(0, nrow=.$dataf$lp,   ncol=.$dataf$lp-1 )
+  .$mcmc$current_state <- matrix(0, nrow=.$mcmc$d,     ncol=.$dataf$lp )
+  .$mcmc$draw          <- matrix(0, nrow=.$dataf$lp-1, ncol=.$dataf$lp )
+  .$mcmc$lambda        <- matrix(0, nrow=.$dataf$lp,   ncol=1 )
+  .$mcmc$jump          <- matrix(0, nrow=.$mcmc$d,     ncol=.$dataf$lp )
   # preallocate space for crossover variables
   # APW: commenting out where variables already declared and do do have a varaible extent 
   #.$mcmc$t         <- numeric(1)
   #.$mcmc$d_star    <- numeric(1)
   #.$mcmc$CR_burnin <- numeric(1)
-  .$mcmc$sd_state  <- numeric(.$mcmc$d)
-  .$mcmc$L         <- numeric(.$wpars$mcmc$n_CR)
-  .$mcmc$del       <- numeric(.$wpars$mcmc$n_CR)
-  .$mcmc$p_CR      <- numeric(.$wpars$mcmc$n_CR)
-  .$mcmc$m         <- numeric(.$wpars$mcmc$chains)
+  .$mcmc$sd_state      <- numeric(.$mcmc$d)
 
-  # if adapting selection of crossover probabilties
-  if(.$wpars$mcmc$adapt_pCR) {
-
-    # initialize crossover variables
-    .$mcmc$t      <- 1
-    .$mcmc$CR     <- 0
-    .$mcmc$L[]    <- 0
-    .$mcmc$d_star <- .$mcmc$d
-
+  # initialise crossover variables if not a restart
+  if(!.$wpars$parsinit_read) {
+    .$mcmc$L      <- numeric(.$wpars$mcmc$n_CR)
+    .$mcmc$del    <- numeric(.$wpars$mcmc$n_CR)
+    #.$mcmc$p_CR  <- numeric(.$wpars$mcmc$n_CR)
     # initial probability of each crossover value
     .$mcmc$p_CR[] <- 1 / .$wpars$mcmc$n_CR
+    .$mcmc$m      <- numeric(.$wpars$mcmc$chains)
+    .$mcmc$t      <- 1
+    .$mcmc$CR     <- 0
+    if(!.$wpars$mcmc$adapt_pCR) .$mcmc$CR[] <- 1:.$wpars$mcmc$n_CR/.$wpars$mcmc$n_CR 
+  }
+
+  # if adapting selection of crossover probabilties
+  #if(.$wpars$mcmc$adapt_pCR) {
+
+    # initialize crossover variables
+    #.$mcmc$t      <- 1
+    #.$mcmc$CR     <- 0
+    #.$mcmc$L[]    <- 0 # APW: L initialisation above already initialises to 0's
+    #.$mcmc$d_star <- .$mcmc$d
+
+    ## initial probability of each crossover value
+    #.$mcmc$p_CR[] <- 1 / .$wpars$mcmc$n_CR
 
   # if not adapting p_CR
-  } else {
+  #} else {
 
     # initialize crossover probabilities
-    .$mcmc$CR   <- numeric(.$wpars$mcmc$n_CR)
-    .$mcmc$CR[] <- 1:.$wpars$mcmc$n_CR / .$wpars$mcmc$n_CR
+    #.$mcmc$CR   <- numeric(.$wpars$mcmc$n_CR)
+    #.$mcmc$CR[] <- 1:.$wpars$mcmc$n_CR / .$wpars$mcmc$n_CR
 
-    # initialize selection probability of crossover values
-    .$mcmc$p_CR[] <- 1 / .$wpars$mcmc$n_CR
-
-  }
+    ## initialize selection probability of crossover values
+    #.$mcmc$p_CR[] <- 1 / .$wpars$mcmc$n_CR
+  #}
 
   # burn-in period for adapting crossover selection probabilities
   #.$mcmc$CR_burnin <- ceiling(.$wpars$mcmc$CR_burnin * .$wpars$mcmc$maxiter)
@@ -281,7 +289,6 @@ proposal_accept_mcmc_dream <- function(., j, lklihood ) {
       # repeat previous accepted proposal and probability density in storage arrays
       .$dataf$pars_array[1:.$mcmc$d,ii,j] <- .$dataf$pars_array[1:.$mcmc$d,ii,j-1]
       .$dataf$pars_lklihood[ii,j]         <- .$dataf$pars_lklihood[ii,j-1]
-
     }
 
     # compute squared normalized jumping distance
@@ -326,9 +333,10 @@ proposal_accept_mcmc_dream <- function(., j, lklihood ) {
     #} else if (.$wpars$mcmc$adapt_pCR & (.$mcmc$t > .$mcmc$CR_burnin)) {
     #  .$mcmc$t <- .$mcmc$t + 1
     #}
-
-    .$mcmc$t <- .$mcmc$t + 1
   }
+
+  # update MCMC iteration counter
+  .$mcmc$t <- .$mcmc$t + 1
 }
 
 
@@ -377,7 +385,6 @@ calc_del <- function(., j, ii) {
   #print('summation = '); print(summation)
   #print('.$dataf$pars_array[,ii,j]'); print(.$dataf$pars_array[,ii,j])
   #print('.$dataf$pars_array[,ii,j-1]'); print(.$dataf$pars_array[,ii,j-1])
-
 }
 
 
