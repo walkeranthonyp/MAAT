@@ -31,7 +31,7 @@ setwd('soil_decomp')
 soil_decomp_object$name      <- 'soil_decomp'
 
 # parameter names that have a value per pool
-soil_decomp_object$pool_pars <- c('cstate0', 'cue', 'vmax', 'km', 'k', 'poolmax' )
+soil_decomp_object$pool_pars <- c('cstate0', 'cue', 'vmax', 'km', 'k', 'poolmax', 'input_coefs' )
 
 
 
@@ -113,6 +113,13 @@ soil_decomp_object$env <- list(
 )
 
 
+# state
+####################################
+soil_decomp_object$state <- list(
+  cpools   = matrix(1:3, ncol=1 ) 
+)
+
+
 # state parameters (i.e. calculated parameters)
 ####################################
 soil_decomp_object$state_pars <- list(
@@ -120,22 +127,11 @@ soil_decomp_object$state_pars <- list(
 )
 
 
-
-
-
-# state
-####################################
-soil_decomp_object$pars <- list(n_pools = 7)
-soil_decomp_object$state <- list(
-  cpools   = matrix(1:soil_decomp_object$pars$n_pools, ncol=1 ) #changed from 3 to n_pools to generalize the matrix size, moved here after n_pools definition
-)
-
-
 # parameters
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = soil_decomp_object$pars$n_pools,          # number of pools in model  
+  n_pools = 7,          # number of pools in model  
   beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = 0.2,        # soil silt content (proportion)
   clay    = 0.2,        # soil clay content (proportion)
@@ -143,8 +139,18 @@ soil_decomp_object$pars <- list(
   pep     = 0.01,        #Fraction of mr allocated for production of EP
   pem     = 0.01,        #Fraction of mr allocated for production of EM
   Kads    = 0.006,       #Specific adsorption rate (could make this k for the DOC pool)
-  fid     = 0.0625,      #proportion of inputs allocated to DOC vs POM
  
+  #input coefficients (allocaties proportions of inputs into different pools)
+  input_coefs = list(
+    input_coef1 = 1,
+    input_coef2 = 0,
+    input_coef3 = 0,
+    input_coef4 = 0,
+    input_coef5 = 0,
+    input_coef6 = 0,
+    input_coef7 = 0
+  ),
+  
   # initial pool mass for each pool
   cstate0 = list(
     cstate01 = 10,         #Initial POM pool size
@@ -265,12 +271,43 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.00016, ntime
   }
 }
 
+soil_decomp_object$.test_changepool <- function(., verbose=F, metdf=F, litter=.00016, ntimes=100, n_pool=3) {
+  
+  if(verbose) str(.)
+  .$build(switches=c(F,verbose,F))
+  .$pars$n_pools = n_pool #.$build_pool_structure 
+  .$fnames$transfer$t1_to_2 <- 'f_transfer_cue'
+  .$fnames$transfer$t1_to_3 <- 'f_transfer_zero'
+  .$fnames$transfer$t2_to_1 <- 'f_transfer_zero'
+  .$fnames$transfer$t2_to_3 <- 'f_transfer_all'
+  .$fnames$transfer$t3_to_1 <- 'f_transfer_zero'
+  .$fnames$transfer$t3_to_2 <- 'f_transfer_cue'
+  .$fnames$decomp$d1 <- 'f_decomp_MM_microbe'
+  .$fnames$decomp$d2 <- 'f_decomp_lin'
+  .$fnames$decomp$d3 <- 'f_decomp_MM_microbe'
+  .$configure_test() # if only used in test functions should begin with a .
+  
+  if(metdf) {
+    .$dataf       <- list()
+    if(length(litter)==1) litter <- rep(litter, ntimes )   
+    .$dataf$metdf <- matrix(litter, nrow=1 )
+    rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
+    .$dataf$lm    <- length(.$dataf$metdf[1,])
+    .$dataf$mout  <- .$output()
+    .$run_met()
+  } else {
+    .$env$litter  <- litter
+    .$run()
+  }
+}
+
 
 soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384, ntimes=365, time=T ) {
 
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))
   soil_decomp_object$pars$n_pools = 3 
+
   .$configure_test() # if only used in test functions should begin with a .
 
   # initialise boundary data 

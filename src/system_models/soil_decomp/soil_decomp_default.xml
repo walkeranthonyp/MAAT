@@ -42,7 +42,15 @@
       <pep>0.01</pep>
       <pem>0.01</pem>
       <Kads>0.006</Kads>
-      <fid>0.0625</fid>
+      <input_coefs>
+        <input_coef1>1</input_coef1>
+        <input_coef2>0</input_coef2>
+        <input_coef3>0</input_coef3>
+        <input_coef4>0</input_coef4>
+        <input_coef5>0</input_coef5>
+        <input_coef6>0</input_coef6>
+        <input_coef7>0</input_coef7>
+      </input_coefs>
       <cstate0>
         <cstate01>10</cstate01>
         <cstate02>2</cstate02>
@@ -66,7 +74,7 @@
         <vmax2>1</vmax2>
         <vmax3>1</vmax3>
         <vmax4>1</vmax4>
-        <vmax5>5e-04</vmax5>
+        <vmax5>0.26</vmax5>
         <vmax6>1</vmax6>
         <vmax7>1</vmax7>
       </vmax>

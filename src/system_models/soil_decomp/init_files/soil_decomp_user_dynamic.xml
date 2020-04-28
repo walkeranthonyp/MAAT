@@ -42,7 +42,15 @@
       <pep>NA</pep>
       <pem>NA</pem>
       <Kads>NA</Kads>
-      <fid>NA</fid>
+      <input_coefs>
+        <input_coef1>NA</input_coef1>
+        <input_coef2>NA</input_coef2>
+        <input_coef3>NA</input_coef3>
+        <input_coef4>NA</input_coef4>
+        <input_coef5>NA</input_coef5>
+        <input_coef6>NA</input_coef6>
+        <input_coef7>NA</input_coef7>
+      </input_coefs>
       <cstate0>
         <cstate01>NA</cstate01>
         <cstate02>NA</cstate02>

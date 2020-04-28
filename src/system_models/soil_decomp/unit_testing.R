@@ -51,6 +51,8 @@ soil_decomp_object$fns$transfermatrix(C=soil_decomp_object$state$cpools)
 soil_decomp_object$fns$DotO
 soil_decomp_object$fns$DotO(soil_decomp_object$state$cpools[,1])
 
+source('soil_decomp_object.R')
+soil_decomp_object$.test_changepool()
 
 source('soil_decomp_object.R')
 system.time(olist <- soil_decomp_object$.test_3pool(ntimes=2))

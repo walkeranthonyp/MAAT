@@ -16,10 +16,8 @@
 # input matrix, single column, rows = cpools_n
 # - this is where inputs would be divided among pools
 f_input <- function(., t ) {
-  # this needs developed to multiple a single column matirx of a pars list of coefficients multiplied by litter
-  # something like:
-  # .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 ) 
-  matrix(ncol = 1, c(.$env$litter, rep(0,.super$pars$n_pools-1)) )
+  
+  .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 )
 }
 
 
@@ -46,8 +44,8 @@ f_transfermatrix <- function(., C, t ) {
   idm    <- apply(idm,1,function(v) v[v<=.super$pars$n_pools] )
   # call functions and create transfer matrix 
   m      <- -1 * diag(nrow=.super$pars$n_pools)
-  print(idm)
-  print(dim(idm)[1])
+  #print(idm)
+  #print(dim(idm)[1])
   #print(m)
   for(i in 1:dim(idm)[1]) {
     ss <- idm[i,]
