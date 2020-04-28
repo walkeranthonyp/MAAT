@@ -141,9 +141,9 @@ salt_nmult <- 100
 mcmc_lklihood      <- 'ssquared'
 # outlier handling (options: none, iqr)
 mcmc_outlier       <- 'iqr'
-# convergence testing (options: none, Gelman_Rubin)
-mcmc_converge      <- 'Gelman_Rubin'
-# parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
+# MCMC convergence testing (options: none, Gelman_Rubin)
+mcmc_conv          <- 'Gelman_Rubin'
+# MCMC option for parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
 mcmc_bdry_handling <- 'bound'
 # initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
 mcmc_prior         <- 'uniform'
@@ -371,13 +371,13 @@ if(!is.null(parsinit_mcmc)) {
     print('MCMC restart')
     print('  No MCMC parameters will be read as command line arguments,')
     print('  all set from original MCMCM run')
-    
-    # define beginning and end iteration counters 
+
+    # define beginning and end iteration counters
     mcmc_restart_iter          <- mcmc_restart_pars_dim[3]
     maat$wpars$mcmc$start_iter <- mcmc_restart_iter + 1
     maat$wpars$mcmc$maxiter    <- maat$wpars$mcmc$maxiter + mcmc_restart_iter
-    
-    # assign starting parameter values 
+
+    # assign starting parameter values
     parsinit <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
 
     # update user-defined MCMC parameters passed from restart
@@ -393,7 +393,7 @@ if(!is.null(parsinit_mcmc)) {
     maat$mcmc$del  <- maat$dataf$mcmc_input$mcmc$del
     maat$mcmc$L    <- maat$dataf$mcmc_input$mcmc$L
     maat$mcmc$t    <- maat$dataf$mcmc_input$mcmc$t
-    maat$mcmc$m    <- maat$dataf$mcmc_input$mcmc$m 
+    maat$mcmc$m    <- maat$dataf$mcmc_input$mcmc$m
 
     # set output to mcmc dir 
     maat$wpars$of_dir <- mcmcdir
