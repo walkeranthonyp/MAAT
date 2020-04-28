@@ -136,42 +136,42 @@ coef_var   <- 0.1
 # multiplier on process ensemble n for Saltelli ensemble n
 salt_nmult <- 100
 
-# parameters for MCMC run
-# MCMC likelihood function (options: log, ssquared, ssquared_se, ...)
+# MCMC parameters
+# likelihood function (options: log, ssquared, ssquared_se, ...)
 mcmc_lklihood      <- 'ssquared'
-# MCMC outlier handling (options: none, iqr)
+# outlier handling (options: none, iqr)
 mcmc_outlier       <- 'iqr'
 # MCMC convergence testing (options: none, Gelman_Rubin)
 mcmc_conv          <- 'Gelman_Rubin'
 # MCMC option for parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
 mcmc_bdry_handling <- 'bound'
-# MCMC option for initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
+# initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
 mcmc_prior         <- 'uniform'
-# number of MCMC chains to run (minumum = 2 * mcmc_delta + 1)
+# number of chains to run (minumum = 2 * mcmc_delta + 1)
 mcmc_chains        <- 7
-# number of iterations / steps in MCMC chain
+# number of iterations / steps in chain
 mcmc_maxiter       <- 1000
-# MCMC thinning for posterior, as a proportion
+# thinning for posterior, as a proportion
 mcmc_thin          <- 0.1
-# MCMC thinning for observations, as a proportion
+# thinning for observations, as a proportion
 mcmc_thin_obs      <- 1
-# MCMC option to assume homoscedastic error in measured observations (else, heteroscedastic)
+# option to assume homoscedastic error in measured observations (else, heteroscedastic)
 mcmc_homosced      <- F
-# MCMC DREAM number chain pair proposal
+# DREAM number chain pair proposal
 mcmc_delta         <- 3
-# MCMC DREAM randomization (default value)
+# DREAM randomization (default value)
 mcmc_c_rand        <- 0.01
-# MCMC DREAM ergodicicty (default value)
+# DREAM ergodicicty (default value)
 mcmc_c_ergod       <- 1e-12
-# MCMC DREAM probability of unit jump rate (probability gamma = 1) (default value)
+# DREAM probability of unit jump rate (probability gamma = 1) (default value)
 mcmc_p_gamma       <- 0.2
-# MCMC DREAM number of crossover values (default value)
+# DREAM number of crossover values (default value)
 mcmc_n_CR          <- 3
-# MCMC option whether or not to adapt probability of selecting crossover values
-mcmc_adapt_pCR     <- T
-# MCMC option determining how long to adapt crossover selection probabilities, as a proportion
-mcmc_CR_burnin     <- 0.1
-# MCMC option for checking for convergence and outlier chains every N iterations
+# adapt probability of selecting crossover values
+#mcmc_adapt_pCR     <- T
+# if true, numberof iteration to adapt crossover selection probabilities
+mcmc_CR_burnin     <- 1e4
+# checking for convergence and outlier chains every N iterations
 mcmc_check_iter    <- 10
 
 
@@ -267,27 +267,28 @@ maat$wpars$of_type       <- of_format
 maat$wpars$of_dir        <- odir
 maat$wpars$parsinit_read <- !is.null(parsinit_mcmc)
 
-maat$wpars$mcmc                    <- mcmc
+maat$wpars$mcmc          <- mcmc
 # define MCMC run parameters (sublist of wpars)
-maat$wpars$mcmc_pars$run_type      <- run_type
-maat$wpars$mcmc_pars$lklihood      <- lklihood
-maat$wpars$mcmc_pars$outlier       <- outlier
-maat$wpars$mcmc_pars$bdry_handling <- bdry_handling
-maat$wpars$mcmc_pars$init_prior    <- init_prior
-maat$wpars$mcmc_pars$conv          <- conv
-maat$wpars$mcmc_pars$chains        <- chains
-maat$wpars$mcmc_pars$maxiter       <- maxiter
-maat$wpars$mcmc_pars$thin          <- thin
-maat$wpars$mcmc_pars$thin_obs      <- thin_obs
-maat$wpars$mcmc_pars$homosced      <- homosced
-maat$wpars$mcmc_pars$chain_delta   <- chain_delta
-maat$wpars$mcmc_pars$c_rand        <- c_rand
-maat$wpars$mcmc_pars$c_ergod       <- c_ergod
-maat$wpars$mcmc_pars$p_gamma       <- p_gamma
-maat$wpars$mcmc_pars$n_CR          <- n_CR
-maat$wpars$mcmc_pars$adapt_CR      <- adapt_pCR
-maat$wpars$mcmc_pars$CR_burnin     <- CR_burnin
-maat$wpars$mcmc_pars$check_iter    <- max(mcmc_check_iter, 4) #ALJ: prevents numerical error in indexing
+maat$wpars$mcmc$run_type      <- run_type
+maat$wpars$mcmc$lklihood      <- lklihood
+maat$wpars$mcmc$outlier       <- outlier
+maat$wpars$mcmc$bdry_handling <- bdry_handling
+maat$wpars$mcmc$init_prior    <- init_prior
+maat$wpars$mcmc$converge      <- converge
+maat$wpars$mcmc$chains        <- chains
+maat$wpars$mcmc$maxiter       <- maxiter
+maat$wpars$mcmc$thin          <- thin
+maat$wpars$mcmc$thin_obs      <- thin_obs
+maat$wpars$mcmc$homosced      <- homosced
+maat$wpars$mcmc$chain_delta   <- chain_delta
+maat$wpars$mcmc$c_rand        <- c_rand
+maat$wpars$mcmc$c_ergod       <- c_ergod
+maat$wpars$mcmc$p_gamma       <- p_gamma
+maat$wpars$mcmc$n_CR          <- n_CR
+#maat$wpars$mcmc$adapt_CR      <- adapt_pCR
+maat$wpars$mcmc$adapt_CR      <- T
+maat$wpars$mcmc$CR_burnin     <- CR_burnin
+maat$wpars$mcmc$check_iter    <- max(mcmc_check_iter, 4) #ALJ: prevents numerical error in indexing
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
@@ -358,8 +359,8 @@ if(!is.null(parsinit_mcmc)) {
 
   print('')
   print('Read input from MCMC output:')
-  print(paste('directory:',mcmcdir))
-  print(paste('filename:',mcmcout))
+  print(paste('  directory:',mcmcdir))
+  print(paste('  filename:',mcmcout))
 
   # read and write pars
   setwd(mcmcdir)
@@ -368,18 +369,39 @@ if(!is.null(parsinit_mcmc)) {
 
   if(parsinit_mcmc=='restart') {
     print('MCMC restart')
-    mcmc_restart_iter          <- mcmc_restart_pars_dim[3]
-    maat$wpars$mcmc_start_iter <- mcmc_restart_iter + 1
-    maat$wpars$mcmc_maxiter    <- maat$wpars$mcmc_maxiter + mcmc_restart_iter
-    parsinit                   <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
+    print('  No MCMC parameters will be read as command line arguments,')
+    print('  all set from original MCMCM run')
 
-    # check dimensions consistent
-    if(mcmc_chains!=mcmc_restart_pars_dim[2]) {
-      print('mcmc_chains argument different from number of chains in MCMC restart,')
-      print(paste('overwriting mcmc_chains argument with:', mcmc_restart_pars_dim[2] ))
-      maat$mcmc_chains <- mcmc_restart_pars_dim[2]
-      # can do the same for number of parameters and other run variables
-    }
+    # define beginning and end iteration counters
+    mcmc_restart_iter          <- mcmc_restart_pars_dim[3]
+    maat$wpars$mcmc$start_iter <- mcmc_restart_iter + 1
+    maat$wpars$mcmc$maxiter    <- maat$wpars$mcmc$maxiter + mcmc_restart_iter
+
+    # assign starting parameter values
+    parsinit <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
+
+    # update user-defined MCMC parameters passed from restart
+    #maat$wpars$mcmc$chains    <- maat$dataf$mcmc_input$wpars$mcmc$chains
+    #maat$wpars$mcmc$n_CR      <- maat$dataf$mcmc_input$wpars$mcmc$n_CR
+    #maat$wpars$mcmc$adapt_pCR <- maat$dataf$mcmc_input$wpars$mcmc$adapt_pCR
+    #maat$wpars$mcmc$CR_burnin <- maat$dataf$mcmc_input$wpars$mcmc$CR_burnin
+    maat$wpars$mcmc <- maat$dataf$mcmc_input$wpars$mcmc
+
+    # update MCMC variables passed from restart
+    maat$mcmc$CR   <- maat$dataf$mcmc_input$mcmc$CR
+    maat$mcmc$p_CR <- maat$dataf$mcmc_input$mcmc$p_CR
+    maat$mcmc$del  <- maat$dataf$mcmc_input$mcmc$del
+    maat$mcmc$L    <- maat$dataf$mcmc_input$mcmc$L
+    maat$mcmc$t    <- maat$dataf$mcmc_input$mcmc$t
+    maat$mcmc$m    <- maat$dataf$mcmc_input$mcmc$m
+
+    ## check dimensions consistent
+    #if(mcmc_chains!=mcmc_restart_pars_dim[2]) {
+    #  print('mcmc_chains argument different from number of chains in MCMC restart,')
+    #  print(paste('overwriting mcmc_chains argument with:', mcmc_restart_pars_dim[2] ))
+    #  maat$mcmc_chains <- mcmc_restart_pars_dim[2]
+    #  # can do the same for number of parameters and other run variables
+    #}
 
   } else if(parsinit_mcmc=='ensemble') {
     print('forward run from MCMC calibrated parameters')
@@ -400,7 +422,6 @@ if(!is.null(parsinit_mcmc)) {
   # APW: this could be moved to the generate_pars_ensemble code
   #      would probably help readability
   maat$dataf$pars <- parsinit
-
 }
 
 
