@@ -277,21 +277,22 @@ wrapper_object$dataf  <- list(
 
 # parameters specific to the wrapper object
 wrapper_object$wpars <- list(
-  multic        = F,             # multicore the simulation
-  procs         = 6,             # number of processors to use if multic = T
-  cverbose      = F,             # write configuration output during runtime
-  UQ            = F,             # run a UQ analysis
-  runtype       = 'none',        # ensemble type - 'factorial', 'SApar_saltelli', and 'SAprocess_ye' available so far
-  of_dir        = '~/tmp',       # output directory
-  of_type       = 'csv',         # output file type - 'csv' or 'rds'
-  of_name       = '',            # output file name - excluding file extension
-  of_name_stem  = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
-  n             = numeric(1),    # parameter sample number
-  parsinit_read = F,             # parameter samples have been read from a file
-  nmult         = 1,             # parameter sample number multiplier for saltelli method
-  eval_strings  = F,             # switch telling wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
-  sobol_init    = T,             # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
-  unit_testing  = F,
+  multic          = F,             # multicore the simulation
+  procs           = 6,             # number of processors to use if multic = T
+  cverbose        = F,             # write configuration output during runtime
+  UQ              = F,             # run a UQ analysis
+  runtype         = 'none',        # ensemble type - 'factorial', 'SApar_saltelli', and 'SAprocess_ye' available so far
+  of_dir          = '~/tmp',       # output directory
+  of_type         = 'csv',         # output file type - 'csv' or 'rds'
+  of_name         = '',            # output file name - excluding file extension
+  of_name_history = '',            # history output file name - excluding file extension
+  of_name_stem    = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
+  n               = numeric(1),    # parameter sample number
+  parsinit_read   = F,             # parameter samples have been read from a file
+  nmult           = 1,             # parameter sample number multiplier for saltelli method
+  eval_strings    = F,             # switch telling wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
+  sobol_init      = T,             # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
+  unit_testing    = F,
 
   mcmc = list(
     run_type      = 'dream',

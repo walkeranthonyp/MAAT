@@ -184,7 +184,7 @@ init_output_matrix_mcmc_dream <- function(.) {
   #.$dataf$pars_array    <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc$maxiter ))
   .$dataf$pars_array    <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc$maxiter ))
 
-  # ALJ: need the parameter names to carry through to a restart
+  # APW: parameter names could be associated with dimnames of the array sooner 
   if(!.$wpars$parsinit_read) row.names(.$dataf$pars_array) <- row.names(.$dataf$pars)
 
   # accepted proposal likelihood matrix
@@ -219,7 +219,6 @@ init_output_matrix_mcmc_dream <- function(.) {
     .$dataf$conv_check[,1:check_iter_n_restart] <- .$dataf$mcmc_input$conv_check
     .$dataf$mcmc_input <- NULL
   }
-
 }
 
 init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream
@@ -803,11 +802,25 @@ write_output_SAprocess_ye <- function(.,f) {
 
 # write MCMC output list
 write_output_mcmc_dream <- function(.,i) {
+
+  # write MCMC output
   #.$wpars$of_name <- paste(ofname, 'mcmc', 'f', i, sep='_' )
   .$write_to_file()
 
+  # determine restart iteration number 
+  hist_file_list <- list.files(pattern==paste0(.$wpars$of_name, '_history_' )      
+  if(length(hist_file_list)==0) {
+    hn <- 1
+  } else {
+    hstart <- regexpr('history_', hist_file_list )
+    hend   <- regexpr('.RDS', hist_file_list )
+    hns    <- as.numeric(substr(hist_file_list, hstart[1]+attr(hstart,'match.length')[1], hend-1 ))
+    hn     <- max(hns) + 1
+  } 
+
+  # make and write history file 
   df <- .$output(iter_out_start=1, iter_out_end=.$mcmc$j_burnin50-1 )
-  saveRDS(df, paste0(.$wpars$of_name, '_history', '.RDS'))
+  saveRDS(df, paste0(.$wpars$of_name, '_history_', hn, '.RDS' ))
 }
 
 

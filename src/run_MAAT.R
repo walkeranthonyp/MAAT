@@ -80,7 +80,7 @@ mcmc_type  <- 'dream'
 # - used either to 'restart' an MCMC run or run a predictive 'ensemble' by sampling posterior distributions
 # - if 'ensemble' factorial must be TRUE
 parsinit_mcmc <- NULL
-# directory with MCMC data - assumed relative to pdir
+# directory with MCMC data - relative to pdir
 mcmcdir       <- NULL
 # output filename for MCMC data
 mcmcout       <- NULL
@@ -394,6 +394,10 @@ if(!is.null(parsinit_mcmc)) {
     maat$mcmc$L    <- maat$dataf$mcmc_input$mcmc$L
     maat$mcmc$t    <- maat$dataf$mcmc_input$mcmc$t
     maat$mcmc$m    <- maat$dataf$mcmc_input$mcmc$m 
+
+    # set output to mcmc dir 
+    maat$wpars$of_dir <- mcmcdir
+   
 
     ## check dimensions consistent
     #if(mcmc_chains!=mcmc_restart_pars_dim[2]) {

@@ -135,7 +135,7 @@ init_mcmc_dream <- function(.) {
   #.$mcmc$CR_burnin <- ceiling(.$wpars$mcmc$CR_burnin * .$wpars$mcmc$maxiter)
 
   # index of chains for Differential Evolution
-  for (ii in 1:.$dataf$lp) .$mcmc$R[ii, ] <- setdiff(1:.$dataf$lp, ii)
+  for (ii in 1:.$dataf$lp) .$mcmc$R[ii,] <- setdiff(1:.$dataf$lp, ii )
 }
 
 
