@@ -142,7 +142,7 @@ mcmc_lklihood      <- 'ssquared'
 # MCMC outlier handling (options: none, iqr)
 mcmc_outlier       <- 'iqr'
 # MCMC convergence testing (options: none, Gelman_Rubin)
-mcmc_converge      <- 'Gelman_Rubin'
+mcmc_conv          <- 'Gelman_Rubin'
 # MCMC option for parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
 mcmc_bdry_handling <- 'bound'
 # MCMC option for initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
@@ -274,7 +274,7 @@ maat$wpars$mcmc_pars$lklihood      <- lklihood
 maat$wpars$mcmc_pars$outlier       <- outlier
 maat$wpars$mcmc_pars$bdry_handling <- bdry_handling
 maat$wpars$mcmc_pars$init_prior    <- init_prior
-maat$wpars$mcmc_pars$converge      <- converge
+maat$wpars$mcmc_pars$conv          <- conv
 maat$wpars$mcmc_pars$chains        <- chains
 maat$wpars$mcmc_pars$maxiter       <- maxiter
 maat$wpars$mcmc_pars$thin          <- thin
