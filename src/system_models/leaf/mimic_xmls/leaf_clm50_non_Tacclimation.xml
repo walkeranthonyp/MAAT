@@ -2,66 +2,77 @@
   <fnames>
     <leaf>
       <gstar>'f_gstar_constref'</gstar>
-      <vcmax>'f_vcmax_lin'</vcmax>
+      <vcmax>'f_vcmax_clm'</vcmax>
       <jmax>'f_jmax_lin'</jmax>
-      <tcor_jmax>'f_tcor_jmax_lin'</tcor_jmax>
+      <tpu>'f_tpu_lin'</tpu>
       <!-- increasing component of temperature scaling for biochemical rates -->
       <tcor_asc>
         <vcmax>'f_tcor_asc_Arrhenius'</vcmax>
         <jmax>'f_tcor_asc_Arrhenius'</jmax>
+        <tpu>'f_tcor_asc_Arrhenius'</tpu>
         <gstar>'f_tcor_asc_Arrhenius'</gstar>
         <Kc>'f_tcor_asc_Arrhenius'</Kc>
         <Ko>'f_tcor_asc_Arrhenius'</Ko>
-        <rd>'f_tcor_asc_bethy'</rd>
+        <rd>'f_tcor_asc_Arrhenius'</rd>
       </tcor_asc>
       <tcor_des>
         <vcmax>'f_tcor_des_modArrhenius'</vcmax>
         <jmax>'f_tcor_des_modArrhenius'</jmax>
-        <rd>'f_scalar_none'</rd>
+        <tpu>'f_tcor_des_modArrhenius'</tpu>
+        <rd>'f_tcor_des_modArrhenius'</rd>
       </tcor_des>
+      <!-- dependence of TPU & Rd temperature scaling on Vcmax -->
       <tcor_dep>
+        <tpu>'f_tcor_dep_independent'</tpu>
         <rd>'f_tcor_dep_independent'</rd>
       </tcor_dep>
       <deltaS>
-        <vcmax>'f_deltaS_lin_t'</vcmax>
-        <jmax>'f_deltaS_lin_t'</jmax>
+        <vcmax>'f_deltaS_constant'</vcmax>
+        <jmax>'f_deltaS_constant'</jmax>
+        <tpu>'f_deltaS_constant'</tpu>
+        <rd>'f_deltaS_constant'</rd>
       </deltaS>
-      <etrans>'f_etrans_harley1992'</etrans>
+      <etrans>'f_etrans_farquharwong1984'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
-      <Apg>'f_Apg_none'</Apg>
+      <Apg>'f_Apg_vonc2000'</Apg>
       <gas_diff>'f_gas_diff_ficks_ci'</gas_diff>
       <rd>'f_rd_lin_vcmax'</rd>
       <rl_rd>'f_rl_rd_fixed'</rl_rd_scalar>
       <ri>'f_r_zero'</ri>
-      <rs>'f_rs_constantCiCa'</rs>
+      <rs>'f_rs_ball1987'</rs>
       <rb>'f_r_zero'</rb>
-      <solver>'f_solver_analytical_leaf_simple'</solver>
+      <solver>'f_solver_brent'</solver>
       <residual_func>'f_residual_func_leaf_Ar'</residual_func>
-      <Alim>'f_Alim_farquhar1980'</Alim>
+      <Alim>'f_Alim_collatz1991'</Alim>
     </leaf>
   </fnames>
   <pars>
     <leaf>
-      <a>0.88</a>
-      <f>0.44</f>
-      <avn_25>8.31</avn_25>
-      <bvn_25>9.11</bvn_25>
-      <!-- ajv_25>29</ajv_25 -->
-      <!-- bjv_25>1.63</bjv_25 -->
+      <a>0.85</a>
+      <f>0.15</f>
+      <theta_j>0.7</theta_j>
+      <theta_col_cj>0.98</theta_col_cj>
+      <theta_col_cjp>0.95</theta_col_cjp>
       <ajv_25>0</ajv_25>
-      <bjv_25>1.715</bjv_25>
-      <a_jvt_25>2.59</a_jvt_25>      
-      <b_jvt_25>-0.035</b_jvt_25>      
-      <cica_chi>0.87</cica_chi>
-      <a_rdv_25_t>0.015</a_rdv_25_t>
-      <b_rdv_25_t>-0.0005</b_rdv_25_t>
-      <rl_rd_ratio>0.75</rl_rd_ratio>
+      <bjv_25>1.97</bjv_25>   
+      <atv_25>0</atv_25>
+      <btv_25>0.16667</btv_25>
+      <flnr>0.0461</flnr>
+      <fnr>7.16</fnr>
+      <Rsa>60</Rsa>
+      <Apg_alpha>0</Apg_alpha>
+      <g0>0.01</g0>
+      <g1_ball>9</g1_ball>
+      <a_rdv_25>0.0</a_rdv_25>
+      <b_rdv_25>0.015</b_rdv_25>
+      <rl_rd_ratio>1</rl_rd_ratio>
       <!-- reference temperatures for temperature sensitive parameters -->
       <reftemp>
         <rd>25</rd>
         <vcmax>25</vcmax>
         <jmax>25</jmax>
+        <tpu>25</tpu>
         <Kc>25</Kc>
         <Ko>25</Ko>
         <gstar>25</gstar>
@@ -74,30 +85,27 @@
       </atref>
       <!-- activation energy for temperature sensitive parameters -->
       <Ha>
-        <vcmax>71510</vcmax>
-        <jmax>49880</jmax>
+        <rd>46390</rd>
+        <vcmax>65330</vcmax>
+        <jmax>43540</jmax>
+        <tpu>65330</tpu>
         <Kc>79430</Kc>
         <Ko>36380</Ko>
         <gstar>37830</gstar>
       </Ha>
       <Hd>
-        <vcmax>200000</vcmax>
-        <jmax>200000</jmax>
+        <rd>150650</rd>
+        <vcmax>149250</vcmax>
+        <jmax>152040</jmax>
+        <tpu>149250</tpu>
       </Hd>
-      <a_deltaS_t>
-        <vcmax>668</vcmax>
-        <jmax>660</jmax>
-      </a_deltaS_t>
-      <b_deltaS_t>
-        <vcmax>-1.07</vcmax>
-        <jmax>-0.75</jmax>
-      </b_deltaS_t>
-      <a_q10_t>
-        <rd>3.22</rd>
-      </a_q10_t>
-      <b_q10_t>
-        <rd>-0.046</rd>
-      </b_q10_t>
+      <!-- delta S for temperature sensitive parameters -->
+      <deltaS>
+        <rd>490</rd>
+        <vcmax>485</vcmax>
+        <jmax>495</jmax>
+        <tpu>485</tpu>
+      </deltaS>
       <R>8.31446</R>
     </leaf>
   </pars>
