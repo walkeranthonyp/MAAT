@@ -68,6 +68,8 @@ leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
 ####################################
 leaf_object$fnames <- list(
   sys              = 'f_sys_enzymek', 
+  rh_or_vpd        = 'f_vpd_from_rh',
+  sat_vp           = 'f_sat_vp_allen1998',
   solver           = 'f_solver_brent',
   residual_func    = 'f_residual_func_leaf_Ar',
   assimilation     = 'f_assimilation_c3',
