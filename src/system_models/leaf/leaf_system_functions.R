@@ -22,9 +22,9 @@ f_sys_enzymek <- function(.) {
   .super$state$oi <- .super$env$o2_conc * .super$env$atm_press * 1e-3
   # leaf temperature
   .super$state$leaf_temp <- .super$env$temp
-  # RH from VPD
-  .super$env$rh   <- f_rh_from_vpd(.)
-
+  # RH from VPD (default), or vice versa
+  .$rh_or_vpd()
+ 
   # calculate state parameters
   # photosynthetic parameters
   .super$state_pars$vcmax     <- .$vcmax()

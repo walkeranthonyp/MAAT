@@ -183,6 +183,8 @@ f_Apg_none <- function(.) {
 }
 
 # PEPC limitation for C4 (i.e. not TPU limitation but it is the third possible limitation for C4) 
+# - also, strictly speaking Cc should be Ci but this is to work with the solver
+# - 
 f_Apg_c4_pepc_collatz1992 <- function(., cc=.super$state$cc ) {
   cc * .super$state_pars$k_pepc_lt / .super$env$atm_press
 }

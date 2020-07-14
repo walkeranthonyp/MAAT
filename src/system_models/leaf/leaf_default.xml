@@ -2,6 +2,8 @@
   <fnames>
     <leaf>
       <sys>'f_sys_enzymek'</sys>
+      <rh_or_vpd>'f_vpd_from_rh'</rh_or_vpd>
+      <sat_vp>'f_sat_vp_allen1998'</sat_vp>
       <solver>'f_solver_brent'</solver>
       <residual_func>'f_residual_func_leaf_Ar'</residual_func>
       <assimilation>'f_assimilation_c3'</assimilation>
