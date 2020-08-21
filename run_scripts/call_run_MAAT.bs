@@ -3,11 +3,26 @@
 # bash script to excute MAAT 
 # this example/default script excutes a factorial MAAT run on a single core 
 # this script is copied to $PDIR and should only be edited there to customise a run 
-# Optional single argument - the MAAT runid, no argument will read 'init_MAAT.R' for initialisation, with argument <ARG> will read 'init_MAAT_<ARG>.R' for initialisation from $PDIR 
 
+# Optional single argument - the MAAT runid
+#  - no argument will read 'init_MAAT.R' for initialisation
+#  - with argument <ARG> will read 'init_MAAT_<ARG>.R' for initialisation from $PDIR 
+
+# 1st argument - the MAAT runid
+RUNID=$1
+
+
+# directories - defined when 'setup_MAAT_project.bs' is run
 SDIR="##SDIR##"
 PDIR="##PDIR##"
 MOBJ="##MOBJ##"
+
+
+
+##########################################
+### User defined variables 
+#   - edit in this script once copied to $PDIR
+#   - do not edit in repo
 
 # command line arguments to pass to run_MAAT.R - argument names and options can be found in run_MAAT.R 
 ARGS="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' multic<-F uq<-F factorial<-T"
@@ -16,9 +31,6 @@ ARGS="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' multic<-F uq<-F facto
 
 ##########################################
 ### DO NOT MODIFY ANYTHING BELOW THIS LINE
-
-# 1st argument - the MAAT runid
-RUNID=$1
 
 # date for labelling log files
 YMD=`date +%Y-%m-%d`
@@ -29,8 +41,19 @@ if [[ ! -z $RUNID ]]; then
   LOGF="${PDIR}/logs/${YMD}_${RUNID}_runlog.txt"
 fi
 
+# run MAAT
 cd $SDIR
-Rscript run_MAAT.R ${ARGS} > $LOGF
+if [[ $ARGS =~ 'restart' ]]; then
+  echo >> $LOGF
+  echo >> $LOGF
+  echo >> $LOGF
+  echo =========================================== >> $LOGF
+  echo Restart >> $LOGF
+  echo >> $LOGF
+  Rscript run_MAAT.R ${ARGS} >> $LOGF
+else
+  Rscript run_MAAT.R ${ARGS} > $LOGF
+fi
 
 
 
