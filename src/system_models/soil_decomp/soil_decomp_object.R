@@ -208,7 +208,7 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=3.2, ntimes=1
     if(length(litter)==1) litter <- rep(litter, ntimes )   
     .$dataf$metdf <- matrix(litter, nrow=1 )
     rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-    .$dataf$lm    <- length(.$dataf$metdf[1,])
+    .$dataf$lm    <- dim(.$dataf$met)[2]
     .$dataf$mout  <- .$output()
     .$run_met()
   } else {
@@ -229,7 +229,7 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
   if(length(litter)==1) litter <- rep(litter, ntimes )   
   .$dataf$metdf <- matrix(litter, nrow=1 )
   rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-  .$dataf$lm    <- length(.$dataf$metdf[1,])
+  .$dataf$lm    <- dim(.$dataf$met)[2]
   .$dataf$mout  <- .$output()
 
 

@@ -290,11 +290,11 @@ canopy_structure_object$.test <- function(., verbose=T, par=1320, ca_conc=400  )
   .$build(switches=c(F,verbose,F))
 
   # parameter settings
-  .$cpars$verbose       <- verbose
-  .$canopy$cpars$verbose  <- F
+  .$cpars$verbose        <- verbose
+  .$canopy$cpars$verbose <- F
   
-  .$env$par        <- par 
-  .$env$ca_conc    <- ca_conc
+  .$env$par     <- par 
+  .$env$ca_conc <- ca_conc
   
   .$run()
 }
@@ -313,23 +313,24 @@ canopy_structure_object$.test_aca <- function(., verbose=F, cverbose=F,
   .$canopy$leaf$configure_test
  
   # generate met data 
-  .$dataf     <- list()
-  .$dataf$met <- expand.grid(mget(c('canopy_structure.ca_conc','canopy_structure.par')))
-  
-  # run maat
-  .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+  .$dataf          <- list()
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('canopy_structure.ca_conc','canopy_structure.par')))))
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
+  .$dataf$out      <- .$run_met() 
+  .$dataf$out_full <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  print(.$dataf$out_full)
   
   # run output
-  print(cbind(.$dataf$met,.$dataf$out))
   p1 <- 
     if(length(canopy_structure.ca_conc) > 2) 
-      xyplot(A~.$dataf$met$canopy_structure.ca_conc|as.factor(.$dataf$met$canopy_structure.par),
-             .$dataf$out,abline=0,
+      xyplot(A ~ canopy_structure.ca_conc | as.factor(canopy_structure.par),
+             .$dataf$out_full, abline=0,
              ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),
              xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'))
     else if(length(canopy_structure.par) > 2) 
-      xyplot(A~.$dataf$met$canopy_structure.par|as.factor(.$dataf$met$canopy_structure.ca_conc),
-             .$dataf$out,abline=0,
+      xyplot(A ~ canopy_structure.par | as.factor(canopy_structure.ca_conc),
+             .$dataf$out_full, abline=0,
              ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),
              xlab=expression('PAR ['*mu*mol*' '*m^-2*s^-1*']'))
   

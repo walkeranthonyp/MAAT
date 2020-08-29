@@ -344,13 +344,16 @@ canopy_object$.test_aca <- function(., verbose=F, cverbose=F,
   .$configure_test() 
   .$leaf$configure_test() 
   
-  .$dataf       <- list()
-  .$dataf$met   <- expand.grid(mget(c('canopy.ca_conc','canopy.par')))
-  .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+  .$dataf          <- list()
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('canopy.ca_conc','canopy.par')))))
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
+  .$dataf$out      <- .$run_met() 
+  .$dataf$out_full <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  print(.$dataf$out_full)
   
-  print(cbind(.$dataf$met,.$dataf$out))
-  p1 <- xyplot(A~.$dataf$met$canopy.ca_conc|as.factor(.$dataf$met$canopy.par),.$dataf$out,abline=0,
-               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'))
+  p1 <- xyplot(A ~ canopy.ca_conc | as.factor(canopy.par), .$dataf$out_full, abline=0,
+               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'), xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'))
   print(p1)
 }
 
