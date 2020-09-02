@@ -145,8 +145,8 @@ leaf_object$env <- list(
   water_l   = numeric(1),          # (mm) water level relative to hollow surfwce
   sphag_l   = 0,                   # (mm) Sphagnum surface relative to hollow surfwce
   temp      = 25,                  # (oC)
-  vpd       = 1,                   # (kPa)
-  rh        = numeric(1),          # (unitless - proportion)
+  vpd       = numeric(1),          # (kPa)
+  rh        = 0.8,                 # (unitless - proportion)
   atm_press = 101325,              # ( Pa)
   wind      = 1                    # (m s-1)
 )
@@ -563,7 +563,7 @@ leaf_object$.test_tscalar <- function(., diag=F, verbose=F, cverbose=F,
 
 
 leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,1500,50), 
-                                  rs='f_rs_medlyn2011', rb='f_r_zero', 
+                                  rs='f_rs_medlyn2011', rb='f_r_zero', c4=F, 
                                   verbose=F, cverbose=F, diag=F, output='all_lim' ) {
   
   if(verbose) str(.)
@@ -575,21 +575,23 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
   .$fnames$rb            <- rb
   .$fnames$rs            <- rs
  
-  # C4 configuration  
-  .$fnames$assimilation  <- 'f_assimilation_c4'
-  .$fnames$etrans        <- 'f_etrans_collatz1991'
-  .$fnames$Acg           <- 'f_Acg_c4_collatz1992'
-  .$fnames$Ajg           <- 'f_Ajg_c4_collatz1992'
-  .$fnames$Apg           <- 'f_Apg_c4_pepc_collatz1992'
-  .$fnames$Alim          <- 'f_Alim_collatz1991'
-  .$pars$atref$vcmax     <- 39
-  .$pars$theta_col_cj    <- 0.83
-  .$pars$theta_col_cjp   <- 0.93
-  .$pars$f               <- 0.68
-  .$pars$f               <- 0.464
-  .$pars$g1_medlyn       <- 2.0
-  .$pars$g0              <- 0.08
-  
+  # C4 configuration
+  if(c4) {  
+    .$fnames$assimilation  <- 'f_assimilation_c4'
+    .$fnames$etrans        <- 'f_etrans_collatz1991'
+    .$fnames$Acg           <- 'f_Acg_c4_collatz1992'
+    .$fnames$Ajg           <- 'f_Ajg_c4_collatz1992'
+    .$fnames$Apg           <- 'f_Apg_c4_pepc_collatz1992'
+    .$fnames$Alim          <- 'f_Alim_collatz1991'
+    .$pars$atref$vcmax     <- 39
+    .$pars$theta_col_cj    <- 0.83
+    .$pars$theta_col_cjp   <- 0.93
+    .$pars$f               <- 0.68
+    .$pars$f               <- 0.464
+    .$pars$g1_medlyn       <- 2.0
+    .$pars$g0              <- 0.08
+  }
+
   # configure methods
   .$configure_test()
 
@@ -609,6 +611,7 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
                    panel.abline(v=.$dataf$out_full$transition[subscripts][1])
                    panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                  }
+                 panel.abline(h=0)
                  panel.xyplot(subscripts=subscripts, ... )
                })
   print(p1)
@@ -616,7 +619,7 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
 
 
 leaf_object$.test_aci_light <- function(., leaf.par=seq(10,2000,50), leaf.ca_conc=seq(1,1200,50),
-                                        rs='f_rs_medlyn2011',
+                                        rs='f_rs_medlyn2011', c4=F,
                                         verbose=F, cverbose=F, output=F, diag=F ) {
   
   if(verbose) str(.)
@@ -628,20 +631,22 @@ leaf_object$.test_aci_light <- function(., leaf.par=seq(10,2000,50), leaf.ca_con
   .$fnames$solver        <- 'f_solver_brent'
   
   # C4 configuration  
-  .$fnames$assimilation  <- 'f_assimilation_c4'
-  .$fnames$etrans        <- 'f_etrans_collatz1991'
-  .$fnames$Acg           <- 'f_Acg_c4_collatz1992'
-  .$fnames$Ajg           <- 'f_Ajg_c4_collatz1992'
-  .$fnames$Apg           <- 'f_Apg_c4_pepc_collatz1992'
-  .$fnames$Alim          <- 'f_Alim_collatz1991'
-  .$pars$atref$vcmax     <- 39
-  .$pars$theta_col_cj    <- 0.83
-  .$pars$theta_col_cjp   <- 0.93
-  .$pars$f               <- 0.68
-  .$pars$f               <- 0.464
-  .$pars$g1_medlyn       <- 2.0
-  .$pars$g0              <- 0.08
-  
+  if(c4) {
+    .$fnames$assimilation  <- 'f_assimilation_c4'
+    .$fnames$etrans        <- 'f_etrans_collatz1991'
+    .$fnames$Acg           <- 'f_Acg_c4_collatz1992'
+    .$fnames$Ajg           <- 'f_Ajg_c4_collatz1992'
+    .$fnames$Apg           <- 'f_Apg_c4_pepc_collatz1992'
+    .$fnames$Alim          <- 'f_Alim_collatz1991'
+    .$pars$atref$vcmax     <- 39
+    .$pars$theta_col_cj    <- 0.83
+    .$pars$theta_col_cjp   <- 0.93
+    .$pars$f               <- 0.68
+    .$pars$f               <- 0.464
+    .$pars$g1_medlyn       <- 2.0
+    .$pars$g0              <- 0.08
+  }
+
   # configure methods
   .$configure_test()
 

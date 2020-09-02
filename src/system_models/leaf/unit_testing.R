@@ -27,6 +27,7 @@ leaf_object$.test(verbose=F, leaf.par=1000, leaf.ca_conc=1 )
 
 source('leaf_object.R')
 leaf_object$.test_aci(leaf.ca_conc=seq(0.1,2000,50), verbose=F )
+leaf_object$.test_aci(leaf.ca_conc=seq(0.1,2000,50), c4=T, verbose=F )
 leaf_object$.test_aci(leaf.ca_conc=seq(0.1,600,20), verbose=F )
 leaf_object$.test_aci(leaf.ca_conc=seq(0.1,2000,50), rs='f_rs_yin2009' )
 leaf_object$.test_aci(diag=T)

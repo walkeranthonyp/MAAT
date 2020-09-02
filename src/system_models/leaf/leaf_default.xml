@@ -246,8 +246,8 @@
       <water_l>0</water_l>
       <sphag_l>0</sphag_l>
       <temp>25</temp>
-      <vpd>1</vpd>
-      <rh>0</rh>
+      <vpd>0</vpd>
+      <rh>0.8</rh>
       <atm_press>101325</atm_press>
       <wind>1</wind>
     </leaf>
