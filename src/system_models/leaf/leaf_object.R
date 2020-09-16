@@ -374,11 +374,11 @@ leaf_object$pars   <- list(
 # run control parameters
 ####################################
 leaf_object$cpars <- list(
-  diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
-  verbose       = F,          # write diagnostic output during runtime 
+  diag      = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
+  verbose   = F,          # write diagnostic output during runtime 
   cverbose  = F,          # write diagnostic output on the solver during runtime 
-  cverbose      = F,          # write configuration output during runtime 
-  output        = 'slim'      # type of output from run function
+  cverbose  = F,          # write configuration output during runtime 
+  output    = 'slim'      # type of output from run function
 )
 
 
@@ -408,7 +408,7 @@ f_output_leaf_full <- function(.) {
 
 f_output_leaf_all_lim <- function(.) {
   c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
-    .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
+    .$state_retrive(snames=c('gstar','ri','rs','rb'), state='state_pars' ) )
 }
 
 f_output_leaf_canopy <- function(.) {
@@ -423,8 +423,8 @@ f_output_leaf_sphagnum <- function(.) {
 }
 
 f_output_leaf_WUE <- function(.) {
-  c(.$state_retrive(snames=c('A','cc','ci','ca','gstar')), 
-    gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb ) 
+  c(.$state_retrive(snames=c('A','cc','ci','ca')), 
+    gstar=.$state_pars$gstar, gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb ) 
 }
 
 

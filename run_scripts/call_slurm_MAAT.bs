@@ -42,7 +42,7 @@ FORMATTED_ARGS=$(printf "%q" "$ARGS")
 YMD=`date +%Y-%m-%d`
 
 cd $PDIR
-sbatch --job-name="${YMD}_MAAT_${RUNID}"  --export=ALL,SDIR=$SDIR,PDIR=$PDIR,MDIR=$MDIR,MOBJ=$MOBJ,NP=$NP,YMD=$YMD,FORMATTED_ARGS="'$FORMATTED_ARGS'" slurm_MAAT_arg_ORNLCADES.sbatch
+sbatch --job-name="${YMD}_MAAT_${RUNID}"  --export=ALL,SDIR=$SDIR,PDIR=$PDIR,MDIR=$MDIR,MOBJ=$MOBJ,NP=$NP,YMD=$YMD,FORMATTED_ARGS="'$FORMATTED_ARGS'" slurm_MAAT_ORNLCADES.sbatch
 
 
 
