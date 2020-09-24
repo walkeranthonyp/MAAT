@@ -65,6 +65,59 @@ f_solver_func <- function(., t, y, parms) {
   list(as.vector(YD))
 }
 
+# lsoda style function to solve
+# - parms is a dummy argument to work with lsoda
+f_solver_func_corpse <- function(., t, y, parms) {
+  
+  # #State parameters (i.e. calculated parameters)
+  # Icr = root.litter*frroot + leaf.litter*frleaf      #partitions root inputs into simple and resistant pools
+  # Ics = root.litter+leaf.litter - Icr                #partitions leaf inputs into simple and resistant pools
+  # 
+  # Q = (clay/5)^.4833 #The above equation simplifies to this where 5 is the reference clay and .4833 is the slope from Mayes et al. 2012
+  # 
+  # vmax = vmaxref/exp(-Ea/(8.314472*293.15)) * exp(-Ea/(8.314472*temp)) #Arrhenius modification of maximum decomp rate, this was not correct in Sulman supplement
+  # litter = c(Cs, Cr, Cn) #trying to define litter as a vector to simplify code
+  # fracmic = M/sum(litter) #microbial biomass as fraction of unprotected C
+  # theta = vwc/porosity
+  # protectedC = c(Ps, Pr, Pn)
+  # 
+  ############################################
+  #f_decomp_rmm_sulman  # D = litter * vmaxref * M / (M + kC*sum(litter))
+  # 
+  ############################################
+  #f_micturn_sulman #microbeTurnover = max(0,(M-minMicrobeC*sum(litter))/Tmic)    (make Tmic = 1/Tmic in pars then multiply)
+  ############################################
+  # 
+  ############################################
+  #f_decomp_lin #S = litter * protection_rate 
+  #(* Q) this is f_scor_sulman
+  ############################################
+  # 
+############################################
+  #f_decomp_lin # U = protectedC/tProtected
+  #make sure the tProtected parameter is (1/tProtected)
+############################################
+  
+  
+    # 
+  # #ODE system
+  # dCs <- Ics + U[1] - S[1] - D[1]
+  dCs <- .$input[[1]](t) + .$desorp[[5]](.) - .$sorp[[1]](.)*.$scor(.) - .$decomp[[1]](.)*.$wcor(.)*.$tcor[[1]](.)
+  # dCr <- Icr + U[2] - S[2] - D[2] 
+  dCr <- .$input[[2]](t) + .$desorp[[6]](.) - .$sorp[[2]](.)*.$scor(.) - .$decomp[[2]](.)*.$wcor(.)*.$tcor[[2]](.)
+  # dCn <- Om*et + U[3] - S[3] - D[3] 
+  dCr <- .$decomp[[4]](.)*.super$pars$cue[[4]] + .$desorp[[7]](.) - .$sorp[[3]](.)*.$scor(.) - .$decomp[[3]](.)*.$wcor(.)*.$tcor[[3]](.)
+  # dM  <- sum(D*eup) - Om
+  dM <- .$decomp[[1]](.)*.super$pars$cue[[1]]+.$decomp[[2]](.)*.super$pars$cue[[2]]+.$decomp[[3]](.)*.super$pars$cue[[3]] - .$decomp[[4]](.)
+  # dPs <- S[1] - U[1]
+  dPs <- .$sorp[[1]]() - .$desorp[[5]]()
+  # dPr <- S[2] - U[2]
+  dPr <- .$sorp[[2]]() - .$desorp[[6]]()
+  # dPn <- S[3] - U[3]
+  dPn <- .$sorp[[3]]() - .$desorp[[7]]()
+  # list(c(dCs, dCr, dCn, dM, dPs, dPr, dPn))
+  list(c(dCs, dCr, dCn, dM, dPs, dPr, dPn))
+}
 
 
 ### END ###
