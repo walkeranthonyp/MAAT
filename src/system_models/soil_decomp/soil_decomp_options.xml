@@ -2,12 +2,17 @@
   <fnames>
     <soil_decomp>
       <sys>'c( 'f_sys_npools' )'</sys>
-      <solver>'c( 'f_solver_func' )'</solver>
-      <solver_func>'c( 'f_solver_func' )'</solver_func>
+      <solver>'c( 'f_solver_func', 'f_solver_func_corpse' )'</solver>
+      <solver_func>'c( 'f_solver_func', 'f_solver_func_corpse' )'</solver_func>
       <input>'c( 'f_input' )'</input>
       <DotO>'c( 'f_DotO' )'</DotO>
       <transfermatrix>'c( 'f_transfermatrix' )'</transfermatrix>
-      <decomp>'c( 'f_decomp_dd_georgiou', 'f_decomp_dd_mend', 'f_decomp_doc_mend', 'f_decomp_lin', 'f_decomp_mbc_mend', 'f_decomp_MM_enzmaom', 'f_decomp_MM_enzpom', 'f_decomp_MM_microbe' )'</decomp>
+      <decomp>'c( 'f_decomp_dd_georgiou', 'f_decomp_dd_mend', 'f_decomp_doc_mend', 'f_decomp_lin', 'f_decomp_mbc_mend', 'f_decomp_MM_enzmaom', 'f_decomp_MM_enzpom', 'f_decomp_MM_microbe', 'f_decomp_rmm_sulman' )'</decomp>
+      <desorp>'c(  )'</desorp>
+      <sorp>'c(  )'</sorp>
+      <scor>'c( 'f_scor_sulman' )'</scor>
+      <wcor>'c( 'f_wcor_sulman' )'</wcor>
+      <tcor>'c( 'f_tcor_arrhenius' )'</tcor>
       <transfer>'c( 'f_transfer_all', 'f_transfer_cue', 'f_transfer_cue_remainder', 'f_transfer_cue_sat', 'f_transfer_mend21', 'f_transfer_mend25', 'f_transfer_mend26', 'f_transfer_mend27', 'f_transfer_mend52', 'f_transfer_mend54', 'f_transfer_zero', 'f_transfermatrix' )'</transfer>
     </soil_decomp>
   </fnames>

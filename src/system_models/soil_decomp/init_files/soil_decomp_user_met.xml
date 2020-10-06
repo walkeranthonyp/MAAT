@@ -3,7 +3,9 @@
     <soil_decomp>
       <litter>'column name of variable in metdata file'</litter>
       <temp>'column name of variable in metdata file'</temp>
-      <swc>'column name of variable in metdata file'</swc>
+      <vwc>'column name of variable in metdata file'</vwc>
+      <porosity>'column name of variable in metdata file'</porosity>
+      <clay>'column name of variable in metdata file'</clay>
     </soil_decomp>
   </env>
 </met_data_translator>

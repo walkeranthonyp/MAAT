@@ -16,6 +16,35 @@
         <d6>NA</d6>
         <d7>NA</d7>
       </decomp>
+      <desorp>
+        <ds1>NA</ds1>
+        <ds2>NA</ds2>
+        <ds3>NA</ds3>
+        <ds4>NA</ds4>
+        <ds5>NA</ds5>
+        <ds6>NA</ds6>
+        <ds7>NA</ds7>
+      </desorp>
+      <sorp>
+        <s1>NA</s1>
+        <s2>NA</s2>
+        <s3>NA</s3>
+        <s4>NA</s4>
+        <s5>NA</s5>
+        <s6>NA</s6>
+        <s7>NA</s7>
+      </sorp>
+      <scor>NA</scor>
+      <wcor>NA</wcor>
+      <tcor>
+        <t1>NA</t1>
+        <t2>NA</t2>
+        <t3>NA</t3>
+        <t4>NA</t4>
+        <t5>NA</t5>
+        <t6>NA</t6>
+        <t7>NA</t7>
+      </tcor>
       <transfer>
         <t1_to_3>NA</t1_to_3>
         <t1_to_5>NA</t1_to_5>
@@ -38,10 +67,24 @@
       <beta>NA</beta>
       <silt>NA</silt>
       <clay>NA</clay>
+      <clayref>NA</clayref>
       <mr>NA</mr>
       <pep>NA</pep>
       <pem>NA</pem>
       <Kads>NA</Kads>
+      <qslope_mayes>NA</qslope_mayes>
+      <reftemp>NA</reftemp>
+      <R>NA</R>
+      <minmic>NA</minmic>
+      <ea>
+        <ea1>NA</ea1>
+        <ea2>NA</ea2>
+        <ea3>NA</ea3>
+        <ea4>NA</ea4>
+        <ea5>NA</ea5>
+        <ea6>NA</ea6>
+        <ea7>NA</ea7>
+      </ea>
       <input_coefs>
         <input_coef1>NA</input_coef1>
         <input_coef2>NA</input_coef2>
@@ -111,7 +154,9 @@
     <soil_decomp>
       <litter>NA</litter>
       <temp>NA</temp>
-      <swc>NA</swc>
+      <vwc>NA</vwc>
+      <porosity>NA</porosity>
+      <clay>NA</clay>
     </soil_decomp>
   </env>
 </static>

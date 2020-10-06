@@ -11,6 +11,33 @@
 
 ### FUNCTIONS
 ################################
+#scaling functions
+#correct soil protection rates
+f_scor_sulman <- function(.,C,t,i) (.super$env$clay/.super$pars$clayref)^.super$pars$qslope_mayes
+
+f_wcor_sulman <- function(.,C,t,i){
+  theta <- .super$env$vwc/.super$env$porosity
+  theta^3 * (1-theta)^2.5
+}
+
+f_tcor_arrhenius <- function(.,C,t,i) {
+  # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
+  # Arrhenius equation
+  
+  # input parameters  
+  # Ea     -- rate of increase to optimum  (J mol-1)
+  # R      -- molar gas constant J mol-1 K-1
+  
+  # Tr     -- reference temperature (oC) 
+  # Trk    -- reference temperature (K) 
+  # Tsk    -- temperature to adjust parameter to (K) 
+  
+  #convert to Kelvin
+  Trk <- .super$pars$reftemp + 273.15
+  Tsk <- .super$env$temp + 273.15
+  
+  exp( .super$pars$ea[[i]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
+}
 
 
 # decay functions
@@ -52,6 +79,13 @@ f_decomp_doc_mend <- function(.,C,t,i) {
   C[5]*((.super$pars$Kads*(.super$pars$poolmax[[4]]-C[4]))/.super$pars$poolmax[[4]])             #Fa
 }
 
+f_decomp_rmm_sulman <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
+
+f_micturn_sulman <- function(.,C,t,i) {
+  (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[i]] 
+}
+
+f_zero <- function(.,C,t,i) 0
 
 # transfer functions
 ###################

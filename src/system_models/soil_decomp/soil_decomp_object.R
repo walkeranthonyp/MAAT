@@ -69,20 +69,53 @@ soil_decomp_object$fnames <- list(
 
   sys            = 'f_sys_npools',
   solver         = 'plsoda',
-  solver_func    = 'f_solver_func',
+  solver_func    = 'f_solver_func_corpse',
   input          = 'f_input',
   DotO           = 'f_DotO',
   transfermatrix = 'f_transfermatrix',
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_MM_enzpom',
-    d2 = 'f_decomp_mbc_mend',
-    d3 = 'f_decomp_MM_enzmaom',
-    d4 = 'f_decomp_dd_mend',
-    d5 = 'f_decomp_doc_mend',
-    d6 = 'f_decomp_lin',
-    d7 = 'f_decomp_lin'
+    d1 = 'f_decomp_rmm_sulman', 
+    d2 = 'f_decomp_rmm_sulman',
+    d3 = 'f_decomp_rmm_sulman',
+    d4 = 'f_micturn_sulman',
+    d5 = 'f_zero',
+    d6 = 'f_zero',
+    d7 = 'f_zero'
+  ),
+  
+  desorp = list(
+    ds1 = 'f_zero',
+    ds2 = 'f_zero',
+    ds3 = 'f_zero',
+    ds4 = 'f_zero',
+    ds5 = 'f_decomp_lin',
+    ds6 = 'f_decomp_lin',
+    ds7 = 'f_decomp_lin'
+  ),
+  
+  sorp = list(
+    s1 = 'f_decomp_lin',
+    s2 = 'f_decomp_lin',
+    s3 = 'f_decomp_lin',
+    s4 = 'f_zero',
+    s5 = 'f_zero',
+    s6 = 'f_zero',
+    s7 = 'f_zero'
+  ),
+  
+  scor = 'f_scor_sulman',
+  wcor = 'f_wcor_sulman',
+  
+  tcor = list(
+    t1 = 'f_tcor_arrhenius',
+    t2 = 'f_tcor_arrhenius',
+    t3 = 'f_tcor_arrhenius',
+    t4 = 'f_zero',
+    t5 = 'f_zero',
+    t6 = 'f_zero',
+    t7 = 'f_zero'
   ),
   
   # transfer list
@@ -107,9 +140,11 @@ soil_decomp_object$fnames <- list(
 # environment
 ####################################
 soil_decomp_object$env <- list(
-  litter = 3.2,
-  temp   = 10,
-  swc    = 0.3
+  litter = .5/365,
+  temp   = 20,
+  vwc    = .25,
+  porosity = 0.5,
+  clay = 5
 )
 
 
@@ -124,6 +159,10 @@ soil_decomp_object$state <- list(
 ####################################
 soil_decomp_object$state_pars <- list(
   solver_out = matrix(1)
+  
+  #scor
+  #wcor
+  #tcor
 )
 
 
@@ -135,15 +174,30 @@ soil_decomp_object$pars <- list(
   beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = 0.2,        # soil silt content (proportion)
   clay    = 0.2,        # soil clay content (proportion)
+  clayref = 5,
   mr      = 0.00028,     # specific maintenance factor (MEND)
   pep     = 0.01,        #Fraction of mr allocated for production of EP
   pem     = 0.01,        #Fraction of mr allocated for production of EM
   Kads    = 0.006,       #Specific adsorption rate (could make this k for the DOC pool)
+  qslope_mayes = 0.4833,
+  reftemp = 20,
+  R = 8.314472,
+  minmic = 1e-3,
+  
+  ea = list(
+    ea1 = 37e3,
+    ea2 = 54e3,
+    ea3 = 50e3,
+    ea4 = NA,
+    ea5 = NA,
+    ea6 = NA,
+    ea7 = NA
+  ),
  
   #input coefficients (allocaties proportions of inputs into different pools)
   input_coefs = list(
-    input_coef1 = 1,
-    input_coef2 = 0,
+    input_coef1 = .1,
+    input_coef2 = .9,
     input_coef3 = 0,
     input_coef4 = 0,
     input_coef5 = 0,
@@ -153,59 +207,59 @@ soil_decomp_object$pars <- list(
   
   # initial pool mass for each pool
   cstate0 = list(
-    cstate01 = 10,         #Initial POM pool size
-    cstate02 = 2,          #Initial MBC pool size
-    cstate03 = 5,          #Initial MAOM pool size
-    cstate04 = 0.1,        #Initial Q pool size
-    cstate05 = 1,          #Initial DOC pool size
-    cstate06 = 0.00001,    #Initial EP pool size
-    cstate07 = 0.00001     #Initial EM pool size
+    cstate01 = 0.1, 
+    cstate02 = 0.1,          
+    cstate03 = 0.1,      
+    cstate04 = 0.1,       
+    cstate05 = 0.1,     
+    cstate06 = 0.1,    
+    cstate07 = 0.1     
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
   # - if this varies by the 'to' pool we need another function / parameters
   # MC: I've created a function cue_remainder that can allocate the remainder to another pool rather than CO2
   cue = list(
-    cue1 = 0.5,       #Fd from MEND
-    cue2 = 0.5,       #Gd from MEND
-    cue3 = 0.47,
-    cue4 = 0.47,
-    cue5 = 0.47,      #Ec from MEND
-    cue6 = 0.47,
-    cue7 = 0.47
+    cue1 = 0.6,       
+    cue2 = 0.05,       
+    cue3 = 0.6,
+    cue4 = 0.5,
+    cue5 = 0,      
+    cue6 = 0,
+    cue7 = 0
   ),  
 
   # max turnover rate per unit microbial biomass for pool i 
   vmax = list(   
-    vmax1 = 2.5,     
-    vmax2 = 1,     
-    vmax3 = 1,
-    vmax4 = 1,
-    vmax5 = 0.26,
-    vmax6 = 1,
-    vmax7 = 1
+    vmax1 = 1500/365,     
+    vmax2 = 50/365,     
+    vmax3 = 600/365,
+    vmax4 = 0,
+    vmax5 = 0,
+    vmax6 = 0,
+    vmax7 = 0
   ),
  
   # half-saturation constant for microbial d3ecomnp of pool i      
   km = list(   
-    km1 = 50,       
-    km2 = 1,       
-    km3 = 250,
-    km4 = 1,
-    km5 = .26,
-    km6 = 1,
-    km7 = 1
+    km1 = 0.01,       
+    km2 = 0.01,       
+    km3 = 0.01,
+    km4 = 0,
+    km5 = 0,
+    km6 = 0,
+    km7 = 0
   ),       
 
   # turnover rate for linear decomposition
   k = list(   
-    k1 = 0.007,       
-    k2 = 0.00672,    # microbial turnover constant
-    k3 = 0.001,
-    k4 = 0.001,
-    k5 = 0.006,
-    k6 = 0.001,
-    k7 = 0.001
+    k1 = 1.0/365,       
+    k2 = 0.00005/365,   
+    k3 = 1.0/365,
+    k4 = .15*365,
+    k5 = 3.652968e-5,
+    k6 = 3.652968e-5,
+    k7 = 3.652968e-5
   ),
 
   # maximum size for pool i 
@@ -251,12 +305,32 @@ f_output_soil_decomp_full <- function(.) {
 # test functions
 #######################################################################        
 
-soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.00016, ntimes=100 ) {
+soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.001369863, ntimes=100 ) {
 
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))
   .$configure_test() # if only used in test functions should begin with a .
 
+  if(metdf) {
+    .$dataf       <- list()
+    if(length(litter)==1) litter <- rep(litter, ntimes )   
+    .$dataf$metdf <- matrix(litter, nrow=1 )
+    rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
+    .$dataf$lm    <- length(.$dataf$metdf[1,])
+    .$dataf$mout  <- .$output()
+    .$run_met()
+  } else {
+    .$env$litter  <- litter
+    .$run()
+  }
+}
+
+soil_decomp_object$.test_coprpse <- function(., verbose=F, metdf=F, litter=.001369863, ntimes=100 ) {
+  
+  if(verbose) str(.)
+  .$build(switches=c(F,verbose,F))
+  .$configure_test() # if only used in test functions should begin with a .
+  
   if(metdf) {
     .$dataf       <- list()
     if(length(litter)==1) litter <- rep(litter, ntimes )   
