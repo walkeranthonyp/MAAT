@@ -37,9 +37,9 @@
       <scor>'f_scor_sulman'</scor>
       <wcor>'f_wcor_sulman'</wcor>
       <tcor>
-        <t1>'f_tcor_arrhenius'</t1>
-        <t2>'f_tcor_arrhenius'</t2>
-        <t3>'f_tcor_arrhenius'</t3>
+        <t1>'f_tcor_century1'</t1>
+        <t2>'f_tcor_century1'</t2>
+        <t3>'f_tcor_century1'</t3>
         <t4>'f_zero'</t4>
         <t5>'f_zero'</t5>
         <t6>'f_zero'</t6>

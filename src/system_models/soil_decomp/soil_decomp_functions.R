@@ -7,6 +7,7 @@
 #
 ################################
 
+source('soil_decomp_temperature_functions.R')
 
 
 ### FUNCTIONS
@@ -20,24 +21,24 @@ f_wcor_sulman <- function(.,C,t,i){
   theta^3 * (1-theta)^2.5
 }
 
-f_tcor_arrhenius <- function(.,C,t,i) {
-  # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
-  # Arrhenius equation
-  
-  # input parameters  
-  # Ea     -- rate of increase to optimum  (J mol-1)
-  # R      -- molar gas constant J mol-1 K-1
-  
-  # Tr     -- reference temperature (oC) 
-  # Trk    -- reference temperature (K) 
-  # Tsk    -- temperature to adjust parameter to (K) 
-  
-  #convert to Kelvin
-  Trk <- .super$pars$reftemp + 273.15
-  Tsk <- .super$env$temp + 273.15
-  
-  exp( .super$pars$ea[[i]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
-}
+# f_tcor_arrhenius <- function(.,C,t,i) {
+#   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
+#   # Arrhenius equation
+#   
+#   # input parameters  
+#   # Ea     -- rate of increase to optimum  (J mol-1)
+#   # R      -- molar gas constant J mol-1 K-1
+#   
+#   # Tr     -- reference temperature (oC) 
+#   # Trk    -- reference temperature (K) 
+#   # Tsk    -- temperature to adjust parameter to (K) 
+#   
+#   #convert to Kelvin
+#   Trk <- .super$pars$reftemp + 273.15
+#   Tsk <- .super$env$temp + 273.15
+#   
+#   exp( .super$pars$ea[[i]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
+# }
 
 
 # decay functions
