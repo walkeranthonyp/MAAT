@@ -183,6 +183,7 @@ soil_decomp_object$pars <- list(
   reftemp = 20,
   R = 8.314472,
   minmic = 1e-3,
+  q10 = 2,
   
   ea = list(
     ea1 = 37e3,
