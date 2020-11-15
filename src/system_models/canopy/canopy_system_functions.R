@@ -20,19 +20,36 @@ f_sys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
 
   # set leaf environment
   # incident light - F_0 * first half of B_2 in Eq 37b (Sellers 1992)
-  .super$leaf$env$par     <- .super$state_pars$k_dir * (1-.super$state_pars$lscattering) * .super$env$par
+  .super$leaf$env$par[] <- .super$state_pars$k_dir * (1-.super$state_pars$lscattering) * .super$env$par
   # assume no variation in CO2 concentration, VPD, and T
   #.super$leaf$env$ca_conc <- .super$env$ca_conc
   #.super$leaf$env$vpd     <- .super$env$vpd
   #.super$leaf$env$temp    <- .super$env$temp
 
   # set leaf N0 or Vcmax0 - as with multi-layer model need to choose one and initialise leaf fnames correctly
-  .super$leaf$state$leafN_area <- .super$state$totalN * k / fpar
-  .super$leaf$pars$atref$vcmax <- .super$pars$vcmax0 
+  .super$leaf$state$leafN_area[] <- .super$state$totalN * k / fpar
+  .super$leaf$pars$atref$vcmax[] <- .super$pars$vcmax0 
+  if(.super$fnames$scale_vcmax=='f_scale_two_layer') {
+    .super$leaf$pars$atref$jmax[] <- .$scale_jmax(1, var='jmax' )
+    .super$leaf$pars$f[]          <- .$scale_f(1, var='f' )
+    .super$leaf$pars$g1_medlyn[]  <- .$scale_g1(1, var='g1' )
+  }  
 
   # calculate A0
   # leaf model will calculate Vcmax0 and Jmax0 according to leaf process specifications, e.g. from N0, temp, etc
   .super$leaf$run()
+
+  # print leaf state
+  if(.$cpars$verbose) {
+    print('', quote=F )
+    print('Bigleaf leaf pars:', quote=F )
+    print(.super$leaf$fnames$etrans)
+    print(.super$leaf$pars$theta_j)
+    print(.super$leaf$pars$g1_medlyn)
+    print(.super$leaf$pars$f)
+    print(.super$leaf$pars$atref)
+    print(.super$leaf$state_pars)
+  }
 
   # scale
   .super$state$integrated$apar <- fpar * .super$env$par
@@ -98,11 +115,22 @@ f_sys_multilayer <- function(.) {
   .super$init_vert(.=.super, l=layers ) # reallocating this memory is unnecessary in cases where layers is a fixed parameter.
   #print(ca_calc_points)
 
-  # canopy leaf layer properties
+  # canopy leaf layer parameters
   .super$state$vert$leaf$leaf.leafN_area[]  <- .$scale_n(ca_calc_points)
-  .super$state$vert$leaf$leaf.atref.vcmax[] <- .$scale_vcmax(ca_calc_points)
+  .super$state$vert$leaf$leaf.atref.vcmax[] <- .$scale_vcmax(ca_calc_points, var='vcmax' )
+  leaf_vars <- c('leaf.leafN_area', 'leaf.atref.vcmax' )
+  if(.super$fnames$scale_vcmax=='f_scale_two_layer') {
+    .super$state$vert$leaf$leaf.atref.jmax[] <- .$scale_jmax(ca_calc_points, var='jmax' )
+    .super$state$vert$leaf$leaf.f[]          <- .$scale_f(ca_calc_points, var='f' )
+    .super$state$vert$leaf$leaf.g1_medlyn[]  <- .$scale_g1(ca_calc_points, var='g1' )
+    leaf_vars <- c(leaf_vars, 'leaf.atref.jmax', 'leaf.f', 'leaf.g1_medlyn' )
+  }  
+  #print(.super$state$vert$leaf)
+
+  # canopy leaf layer environment
   .super$state$vert$leaf$leaf.ca_conc[]     <- .$scale_ca(ca_calc_points)
   .super$state$vert$leaf$leaf.vpd[]         <- .$scale_vpd(ca_calc_points)
+  leaf_vars <- c(leaf_vars, 'leaf.ca_conc', 'leaf.vpd', 'leaf.par' )
 
   # Light scaling
   .$rt(ca_calc_points)
@@ -110,30 +138,34 @@ f_sys_multilayer <- function(.) {
   # sunlit leaves / direct light
   .super$state$vert$leaf$leaf.par[] <- .super$state$vert$sun$apar
   # create leaf environment  matrix
-  lmatrix  <- vapply(.super$state$vert$leaf[c('leaf.leafN_area','leaf.atref.vcmax','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
+  lmatrix  <- vapply(.super$state$vert$leaf[leaf_vars], function(v) v, numeric(layers) )
   # run leaf
   leaf_out <- vapply(1:layers, .$run_leaf, .super$leaf$output(), df=lmatrix )
   # assign data to canopy object data structure
   for(vname in row.names(leaf_out)) .super$state$vert$sun[[vname]][] <- leaf_out[vname,]
   if(.$cpars$verbose) {
+    print('', quote=F )
     print('Sun leaves:', quote=F )
     print(lmatrix)
     print(leaf_out)
+    print(.super$state$vert$sun)
   }
 
   # shade leaves
   if(any(.super$state$vert$sun$fraction < 1) ) {
     .super$state$vert$leaf$leaf.par[] <- .super$state$vert$shade$apar
     # create leaf environment matrix
-    lmatrix  <- vapply(.super$state$vert$leaf[c('leaf.leafN_area','leaf.atref.vcmax','leaf.ca_conc','leaf.vpd','leaf.par')], function(v) v, numeric(layers) )
+    lmatrix  <- vapply(.super$state$vert$leaf[leaf_vars], function(v) v, numeric(layers) )
     # run leaf
     leaf_out <- vapply(1:layers, .$run_leaf, .super$leaf$output(), df=lmatrix )
     # assign data to canopy object data structure
     for(vname in row.names(leaf_out)) .super$state$vert$shade[[vname]][] <- leaf_out[vname,]
     if(.$cpars$verbose) {
+      print('', quote=F )
       print('Shade leaves:', quote=F )
       print(lmatrix)
       print(leaf_out)
+      print(.super$state$vert$shade)
     }
   }
 
@@ -142,11 +174,23 @@ f_sys_multilayer <- function(.) {
     .super$state$vert$layer[[vname]][] <-
       .super$state$vert$sun[[vname]] * .super$state$vert$sun$fraction + .super$state$vert$shade[[vname]] * .super$state$vert$shade$fraction
   }
-
   # partition A among limiting rates
-  .super$state$vert$layer$Acg_lim[] <- .super$state$vert$sun$A * (.super$state$vert$sun$lim==2) * .super$state$vert$sun$fraction + .super$state$vert$shade$A * (.super$state$vert$shade$lim==2) * .super$state$vert$shade$fraction
-  .super$state$vert$layer$Ajg_lim[] <- .super$state$vert$sun$A * (.super$state$vert$sun$lim==3) * .super$state$vert$sun$fraction + .super$state$vert$shade$A * (.super$state$vert$shade$lim==3) * .super$state$vert$shade$fraction
-  .super$state$vert$layer$Acg_lim[] <- .super$state$vert$sun$A * (.super$state$vert$sun$lim==7) * .super$state$vert$sun$fraction + .super$state$vert$shade$A * (.super$state$vert$shade$lim==7) * .super$state$vert$shade$fraction
+  .super$state$vert$layer$Acg_lim[] <-
+    .super$state$vert$sun$A * (.super$state$vert$sun$lim==2) * .super$state$vert$sun$fraction +
+    .super$state$vert$shade$A * (.super$state$vert$shade$lim==2) * .super$state$vert$shade$fraction
+  .super$state$vert$layer$Ajg_lim[] <- 
+    .super$state$vert$sun$A * (.super$state$vert$sun$lim==3) * .super$state$vert$sun$fraction + 
+    .super$state$vert$shade$A * (.super$state$vert$shade$lim==3) * .super$state$vert$shade$fraction
+  .super$state$vert$layer$Apg_lim[] <- 
+    .super$state$vert$sun$A * (.super$state$vert$sun$lim==7) * .super$state$vert$sun$fraction + 
+    .super$state$vert$shade$A * (.super$state$vert$shade$lim==7) * .super$state$vert$shade$fraction
+  if(.$cpars$verbose) {
+    print('', quote=F )
+    print('Layer:', quote=F )
+    print(.super$state$vert$layer)
+    print(.super$state$vert$sun['lim'])
+    print(.super$state$vert$shade['lim'])
+  }
 
   # integrate canopy layers
   # canopy sum values

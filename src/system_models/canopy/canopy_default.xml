@@ -3,9 +3,12 @@
     <canopy>
       <sys>'f_sys_multilayer'</sys>
       <pars_init>'f_pars_init'</pars_init>
-      <rt>'f_rt_beerslaw_goudriaan'</rt>
+      <rt>'f_rt_goudriaan'</rt>
       <scale_n>'f_scale_n_CLMuniform'</scale_n>
       <scale_vcmax>'f_scale_vcmax_beerslaw'</scale_vcmax>
+      <scale_jmax>'f_scale_two_layer'</scale_jmax>
+      <scale_f>'f_scale_two_layer'</scale_f>
+      <scale_g1>'f_scale_two_layer'</scale_g1>
       <vcmax0>'f_vcmax0_constant'</vcmax0>
       <k_vcmax>'f_k_vcmax_constant'</k_vcmax>
       <scale_ca>'f_scale_ca_uniform'</scale_ca>
@@ -20,6 +23,7 @@
     <canopy>
       <layers>10</layers>
       <lai>10</lai>
+      <can_lai_upper>2.6</can_lai_upper>
       <lai_max>4</lai_max>
       <lai_curve>0.5</lai_curve>
       <leaf_cores>1</leaf_cores>
@@ -32,6 +36,22 @@
       <k_vcmax>0.2</k_vcmax>
       <k_vcmax_expa>-2.43</k_vcmax_expa>
       <k_vcmax_expb>0.00963</k_vcmax_expb>
+      <vcmax>
+        <layer1>108.7</layer1>
+        <layer2>67.9</layer2>
+      </vcmax>
+      <jmax>
+        <layer1>170</layer1>
+        <layer2>76.3</layer2>
+      </jmax>
+      <f>
+        <layer1>0.41</layer1>
+        <layer2>0.34</layer2>
+      </f>
+      <g1_medlyn>
+        <layer1>3.41</layer1>
+        <layer2>8.82</layer2>
+      </g1_medlyn>
       <fwdw_wl_slope>-0.022</fwdw_wl_slope>
       <fwdw_wl_sat>16</fwdw_wl_sat>
       <fwdw_wl_exp_a>-0.037</fwdw_wl_exp_a>

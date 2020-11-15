@@ -167,7 +167,7 @@ cverbose      <- F
 # parse command line arguments
 
 print('',quote=F)
-print('Read command line arguments',quote=F)
+print('Read command line arguments:',quote=F)
 print(commandArgs(T),quote=F)
 if(length(commandArgs(T))>=1) {
   for( ca in 1:length(commandArgs(T)) ) {

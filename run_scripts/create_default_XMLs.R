@@ -1,7 +1,7 @@
 ################################
 #
 # Script to generate default and option XMLs from a newly created MAAT model object 
-# call this from the command line inside the MAAT directory with RScript   
+# call this from the command line inside the run_scripts directory with RScript   
 #
 # AWalker November 2017
 #

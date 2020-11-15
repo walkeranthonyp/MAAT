@@ -1,11 +1,14 @@
 <dynamic>
   <fnames>
     <canopy>
-      <cansys>NA</cansys>
+      <sys>NA</sys>
       <pars_init>NA</pars_init>
       <rt>NA</rt>
       <scale_n>NA</scale_n>
       <scale_vcmax>NA</scale_vcmax>
+      <scale_jmax>NA</scale_jmax>
+      <scale_f>NA</scale_f>
+      <scale_g1>NA</scale_g1>
       <vcmax0>NA</vcmax0>
       <k_vcmax>NA</k_vcmax>
       <scale_ca>NA</scale_ca>
@@ -20,6 +23,7 @@
     <canopy>
       <layers>NA</layers>
       <lai>NA</lai>
+      <can_lai_upper>NA</can_lai_upper>
       <lai_max>NA</lai_max>
       <lai_curve>NA</lai_curve>
       <leaf_cores>NA</leaf_cores>
@@ -32,6 +36,22 @@
       <k_vcmax>NA</k_vcmax>
       <k_vcmax_expa>NA</k_vcmax_expa>
       <k_vcmax_expb>NA</k_vcmax_expb>
+      <vcmax>
+        <layer1>NA</layer1>
+        <layer2>NA</layer2>
+      </vcmax>
+      <jmax>
+        <layer1>NA</layer1>
+        <layer2>NA</layer2>
+      </jmax>
+      <f>
+        <layer1>NA</layer1>
+        <layer2>NA</layer2>
+      </f>
+      <g1_medlyn>
+        <layer1>NA</layer1>
+        <layer2>NA</layer2>
+      </g1_medlyn>
       <fwdw_wl_slope>NA</fwdw_wl_slope>
       <fwdw_wl_sat>NA</fwdw_wl_sat>
       <fwdw_wl_exp_a>NA</fwdw_wl_exp_a>
