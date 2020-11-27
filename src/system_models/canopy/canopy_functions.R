@@ -205,14 +205,16 @@ f_k_vcmax_lloyd2012 <- function(.) {
 
 
 # Use Beer's Law to scale leaf vcmax through the canopy 
-f_scale_vcmax_beerslaw <- function(., l, dummy ) {
+f_scale_vcmax_beerslaw <- function(., l, var ) {
   # for use with a multilayer phototsynthesis scheme
+  # currently var is a dummy argument for compatibility with two_layer
   
   .super$state$vcmax0 * exp(-.super$state_pars$k_vcmax*l) 
 }
 
 
-f_scale_vcmax_uniform <- function(., layers, dummy ) {
+f_scale_vcmax_uniform <- function(., layers, var ) {
+  # currently var is a dummy argument for compatibility with two_layer
   rep(.super$state$vcmax0, length(layers) ) 
 }
 
