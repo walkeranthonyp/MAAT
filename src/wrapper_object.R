@@ -83,8 +83,7 @@ wrapper_object$run   <- function(.,verbose=T) {
 
   # Initialise
   if(!.$wpars$unit_testing) {
-    # if(.$wpars$runtype=='SAprocess_ye')  .$wpars$eval_strings <- T
-    if(.$wpars$runtype=='SAprocess_ye' | .$wpars$mcmc)  .$wpars$eval_strings <- T
+    if(.$wpars$runtype=='SAprocess_ye' | grepl('mcmc',.$wpars$runtype))  .$wpars$eval_strings <- T
     .$init()
   } else {
     .$wpars$of_dir       <- '~/tmp'
@@ -98,7 +97,6 @@ wrapper_object$run   <- function(.,verbose=T) {
   # for Ye et al SA method
   # - due to different parameter sample numbers in process A and B loops,
   # - parameters samples must be generated from code snippets as strings
-  # if(.$wpars$eval_string&is.null(.$dynamic$pars_eval)) {
   if(.$wpars$eval_strings & is.null(.$dynamic$pars_eval)) {
     stop(paste('wrapper: eval_strings = T but dynamic$pars_eval not set. \n
           vars$pars_eval:,\n',.$dynamic$pars_eval,'\n
@@ -180,7 +178,7 @@ wrapper_object$init <- function(.) {
     }
   }
 
-  if(.$wpars$UQ|.$wpars$mcmc) .$init_uq()
+  if(.$wpars$UQ | grepl('mcmc',.$wpars$runtype)) .$init_uq()
 }
 
 
@@ -295,7 +293,7 @@ wrapper_object$wpars <- list(
   unit_testing    = F,
 
   mcmc = list(
-    run_type      = 'dream',
+    mcmc_type     = 'dream',
     lklihood      = 'ssquared',
     outlier       = 'iqr',
     mcmc_converge = 'Gelman_Rubin',

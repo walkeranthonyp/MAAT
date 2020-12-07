@@ -147,7 +147,7 @@ mcmc_conv          <- 'Gelman_Rubin'
 mcmc_bdry_handling <- 'bound'
 # initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
 mcmc_prior         <- 'uniform'
-# number of chains to run (minumum = 2 * mcmc_delta + 1)
+# number of chains to run (minumum = 2 * mcmc_chain_delta + 1)
 mcmc_chains        <- 7
 # number of iterations / steps in chain
 mcmc_maxiter       <- 1000
@@ -157,8 +157,8 @@ mcmc_thin          <- 0.1
 mcmc_thin_obs      <- 1
 # option to assume homoscedastic error in measured observations (else, heteroscedastic)
 mcmc_homosced      <- F
-# DREAM number chain pair proposal
-mcmc_delta         <- 3
+# DREAM number chain pairs in proposal
+mcmc_chain_delta   <- 3
 # DREAM randomization (default value)
 mcmc_c_rand        <- 0.01
 # DREAM ergodicicty (default value)
@@ -168,7 +168,7 @@ mcmc_p_gamma       <- 0.2
 # DREAM number of crossover values (default value)
 mcmc_n_CR          <- 3
 # adapt probability of selecting crossover values
-#mcmc_adapt_pCR     <- T
+mcmc_adapt_pCR     <- T
 # if true, numberof iteration to adapt crossover selection probabilities
 mcmc_CR_burnin     <- 1e4
 # checking for convergence and outlier chains every N iterations
@@ -195,6 +195,7 @@ if(is.null(pdir))    stop('pdir argument not specified but required, check comma
 print(paste('Project directory:',pdir) ,quote=F)
 if(is.null(mod_obj)) stop('mod_obj argument not specified but required, check command line arguments to run_MAAT.R')
 print(paste('Model:',mod_obj) ,quote=F)
+if(runid=='') runid <- NULL
 print(paste('Run ID:',runid) ,quote=F)
 
 # set default values if not specified on command line
@@ -267,27 +268,25 @@ maat$wpars$of_type       <- of_format
 maat$wpars$of_dir        <- odir
 maat$wpars$parsinit_read <- !is.null(parsinit_mcmc)
 
-maat$wpars$mcmc          <- mcmc
 # define MCMC run parameters (sublist of wpars)
-maat$wpars$mcmc$run_type      <- run_type
-maat$wpars$mcmc$lklihood      <- lklihood
-maat$wpars$mcmc$outlier       <- outlier
-maat$wpars$mcmc$bdry_handling <- bdry_handling
-maat$wpars$mcmc$init_prior    <- init_prior
-maat$wpars$mcmc$converge      <- converge
-maat$wpars$mcmc$chains        <- chains
-maat$wpars$mcmc$maxiter       <- maxiter
-maat$wpars$mcmc$thin          <- thin
-maat$wpars$mcmc$thin_obs      <- thin_obs
-maat$wpars$mcmc$homosced      <- homosced
-maat$wpars$mcmc$chain_delta   <- chain_delta
-maat$wpars$mcmc$c_rand        <- c_rand
-maat$wpars$mcmc$c_ergod       <- c_ergod
-maat$wpars$mcmc$p_gamma       <- p_gamma
-maat$wpars$mcmc$n_CR          <- n_CR
-#maat$wpars$mcmc$adapt_CR      <- adapt_pCR
-maat$wpars$mcmc$adapt_CR      <- T
-maat$wpars$mcmc$CR_burnin     <- CR_burnin
+maat$wpars$mcmc$mcmc_type     <- mcmc_type
+maat$wpars$mcmc$lklihood      <- mcmc_lklihood
+maat$wpars$mcmc$outlier       <- mcmc_outlier
+maat$wpars$mcmc$bdry_handling <- mcmc_bdry_handling
+maat$wpars$mcmc$prior         <- mcmc_prior
+maat$wpars$mcmc$converge      <- mcmc_converge
+maat$wpars$mcmc$chains        <- mcmc_chains
+maat$wpars$mcmc$maxiter       <- mcmc_maxiter
+maat$wpars$mcmc$thin          <- mcmc_thin
+maat$wpars$mcmc$thin_obs      <- mcmc_thin_obs
+maat$wpars$mcmc$homosced      <- mcmc_homosced
+maat$wpars$mcmc$chain_delta   <- mcmc_chain_delta
+maat$wpars$mcmc$c_rand        <- mcmc_c_rand
+maat$wpars$mcmc$c_ergod       <- mcmc_c_ergod
+maat$wpars$mcmc$p_gamma       <- mcmc_p_gamma
+maat$wpars$mcmc$n_CR          <- mcmc_n_CR
+maat$wpars$mcmc$adapt_CR      <- mcmc_adapt_pCR
+maat$wpars$mcmc$CR_burnin     <- mcmc_CR_burnin
 maat$wpars$mcmc$check_iter    <- max(mcmc_check_iter, 4) #ALJ: prevents numerical error in indexing
 
 # build maat and model objects

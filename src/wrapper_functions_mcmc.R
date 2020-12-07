@@ -99,7 +99,7 @@ init_mcmc_dream <- function(.) {
   if(!.$wpars$parsinit_read) {
     .$mcmc$L      <- numeric(.$wpars$mcmc$n_CR)
     .$mcmc$del    <- numeric(.$wpars$mcmc$n_CR)
-    #.$mcmc$p_CR  <- numeric(.$wpars$mcmc$n_CR)
+    .$mcmc$p_CR   <- numeric(.$wpars$mcmc$n_CR)
     # initial probability of each crossover value
     .$mcmc$p_CR[] <- 1 / .$wpars$mcmc$n_CR
     .$mcmc$m      <- numeric(.$wpars$mcmc$chains)
@@ -171,7 +171,7 @@ proposal_generate_mcmc_dream <- function(., j ) {
   for (ii in 1:.$dataf$lp) {
 
     # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
-    D <- sample(1:.$wpars$mcmc$delta, 1, replace = T)
+    D <- sample(1:.$wpars$mcmc$chain_delta, 1, replace = T)
 
     # extract vectors a and b not equal to ii
     a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
@@ -349,8 +349,8 @@ generate_CR <- function(.) {
 
   # debugging
   #print('in generate_CR function')
-  #print('.$wpars$mcmc$n_CR'); print(.$wpars$mcmc$n_CR)
-  #print('.$mcmc$p_CR'); print(.$mcmc$p_CR)
+  #print('.$wpars$mcmc$n_CR:'); print(.$wpars$mcmc$n_CR)
+  #print('.$mcmc$p_CR:'); print(.$mcmc$p_CR)
 
   # sample m from numbers 1,...,n_CR using multinomial distribution (with probabilities p_CR)
   m <- sample(1:.$wpars$mcmc$n_CR, size = 1, replace = T, prob = .$mcmc$p_CR)
@@ -436,6 +436,10 @@ mcmc_prior_uniform <- function(.) {
   # number of Markov chains
   n <- .$wpars$mcmc$chains
 
+  #print('')
+  #print(.$dynamic$pars)
+  #print('')
+  
   # number of parameters (dimensionality of parameter space)
   d <- length(unlist(.$dynamic$pars, recursive = T)) / 2
 
@@ -448,7 +452,7 @@ mcmc_prior_uniform <- function(.) {
   # draw priors from uniform distribution to create pars / proposal matrix
   .$dataf$pars <- matrix(0, nrow = d, ncol = n)
   for (jj in 1:d) {
-    .$dataf$pars[jj, 1:n] <- runif(n, min = min_valsf[jj], max = max_vals[jj])
+    .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
   }
 
   # assign parameter names

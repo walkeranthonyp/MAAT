@@ -808,7 +808,7 @@ write_output_mcmc_dream <- function(.,i) {
   .$write_to_file()
 
   # determine restart iteration number 
-  hist_file_list <- list.files(pattern==paste0(.$wpars$of_name, '_history_' )      
+  hist_file_list <- list.files(pattern=paste0(.$wpars$of_name, '_history_' ))      
   if(length(hist_file_list)==0) {
     hn <- 1
   } else {
