@@ -89,7 +89,7 @@ init_mcmc_dream <- function(.) {
   .$mcmc$lambda        <- matrix(0, nrow=.$dataf$lp,   ncol=1 )
   .$mcmc$jump          <- matrix(0, nrow=.$mcmc$d,     ncol=.$dataf$lp )
   # preallocate space for crossover variables
-  # APW: commenting out where variables already declared and do do have a varaible extent 
+  # APW: commenting out where variables already declared and have a varaible extent 
   #.$mcmc$t         <- numeric(1)
   #.$mcmc$d_star    <- numeric(1)
   #.$mcmc$CR_burnin <- numeric(1)
@@ -417,6 +417,7 @@ adapt_pCR <- function(.) {
 ################################
 
 # initialize chains with uniform distributions
+# APW: code can be simplifiedi I think, fix, add in code snippets that are more consistent with the existing method 
 mcmc_prior_uniform <- function(.) {
 
   # IMPORTANT: when initializing parameters in the init file
@@ -635,7 +636,7 @@ mcmc_converge_none <- function(.,j) {
 mcmc_converge_Gelman_Rubin <- function(.,j) {
 
   # effective number of iterations since burn-in began
-  # ALJ: this needs to equivalent to the total number of "usable" time samples in each chain?
+  # ALJ: this needs to equivalent to the total number of "usable" iterations in each chain?
   iter_effective <- j-.$mcmc$j_start_burnin+1
   half_effective <- iter_effective/2
 
@@ -661,6 +662,7 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   R_hat <- sqrt(((.$wpars$mcmc$chains+1)/.$wpars$mcmc$chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc$chains*iter_effective)))
 
   # append corresponding effective iteration number to R_hat vector
+  # APW: check_ss restarts recording at the beginning of the array, but this is not expected from the output function, fix 
   R_hat_new <- append(R_hat, iter_effective, after=0 )
   .$dataf$conv_check[,.$wpars$mcmc$check_ss] <- R_hat_new
 
@@ -754,8 +756,12 @@ mcmc_outlier_iqr <- function(.,j) {
   #            so it's not necessary to take the log of sbst components here
   #            but this may change in the future with different likelihood functions
   #for (ii in 1:.$wpars$mcmc$chains) .$dataf$omega[ii,.$wpars$mcmc$check_ss] <- mean(sbst[ii, ])
+  print('')
+  print('jstartburnin,jb50, j:')
+  print(c(.$mcmc$j_start_burnin,.$mcmc$j_burnin50,j))
   .$dataf$omega[,.$wpars$mcmc$check_ss] <- apply(.$dataf$pars_lklihood[,.$mcmc$j_burnin50:j], 1, mean)
 
+  # APW: code can be simplified, fix 
   # determine upper and lower quantiles of N different chains
   q1 <- quantile(.$dataf$omega[1:.$wpars$mcmc$chains,.$wpars$mcmc$check_ss], prob = 0.25, type = 1)
   q3 <- quantile(.$dataf$omega[1:.$wpars$mcmc$chains,.$wpars$mcmc$check_ss], prob = 0.75, type = 1)
@@ -771,6 +777,7 @@ mcmc_outlier_iqr <- function(.,j) {
 
     print(paste0('Outlier chain detected. Chain ', outliers, ' at iteration ', j))
 
+  # APW: code can be simplified, fix 
     # replace outlier(s) by randomly choosing from the remaining chains
     replace_idx <- rep(0, length(outliers))
     for (qq in 1:length(outliers)) {
@@ -798,7 +805,7 @@ mcmc_outlier_iqr <- function(.,j) {
 
     # restart burn-in
     .$mcmc$outlier_detected <- T
-    .$mcmc$j_start_burnin   <- j
+    .$mcmc$j_start_burnin   <- j + 1
   }
 
   # IMPORTANT: identifying and correcting outliers should only be done during burn-in

@@ -276,7 +276,6 @@ maat$wpars$mcmc$bdry_handling <- mcmc_bdry_handling
 maat$wpars$mcmc$prior         <- mcmc_prior
 maat$wpars$mcmc$converge      <- mcmc_converge
 maat$wpars$mcmc$chains        <- mcmc_chains
-maat$wpars$mcmc$maxiter       <- mcmc_maxiter
 maat$wpars$mcmc$thin          <- mcmc_thin
 maat$wpars$mcmc$thin_obs      <- mcmc_thin_obs
 maat$wpars$mcmc$homosced      <- mcmc_homosced
@@ -287,7 +286,13 @@ maat$wpars$mcmc$p_gamma       <- mcmc_p_gamma
 maat$wpars$mcmc$n_CR          <- mcmc_n_CR
 maat$wpars$mcmc$adapt_CR      <- mcmc_adapt_pCR
 maat$wpars$mcmc$CR_burnin     <- mcmc_CR_burnin
-maat$wpars$mcmc$check_iter    <- max(mcmc_check_iter, 4) #ALJ: prevents numerical error in indexing
+if((mcmc_maxiter/mcmc_check_iter)<3) mcmc_check_iter <- mcmc_check_iter / 2
+if(mcmc_check_iter<5) {
+  mcmc_check_iter <- 4                    #ALJ: prevents numerical error in indexing ??
+  if(mcmc_maxiter<12) mcmc_maxiter <- 12
+} 
+maat$wpars$mcmc$check_iter    <- mcmc_check_iter
+maat$wpars$mcmc$maxiter       <- mcmc_maxiter
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
@@ -348,18 +353,29 @@ maat$init_static  <- init_static
 maat$init_dynamic <- init_dynamic
 
 
-# get mcmc filename
-if(grepl('mcmc',runtype)) maat$wpars$of_name <- paste(ofname, 'mcmc', sep='_' )
+# get mcmc filename, delete history files if not a restart and they exist
+if(grepl('mcmc',runtype)) {
+  maat$wpars$of_name <- paste(ofname, 'mcmc', sep='_' )
+  if(is.null(parsinit_mcmc)) {
+    setwd(odir)
+    hist_file_list <- list.files(pattern=paste0(maat$wpars$of_name, '_history_' ))      
+    if(length(hist_file_list)>0) system(paste('rm', paste(hist_file_list,collapse=' ') ))
+    setwd(pdir)
+  }
+}
 
 
 # write directly to dataf$pars if parsinit specified
 if(!is.null(parsinit_mcmc)) {
   if(parsinit_mcmc=='restart') mcmcout <- paste0(maat$wpars$of_name,'.RDS')
+  if(is.null(mcmcdir))         mcmcdir <- paste0('results/',date)
 
-  print('')
-  print('Read input from MCMC output:')
-  print(paste('  directory:',mcmcdir))
-  print(paste('  filename:',mcmcout))
+  print('',quote=F)
+  print('Read input from restarted MCMC run:',quote=F)
+  print('  directory:',quote=F)
+  print(paste('  ',mcmcdir),quote=F)
+  print('  filename:',quote=F)
+  print(paste('  ',mcmcout),quote=F)
 
   # read and write pars
   setwd(mcmcdir)
@@ -367,37 +383,48 @@ if(!is.null(parsinit_mcmc)) {
   mcmc_restart_pars_dim <- dim(maat$dataf$mcmc_input$pars_array)
 
   if(parsinit_mcmc=='restart') {
-    print('MCMC restart')
-    print('  No MCMC parameters will be read as command line arguments,')
-    print('  all set from original MCMCM run')
-
-    # define beginning and end iteration counters
-    mcmc_restart_iter          <- mcmc_restart_pars_dim[3]
-    maat$wpars$mcmc$start_iter <- mcmc_restart_iter + 1
-    maat$wpars$mcmc$maxiter    <- maat$wpars$mcmc$maxiter + mcmc_restart_iter
+    print('',quote=F)
+    print('MCMC restart',quote=F)
+    print('  no MCMC parameters will be read from init file,',quote=F)
+    print('  all set from restarted MCMC run,',quote=F)
+    print('  all output will be saved in the directory (see above) of restarted MCMC run.',quote=F)
+    # debugging
+#    print('')
+#    print('MCMCinput:')
+#    print(maat$dataf$mcmc_input)
+#    print('pars arry dim:')
+#    print(dim(maat$dataf$mcmc_input$pars_array))
+#    print(mcmc_restart_pars_dim)
+#    print('')
 
     # assign starting parameter values
-    parsinit <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_iter]
+    parsinit <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_pars_dim[3]]
+#    print(parsinit)
 
     # update user-defined MCMC parameters passed from restart
     #maat$wpars$mcmc$chains    <- maat$dataf$mcmc_input$wpars$mcmc$chains
     #maat$wpars$mcmc$n_CR      <- maat$dataf$mcmc_input$wpars$mcmc$n_CR
     #maat$wpars$mcmc$adapt_pCR <- maat$dataf$mcmc_input$wpars$mcmc$adapt_pCR
     #maat$wpars$mcmc$CR_burnin <- maat$dataf$mcmc_input$wpars$mcmc$CR_burnin
-    maat$wpars$mcmc <- maat$dataf$mcmc_input$wpars$mcmc
+    maat$wpars$mcmc[names(maat$dataf$mcmc_input$wpars$mcmc)] <- maat$dataf$mcmc_input$wpars$mcmc[names(maat$dataf$mcmc_input$wpars$mcmc)]
+
+    # update beginning and end iteration counters
+    maat$wpars$mcmc$start_iter <- mcmc_restart_pars_dim[3] + 1
+    maat$mcmc$start_iter_thin  <- mcmc_restart_pars_dim[3]%%maat$wpars$mcmc$check_iter
+    maat$wpars$mcmc$maxiter    <- mcmc_maxiter + mcmc_restart_pars_dim[3]
 
     # update MCMC variables passed from restart
-    maat$mcmc$CR   <- maat$dataf$mcmc_input$mcmc$CR
-    maat$mcmc$p_CR <- maat$dataf$mcmc_input$mcmc$p_CR
-    maat$mcmc$del  <- maat$dataf$mcmc_input$mcmc$del
-    maat$mcmc$L    <- maat$dataf$mcmc_input$mcmc$L
-    maat$mcmc$t    <- maat$dataf$mcmc_input$mcmc$t
-    maat$mcmc$m    <- maat$dataf$mcmc_input$mcmc$m
+#    maat$mcmc$CR   <- maat$dataf$mcmc_input$mcmc$CR
+#    maat$mcmc$p_CR <- maat$dataf$mcmc_input$mcmc$p_CR
+#    maat$mcmc$del  <- maat$dataf$mcmc_input$mcmc$del
+#    maat$mcmc$L    <- maat$dataf$mcmc_input$mcmc$L
+#    maat$mcmc$t    <- maat$dataf$mcmc_input$mcmc$t
+#    maat$mcmc$m    <- maat$dataf$mcmc_input$mcmc$m
+    maat$mcmc[names(maat$dataf$mcmc_input$mcmc)] <- maat$dataf$mcmc_input$mcmc[names(maat$dataf$mcmc_input$mcmc)]
 
     # set output to mcmc dir 
     maat$wpars$of_dir <- mcmcdir
    
-
     ## check dimensions consistent
     #if(mcmc_chains!=mcmc_restart_pars_dim[2]) {
     #  print('mcmc_chains argument different from number of chains in MCMC restart,')
@@ -407,10 +434,10 @@ if(!is.null(parsinit_mcmc)) {
     #}
 
   } else if(parsinit_mcmc=='ensemble') {
-    print('forward run from MCMC calibrated parameters')
+    print('forward run from MCMC calibrated parameters',quote=F)
     if(runtype!='factorial') {
-      print('parsinit requested but can only work with factorial runtype, requested runtype:', runtype )
-      stop('parsinit requested with incompatible runtype.')
+      print(paste0('parsinit requested but can only work with factorial runtype, requested runtype:', runtype ),quote=F)
+      stop('parsinit requested with incompatible runtype.',quote=F)
     }
 
     # drop to a matrix
