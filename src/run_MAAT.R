@@ -372,10 +372,10 @@ if(!is.null(parsinit_mcmc)) {
 
   print('',quote=F)
   print('Read input from restarted MCMC run:',quote=F)
-  print('  directory:',quote=F)
-  print(paste('  ',mcmcdir),quote=F)
-  print('  filename:',quote=F)
-  print(paste('  ',mcmcout),quote=F)
+  print('directory:',quote=F)
+  print(paste(' ',mcmcdir),quote=F)
+  print('filename:',quote=F)
+  print(paste(' ',mcmcout),quote=F)
 
   # read and write pars
   setwd(mcmcdir)
@@ -384,7 +384,7 @@ if(!is.null(parsinit_mcmc)) {
 
   if(parsinit_mcmc=='restart') {
     print('',quote=F)
-    print('MCMC restart',quote=F)
+    print('MCMC restart:',quote=F)
     print('  no MCMC parameters will be read from init file,',quote=F)
     print('  all set from restarted MCMC run,',quote=F)
     print('  all output will be saved in the directory (see above) of restarted MCMC run.',quote=F)
@@ -412,6 +412,11 @@ if(!is.null(parsinit_mcmc)) {
     maat$wpars$mcmc$start_iter <- mcmc_restart_pars_dim[3] + 1
     maat$mcmc$start_iter_thin  <- mcmc_restart_pars_dim[3]%%maat$wpars$mcmc$check_iter
     maat$wpars$mcmc$maxiter    <- mcmc_maxiter + mcmc_restart_pars_dim[3]
+    print('',quote=F)
+    print('Start iterations at:',quote=F)
+    print(maat$wpars$mcmc$start_iter,quote=F)
+    print('End iterations at:',quote=F)
+    print(maat$wpars$mcmc$maxiter,quote=F)
 
     # update MCMC variables passed from restart
 #    maat$mcmc$CR   <- maat$dataf$mcmc_input$mcmc$CR

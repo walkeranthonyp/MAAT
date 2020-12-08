@@ -639,36 +639,48 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   # ALJ: this needs to equivalent to the total number of "usable" iterations in each chain?
   iter_effective <- j-.$mcmc$j_start_burnin+1
   half_effective <- iter_effective/2
-
-  # within-chain variance
-  #W <- numeric(.$mcmc$d)
-  #x_bar <- matrix(0, nrow=.$mcmc$d, ncol=.$wpars$mcmc$chains)
-  x_bar     <- (2/(iter_effective-2)) * apply(.$dataf$pars_array[,,half_effective:iter_effective], 1:2, sum)
-  summation <- numeric(.$mcmc$d)
-  for (jj in 1:.$mcmc$d) summation[jj] <- sum((.$dataf$pars_array[jj,,half_effective:iter_effective]-x_bar[jj,])^2)
-  W         <- 2/(.$wpars$mcmc$chains*(iter_effective-2))*summation
-
-  # between-chain variance
-  #B <- numeric(.$mcmc$d)
-  #x_double_bar <- numeric(.$mcmc$d)
-  x_double_bar <- (1/.$wpars$mcmc$chains) * apply(x_bar[,], 1, sum)
-  summation    <- apply(((x_bar[,]-x_double_bar[])^2), 1, sum)
-  B            <- (iter_effective/(2*(.$wpars$mcmc$chains-1)))*summation
-
-  # estimate variance of jjth parameter of target distribution
-  sigma_hat <- ((iter_effective-2)/iter_effective)*W + (2/iter_effective)*B
-
-  # R-statistic of Gelman and Rubin
-  R_hat <- sqrt(((.$wpars$mcmc$chains+1)/.$wpars$mcmc$chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc$chains*iter_effective)))
-
-  # append corresponding effective iteration number to R_hat vector
-  # APW: check_ss restarts recording at the beginning of the array, but this is not expected from the output function, fix 
-  R_hat_new <- append(R_hat, iter_effective, after=0 )
+  
+  if(iter_effective>0) {
+    # within-chain variance
+    #W <- numeric(.$mcmc$d)
+    #x_bar <- matrix(0, nrow=.$mcmc$d, ncol=.$wpars$mcmc$chains)
+    x_bar     <- (2/(iter_effective-2)) * apply(.$dataf$pars_array[,,half_effective:iter_effective], 1:2, sum)
+    summation <- numeric(.$mcmc$d)
+    for (jj in 1:.$mcmc$d) summation[jj] <- sum((.$dataf$pars_array[jj,,half_effective:iter_effective]-x_bar[jj,])^2)
+    W         <- 2/(.$wpars$mcmc$chains*(iter_effective-2))*summation
+  
+    # between-chain variance
+    #B <- numeric(.$mcmc$d)
+    #x_double_bar <- numeric(.$mcmc$d)
+    x_double_bar <- (1/.$wpars$mcmc$chains) * apply(x_bar[,], 1, sum)
+    summation    <- apply(((x_bar[,]-x_double_bar[])^2), 1, sum)
+    B            <- (iter_effective/(2*(.$wpars$mcmc$chains-1)))*summation
+  
+    # estimate variance of jjth parameter of target distribution
+    sigma_hat <- ((iter_effective-2)/iter_effective)*W + (2/iter_effective)*B
+  
+    # R-statistic of Gelman and Rubin
+    R_hat <- sqrt(((.$wpars$mcmc$chains+1)/.$wpars$mcmc$chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc$chains*iter_effective)))
+  
+    # append corresponding effective iteration number to R_hat vector
+    # APW: check_ss restarts recording at the beginning of the array, but this is not expected from the output function, fix 
+    R_hat_new <- append(R_hat, iter_effective, after=0 )
+  } else {
+    R_hat_new <- c(0, rep(NA,.$mcmc$d) )
+    R_hat     <- 'NA, outlier detected on final iteration'
+    .$mcmc$j_burnin50 <- j
+  }
   .$dataf$conv_check[,.$wpars$mcmc$check_ss] <- R_hat_new
 
   if (j==.$wpars$mcmc$maxiter) {
-    print(paste0("At iteration ", j, ", R-statistic of Gelman and Rubin = ")); print(R_hat)
-    print('Convergence criterion:'); print(.$dataf$conv_check)
+    print('',quote=F)
+    print('',quote=F)
+    print(paste0("At (final) iteration ", j, ", R-statistic of Gelman and Rubin = "),quote=F)
+    print(R_hat,quote=F)
+    print('',quote=F)
+    print('Convergence criterion:',quote=F)
+    print(.$dataf$conv_check,quote=F)
+    print('',quote=F)
   }
 }
 
@@ -677,13 +689,12 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
 # likelihood functions
 ################################
 
-# expects model output to be probability - as in the output from the mixture model
+# expects model output to be probability
+# - as in the output from the mixture model
 f_proposal_lklihood_log <- function(.) {
 
-  # derive log density
+  # return log density
   log(.$dataf$out)
-
-  return(log(.$dataf$out))
 }
 
 
@@ -700,12 +711,12 @@ f_proposal_lklihood_ssquared <- function(.) {
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
 
   # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
-  -(obs_n / 2) * log(SSR)
+  -(obs_n/2) * log(SSR)
 }
 
 
 # standard error probability density function with i.i.d. error residuals
-# this function incorporates measurement errors (unlike "ssquared" option)
+# - incorporates measurement errors (unlike "ssquared" option)
 f_proposal_lklihood_ssquared_se <- function(.) {
 
   # read in measurement error; remove zeros from measurement error
@@ -719,7 +730,7 @@ f_proposal_lklihood_ssquared_se <- function(.) {
            else .$dataf$obsse[sspos]
 
   # calculate error residual
-  error_residual_matrix <- ( t(.$dataf$out)[sspos, ] - .$dataf$obs[sspos] ) / obsse
+  error_residual_matrix <- ( t(.$dataf$out)[sspos,] - .$dataf$obs[sspos] ) / obsse
 
   # calculate sum of squared error
   SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
@@ -756,9 +767,9 @@ mcmc_outlier_iqr <- function(.,j) {
   #            so it's not necessary to take the log of sbst components here
   #            but this may change in the future with different likelihood functions
   #for (ii in 1:.$wpars$mcmc$chains) .$dataf$omega[ii,.$wpars$mcmc$check_ss] <- mean(sbst[ii, ])
-  print('')
-  print('jstartburnin,jb50, j:')
-  print(c(.$mcmc$j_start_burnin,.$mcmc$j_burnin50,j))
+#  print('')
+#  print('jstartburnin,jb50, j, check_ss:')
+#  print(c(.$mcmc$j_start_burnin,.$mcmc$j_burnin50,j,.$wpars$mcmc$check_ss))
   .$dataf$omega[,.$wpars$mcmc$check_ss] <- apply(.$dataf$pars_lklihood[,.$mcmc$j_burnin50:j], 1, mean)
 
   # APW: code can be simplified, fix 

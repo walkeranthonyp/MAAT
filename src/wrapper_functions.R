@@ -195,7 +195,9 @@ init_output_matrix_mcmc_dream <- function(.) {
   .$dataf$out_mcmc      <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc$maxiter ))
 
   # matrix for storing chain outlier information
+  # - stored for diagnostic purposes
   check_iter_n          <- ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter)
+  if(.$wpars$mcmc$maxiter%%.$wpars$mcmc$check_iter!=0) check_iter_n <- check_iter_n + 1 
   .$dataf$omega         <- matrix(NA, .$wpars$mcmc$chains, check_iter_n )
 
   # create matrix for storing convergence diagnostic
@@ -216,9 +218,11 @@ init_output_matrix_mcmc_dream <- function(.) {
     .$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
     # APW: there is the potential for these two arrays to be 1 short in the final dimension
     # ALJ: check_iter_n_restart = 0 b/c there is not a .$dataf$mcmc_input$omega
-    check_iter_n_restart                         <- dim(.$dataf$mcmc_input$conv_check)[2]
-    .$dataf$conv_check[,1:check_iter_n_restart]  <- .$dataf$mcmc_input$conv_check
-    .$dataf$conv_check[1,1:check_iter_n_restart] <- .$dataf$conv_check[1,1:check_iter_n_restart] - .$dataf$conv_check[1,1] + maat$mcmc$start_iter_thin
+    .$wpars$mcmc$check_ss <- dim(.$dataf$mcmc_input$conv_check)[2]
+    #check_iter_n_restart                         <- dim(.$dataf$mcmc_input$conv_check)[2]
+    .$dataf$conv_check[,1:.$wpars$mcmc$check_ss]  <- .$dataf$mcmc_input$conv_check
+    #.$dataf$conv_check[1,1:.$wpars$mcmc$check_ss] <- .$dataf$conv_check[1,1:.$wpars$mcmc$check_ss] - .$dataf$conv_check[1,1] + maat$mcmc$start_iter_thin
+    .$dataf$conv_check[1,1:.$wpars$mcmc$check_ss] <- rev(seq(.$wpars$mcmc$start_iter-1,0,-.$wpars$mcmc$check_iter)[1:.$wpars$mcmc$check_ss])
     .$dataf$mcmc_input <- NULL
   }
 }
@@ -703,9 +707,11 @@ run2_mcmc_dream <- function(.,j) {
   if( mcmc_check | (j==.$wpars$mcmc$maxiter) ) {
 
     # calculate subscript for convergence and outlier arrays
-    .$wpars$mcmc$check_ss <-
-      if(j==.$wpars$mcmc$maxiter) ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter)
-      else                        j/.$wpars$mcmc$check_iter
+    #.$wpars$mcmc$check_ss <-
+    #  if(j==.$wpars$mcmc$maxiter) ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter)
+    #  else                        j/.$wpars$mcmc$check_iter
+    #.$wpars$mcmc$check_ss <- .$wpars$mcmc$check_ss + .$wpars$parsinit_read
+    .$wpars$mcmc$check_ss <- .$wpars$mcmc$check_ss + 1 
 
     # calculate 50 % of current post-outlier samples
     .$mcmc$j_burnin50 <-
@@ -922,20 +928,29 @@ output_SAprocess_ye <- function(.) {
 
 # creates output for a MCMC simulation
 output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, 
-                              iter_out_end=.$wpars$mcmc$maxiter, 
+                              iter_out_end=.$wpars$mcmc$maxiter ) {
                               #iter_out_start_thin=ceiling(.$wpars$mcmc$maxiter/.$mcmc$j_burnin50)+1, 
-                              iter_out_start_thin=ceiling(.$mcmc$j_burnin50/.$wpars$mcmc$check_iter), 
-                              iter_out_end_thin=ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) ) {
+                              #iter_out_start_thin=ceiling(.$mcmc$j_burnin50/.$wpars$mcmc$check_iter), 
+                              #iter_out_end_thin=ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) ) {
 
-  if(iter_out_start_thin==iter_out_end_thin) iter_out_start_thin <- iter_out_start_thin - 1
+  iter_out_end_thin <- .$wpars$mcmc$check_ss
+  if((.$wpars$mcmc$maxiter%%.$wpars$mcmc$check_iter)!=0) iter_out_end_thin <- iter_out_end_thin - 1
+  iter_out_start_thin <- 
+    if(.$dataf$conv_check[1,iter_out_end_thin]==0) iter_out_end_thin
+    else    which(.$dataf$conv_check[1,] == ceiling((.$dataf$conv_check[1,iter_out_end_thin]+1)/.$wpars$mcmc$check_iter/2)*.$wpars$mcmc$check_iter)
+
+#  print('')
+#  print('MCMC output:') 
+#  print(.$dataf$conv_check[,iter_out_start_thin:iter_out_end_thin,drop=F])
+#  print('')
 
   list(
     pars_array     = .$dataf$pars_array[,,iter_out_start:iter_out_end],
     pars_lklihood  = .$dataf$pars_lklihood[,iter_out_start:iter_out_end],
     mod_out_final  = .$dataf$out,
     obs            = .$dataf$obs,
-    out_mcmc       = .$dataf$out_mcmc[,,iter_out_start:iter_out_end],
-    conv_check     = .$dataf$conv_check[,iter_out_start_thin:iter_out_end_thin],
+    out_mcmc       = .$dataf$out_mcmc[,,iter_out_start:iter_out_end,drop=F],
+    conv_check     = .$dataf$conv_check[,iter_out_start_thin:iter_out_end_thin,drop=F],
 
     # user defined MCMC parameters
     wpars = list(
