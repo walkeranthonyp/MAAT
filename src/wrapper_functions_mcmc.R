@@ -17,31 +17,36 @@ init_mcmc_demc <- function(.) NULL
 proposal_generate_mcmc_demc <- function(., j ) {
 
   # scaling factor
+  # APW: can be calculated once I think, fix
   d          <- dim(.$dataf$pars)[1]
   gamma_star <- 2.38 / sqrt(d + d)
 
   # b-value should be small compared to width of target distribution; specifies range for drawn "randomization" value
   b_rand  <- 0.01
 
-  uniform_r <- runif(1, min = (-b_rand), max = b_rand)
+  uniform_r <- runif(1, min=(-b_rand), max=b_rand)
 
   # evaluate for each chain
-  for (ii in 1:.$dataf$lp) {
+  for(ii in 1:.$dataf$lp) {
 
     # randomly select two different numbers R1 and R2 unequal to j, from uniform distribution without replacement
     R1 <- 0
     R2 <- 0
-    while ((R1 == 0) | (R1 == ii))               R1 <- ceiling(runif(1, min = 0, max = 1) * .$dataf$lp)
-    while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1, min = 0, max = 1) * .$dataf$lp)
+    while((R1==0) | (R1==ii))             R1 <- ceiling(runif(1, min=0, max=1) * .$dataf$lp)
+    while((R2==0) | (R2==ii) | (R2==R1))  R2 <- ceiling(runif(1, min=0, max=1) * .$dataf$lp)
+    # APW: can be rewritten, fix
+    # chain_pair <- sample(c(1:.$dataf$lp)[-.$dataf$lp], 2, F )
 
     # evaluate for each parameter
-    for (jj in 1:d) {
+    for(jj in 1:d) {
 
       # generate proposal via Differential Evolution
       .$dataf$pars[jj,ii] <- .$dataf$pars_array[jj,ii,j-1] + gamma_star * (.$dataf$pars_array[jj,R1,j-1] - .$dataf$pars_array[jj,R2,j-1]) + uniform_r
+      # APW: in line with above, fix
+      #.$dataf$pars[jj,ii] <- .$dataf$pars_array[jj,ii,j-1] + gamma_star * (.$dataf$pars_array[jj,chain_pair[1],j-1] - .$dataf$pars_array[jj,chain_pair[2],j-1]) + uniform_r
 
       # call boundary handling function
-      .$boundary_handling(ii = ii, jj = jj)
+      .$boundary_handling(ii=ii, jj=jj )
     }
   }
 }
@@ -369,13 +374,13 @@ generate_CR <- function(.) {
 calc_del <- function(., j, ii) {
 
   # compute standard deviation of each dimension/parameter
-  .$mcmc$sd_state[] <- apply(.$dataf$pars_array, 1, sd)
+  .$mcmc$sd_state[] <- apply(.$dataf$pars_array, 1, sd )
 
   # replace any 0's in sd vector with 1e-9 to avoid division by 0
-  idx                  <- which(.$mcmc$sd_state == 0)
+  idx                  <- which(.$mcmc$sd_state==0)
   .$mcmc$sd_state[idx] <- 1e-9
 
-  summation <- sum(((.$dataf$pars_array[1:.$mcmc$d, ii, j] - .$dataf$pars_array[1:.$mcmc$d, ii, j - 1]) / .$mcmc$sd_state)^2)
+  summation <- sum(((.$dataf$pars_array[1:.$mcmc$d,ii,j] - .$dataf$pars_array[1:.$mcmc$d,ii,j-1] ) / .$mcmc$sd_state )^2 )
 
   .$mcmc$del[.$mcmc$m[ii]] <- .$mcmc$del[.$mcmc$m[ii]] + summation
 
@@ -623,69 +628,6 @@ mcmc_bdry_handling_fold <- function(., j, ii, jj) {
 
 
 
-# convergence diagnostic functions
-#####################################
-
-# option for not computing a convergence diagnostic; to be used during post-burn-in MCMC sampling
-mcmc_converge_none <- function(.,j) {
-  if(j==.$wpars$mcmc$maxiter) print('No option was chosen to test for MCMC convergence.')
-}
-
-
-# subroutine calculating the R-statistic of Gelman and Rubin (convergence diagnostic)
-mcmc_converge_Gelman_Rubin <- function(.,j) {
-
-  # effective number of iterations since burn-in began
-  # ALJ: this needs to equivalent to the total number of "usable" iterations in each chain?
-  iter_effective <- j-.$mcmc$j_start_burnin+1
-  half_effective <- iter_effective/2
-  
-  if(iter_effective>0) {
-    # within-chain variance
-    #W <- numeric(.$mcmc$d)
-    #x_bar <- matrix(0, nrow=.$mcmc$d, ncol=.$wpars$mcmc$chains)
-    x_bar     <- (2/(iter_effective-2)) * apply(.$dataf$pars_array[,,half_effective:iter_effective], 1:2, sum)
-    summation <- numeric(.$mcmc$d)
-    for (jj in 1:.$mcmc$d) summation[jj] <- sum((.$dataf$pars_array[jj,,half_effective:iter_effective]-x_bar[jj,])^2)
-    W         <- 2/(.$wpars$mcmc$chains*(iter_effective-2))*summation
-  
-    # between-chain variance
-    #B <- numeric(.$mcmc$d)
-    #x_double_bar <- numeric(.$mcmc$d)
-    x_double_bar <- (1/.$wpars$mcmc$chains) * apply(x_bar[,], 1, sum)
-    summation    <- apply(((x_bar[,]-x_double_bar[])^2), 1, sum)
-    B            <- (iter_effective/(2*(.$wpars$mcmc$chains-1)))*summation
-  
-    # estimate variance of jjth parameter of target distribution
-    sigma_hat <- ((iter_effective-2)/iter_effective)*W + (2/iter_effective)*B
-  
-    # R-statistic of Gelman and Rubin
-    R_hat <- sqrt(((.$wpars$mcmc$chains+1)/.$wpars$mcmc$chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc$chains*iter_effective)))
-  
-    # append corresponding effective iteration number to R_hat vector
-    # APW: check_ss restarts recording at the beginning of the array, but this is not expected from the output function, fix 
-    R_hat_new <- append(R_hat, iter_effective, after=0 )
-  } else {
-    R_hat_new <- c(0, rep(NA,.$mcmc$d) )
-    R_hat     <- 'NA, outlier detected on final iteration'
-    .$mcmc$j_burnin50 <- j
-  }
-  .$dataf$conv_check[,.$wpars$mcmc$check_ss] <- R_hat_new
-
-  if (j==.$wpars$mcmc$maxiter) {
-    print('',quote=F)
-    print('',quote=F)
-    print(paste0("At (final) iteration ", j, ", R-statistic of Gelman and Rubin = "),quote=F)
-    print(R_hat,quote=F)
-    print('',quote=F)
-    print('Convergence criterion:',quote=F)
-    print(.$dataf$conv_check,quote=F)
-    print('',quote=F)
-  }
-}
-
-
-
 # likelihood functions
 ################################
 
@@ -788,7 +730,7 @@ mcmc_outlier_iqr <- function(.,j) {
 
     print(paste0('Outlier chain detected. Chain ', outliers, ' at iteration ', j))
 
-  # APW: code can be simplified, fix 
+    # APW: code can be simplified, fix 
     # replace outlier(s) by randomly choosing from the remaining chains
     replace_idx <- rep(0, length(outliers))
     for (qq in 1:length(outliers)) {
@@ -823,6 +765,72 @@ mcmc_outlier_iqr <- function(.,j) {
   #            because it violates the balance of sampled chains and destroys reversibility
   #            if outlier chain is detected, discard all previous sample history, then append
   #            and apply another burn-in period before generating posterior moments
+}
+
+
+
+# convergence diagnostic functions
+#####################################
+
+# option for not computing a convergence diagnostic; to be used during post-burn-in MCMC sampling
+mcmc_converge_none <- function(.,j) {
+  if(j==.$wpars$mcmc$maxiter) print('No option was chosen to test for MCMC convergence.')
+}
+
+
+# subroutine calculating the R-statistic of Gelman and Rubin (convergence diagnostic)
+mcmc_converge_Gelman_Rubin <- function(.,j) {
+
+  # effective number of iterations since burn-in began
+  # ALJ: this needs to equivalent to the total number of "usable" iterations in each chain?
+  iter_effective <- j - .$mcmc$j_start_burnin + 1
+  half_effective <- iter_effective/2
+  iter_true      <- j - .$wpars$mcmc$start_iter + 2 + .$wpars$mcmc$iter_true 
+
+  if(iter_effective>0) {
+    # within-chain variance
+    #W <- numeric(.$mcmc$d)
+    #x_bar <- matrix(0, nrow=.$mcmc$d, ncol=.$wpars$mcmc$chains)
+    x_bar     <- (2/(iter_effective-2)) * apply(.$dataf$pars_array[,,half_effective:iter_effective], 1:2, sum)
+    summation <- numeric(.$mcmc$d)
+    for (jj in 1:.$mcmc$d) summation[jj] <- sum((.$dataf$pars_array[jj,,half_effective:iter_effective]-x_bar[jj,])^2)
+    W         <- 2/(.$wpars$mcmc$chains*(iter_effective-2))*summation
+  
+    # between-chain variance
+    #B <- numeric(.$mcmc$d)
+    #x_double_bar <- numeric(.$mcmc$d)
+    x_double_bar <- (1/.$wpars$mcmc$chains) * apply(x_bar[,], 1, sum ) 
+    summation    <- apply(((x_bar[,]-x_double_bar[])^2), 1, sum )
+    B            <- (iter_effective/(2*(.$wpars$mcmc$chains-1)))*summation
+  
+    # estimate variance of jjth parameter of target distribution
+    sigma_hat <- ((iter_effective-2)/iter_effective)*W + (2/iter_effective)*B
+  
+    # R-statistic of Gelman and Rubin
+    R_hat <- sqrt(((.$wpars$mcmc$chains+1)/.$wpars$mcmc$chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc$chains*iter_effective)))
+  
+    # append corresponding effective iteration number to R_hat vector
+    # APW: check_ss restarts recording at the beginning of the array, but this is not expected from the output function, fix 
+    #R_hat_new <- append(R_hat, iter_effective, after=0 )
+    R_hat_new <- c(iter_true, iter_effective, j, R_hat )
+  } else {
+    #R_hat_new <- c(0, rep(NA,.$mcmc$d) )
+    R_hat_new <- c(iter_true, 0, j, rep(NA,.$mcmc$d) )
+    R_hat     <- 'NA, outlier detected on final iteration'
+    .$mcmc$j_burnin50 <- j
+  }
+  .$dataf$conv_check[,.$wpars$mcmc$check_ss] <- R_hat_new
+
+  if (j==.$wpars$mcmc$maxiter) {
+    print('',quote=F)
+    print('',quote=F)
+    print(paste0("At (final) iteration ", j, ", R-statistic of Gelman and Rubin = "),quote=F)
+    print(R_hat,quote=F)
+    print('',quote=F)
+    print('Convergence criterion:',quote=F)
+    print(.$dataf$conv_check,quote=F)
+    print('',quote=F)
+  }
 }
 
 

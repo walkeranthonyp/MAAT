@@ -138,41 +138,43 @@ salt_nmult <- 100
 
 # MCMC parameters
 # likelihood function (options: log, ssquared, ssquared_se, ...)
-mcmc_lklihood      <- 'ssquared'
+mcmc_lklihood       <- 'ssquared'
 # outlier handling (options: none, iqr)
-mcmc_outlier       <- 'iqr'
+mcmc_outlier        <- 'iqr'
 # MCMC convergence testing (options: none, Gelman_Rubin)
-mcmc_conv          <- 'Gelman_Rubin'
+mcmc_conv           <- 'Gelman_Rubin'
 # MCMC option for parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
-mcmc_bdry_handling <- 'bound'
+mcmc_bdry_handling  <- 'bound'
 # initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
-mcmc_prior         <- 'uniform'
+mcmc_prior          <- 'uniform'
 # number of chains to run (minumum = 2 * mcmc_chain_delta + 1)
-mcmc_chains        <- 7
+mcmc_chains         <- 7
 # number of iterations / steps in chain
-mcmc_maxiter       <- 1000
+mcmc_maxiter        <- 1000
+# fraction of maxiter before convergence checking starts, not used when a restart 
+mcmc_preburnin_frac <- 0.1 
 # thinning for posterior, as a proportion
-mcmc_thin          <- 0.1
+mcmc_thin           <- 0.1
 # thinning for observations, as a proportion
-mcmc_thin_obs      <- 1
+mcmc_thin_obs       <- 1
 # option to assume homoscedastic error in measured observations (else, heteroscedastic)
-mcmc_homosced      <- F
+mcmc_homosced       <- F
 # DREAM number chain pairs in proposal
-mcmc_chain_delta   <- 3
+mcmc_chain_delta    <- 3
 # DREAM randomization (default value)
-mcmc_c_rand        <- 0.01
+mcmc_c_rand         <- 0.01
 # DREAM ergodicicty (default value)
-mcmc_c_ergod       <- 1e-12
+mcmc_c_ergod        <- 1e-12
 # DREAM probability of unit jump rate (probability gamma = 1) (default value)
-mcmc_p_gamma       <- 0.2
+mcmc_p_gamma        <- 0.2
 # DREAM number of crossover values (default value)
-mcmc_n_CR          <- 3
+mcmc_n_CR           <- 3
 # adapt probability of selecting crossover values
-mcmc_adapt_pCR     <- T
+mcmc_adapt_pCR      <- T
 # if true, numberof iteration to adapt crossover selection probabilities
-mcmc_CR_burnin     <- 1e4
+mcmc_CR_burnin      <- 1e4
 # checking for convergence and outlier chains every N iterations
-mcmc_check_iter    <- 10
+mcmc_check_iter     <- 10
 
 
 
@@ -269,30 +271,35 @@ maat$wpars$of_dir        <- odir
 maat$wpars$parsinit_read <- !is.null(parsinit_mcmc)
 
 # define MCMC run parameters (sublist of wpars)
+# APW: if statement doesn't work for all MCMC functions as maat builds immediately after this before the restart can be read, fix 
 maat$wpars$mcmc$mcmc_type     <- mcmc_type
 maat$wpars$mcmc$lklihood      <- mcmc_lklihood
 maat$wpars$mcmc$outlier       <- mcmc_outlier
 maat$wpars$mcmc$bdry_handling <- mcmc_bdry_handling
 maat$wpars$mcmc$prior         <- mcmc_prior
 maat$wpars$mcmc$converge      <- mcmc_converge
-maat$wpars$mcmc$chains        <- mcmc_chains
-maat$wpars$mcmc$thin          <- mcmc_thin
-maat$wpars$mcmc$thin_obs      <- mcmc_thin_obs
-maat$wpars$mcmc$homosced      <- mcmc_homosced
-maat$wpars$mcmc$chain_delta   <- mcmc_chain_delta
-maat$wpars$mcmc$c_rand        <- mcmc_c_rand
-maat$wpars$mcmc$c_ergod       <- mcmc_c_ergod
-maat$wpars$mcmc$p_gamma       <- mcmc_p_gamma
-maat$wpars$mcmc$n_CR          <- mcmc_n_CR
-maat$wpars$mcmc$adapt_CR      <- mcmc_adapt_pCR
-maat$wpars$mcmc$CR_burnin     <- mcmc_CR_burnin
-if((mcmc_maxiter/mcmc_check_iter)<3) mcmc_check_iter <- mcmc_check_iter / 2
-if(mcmc_check_iter<5) {
-  mcmc_check_iter <- 4                    #ALJ: prevents numerical error in indexing ??
-  if(mcmc_maxiter<12) mcmc_maxiter <- 12
-} 
-maat$wpars$mcmc$check_iter    <- mcmc_check_iter
-maat$wpars$mcmc$maxiter       <- mcmc_maxiter
+if(grepl('mcmc',runtype) & is.null(parsinit_mcmc)) { 
+  maat$wpars$mcmc$chains        <- mcmc_chains
+  maat$wpars$mcmc$thin          <- mcmc_thin
+  maat$wpars$mcmc$thin_obs      <- mcmc_thin_obs
+  maat$wpars$mcmc$homosced      <- mcmc_homosced
+  maat$wpars$mcmc$chain_delta   <- mcmc_chain_delta
+  maat$wpars$mcmc$c_rand        <- mcmc_c_rand
+  maat$wpars$mcmc$c_ergod       <- mcmc_c_ergod
+  maat$wpars$mcmc$p_gamma       <- mcmc_p_gamma
+  maat$wpars$mcmc$n_CR          <- mcmc_n_CR
+  maat$wpars$mcmc$adapt_CR      <- mcmc_adapt_pCR
+  maat$wpars$mcmc$CR_burnin     <- mcmc_CR_burnin
+  # APW: unnecessary, fix 
+  if((mcmc_maxiter/mcmc_check_iter)<3) mcmc_check_iter <- mcmc_check_iter / 2
+  if(mcmc_check_iter<5) {
+    mcmc_check_iter <- 4                    #ALJ: prevents numerical error in indexing ??
+    if(mcmc_maxiter<12) mcmc_maxiter <- 12
+  } 
+  maat$wpars$mcmc$check_iter     <- mcmc_check_iter
+  maat$wpars$mcmc$maxiter        <- mcmc_maxiter
+  maat$wpars$mcmc$preburnin_frac <- mcmc_preburnin_frac
+}
 
 # build maat and model objects
 maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
@@ -409,9 +416,10 @@ if(!is.null(parsinit_mcmc)) {
     maat$wpars$mcmc[names(maat$dataf$mcmc_input$wpars$mcmc)] <- maat$dataf$mcmc_input$wpars$mcmc[names(maat$dataf$mcmc_input$wpars$mcmc)]
 
     # update beginning and end iteration counters
-    maat$wpars$mcmc$start_iter <- mcmc_restart_pars_dim[3] + 1
-    maat$mcmc$start_iter_thin  <- mcmc_restart_pars_dim[3]%%maat$wpars$mcmc$check_iter
-    maat$wpars$mcmc$maxiter    <- mcmc_maxiter + mcmc_restart_pars_dim[3]
+    maat$wpars$mcmc$start_iter      <- mcmc_restart_pars_dim[3] + 1
+    maat$mcmc$start_iter_thin       <- mcmc_restart_pars_dim[3]%%maat$wpars$mcmc$check_iter
+    maat$wpars$mcmc$maxiter         <- mcmc_maxiter + mcmc_restart_pars_dim[3]
+    maat$wpars$mcmc$maxiter_restart <- mcmc_maxiter
     print('',quote=F)
     print('Start iterations at:',quote=F)
     print(maat$wpars$mcmc$start_iter,quote=F)
