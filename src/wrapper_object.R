@@ -304,7 +304,7 @@ wrapper_object$wpars <- list(
     maxiter_restart = numeric(1),
     preburnin_frac  = 0.1,
     start_iter      = 2,
-    iter_true       = 0,
+    j_true       = 0,
     thin            = 0.1,
     thin_obs        = 1,
     homosced        = F,

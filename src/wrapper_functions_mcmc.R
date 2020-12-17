@@ -30,20 +30,21 @@ proposal_generate_mcmc_demc <- function(., j ) {
   for(ii in 1:.$dataf$lp) {
 
     # randomly select two different numbers R1 and R2 unequal to j, from uniform distribution without replacement
-    R1 <- 0
-    R2 <- 0
-    while((R1==0) | (R1==ii))             R1 <- ceiling(runif(1, min=0, max=1) * .$dataf$lp)
-    while((R2==0) | (R2==ii) | (R2==R1))  R2 <- ceiling(runif(1, min=0, max=1) * .$dataf$lp)
+    #R1 <- 0
+    #R2 <- 0
+    #while((R1==0) | (R1==ii))             R1 <- ceiling(runif(1, min=0, max=1) * .$dataf$lp)
+    #while((R2==0) | (R2==ii) | (R2==R1))  R2 <- ceiling(runif(1, min=0, max=1) * .$dataf$lp)
     # APW: can be rewritten, fix
-    # chain_pair <- sample(c(1:.$dataf$lp)[-.$dataf$lp], 2, F )
+    chain_pair <- sample(c(1:.$dataf$lp)[-.$dataf$lp], 2, F )
 
     # evaluate for each parameter
     for(jj in 1:d) {
 
       # generate proposal via Differential Evolution
-      .$dataf$pars[jj,ii] <- .$dataf$pars_array[jj,ii,j-1] + gamma_star * (.$dataf$pars_array[jj,R1,j-1] - .$dataf$pars_array[jj,R2,j-1]) + uniform_r
+      #.$dataf$pars[jj,ii] <- .$dataf$pars_array[jj,ii,j-1] + gamma_star * (.$dataf$pars_array[jj,R1,j-1] - .$dataf$pars_array[jj,R2,j-1]) + uniform_r
       # APW: in line with above, fix
-      #.$dataf$pars[jj,ii] <- .$dataf$pars_array[jj,ii,j-1] + gamma_star * (.$dataf$pars_array[jj,chain_pair[1],j-1] - .$dataf$pars_array[jj,chain_pair[2],j-1]) + uniform_r
+      .$dataf$pars[jj,ii] <- .$dataf$pars_array[jj,ii,j-1] + uniform_r + 
+        gamma_star*( .$dataf$pars_array[jj,chain_pair[1],j-1] - .$dataf$pars_array[jj,chain_pair[2],j-1] )
 
       # call boundary handling function
       .$boundary_handling(ii=ii, jj=jj )
@@ -141,6 +142,7 @@ init_mcmc_dream <- function(.) {
 
   # index of chains for Differential Evolution
   for (ii in 1:.$dataf$lp) .$mcmc$R[ii,] <- setdiff(1:.$dataf$lp, ii )
+  #for (ii in 1:.$dataf$lp) .$mcmc$R[ii,] <- c(1:.$dataf$lp)[-ii]
 }
 
 
@@ -154,59 +156,59 @@ proposal_generate_mcmc_dream <- function(., j ) {
   .$mcmc$jump[] <- 0
 
   # current state, 'mcmc_chains' number of samples of a d-variate distribution
-  .$mcmc$current_state[] <- matrix(.$dataf$pars_array[ , , j-1])
+  .$mcmc$current_state[] <- matrix(.$dataf$pars_array[,,j-1])
 
   # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
-  .$mcmc$draw[] <- apply(matrix(runif((.$dataf$lp - 1) * .$dataf$lp), .$dataf$lp - 1, .$dataf$lp), 2, function(v) sort(v, index.return = T)$ix)
+  .$mcmc$draw[] <- apply(matrix(runif((.$dataf$lp-1) * .$dataf$lp ), .$dataf$lp-1, .$dataf$lp ), 2, function(v) sort(v,index.return=T)$ix )
 
   # create a .$dataf$lp x 1 matrix of continuous uniform random values between -c_rand and c_rand
-  .$mcmc$lambda[] <- matrix(runif(.$dataf$lp * 1, -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand), .$dataf$lp)
+  .$mcmc$lambda[] <- matrix(runif(.$dataf$lp*1, -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand ), .$dataf$lp )
 
   # if not adapting crossover values, compute standard deviation of each dimension/parameter
   if(!(.$wpars$mcmc$adapt_pCR)) {
 
-    .$mcmc$sd_state[] <- apply(.$mcmc$current_state, 1, sd)
+    .$mcmc$sd_state[] <- apply(.$mcmc$current_state, 1, sd )
 
     # replace any 0's in standard deviation array with 1e-9 to avoid division by 0
-    idx <- which(.$mcmc$sd_state == 0)
-    .$mcmc$sd_state[idx] <- 1e-9
+    .$mcmc$sd_state[.$mcmc$sd_state==0] <- 1e-9
   }
 
   # create proposals
   for (ii in 1:.$dataf$lp) {
 
     # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
-    D <- sample(1:.$wpars$mcmc$chain_delta, 1, replace = T)
+    D <- sample(1:.$wpars$mcmc$chain_delta, 1, replace=T )
 
     # extract vectors a and b not equal to ii
     a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
-    b <- .$mcmc$R[ii, .$mcmc$draw[(D + 1):(2 * D), ii]]
+    b <- .$mcmc$R[ii, .$mcmc$draw[(D+1):(2*D),ii] ]
 
+    # modify each dimension with probability CR each time a proposal vector is generated
     if (.$wpars$mcmc$adapt_pCR) {
-      # modify each dimension with probability CR each time a proposal vector is generated
 
       # generate crossover probability
       .$mcmc$m[ii] <- .$generate_CR()
 
       # calculate jump rate (scaling factor)
-      gamma_d <- 2.38 / sqrt(2 * D * .$mcmc$d_star)
+      gamma_d <- 2.38 / sqrt(2*D*.$mcmc$d_star)
 
       # when gamma = 1, jump between different modes of the posterior (this is approx every 5 iterations with default p_gamma = 0.2)
-      gamma <- sample(c(gamma_d, 1), size = 1, replace = T, prob = c(1 - .$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma))
+      gamma <- sample(c(gamma_d,1), size=1, replace=T, prob=c(1-.$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma ))
 
       # compute jump differential evolution of ii-th chain
-      .$mcmc$jump[1:.$mcmc$d, ii] <- .$wpars$mcmc$c_ergod * rnorm(.$mcmc$d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[1:.$mcmc$d, a] - .$mcmc$current_state[1:.$mcmc$d, b]), dim = 1)
+      .$mcmc$jump[1:.$mcmc$d,ii] <- .$wpars$mcmc$c_ergod*rnorm(.$mcmc$d_star) +
+        (1 + .$mcmc$lambda[ii])*gamma*sum((.$mcmc$current_state[1:.$mcmc$d,a] - .$mcmc$current_state[1:.$mcmc$d,b]), dim=1 )
 
       # compute proposal of ii-th chain
-      .$dataf$pars[1:.$mcmc$d, ii] <- .$mcmc$current_state[1:.$mcmc$d, ii] + .$mcmc$jump[1:.$mcmc$d, ii]
+      .$dataf$pars[1:.$mcmc$d,ii] <- .$mcmc$current_state[1:.$mcmc$d,ii] + .$mcmc$jump[1:.$mcmc$d,ii]
 
       # replace each element (jj = 1,...,d) of the proposal with the corresponding current_state element
       #         using a binomial scheme with probability 1 - CR (CR = crossover probability)
       #         when CR = 1, all dimensions are updated jointly and d_star = d
-      crossover <- logical(length = .$mcmc$d)
-      for (jj in 1:.$mcmc$d) {
-        if (runif(1, min = 0, max = 1) <= (1 - .$mcmc$CR)) {
-          .$dataf$pars[jj, ii] <- .$mcmc$current_state[jj, ii]
+      crossover <- logical(length=.$mcmc$d)
+      for(jj in 1:.$mcmc$d) {
+        if(runif(1, min=0, max=1 ) <= (1-.$mcmc$CR) ) {
+          .$dataf$pars[jj,ii] <- .$mcmc$current_state[jj,ii]
         } else {
           crossover <- T
         }
@@ -215,46 +217,47 @@ proposal_generate_mcmc_dream <- function(., j ) {
       # number of dimensions being updated
       .$mcmc$d_star <- length(crossover)
 
-      # numerical check (in case no dimesnions are updated)
-      if (.$mcmc$d_star == 0) .$mcmc$d_star <- 1
+      # numerical check (in case no dimensions are updated)
+      if(.$mcmc$d_star==0) .$mcmc$d_star <- 1
 
     } else {
 
       # select index of crossover value (weighted sample with replacement drawn from multinomial distribution)
-      id <- sample(1:.$wpars$mcmc$n_CR, 1, replace = T, prob = .$mcmc$p_CR)
+      id <- sample(1:.$wpars$mcmc$n_CR, 1, replace=T, prob=.$mcmc$p_CR )
 
       # draw d values from uniform distribution between 0 and 1
       zz <- runif(.$mcmc$d)
 
       # derive subset A of selected dimensions
-      A  <- which(zz < .$mcmc$CR[.$mcmc$id])
+      A  <- which(zz<.$mcmc$CR[.$mcmc$id])
 
       #  how many dimensions are sampled (i.e., how many parameters will be updated jointly)
       .$mcmc$d_star <- length(A)
 
       # numerical check: make sure that A contains at least one value
-      if (.$mcmc$d_star == 0) {
+      if(.$mcmc$d_star==0) {
         A <- which.min(zz)
         .$mcmc$d_star <- 1
       }
 
       # calculate jump rate (scaling factor)
-      gamma_d <- 2.38 / sqrt(2 * D * .$mcmc$d_star)
+      gamma_d <- 2.38 / sqrt(2*D*.$mcmc$d_star)
 
-      # when gamma = 1, jump between different modes of the posterior
+      # when gamma==1, jump between different modes of the posterior
       # approx every 5 iterations with default p_gamma = 0.2
-      gamma <- sample(c(gamma_d, 1), size = 1, replace = T, prob = c(1 - .$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma))
+      gamma <- sample(c(gamma_d,1), size=1, replace=T, prob=c(1-.$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma ))
 
       # compute jump differential evolution of ii-th chain
-      .$mcmc$jump[A, ii] <- .$wpars$mcmc$c_ergod * rnorm(.$mcmc$d_star) + (1 + .$mcmc$lambda[ii]) * gamma * sum((.$mcmc$current_state[A, a] - .$mcmc$current_state[A, b]), dim = 1)
+      .$mcmc$jump[A,ii] <- .$wpars$mcmc$c_ergod*rnorm(.$mcmc$d_star) +
+        (1 + .$mcmc$lambda[ii])*gamma*sum((.$mcmc$current_state[A,a]-.$mcmc$current_state[A,b]), dim=1 )
 
       # compute proposal of ii-th chain
-      .$dataf$pars[1:.$mcmc$d, ii] <- .$mcmc$current_state[1:.$mcmc$d, ii] + .$mcmc$jump[1:.$mcmc$d, ii]
+      .$dataf$pars[1:.$mcmc$d,ii] <- .$mcmc$current_state[1:.$mcmc$d,ii] + .$mcmc$jump[1:.$mcmc$d,ii]
 
     }
 
     # call boundary handling function
-    for (jj in 1:.$mcmc$d) .$mcmc_bdry_handling(j=j, ii = ii, jj = jj)
+    for(jj in 1:.$mcmc$d) .$mcmc_bdry_handling(j=j, ii=ii, jj=jj )
   }
 }
 
@@ -263,30 +266,28 @@ proposal_generate_mcmc_dream <- function(., j ) {
 proposal_accept_mcmc_dream <- function(., j, lklihood ) {
 
   # likelihood of current state
-  .$mcmc$p_state[] <- .$dataf$pars_lklihood[, j-1]
+  .$mcmc$p_state[] <- .$dataf$pars_lklihood[,j-1]
 
   # iterate through chains
-  for (ii in 1:.$dataf$lp) {
+  for(ii in 1:.$dataf$lp) {
 
     # Metropolis acceptance probability
-    alpha <- min(1, exp(lklihood[ii] - .$mcmc$p_state[ii] ))
+    alpha <- min(1, exp(lklihood[ii]-.$mcmc$p_state[ii]) )
 
-    if(alpha>runif(1, min=0, max=1 )) {
-
-      # accept proposal
-      accept <- TRUE
+    # accept/reject proposal
+    accept <- alpha>runif(1, min=0, max=1 )
+    if(accept) {
 
       .$mcmc$current_state[1:.$mcmc$d,ii] <- .$dataf$pars[1:.$mcmc$d,ii]
-      .$mcmc$p_state[ii]                  <- lklihood[ii]
+      #.$mcmc$p_state[ii]                  <- lklihood[ii]
 
       # append accepted proposal and probability density to storage arrays
       .$dataf$pars_array[1:.$mcmc$d,ii,j] <- .$mcmc$current_state[1:.$mcmc$d,ii]
-      .$dataf$pars_lklihood[ii,j]         <- .$mcmc$p_state[ii]
+      #.$dataf$pars_lklihood[ii,j]         <- .$mcmc$p_state[ii]
+      .$dataf$pars_lklihood[ii,j]         <-  lklihood[ii]
 
+    # reject proposal
     } else {
-
-      # reject proposal
-      accept <- FALSE
 
       # reset jump back to zero
       .$mcmc$jump[1:.$mcmc$d,ii] <- 0
@@ -303,7 +304,7 @@ proposal_accept_mcmc_dream <- function(., j, lklihood ) {
     # APW: not a huge deal, but this is not quite right in the case where j==out_n+1 but not accepted 
     #      as it adds the output from the rejected proposal
     # write output (model evaluations)
-    .$dataf$out_mcmc[ii,,j] <- if(accept | j==1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-1)]
+    .$dataf$out_mcmc[,ii,j] <- if(accept | j==1) .$dataf$out[ii,] else .$dataf$out_mcmc[,ii,(j-1)]
 
   }
 
@@ -358,7 +359,7 @@ generate_CR <- function(.) {
   #print('.$mcmc$p_CR:'); print(.$mcmc$p_CR)
 
   # sample m from numbers 1,...,n_CR using multinomial distribution (with probabilities p_CR)
-  m <- sample(1:.$wpars$mcmc$n_CR, size = 1, replace = T, prob = .$mcmc$p_CR)
+  m <- sample(1:.$wpars$mcmc$n_CR, size=1, replace=T, prob=.$mcmc$p_CR )
 
   # set crossover probability/value
   .$mcmc$CR <- m / .$wpars$mcmc$n_CR
@@ -371,17 +372,17 @@ generate_CR <- function(.) {
 
 
 # function to compute the squared normalized jumping distance
-calc_del <- function(., j, ii) {
+calc_del <- function(., j, ii ) {
 
-  # compute standard deviation of each dimension/parameter
+  # compute standard deviation of each parameter
+  # APW: this takes the whole pars array, is that correct?
   .$mcmc$sd_state[] <- apply(.$dataf$pars_array, 1, sd )
-
+  .$mcmc$sd_state[.$mcmc$sd_state==0] <- 1e-9
   # replace any 0's in sd vector with 1e-9 to avoid division by 0
-  idx                  <- which(.$mcmc$sd_state==0)
-  .$mcmc$sd_state[idx] <- 1e-9
+  #idx                  <- which(.$mcmc$sd_state==0)
 
-  summation <- sum(((.$dataf$pars_array[1:.$mcmc$d,ii,j] - .$dataf$pars_array[1:.$mcmc$d,ii,j-1] ) / .$mcmc$sd_state )^2 )
-
+  
+  summation                <- sum(((.$dataf$pars_array[1:.$mcmc$d,ii,j] - .$dataf$pars_array[1:.$mcmc$d,ii,j-1]) / .$mcmc$sd_state)^2 )
   .$mcmc$del[.$mcmc$m[ii]] <- .$mcmc$del[.$mcmc$m[ii]] + summation
 
   # debugging
@@ -405,15 +406,15 @@ adapt_pCR <- function(.) {
   # .$mcmc$ del is zero though
 
   # update the probability of the different crossover values being selected
-  for (qq in 1:.$wpars$mcmc$n_CR) {
+  for(qq in 1:.$wpars$mcmc$n_CR) {
     # numerical check for divide by zero
-    if (.$mcmc$L[qq] != 0) {
-      .$mcmc$p_CR[qq] <- .$mcmc$t * .$wpars$mcmc$chains * (.$mcmc$del[qq] / .$mcmc$L[qq]) / sum(.$mcmc$del)
+    if(.$mcmc$L[qq]!=0) {
+      .$mcmc$p_CR[qq] <- .$mcmc$t*.$wpars$mcmc$chains*(.$mcmc$del[qq]/.$mcmc$L[qq]) / sum(.$mcmc$del)
     }
   }
 
   # normalize
-  .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
+  .$mcmc$p_CR <- .$mcmc$p_CR/sum(.$mcmc$p_CR)
 }
 
 
@@ -543,17 +544,17 @@ boundary_handling_set <- function(.) {
   dynamic_pars_un <- unlist(.$dynamic$pars)
   vals <- sapply(dynamic_pars_un, function(x) x[[1]])
 
-  if (.$wpars$mcmc$prior == 'uniform') {
+  if(.$wpars$mcmc$prior=='uniform') {
     min_vals <- vals[seq(1, length(vals), 2)]
     max_vals <- vals[seq(2, length(vals), 2)]
   }
 
-  if (.$wpars$mcmc$prior == 'normal') {
+  if(.$wpars$mcmc$prior=='normal') {
     min_vals  <- vals[seq(1, length(vals), 4)]
     max_vals  <- vals[seq(2, length(vals), 4)]
   }
 
-  if (.$wpars$mcmc$prior == 'none') {
+  if(.$wpars$mcmc$prior=='none') {
     # future work: need to figure this out
     #              but this depends on the restart process
   }
@@ -562,11 +563,11 @@ boundary_handling_set <- function(.) {
   .$mcmc$boundary_max <- max_vals
 
   # if prior initialized with normal distribution, do boundary check
-  if(.$wpars$mcmc$prior == 'normal') {
+  if(.$wpars$mcmc$prior=='normal') {
     d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
-    for (ii in 1:.$wpars$mcmc$chains) {
-      for (jj in  1:d) {
-        .$mcmc_bdry_handling(j = 1, ii = ii, jj = jj)
+    for(ii in 1:.$wpars$mcmc$chains) {
+      for(jj in  1:d) {
+        .$mcmc_bdry_handling(j=1, ii=ii, jj=jj )
       }
     }
   }
@@ -582,7 +583,7 @@ mcmc_bdry_handling_none <- function(., j, ii, jj) {
 
 
 # restrict parameter proposals that are beyond the boundary (reset them back to the min/max bound)
-mcmc_bdry_handling_bound <- function(., j, ii, jj) {
+mcmc_bdry_handling_bound <- function(., j, ii, jj ) {
 
   # if outside bound of parameter space, restrict proposal value to corresponding dimension min
   if (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj]) .$dataf$pars[jj, ii] <- .$mcmc$boundary_min[jj]
@@ -593,7 +594,7 @@ mcmc_bdry_handling_bound <- function(., j, ii, jj) {
 
 
 # reflect parameter proposals that are beyond the min/max values back accros the boundary
-mcmc_bdry_handling_reflect <- function(., j, ii, jj) {
+mcmc_bdry_handling_reflect <- function(., j, ii, jj ) {
 
   if (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj]) {
     # if outside bound of parameter space, reflect proposal back across minimum boundary
@@ -612,7 +613,7 @@ mcmc_bdry_handling_reflect <- function(., j, ii, jj) {
 
 # restrict parameter proposals that are beyond the boundary by "folding" them back across the boundary
 # this boundary handling approach maintains detailed statistical balance, which is healthy for the MCMC algorithm
-mcmc_bdry_handling_fold <- function(., j, ii, jj) {
+mcmc_bdry_handling_fold <- function(., j, ii, jj ) {
 
   if (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj]) {
     .$dataf$pars[jj, ii] <- .$mcmc$boundary_max[jj] - (.$mcmc$boundary_min[jj] - .$dataf$pars[jj, ii])
@@ -650,7 +651,7 @@ f_proposal_lklihood_ssquared <- function(.) {
   error_residual_matrix <- t(.$dataf$out) - .$dataf$obs
 
   # calculate sum of squared error
-  SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
+  SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2) )
 
   # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
   -(obs_n/2) * log(SSR)
@@ -662,29 +663,34 @@ f_proposal_lklihood_ssquared <- function(.) {
 f_proposal_lklihood_ssquared_se <- function(.) {
 
   # read in measurement error; remove zeros from measurement error
-  sspos <- which(.$dataf$obsse > 1e-9)
+  sspos <- which(.$dataf$obsse>1e-9)
 
   # number of measured data points (that do not have zero uncertainty)
   obs_n <- length(sspos)
 
   # observed error (heteroscedastic and homoscedastic options)
   obsse <- if(.$wpars$mcmc$homosced) rep(mean(.$dataf$obsse[sspos]), obs_n)
-           else .$dataf$obsse[sspos]
+           else                      .$dataf$obsse[sspos]
 
   # calculate error residual
-  error_residual_matrix <- ( t(.$dataf$out)[sspos,] - .$dataf$obs[sspos] ) / obsse
+  error_residual_matrix <- ( t(.$dataf$out)[sspos,]-.$dataf$obs[sspos] ) / obsse
 
   # calculate sum of squared error
-  SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
+  SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2) )
 
   # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
-  -(obs_n / 2) * log(2 * pi) - sum(log(obsse)) - 0.5 * SSR
+  -(obs_n/2) * log(2*pi) - sum(log(obsse)) - 0.5*SSR
 }
 
 
 
 # outlier handling functions
 #####################################
+
+# IMPORTANT: identifying and correcting outliers should only be done during burn-in
+#            because it violates the balance of sampled chains and destroys reversibility
+#            if outlier chain is detected, discard all previous sample history, then append
+#            and apply another burn-in period before generating posterior moments
 
 # no outlier handling for Markov chains
 mcmc_outlier_none <- function(.,j) {
@@ -695,76 +701,36 @@ mcmc_outlier_none <- function(.,j) {
 # function that detects and corrects outlier Markov chains using the Inter Quartile-Range (IQR) statistic
 mcmc_outlier_iqr <- function(.,j) {
 
-  #counter <- j/.$wpars$mcmc$check_iter
-
-  #.$mcmc$j_burnin50 <-
-  #   if(.$mcmc$outlier_detected|!.$wpars$parsinit_read) .$mcmc$j_start_burnin + ceiling(j/2)
-  #   else                                                     j - ceiling((j+.$wpars$mcmc$start_iter-1)/2)
-
-  # extract last 50% of samples of each chain
-  #sbst <- .$dataf$pars_lklihood[,.$mcmc$j_burnin50:j]
-
-  # take the mean of the log of the posterior densities and store in omega
-  # IMPORTANT: all current likelihood function options already return log-likelihood
-  #            so it's not necessary to take the log of sbst components here
-  #            but this may change in the future with different likelihood functions
-  #for (ii in 1:.$wpars$mcmc$chains) .$dataf$omega[ii,.$wpars$mcmc$check_ss] <- mean(sbst[ii, ])
 #  print('')
 #  print('jstartburnin,jb50, j, check_ss:')
 #  print(c(.$mcmc$j_start_burnin,.$mcmc$j_burnin50,j,.$wpars$mcmc$check_ss))
-  .$dataf$omega[,.$wpars$mcmc$check_ss] <- apply(.$dataf$pars_lklihood[,.$mcmc$j_burnin50:j], 1, mean)
 
-  # APW: code can be simplified, fix 
-  # determine upper and lower quantiles of N different chains
-  q1 <- quantile(.$dataf$omega[1:.$wpars$mcmc$chains,.$wpars$mcmc$check_ss], prob = 0.25, type = 1)
-  q3 <- quantile(.$dataf$omega[1:.$wpars$mcmc$chains,.$wpars$mcmc$check_ss], prob = 0.75, type = 1)
-
-  # compute IQR statistic
-  iqr <- q3-q1
-
-  # determine which chains are outliers
-  outliers <- which(.$dataf$omega[,.$wpars$mcmc$check_ss]<(q1-2*iqr))
+  # identify outlier chains 
+  # - based on IQR across chains mean log posterior densities of last 50 % of burnin
+  # IMPORTANT: all current likelihood function options already return log-likelihood
+  #            so it's not necessary to take the log lklihood here
+  #            but may change in future with different likelihood functions
+  .$dataf$omega[,.$wpars$mcmc$check_ss] <- apply(.$dataf$pars_lklihood[,.$mcmc$j_burnin50:j], 1, mean )
+  q13      <- quantile(.$dataf$omega[1:.$wpars$mcmc$chains,.$wpars$mcmc$check_ss], prob=c(0.25,0.75), type=1 )
+  iqr      <- q13[2]-q13[1]
+  outliers <- which(.$dataf$omega[,.$wpars$mcmc$check_ss] < (q13[1]-2*iqr))
 
   # if outlier chains are detected
+  # APW: could move this to main DREAM run functon as it is generic
   if (length(outliers) > 0) {
 
-    print(paste0('Outlier chain detected. Chain ', outliers, ' at iteration ', j))
+    print(paste('Outlier chain(s) detected. Chain(s):', outliers, 'at iteration:', j ))
 
-    # APW: code can be simplified, fix 
-    # replace outlier(s) by randomly choosing from the remaining chains
-    replace_idx <- rep(0, length(outliers))
-    for (qq in 1:length(outliers)) {
-      # check: make sure no replacement chains are equal to any other elements of outliers
-      while ((replace_idx[qq] == 0) | (replace_idx[qq] %in% outliers)) {
-        replace_idx[qq] <- ceiling(runif(1, min = 0, max = 1) * .$wpars$mcmc$chains)
-      }
-    }
-
-    # check: make sure 2 or more outliers aren't being replaced by the same randomly-chosen chain
-    while (any(duplicated(replace_idx))) {
-      repeat_idx <- which(duplicated(replace_idx))
-      for (qq in 1:length(repeat_idx)) {
-          replace_idx[repeat_idx[qq]] <-  ceiling(runif(1, min = 0, max = 1) * .$wpars$mcmc$chains)
-      }
-    }
-
-    # replace outlier chain(s)
-    #.$dataf$pars_array[1:.$mcmc$d, outliers, 1:j] <- .$dataf$pars_array[1:.$mcmc$d, replace_idx, 1:j]
-    .$dataf$pars_array[1:.$mcmc$d,outliers,j] <- .$dataf$pars_array[1:.$mcmc$d,replace_idx,j]
-
-    # replace likelihood history for next iqr calculation
-    #.$dataf$pars_lklihood[outliers, 1:j] <- .$dataf$pars_lklihood[replace_idx, 1:j]
-    .$dataf$pars_lklihood[outliers,j] <- .$dataf$pars_lklihood[replace_idx,j]
+    # replace outlier chain(s) & likelihood history for next iqr calculation
+    replace_ss <- sample(1:.$wpars$mcmc$chains[-outliers], length(outliers) )
+    .$dataf$pars_array[1:.$mcmc$d,outliers,j] <- .$dataf$pars_array[1:.$mcmc$d,replace_ss,j]
+    .$dataf$pars_lklihood[outliers,j]         <- .$dataf$pars_lklihood[replace_ss,j]
 
     # restart burn-in
     .$mcmc$outlier_detected <- T
     .$mcmc$j_start_burnin   <- j + 1
+    .$mcmc$j_burnin50       <- j
   }
-
-  # IMPORTANT: identifying and correcting outliers should only be done during burn-in
-  #            because it violates the balance of sampled chains and destroys reversibility
-  #            if outlier chain is detected, discard all previous sample history, then append
-  #            and apply another burn-in period before generating posterior moments
 }
 
 
@@ -782,54 +748,46 @@ mcmc_converge_none <- function(.,j) {
 mcmc_converge_Gelman_Rubin <- function(.,j) {
 
   # effective number of iterations since burn-in began
-  # ALJ: this needs to equivalent to the total number of "usable" iterations in each chain?
-  iter_effective <- j - .$mcmc$j_start_burnin + 1
-  half_effective <- iter_effective/2
-  iter_true      <- j - .$wpars$mcmc$start_iter + 2 + .$wpars$mcmc$iter_true 
+  iter_effective <- 2*(j-.$mcmc$j_burnin50)
+  half_effective <- ceiling(iter_effective/2)
+  j_true         <- j - .$wpars$mcmc$start_iter + 2 + .$wpars$mcmc$j_true 
 
   if(iter_effective>0) {
-    # within-chain variance
-    #W <- numeric(.$mcmc$d)
-    #x_bar <- matrix(0, nrow=.$mcmc$d, ncol=.$wpars$mcmc$chains)
-    x_bar     <- (2/(iter_effective-2)) * apply(.$dataf$pars_array[,,half_effective:iter_effective], 1:2, sum)
-    summation <- numeric(.$mcmc$d)
-    for (jj in 1:.$mcmc$d) summation[jj] <- sum((.$dataf$pars_array[jj,,half_effective:iter_effective]-x_bar[jj,])^2)
-    W         <- 2/(.$wpars$mcmc$chains*(iter_effective-2))*summation
-  
-    # between-chain variance
-    #B <- numeric(.$mcmc$d)
-    #x_double_bar <- numeric(.$mcmc$d)
-    x_double_bar <- (1/.$wpars$mcmc$chains) * apply(x_bar[,], 1, sum ) 
-    summation    <- apply(((x_bar[,]-x_double_bar[])^2), 1, sum )
+    # within-chain variance of parameters
+    x_bar        <- (2/(iter_effective-2)) * apply(.$dataf$pars_array[,,.$mcmc$j_burnin50:j], 1:2, sum )
+    summation    <- numeric(.$mcmc$d)
+    for(jj in 1:.$mcmc$d) summation[jj] <- sum((.$dataf$pars_array[jj,,.$mcmc$j_burnin50:j] - x_bar[jj,])^2 )
+    W            <- 2/(.$wpars$mcmc$chains*(iter_effective-2))*summation
+
+    # between-chain variance of parameters
+    x_double_bar <- apply(x_bar, 1, sum ) / .$wpars$mcmc$chains 
+    summation    <- apply((x_bar-x_double_bar)^2, 1, sum )
     B            <- (iter_effective/(2*(.$wpars$mcmc$chains-1)))*summation
   
-    # estimate variance of jjth parameter of target distribution
-    sigma_hat <- ((iter_effective-2)/iter_effective)*W + (2/iter_effective)*B
+    # parameter variance
+    sigma_hat    <- ((iter_effective-2)/iter_effective)*W + (2/iter_effective)*B
   
     # R-statistic of Gelman and Rubin
-    R_hat <- sqrt(((.$wpars$mcmc$chains+1)/.$wpars$mcmc$chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc$chains*iter_effective)))
-  
-    # append corresponding effective iteration number to R_hat vector
-    # APW: check_ss restarts recording at the beginning of the array, but this is not expected from the output function, fix 
-    #R_hat_new <- append(R_hat, iter_effective, after=0 )
-    R_hat_new <- c(iter_true, iter_effective, j, R_hat )
+    R_hat        <- sqrt(((.$wpars$mcmc$chains+1)/.$wpars$mcmc$chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc$chains*iter_effective)))
+    R_hat_new    <- c(j_true, j, iter_effective, R_hat )
+
   } else {
-    #R_hat_new <- c(0, rep(NA,.$mcmc$d) )
-    R_hat_new <- c(iter_true, 0, j, rep(NA,.$mcmc$d) )
-    R_hat     <- 'NA, outlier detected on final iteration'
-    .$mcmc$j_burnin50 <- j
+    R_hat_new    <- c(j_true, j, 0, rep(NA,.$mcmc$d) )
+    R_hat        <- 'NA, outlier detected on final iteration'
   }
+
+  # APW: could move this to main DREAM run functon as it is generic
   .$dataf$conv_check[,.$wpars$mcmc$check_ss] <- R_hat_new
 
   if (j==.$wpars$mcmc$maxiter) {
     print('',quote=F)
     print('',quote=F)
-    print(paste0("At (final) iteration ", j, ", R-statistic of Gelman and Rubin = "),quote=F)
+    print(paste("At (final) iteration:", j, ", R-statistic of Gelman and Rubin ="), quote=F )
     print(R_hat,quote=F)
     print('',quote=F)
-    print('Convergence criterion:',quote=F)
-    print(.$dataf$conv_check,quote=F)
-    print('',quote=F)
+    #print('Convergence criterion:',quote=F)
+    #print(.$dataf$conv_check,quote=F)
+    #print('',quote=F)
   }
 }
 
