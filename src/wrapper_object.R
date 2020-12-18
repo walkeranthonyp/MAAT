@@ -304,7 +304,6 @@ wrapper_object$wpars <- list(
     maxiter_restart = numeric(1),
     preburnin_frac  = 0.1,
     start_iter      = 2,
-    j_true       = 0,
     thin            = 0.1,
     thin_obs        = 1,
     homosced        = F,
@@ -314,7 +313,7 @@ wrapper_object$wpars <- list(
     p_gamma         = 0.2,
     n_CR            = 3,
     adapt_pCR       = T,
-    CR_burnin       = 1e4,
+    CR_burnin       = 1e4,         # if adapt_pCR & j_true<CR_burnin adapt cross-over probabilities 
     check_ss        = numeric(1),
     check_iter      = 10
   )
@@ -324,6 +323,7 @@ wrapper_object$wpars <- list(
 # MCMC specific data, size depends on MCMC set up
 wrapper_object$mcmc <- list(
   outlier_detected = F,
+  j_true           = 2,           # true number of iterations, 2 assumes model eval on the prior is the first iteration
   j_start_burnin   = 1,
   j_burnin50       = numeric(1),
   d                = numeric(1),
@@ -340,9 +340,10 @@ wrapper_object$mcmc <- list(
   boundary_max     = numeric(1),
   del              = numeric(1),
   L                = numeric(1),
-  t                = numeric(1),
+#  t                = numeric(1),
   m                = numeric(1),
-  CR_burnin        = T,
+#  CR_burnin        = T,
+  adapt_pCR        = F,
   d_star           = numeric(1)
 )
 

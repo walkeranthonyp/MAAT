@@ -206,8 +206,8 @@ init_output_matrix_mcmc_dream <- function(.) {
     .$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
     .$dataf$pars_array[,,1:.$wpars$mcmc$start_iter-1]   <- .$dataf$mcmc_input$pars_array
     .$dataf$pars_lklihood[,1:.$wpars$mcmc$start_iter-1] <- .$dataf$mcmc_input$pars_lklihood
-    .$wpars$mcmc$check_ss  <- dim(.$dataf$mcmc_input$conv_check)[2]
-    .$wpars$mcmc$j_true <- .$dataf$mcmc_input$conv_check[1,.$wpars$mcmc$check_ss] 
+    .$wpars$mcmc$check_ss <- dim(.$dataf$mcmc_input$conv_check)[2]
+    #.$wpars$mcmc$j_true   <- .$dataf$mcmc_input$conv_check[1,.$wpars$mcmc$check_ss] 
     .$dataf$conv_check[,1:.$wpars$mcmc$check_ss]        <- .$dataf$mcmc_input$conv_check
     .$dataf$omega[,1:.$wpars$mcmc$check_ss]             <- .$dataf$mcmc_input$omega
     .$dataf$mcmc_input <- NULL
@@ -684,8 +684,13 @@ run2_mcmc_dream <- function(.,j) {
     })
 
   # calculate likelihood of proposals on each chain, accept/reject proposals
-  lklihood <- .$proposal_lklihood()
-  .$proposal_accept(j=j, lklihood )
+  #lklihood <- .$proposal_lklihood()
+  #.$proposal_accept(j=j, lklihood )
+  .$proposal_accept(j=j)
+
+  # allow pre-burnin prior to adapting pCR
+  if(!.$wpars$parsinit_read)
+    if(j==ceiling(.$wpars$mcmc$maxiter*.$wpars$mcmc$preburnin_frac) & .$wpars$mcmc$adapt_pCR ) .$mcmc$adapt_pCR <- T
 
   # MCMC checks
   mcmc_check <- ((j>(.$wpars$mcmc$maxiter*.$wpars$mcmc$preburnin_frac))|.$wpars$parsinit_read) & (j%%.$wpars$mcmc$check_iter==0)
@@ -711,8 +716,8 @@ run2_mcmc_dream <- function(.,j) {
 run3_mcmc_dream <- function(.,k) {
   # runs each chain at each iteration in MCMC
 
-  # assumes that each column of the pars matrix are independent and non-sequential
-  # ALJ: this assumption is valid only for DREAM, not DE-MC
+  # assumes that columns of the pars matrix are independent and non-sequential
+  # - this assumption is valid only for DREAM, not DE-MC
 
   # configure parameters in the model
   if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[,k], F )
@@ -720,9 +725,8 @@ run3_mcmc_dream <- function(.,k) {
 
   # call model/met run function
   if(is.null(.$dataf$met)) .$model$run() else .$model$run_met()
-  #if(.$dataf$lm==1) .$model$run()
-  #else              vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
 }
+
 
 run4_mcmc_dream <- run4_factorial # i.e. NULL
 run5_mcmc_dream <- run4_factorial # i.e. NULL
@@ -898,19 +902,10 @@ output_SAprocess_ye <- function(.) {
 # creates output for a MCMC simulation
 output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, 
                               iter_out_end=.$wpars$mcmc$maxiter ) {
-                              #iter_out_start_thin=ceiling(.$wpars$mcmc$maxiter/.$mcmc$j_burnin50)+1, 
-                              #iter_out_start_thin=ceiling(.$mcmc$j_burnin50/.$wpars$mcmc$check_iter), 
-                              #iter_out_end_thin=ceiling(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) ) {
-
-  #iter_out_end_thin <- .$wpars$mcmc$check_ss
-  #if((.$wpars$mcmc$maxiter%%.$wpars$mcmc$check_iter)!=0) iter_out_end_thin <- iter_out_end_thin - 1
-  #iter_out_start_thin <- 
-  #  if(.$dataf$conv_check[1,iter_out_end_thin]==0) iter_out_end_thin
-  #  else    which(.$dataf$conv_check[1,] == ceiling((.$dataf$conv_check[1,iter_out_end_thin]+1)/.$wpars$mcmc$check_iter/2)*.$wpars$mcmc$check_iter)
 
 #  print('')
 #  print('MCMC output:') 
-#  print(.$dataf$conv_check[,iter_out_start_thin:iter_out_end_thin,drop=F])
+#  print(.$dataf$conv_check[,,drop=F])
 #  print('')
 
   list(
@@ -919,8 +914,6 @@ output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50,
     out_mcmc       = .$dataf$out_mcmc[,,iter_out_start:iter_out_end,drop=F],
     mod_out_final  = .$dataf$out,
     obs            = .$dataf$obs,
-    #conv_check     = .$dataf$conv_check[,iter_out_start_thin:iter_out_end_thin,drop=F],
-    #conv_check     = .$dataf$conv_check[,1:iter_out_end_thin,drop=F],
     conv_check     = .$dataf$conv_check,
     omega          = .$dataf$omega,
 
@@ -931,12 +924,14 @@ output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50,
 
     # dynamic MCMC variables that need preserving
     mcmc = list(
-      CR   = .$mcmc$CR,
-      p_CR = .$mcmc$p_CR,
-      del  = .$mcmc$del,
-      L    = .$mcmc$L,
-      t    = .$mcmc$t,
-      m    = .$mcmc$m 
+      CR        = .$mcmc$CR,
+      p_CR      = .$mcmc$p_CR,
+      del       = .$mcmc$del,
+      L         = .$mcmc$L,
+      #t       = .$mcmc$t,
+      j_true    = .$mcmc$j_true,
+      m         = .$mcmc$m, 
+      adapt_pCR = .$mcmc$adapt_pCR
     )
   )
 }

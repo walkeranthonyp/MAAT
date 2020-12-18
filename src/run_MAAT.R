@@ -409,10 +409,6 @@ if(!is.null(parsinit_mcmc)) {
 #    print(parsinit)
 
     # update user-defined MCMC parameters passed from restart
-    #maat$wpars$mcmc$chains    <- maat$dataf$mcmc_input$wpars$mcmc$chains
-    #maat$wpars$mcmc$n_CR      <- maat$dataf$mcmc_input$wpars$mcmc$n_CR
-    #maat$wpars$mcmc$adapt_pCR <- maat$dataf$mcmc_input$wpars$mcmc$adapt_pCR
-    #maat$wpars$mcmc$CR_burnin <- maat$dataf$mcmc_input$wpars$mcmc$CR_burnin
     maat$wpars$mcmc[names(maat$dataf$mcmc_input$wpars$mcmc)] <- maat$dataf$mcmc_input$wpars$mcmc[names(maat$dataf$mcmc_input$wpars$mcmc)]
 
     # update beginning and end iteration counters
@@ -427,12 +423,6 @@ if(!is.null(parsinit_mcmc)) {
     print(maat$wpars$mcmc$maxiter,quote=F)
 
     # update MCMC variables passed from restart
-#    maat$mcmc$CR   <- maat$dataf$mcmc_input$mcmc$CR
-#    maat$mcmc$p_CR <- maat$dataf$mcmc_input$mcmc$p_CR
-#    maat$mcmc$del  <- maat$dataf$mcmc_input$mcmc$del
-#    maat$mcmc$L    <- maat$dataf$mcmc_input$mcmc$L
-#    maat$mcmc$t    <- maat$dataf$mcmc_input$mcmc$t
-#    maat$mcmc$m    <- maat$dataf$mcmc_input$mcmc$m
     maat$mcmc[names(maat$dataf$mcmc_input$mcmc)] <- maat$dataf$mcmc_input$mcmc[names(maat$dataf$mcmc_input$mcmc)]
 
     # set output to mcmc dir 
@@ -458,7 +448,7 @@ if(!is.null(parsinit_mcmc)) {
 
     # sub-sample
     if(parsinit_n>=dim(parsinit)[2]) print('parsinit_n greater than samples in mcmcout')
-    parsinit <- parsinit[, sample(dim(parsinit[2], parsinit_n ))]
+    parsinit <- parsinit[, sample(dim(parsinit)[2], parsinit_n )]
   }
 
   # add parsinit to wrapper data structure
