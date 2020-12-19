@@ -653,6 +653,7 @@ run1_mcmc_dream <- function(.,i) {
     # add to pars array and calculate likelihood of initial proposal
     .$dataf$pars_array[,,1]   <- .$dataf$pars
     .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
+    .$dataf$out_mcmc[,,1]     <- t(.$dataf$out[,]) 
   }
 
   # run initialisation part of algorithm
