@@ -88,10 +88,10 @@ init_mcmc_dream <- function(.) {
   .$mcmc$d_star <- .$mcmc$d
 
   # preallocate memory space for algorithmic variables
-  .$mcmc$p_state       <- numeric(.$dataf$lp)
-  .$mcmc$R             <- matrix(0, nrow=.$dataf$lp,   ncol=.$dataf$lp-1 )
+  #.$mcmc$p_state       <- numeric(.$dataf$lp)
+  #.$mcmc$R             <- matrix(0, nrow=.$dataf$lp,   ncol=.$dataf$lp-1 )
   .$mcmc$current_state <- matrix(0, nrow=.$mcmc$d,     ncol=.$dataf$lp )
-  .$mcmc$draw          <- matrix(0, nrow=.$dataf$lp-1, ncol=.$dataf$lp )
+  #.$mcmc$draw          <- matrix(0, nrow=.$dataf$lp-1, ncol=.$dataf$lp )
   .$mcmc$lambda        <- matrix(0, nrow=.$dataf$lp,   ncol=1 )
   .$mcmc$jump          <- matrix(0, nrow=.$mcmc$d,     ncol=.$dataf$lp )
   # preallocate space for crossover variables
@@ -110,12 +110,13 @@ init_mcmc_dream <- function(.) {
     .$mcmc$p_CR[]    <- 1/.$wpars$mcmc$n_CR
     .$mcmc$m         <- numeric(.$wpars$mcmc$chains)
     #.$mcmc$t         <- 1
-    .$mcmc$CR        <- 0
-    if(!.$wpars$mcmc$adapt_pCR) .$mcmc$CR[] <- 1:.$wpars$mcmc$n_CR/.$wpars$mcmc$n_CR 
+    .$mcmc$CR        <- 1
+    #if(!.$wpars$mcmc$adapt_pCR) .$mcmc$CR <- 1:.$wpars$mcmc$n_CR # inconsistent with above 
+    #if(!.$wpars$mcmc$adapt_pCR) .$mcmc$CR <- 1:.$wpars$mcmc$n_CR / .$wpars$mcmc$n_CR # inconsistent with above 
   }
 
   # index of chains for Differential Evolution
-  for (ii in 1:.$dataf$lp) .$mcmc$R[ii,] <- setdiff(1:.$dataf$lp, ii )
+  #for (ii in 1:.$dataf$lp) .$mcmc$R[ii,] <- setdiff(1:.$dataf$lp, ii )
   #for (ii in 1:.$dataf$lp) .$mcmc$R[ii,] <- c(1:.$dataf$lp)[-ii]
 }
 
@@ -146,9 +147,11 @@ proposal_generate_mcmc_dream <- function(.,j) {
   }
 
   # create proposals
+  # - for each chain
   for (ii in 1:.$dataf$lp) {
 
     # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
+    # APW: determine number of chains used to calculate each jump
     # APW: why choose 1 value w replacement? Maybe this should be outside of the chain loop? fix
     D <- sample(1:.$wpars$mcmc$chain_delta, 1, replace=T )
 
@@ -157,7 +160,9 @@ proposal_generate_mcmc_dream <- function(.,j) {
     b <- .$mcmc$R[ii, .$mcmc$draw[(D+1):(2*D),ii] ]
 
     # modify each dimension with probability CR each time a proposal vector is generated
-    # APW: this seems like it's not just about adapting pCR, it's whether you use pCR at all, the else statement just randomly selects a subset of pars
+    # APW: this seems like it's more than just adapting pCR, the else statement randomly selects a subset of pars
+    # APW: seems like there's duplication of code here, can be simplified
+    # APW: possibly bugs too
     if (.$wpars$mcmc$adapt_pCR) {
 
       # generate crossover probability
@@ -205,6 +210,7 @@ proposal_generate_mcmc_dream <- function(.,j) {
 
     } else {
 
+      # APW: the following three lines are equivalent (but don't seem correct) to the code in generate_CR and on ln. 129 above
       # select index of crossover value (weighted sample with replacement drawn from multinomial distribution)
       id <- sample(1:.$wpars$mcmc$n_CR, 1, replace=T, prob=.$mcmc$p_CR )
 
@@ -212,16 +218,16 @@ proposal_generate_mcmc_dream <- function(.,j) {
       zz <- runif(.$mcmc$d)
 
       # derive subset A of selected dimensions
+      # APW: original code had CR as a vector 1:n_CR, where n_CR is a user defined max number of crossovers
+      # APW: but generate_CR sets a scalar that is one of 1:n_CR divided by n_CR 
+      # APW: given that 0 <= zz <= 1, but CR[id] is one of 1:n_CR this will always update every parameter
       A  <- which(zz<.$mcmc$CR[.$mcmc$id])
+
+      # numerical check: make sure that A contains at least one value
+      if(length(A)==0) A <- which.min(zz)
 
       #  how many dimensions are sampled (i.e., how many parameters will be updated jointly)
       .$mcmc$d_star <- length(A)
-
-      # numerical check: make sure that A contains at least one value
-      if(.$mcmc$d_star==0) {
-        A <- which.min(zz)
-        .$mcmc$d_star <- 1
-      }
 
       # calculate jump rate (scaling factor)
       gamma_d <- 2.38 / sqrt(2*D*.$mcmc$d_star)
@@ -243,6 +249,232 @@ proposal_generate_mcmc_dream <- function(.,j) {
     for(jj in 1:.$mcmc$d) .$mcmc_bdry_handling(j=j, ii=ii, jj=jj )
   }
 }
+
+
+# generate proposal using DREAM algorithm
+proposal_generate_mcmc_dream <- function(.,j) {
+#proposal_generate_mcmc_dream_bugfix <- function(.,j) {
+
+  # debugging
+  #print(paste0('j = ',j))
+
+  # zero jump matrix 
+  .$mcmc$jump[] <- 0
+
+  # current state, 'mcmc_chains' number of samples of a d-variate distribution
+  #.$mcmc$current_state[] <- matrix(.$dataf$pars_array[,,j-1])
+  .$mcmc$current_state[] <- .$dataf$pars_array[,,j-1]
+
+  # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
+  #.$mcmc$draw[] <- apply(matrix(runif((.$dataf$lp-1) * .$dataf$lp ), .$dataf$lp-1, .$dataf$lp ), 2, function(v) sort(v,index.return=T)$ix )
+
+  # create a .$dataf$lp x 1 matrix of continuous uniform random values between -c_rand and c_rand
+  #.$mcmc$lambda[] <- matrix(runif(.$dataf$lp*1, -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand ), .$dataf$lp )
+  .$mcmc$lambda[] <- matrix(runif(.$dataf$lp, -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand ), .$dataf$lp )
+
+  # if not adapting crossover values, compute standard deviation of each dimension/parameter
+  # APW: what is this used for?
+  if(!(.$wpars$mcmc$adapt_pCR)) {
+    .$mcmc$sd_state[] <- apply(.$mcmc$current_state, 1, sd )
+    .$mcmc$sd_state[.$mcmc$sd_state==0] <- 1e-9
+  }
+
+  # create proposals
+  # - for each chain
+  for (ii in 1:.$dataf$lp) {
+
+    # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
+    # APW: determine number of chains used to calculate each jump
+    # APW: why choose 1 value w replacement? Maybe this should be outside of the chain loop? Given it's inside the loop it will be with replacement
+    D <- sample(1:.$wpars$mcmc$chain_delta, 1, replace=T )
+
+    # extract vectors a and b not equal to ii
+    # - select sample chain vectors a and b used to calculate the jump
+    # APW: relies on R and draw, not sure exactly yet what these are but I think they are matricies of chain subscripts 
+    # APW: can be simplified substantially I think using similar sampling to outlier replacement
+    # APW: I think these are D-length vectors of chain pairs where each pair cannot be equal or equal to ii  
+    #a <- .$mcmc$R[ii, .$mcmc$draw[1:D, ii]]
+    #b <- .$mcmc$R[ii, .$mcmc$draw[(D+1):(2*D),ii] ]
+    chain_pairs_ss <- t(sapply(1:D, function(v) sample((1:.$dataf$lp)[-ii],2,F) ))
+
+
+    ##################################
+    ### UNIFIED CODE
+
+    # select crossover value
+    # - weighted sample from multinomial distributionr
+    # - replacement relevant if this gets moved outside of chain loop 
+    .$mcmc$CR[] <- sample(1:.$wpars$mcmc$n_CR, 1, T, .$mcmc$p_CR )
+
+    # count selected crosover values, record crossover number for each chain 
+    if(.$wpars$mcmc$adapt_pCR) {
+      .$mcmc$L[.$mcmc$CR] <- .$mcmc$L[.$mcmc$CR] + 1
+      .$mcmc$m[ii]        <- .$mcmc$CR
+    }  
+
+    # determine how many parameters will "crossover" (i.e. how many dimensions are sampled/updated jointly)
+    zz                 <- runif(.$mcmc$d)
+    A                  <- which(zz < (.$mcmc$CR/.$wpars$mcmc$n_CR) )
+    if(length(A)==0) A <- which.min(zz)
+    .$mcmc$d_star[]    <- length(A)
+
+    # jump rate / scaling factor
+    gamma_d            <- 2.38 / sqrt(2*D*.$mcmc$d_star)
+    gamma              <- sample(c(gamma_d,1), 1, T, c(1-.$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma ))
+
+    # compute 'jump' for params to be updated/crossover (differential evolution)
+    #.$mcmc$jump[A,ii]  <- .$wpars$mcmc$c_ergod*rnorm(.$mcmc$d_star) +
+    #  (1 + .$mcmc$lambda[ii])*gamma*apply(.$mcmc$current_state[A,a,drop=F] - .$mcmc$current_state[A,b,drop=F], 1, sum )
+    #.$mcmc$jump[A,ii]  <- .$wpars$mcmc$c_ergod*rnorm(.$mcmc$d_star) +
+    #  (1 + .$mcmc$lambda[ii])*gamma * apply(.$mcmc$current_state[A,a,drop=F], 1, sum ) - apply(.$mcmc$current_state[A,b,drop=F], 1, sum )
+    chain_diff         <- apply(.$mcmc$current_state[A,chain_pairs_ss[,1],drop=F], 1, sum ) - 
+                          apply(.$mcmc$current_state[A,chain_pairs_ss[,2],drop=F], 1, sum )
+    .$mcmc$jump[A,ii]  <- .$wpars$mcmc$c_ergod*rnorm(.$mcmc$d_star) + (1+.$mcmc$lambda[ii])*gamma*chain_diff 
+    .$dataf$pars[,ii]  <- .$mcmc$current_state[,ii] + .$mcmc$jump[,ii]
+
+    # boundary handling 
+    for(jj in 1:.$mcmc$d) .$mcmc_bdry_handling(j=j, ii=ii, jj=jj )
+
+  # chain loop
+  }
+}
+
+
+#    # modify each dimension with probability CR each time a proposal vector is generated
+#    # APW: this seems like it's more than just adapting pCR, the else statement randomly selects a subset of pars
+#    # APW: seems like there's duplication of code here, can be simplified
+#    # APW: possibly bugs too
+#    if(.$wpars$mcmc$adapt_pCR) {
+#
+#      ## generate crossover probability
+#      # generate crossover
+#      # APW: crossover probability is now .$mcmc$CR/.$wpars$mcmc$n_CR
+#      # APW: m records the crossover number for chain ii
+#      .$mcmc$m[ii] <- .$generate_CR()
+#
+#      # APW: A is a subscript vector for params that take the 'jump'
+#      # APW change: move and edit CR to make more consistent with else
+#      #A  <- which(runif(.$mcmc$d) < .$mcmc$CR )
+#      zz <- runif(.$mcmc$d)
+#      A  <- which(zz < (.$mcmc$CR/.$wpars$mcmc$n_CR) )
+#
+#      # numerical check: make sure that A contains at least one value
+#      if(length(A)==0) A <- which.min(zz)
+#
+#      # number of dimensions being updated
+#      # - minimum of 1, but this does not update A so no pars will be updated but dstar will be 1 
+#      # APW: maybe no parameters updating is fine, that woudl only be one chain - check algorithm
+#      #.$mcmc$d_star <- length(crossover)
+#      #.$mcmc$d_star <- max(length(A),1) 
+#      .$mcmc$d_star <- length(A) 
+#
+#      # calculate jump rate (scaling factor)
+#      gamma_d       <- 2.38 / sqrt(2*D*.$mcmc$d_star)
+#
+#      # when gamma = 1, jump between different modes of the posterior (approx. every 5 iterations with default p_gamma = 0.2)
+#      gamma         <- sample(c(gamma_d,1), 1, T, c(1-.$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma ))
+#
+#      # compute jump differential evolution of ii-th chain
+#      # APW: I don't get this function, d_star can be anything between 1:d, the sum() term will return a single value
+#      # APW: this means that as it stands, all parameters will have equal jump distance  
+#      #.$mcmc$jump[1:.$mcmc$d,ii]  <- .$wpars$mcmc$c_ergod*rnorm(.$mcmc$d_star) +
+#      #  (1 + .$mcmc$lambda[ii])*gamma*sum((.$mcmc$current_state[1:.$mcmc$d,a] - .$mcmc$current_state[1:.$mcmc$d,b]), dim=1 )
+#      # APW: edited to be more consistent with else, but above comments still stand
+#      #.$mcmc$jump[A,ii]  <- .$wpars$mcmc$c_ergod*rnorm(.$mcmc$d_star) +
+#      #  (1 + .$mcmc$lambda[ii])*gamma*sum((.$mcmc$current_state[A,a] - .$mcmc$current_state[A,b]), dim=1 )
+#      # APW: edited to be more consistent with else, further edits to address above 
+#      # APW: takes the sum of the differences between chains a and b, could often be close to zero, shoudl it be absolute differences?
+#      .$mcmc$jump[A,ii]  <- .$wpars$mcmc$c_ergod*rnorm(.$mcmc$d_star) +
+#        (1 + .$mcmc$lambda[ii])*gamma*apply(.$mcmc$current_state[A,a,drop=F] - .$mcmc$current_state[A,b,drop=F], 1, sum )
+#
+#      # proposal of ii-th chain
+#      .$dataf$pars[,ii] <- .$mcmc$current_state[,ii] + .$mcmc$jump[,ii]
+#
+#      # replace each element (jj = 1,...,d) of the proposal with the corresponding current_state element
+#      #         using a binomial scheme with probability 1 - CR (CR = crossover probability)
+#      #         when CR = 1, all dimensions are updated jointly and d_star = d
+#      #print('')
+##      crossover <- logical(.$mcmc$d)
+##      #print(crossover)
+##      # APW change: starts to make consistent with else
+##      for(jj in 1:.$mcmc$d) {
+##        #if(runif(1, min=0, max=1 ) <= (1-.$mcmc$CR) ) {
+##        if(runif(1, min=0, max=1 ) <= .$mcmc$CR ) {
+##          #.$dataf$pars[jj,ii] <- .$mcmc$current_state[jj,ii]
+##          crossover <- T
+##          #crossover[jj] <- T
+##        } else {
+##          .$dataf$pars[jj,ii] <- .$mcmc$current_state[jj,ii]
+##          #crossover <- T
+##        }
+##      }
+##      #print(crossover)
+##      #print(length(crossover))
+##      #print(sum(crossover))
+##
+##      # number of dimensions being updated
+##      .$mcmc$d_star <- length(crossover)
+##      #.$mcmc$d_star <- sum(crossover)
+##
+##      # numerical check (in case no dimensions are updated)
+##      if(.$mcmc$d_star==0) .$mcmc$d_star <- 1
+#
+#    } else {
+#
+#      # APW: the following three lines are equivalent (but don't seem correct) to the code in generate_CR and on ln. 129 above
+#      # select index of crossover value (weighted sample with replacement drawn from multinomial distribution)
+#      #id <- sample(1:.$wpars$mcmc$n_CR, 1, replace=T, prob=.$mcmc$p_CR )
+#      .$mcmc$CR <- sample(1:.$wpars$mcmc$n_CR, 1, replace=T, prob=.$mcmc$p_CR )
+#
+#      # draw d values from uniform distribution between 0 and 1
+#      #zz <- runif(.$mcmc$d)
+#
+#      # derive subset A of selected dimensions
+#      # APW: original code had CR as a vector 1:n_CR, where n_CR is a user defined max number of crossovers
+#      # APW: but generate_CR sets a scalar that is one of 1:n_CR divided by n_CR 
+#      # APW: given that 0 <= zz <= 1, but CR[id] is one of 1:n_CR this will always update every parameter
+#      #A  <- which(zz<.$mcmc$CR[.$mcmc$id])
+#
+#      # APW change: makes consitent with approach used in generate_CR and above 
+#      zz <- runif(.$mcmc$d)
+#      #A  <- which(zz < (.$mcmc$CR[id]/.$wpars$mcmc$n_CR) )
+#      #A  <- which(runif(.$mcmc$d) < (.$mcmc$CR[id]/.$wpars$mcmc$n_CR) )
+#      A  <- which(zz < (.$mcmc$CR/.$wpars$mcmc$n_CR) )
+#
+#      # numerical check: make sure that A contains at least one value
+#      if(length(A)==0) A <- which.min(zz)
+#
+#      #  how many dimensions are sampled (i.e., how many parameters will be updated jointly)
+#      .$mcmc$d_star <- length(A)
+#
+#      ## numerical check: make sure that A contains at least one value
+#      #if(.$mcmc$d_star==0) {
+#      #  A <- which.min(zz)
+#      #  .$mcmc$d_star <- 1
+#      #}
+#
+#      # calculate jump rate (scaling factor)
+#      gamma_d <- 2.38 / sqrt(2*D*.$mcmc$d_star)
+#
+#      # when gamma==1, jump between different modes of the posterior
+#      # approx every 5 iterations with default p_gamma = 0.2
+#      gamma <- sample(c(gamma_d,1), size=1, replace=T, prob=c(1-.$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma ))
+#
+#      # compute jump differential evolution of ii-th chain
+#      #.$mcmc$jump[A,ii] <- .$wpars$mcmc$c_ergod*rnorm(.$mcmc$d_star) +
+#      #  (1 + .$mcmc$lambda[ii])*gamma*sum((.$mcmc$current_state[A,a]-.$mcmc$current_state[A,b]), dim=1 )
+#      .$mcmc$jump[A,ii]  <- .$wpars$mcmc$c_ergod*rnorm(.$mcmc$d_star) +
+#        (1 + .$mcmc$lambda[ii])*gamma*apply(.$mcmc$current_state[A,a,drop=F] - .$mcmc$current_state[A,b,drop=F], 1, sum )
+#
+#      # compute proposal of ii-th chain
+#      #.$dataf$pars[1:.$mcmc$d,ii] <- .$mcmc$current_state[1:.$mcmc$d,ii] + .$mcmc$jump[1:.$mcmc$d,ii]
+#      .$dataf$pars[,ii] <- .$mcmc$current_state[,ii] + .$mcmc$jump[,ii]
+#    }
+#
+#    # call boundary handling function
+#    for(jj in 1:.$mcmc$d) .$mcmc_bdry_handling(j=j, ii=ii, jj=jj )
+#  }
+#}
 
 
 # proposal acceptance function for the DREAM algorithm
@@ -278,6 +510,7 @@ proposal_accept_mcmc_dream <- function(.,j) {
       .$dataf$pars_lklihood[ii,j] <- curr_lklihood[ii]
     }
 
+  # APW: not directly related to acceptance, could move to DREAM run function, fix
     # compute squared normalized jumping distance
     # APW: potetially inefficient, does this need calculating for each chain or can it be simultaneous?, fix
     # APW: poss redundant CR_burnin if adapt_pCR depends on burnin, see below too, fix
@@ -333,12 +566,15 @@ generate_CR <- function(.) {
   print('.$mcmc$p_CR:'); print(.$mcmc$p_CR)
 
   # sample m from numbers 1,...,n_CR using multinomial distribution (with probabilities p_CR)
-  m <- sample(1:.$wpars$mcmc$n_CR, size=1, replace=T, prob=.$mcmc$p_CR )
+  #m <- sample(1:.$wpars$mcmc$n_CR, size=1, replace=T, prob=.$mcmc$p_CR )
+  # set crossover probability/value
+  .$mcmc$CR <- m <- sample(1:.$wpars$mcmc$n_CR, size=1, replace=T, prob=.$mcmc$p_CR )
 
   # set crossover probability/value
-  .$mcmc$CR <- m / .$wpars$mcmc$n_CR
+  #.$mcmc$CR <- m / .$wpars$mcmc$n_CR
 
   # index of which crosover probabilities/values are selected
+  # counter of selected crosover values
   .$mcmc$L[m] <- .$mcmc$L[m] + 1
 
   return(m)
@@ -349,12 +585,14 @@ generate_CR <- function(.) {
 calc_del <- function(., j, ii ) {
 
   # compute standard deviation of each parameter
-  # APW: this is calculating the sd across parameters on a chain afaict  
+  # APW: this is calculating the sd of each parameter across chains and iterations 
   # APW: this takes the whole pars array, is that correct?
   # APW: duplicates calculation, also will be different for each chain as each chain is updated as the calling loop iterates
   .$mcmc$sd_state[] <- apply(.$dataf$pars_array, 1, sd )
   .$mcmc$sd_state[.$mcmc$sd_state==0] <- 1e-9
   
+  # sum of sd normalised jumps, calculated for each chain
+  # APW: should be zero if proposal not accepted?  
   summation                <- sum(((.$dataf$pars_array[,ii,j] - .$dataf$pars_array[,ii,j-1]) / .$mcmc$sd_state)^2 )
   .$mcmc$del[.$mcmc$m[ii]] <- .$mcmc$del[.$mcmc$m[ii]] + summation
 
@@ -696,7 +934,7 @@ mcmc_outlier_iqr <- function(.,j) {
 
     print(paste('Outlier chain(s) detected. Chain(s):', outliers, 'at iteration:', j ))
     print(.$wpars$mcmc$chains) 
-    print(1:.$wpars$mcmc$chains[-outliers]) 
+    print((1:.$wpars$mcmc$chains)[-outliers]) 
 
     # replace outlier chain(s) & likelihood history for next iqr calculation
     replace_ss <- sample((1:.$wpars$mcmc$chains)[-outliers], length(outliers) )

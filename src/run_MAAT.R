@@ -160,6 +160,7 @@ mcmc_thin_obs       <- 1
 # option to assume homoscedastic error in measured observations (else, heteroscedastic)
 mcmc_homosced       <- F
 # DREAM number chain pairs in proposal
+# - max number of chain pairs used to calculate the jump for each chain
 mcmc_chain_delta    <- 3
 # DREAM randomization (default value)
 mcmc_c_rand         <- 0.01
@@ -288,7 +289,7 @@ if(grepl('mcmc',runtype) & is.null(parsinit_mcmc)) {
   maat$wpars$mcmc$c_ergod       <- mcmc_c_ergod
   maat$wpars$mcmc$p_gamma       <- mcmc_p_gamma
   maat$wpars$mcmc$n_CR          <- mcmc_n_CR
-  maat$wpars$mcmc$adapt_CR      <- mcmc_adapt_pCR
+  maat$wpars$mcmc$adapt_pCR     <- mcmc_adapt_pCR
   maat$wpars$mcmc$CR_burnin     <- mcmc_CR_burnin
   # APW: unnecessary, fix 
   if((mcmc_maxiter/mcmc_check_iter)<3) mcmc_check_iter <- mcmc_check_iter / 2
