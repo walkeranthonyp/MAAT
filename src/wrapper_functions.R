@@ -206,10 +206,9 @@ init_output_matrix_mcmc_dream <- function(.) {
     .$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
     .$dataf$pars_array[,,1:.$wpars$mcmc$start_iter-1]   <- .$dataf$mcmc_input$pars_array
     .$dataf$pars_lklihood[,1:.$wpars$mcmc$start_iter-1] <- .$dataf$mcmc_input$pars_lklihood
-    .$wpars$mcmc$check_ss <- dim(.$dataf$mcmc_input$conv_check)[2]
-    #.$wpars$mcmc$j_true   <- .$dataf$mcmc_input$conv_check[1,.$wpars$mcmc$check_ss] 
-    .$dataf$conv_check[,1:.$wpars$mcmc$check_ss]        <- .$dataf$mcmc_input$conv_check
-    .$dataf$omega[,1:.$wpars$mcmc$check_ss]             <- .$dataf$mcmc_input$omega
+    .$mcmc$check_ss                        <- dim(.$dataf$mcmc_input$conv_check)[2]
+    .$dataf$conv_check[,1:.$mcmc$check_ss] <- .$dataf$mcmc_input$conv_check
+    .$dataf$omega[,1:.$mcmc$check_ss]      <- .$dataf$mcmc_input$omega
     .$dataf$mcmc_input <- NULL
   }
 }
@@ -223,7 +222,6 @@ init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream
 
 ################################
 # for factorial runs or matrix A and B of Saltelli method for parametric sensitivity analysis (SA)
-
 # run0
 run0_factorial <- function(.) {
 
@@ -698,7 +696,7 @@ run2_mcmc_dream <- function(.,j) {
   if( mcmc_check | (j==.$wpars$mcmc$maxiter) ) {
 
     # subscript for convergence etc arrays, and 50 % of current post-outlier samples in pars etc arrays
-    .$wpars$mcmc$check_ss <- .$wpars$mcmc$check_ss + 1 
+    .$mcmc$check_ss <- .$mcmc$check_ss + 1 
     .$mcmc$j_burnin50     <-
       if(.$mcmc$outlier_detected | !.$wpars$parsinit_read) .$mcmc$j_start_burnin + ceiling((j-.$mcmc$j_start_burnin)/2)
       else                                                 j - ceiling((j+.$wpars$mcmc$start_iter-1)/2) + 1
@@ -910,8 +908,8 @@ output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50,
   #  print('')
 
   list(
-    pars_array     = .$dataf$pars_array[,,iter_out_start:iter_out_end],
-    pars_lklihood  = .$dataf$pars_lklihood[,iter_out_start:iter_out_end],
+    pars_array     = .$dataf$pars_array[,,iter_out_start:iter_out_end,drop=F],
+    pars_lklihood  = .$dataf$pars_lklihood[,iter_out_start:iter_out_end,drop=F],
     out_mcmc       = .$dataf$out_mcmc[,,iter_out_start:iter_out_end,drop=F],
     mod_out_final  = .$dataf$out,
     obs            = .$dataf$obs,
@@ -925,14 +923,11 @@ output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50,
 
     # dynamic MCMC variables that need preserving
     mcmc = list(
-      CR        = .$mcmc$CR,
-      p_CR      = .$mcmc$p_CR,
-      del       = .$mcmc$del,
-      L         = .$mcmc$L,
-      #t       = .$mcmc$t,
-      j_true    = .$mcmc$j_true,
-      #m         = .$mcmc$m, 
-      adapt_pCR = .$mcmc$adapt_pCR
+      p_CR            = .$mcmc$p_CR,
+      jump_delta_norm = .$mcmc$jump_delta_norm,
+      CR_counter      = .$mcmc$CR_counter,
+      j_true          = .$mcmc$j_true,
+      adapt_pCR       = .$mcmc$adapt_pCR
     )
   )
 }
