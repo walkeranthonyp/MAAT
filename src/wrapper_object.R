@@ -312,10 +312,10 @@ wrapper_object$wpars <- list(
     c_ergod         = 1e-12,
     p_gamma         = 0.2,
     n_CR            = 3,           # max number of chain pairs used to calculate the jump for each chain
-    adapt_pCR       = T,
+    adapt_pCR       = T,           # adapt probability of CR, switched off when CR_burnin iterations reached
     CR_burnin       = 1e4,         # if adapt_pCR & j_true<CR_burnin adapt cross-over probabilities 
-    check_ss        = numeric(1),
-    check_iter      = 10
+    check_ss        = numeric(1),  # column subscript for convergence output array, shoudl be in mcmc, not wpars$mcmc
+    check_iter      = 10           # check convergence for iterations 
   )
 )
 
@@ -324,26 +324,21 @@ wrapper_object$wpars <- list(
 wrapper_object$mcmc <- list(
   outlier_detected = F,
   j_true           = 2,           # true number of iterations, 2 assumes model eval on the prior is the first iteration
-  j_start_burnin   = 1,
-  j_burnin50       = numeric(1),
+  j_start_burnin   = 1,           # iteration counter at which burnin began, reset when outlier detected
+  j_burnin50       = numeric(1),  # iteration counter at 50 % of burnin
+  #check_ss         = numeric(1),  # column subscript for convergence output array, shoudl be in mcmc, not wpars$mcmc
   d                = numeric(1),  # number of parameters (dimensions of the posterior) being estimated
-  CR               = numeric(1),  # Crossover number, probability of parameters on a given chain and iteration making the 'jump' is CR/n_CR
-  p_CR             = numeric(1),  # Crossover probability vector, probability that a given CR (of 1:n_CR) will be selected
-#  R                = matrix(),
   current_state    = matrix(),    # matrix of current pars x chains
-#  p_state          = numeric(1),
-  sd_state         = numeric(1),  
+  sd_state         = numeric(1),  # sd of current state 
   jump             = matrix(),    # matrix of change in pars for proposal, pars x chains
-#  draw             = matrix(),
   lambda           = matrix(),    # jump scaling
-  boundary_min     = numeric(1),
-  boundary_max     = numeric(1),
-  del              = numeric(1),
-  L                = numeric(1),
-#  t                = numeric(1),
-  m                = numeric(1),  # Vector that ecords last CR used  for each chain
-#  CR_burnin        = T,
-  adapt_pCR        = F,
+  boundary_min     = numeric(1),  # vector of parameter minima
+  boundary_max     = numeric(1),  # vector of parameter maxima
+  CR               = numeric(1),  # Crossover number, probability of parameters on a given chain and iteration making the 'jump' is CR/n_CR
+  adapt_pCR        = F,           # pCR adaptation active
+  p_CR             = numeric(1),  # Crossover probability vector, probability that a given CR (of 1:n_CR) will be selected
+  del              = numeric(1),  # sd normalised jump for each CR, used in adapting pCR
+  L                = numeric(1),  # CR counter, used in adapting pCR
   d_star           = numeric(1)   # number of parameters being updated in any given chain at any given iteration
 )
 

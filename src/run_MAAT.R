@@ -151,7 +151,7 @@ mcmc_prior          <- 'uniform'
 mcmc_chains         <- 7
 # number of iterations / steps in chain
 mcmc_maxiter        <- 1000
-# fraction of maxiter before convergence checking starts, not used when a restart 
+# fraction of maxiter before convergence checking & adapt pCR  starts, not used when a restart 
 mcmc_preburnin_frac <- 0.1 
 # thinning for posterior, as a proportion
 mcmc_thin           <- 0.1
@@ -168,11 +168,11 @@ mcmc_c_rand         <- 0.01
 mcmc_c_ergod        <- 1e-12
 # DREAM probability of unit jump rate (probability gamma = 1) (default value)
 mcmc_p_gamma        <- 0.2
-# DREAM number of crossover values (default value)
+# DREAM number of crossover values 
 mcmc_n_CR           <- 3
 # adapt probability of selecting crossover values
 mcmc_adapt_pCR      <- T
-# if true, numberof iteration to adapt crossover selection probabilities
+# if true, number of iteration to adapt crossover selection probabilities, "burnin" for crossover prob adjustement
 mcmc_CR_burnin      <- 1e4
 # checking for convergence and outlier chains every N iterations
 mcmc_check_iter     <- 10

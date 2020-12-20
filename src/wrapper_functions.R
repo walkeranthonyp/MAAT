@@ -708,6 +708,9 @@ run2_mcmc_dream <- function(.,j) {
     .$mcmc_converge(j=j)
   }
 
+  # update MCMC iteration counter
+  .$mcmc$j_true <- .$mcmc$j_true + 1
+
   # return nothing - allows use of the stable vapply to call this function
   numeric(0)
 }
@@ -904,10 +907,7 @@ output_SAprocess_ye <- function(.) {
 output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, 
                               iter_out_end=.$wpars$mcmc$maxiter ) {
 
-#  print('')
-#  print('MCMC output:') 
-#  print(.$dataf$conv_check[,,drop=F])
-#  print('')
+  #  print('')
 
   list(
     pars_array     = .$dataf$pars_array[,,iter_out_start:iter_out_end],
@@ -931,7 +931,7 @@ output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50,
       L         = .$mcmc$L,
       #t       = .$mcmc$t,
       j_true    = .$mcmc$j_true,
-      m         = .$mcmc$m, 
+      #m         = .$mcmc$m, 
       adapt_pCR = .$mcmc$adapt_pCR
     )
   )
