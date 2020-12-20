@@ -327,6 +327,7 @@ wrapper_object$mcmc <- list(
   j_burnin50       = numeric(1),  # iteration counter at 50 % of burnin
   check_ss         = numeric(1),  # column subscript for convergence output array
   pars_n           = numeric(1),  # number of parameters (dimensions of the posterior) being estimated
+  prior_sample     = matrix(),    # matrix of parameter values sampled from prior, pars x chains
   current_state    = matrix(),    # matrix of current pars x chains
   sd_state         = numeric(1),  # sd of current state 
   jump             = matrix(),    # matrix of change in pars for proposal, pars x chains

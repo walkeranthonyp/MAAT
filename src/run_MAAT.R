@@ -407,7 +407,6 @@ if(!is.null(parsinit_mcmc)) {
 
     # assign starting parameter values
     parsinit <- maat$dataf$mcmc_input$pars_array[,,mcmc_restart_pars_dim[3]]
-#    print(parsinit)
 
     # update user-defined MCMC parameters passed from restart
     maat$wpars$mcmc[names(maat$dataf$mcmc_input$wpars$mcmc)] <- maat$dataf$mcmc_input$wpars$mcmc[names(maat$dataf$mcmc_input$wpars$mcmc)]
@@ -429,14 +428,7 @@ if(!is.null(parsinit_mcmc)) {
     # set output to mcmc dir 
     maat$wpars$of_dir <- mcmcdir
    
-    ## check dimensions consistent
-    #if(mcmc_chains!=mcmc_restart_pars_dim[2]) {
-    #  print('mcmc_chains argument different from number of chains in MCMC restart,')
-    #  print(paste('overwriting mcmc_chains argument with:', mcmc_restart_pars_dim[2] ))
-    #  maat$mcmc_chains <- mcmc_restart_pars_dim[2]
-    #  # can do the same for number of parameters and other run variables
-    #}
-
+   
   } else if(parsinit_mcmc=='ensemble') {
     print('forward run from MCMC calibrated parameters',quote=F)
     if(runtype!='factorial') {

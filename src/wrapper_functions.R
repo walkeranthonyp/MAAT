@@ -649,7 +649,7 @@ run1_mcmc_dream <- function(.,i) {
       })
 
     # add to pars array and calculate likelihood of initial proposal
-    .$dataf$pars_array[,,1]   <- .$dataf$pars
+    .$dataf$pars_array[,,1]   <- .$mcmc$prior_sample <- .$dataf$pars
     .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
     .$dataf$out_mcmc[,,1]     <- t(.$dataf$out[,]) 
   }
@@ -905,8 +905,6 @@ output_SAprocess_ye <- function(.) {
 output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50, 
                               iter_out_end=.$wpars$mcmc$maxiter ) {
 
-  #  print('')
-
   list(
     pars_array     = .$dataf$pars_array[,,iter_out_start:iter_out_end,drop=F],
     pars_lklihood  = .$dataf$pars_lklihood[,iter_out_start:iter_out_end,drop=F],
@@ -923,6 +921,7 @@ output_mcmc_dream <- function(., iter_out_start=.$mcmc$j_burnin50,
 
     # dynamic MCMC variables that need preserving
     mcmc = list(
+      prior_sample    = .$mcmc$prior_sample,
       p_CR            = .$mcmc$p_CR,
       jump_delta_norm = .$mcmc$jump_delta_norm,
       CR_counter      = .$mcmc$CR_counter,
