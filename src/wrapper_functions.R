@@ -682,32 +682,106 @@ run2_mcmc_dream <- function(.,j) {
         else                 lapply(1:.$dataf$lp, .$run3 )
     })
 
-  # calculate likelihood of proposals on each chain, accept/reject proposals
-  #lklihood <- .$proposal_lklihood()
-  #.$proposal_accept(j=j, lklihood )
-  .$proposal_accept(j=j)
 
-  # allow pre-burnin prior to adapting pCR
+  # calculate likelihood of proposals on each chain, accept/reject proposals
+  prop_lklihood <- .$proposal_lklihood()
+  curr_lklihood <- .$dataf$pars_lklihood[,j-1]
+  accept        <- .$proposal_accept(prop_lklihood, curr_lklihood )
+
+  # update chains
+  for(ii in 1:.$dataf$lp) {
+    if(accept[ii]) {
+      .$dataf$pars_array[,ii,j]   <- .$dataf$pars[,ii]
+      .$dataf$pars_lklihood[ii,j] <-  prop_lklihood[ii]
+      .$dataf$out_mcmc[,ii,j]     <- .$dataf$out[ii,] 
+    } else {
+      .$dataf$pars_array[,ii,j]   <- .$dataf$pars_array[,ii,j-1]
+      .$dataf$pars_lklihood[ii,j] <- curr_lklihood[ii]
+      .$dataf$out_mcmc[,ii,j]     <- .$dataf$out_mcmc[,ii,j-1]
+    }
+
+    # compute squared normalized jumping distance
+    # - count selected crosover values
+    # - jump_delta_norm = Delta_m V2011
+    # - CR_counter = L_m V2011
+    # APW: potentially inefficient, does this need calculating for each chain or can it be simultaneous?, fix
+    if(.$wpars$mcmc$adapt_pCR) {
+      summation <- sum(((.$dataf$pars_array[,ii,j] - .$mcmc$current_state[,ii]) / .$mcmc$sd_state)^2 )
+      .$mcmc$jump_delta_norm[.$mcmc$CR[ii]] <- .$mcmc$jump_delta_norm[.$mcmc$CR[ii]] + summation
+      .$mcmc$CR_counter[.$mcmc$CR[ii]]      <- .$mcmc$CR_counter[.$mcmc$CR[ii]] + 1
+    } 
+  }
+
+  # update the selection probability of crossover probabilities/values
   if(!.$wpars$parsinit_read)
     if(j==ceiling(.$wpars$mcmc$maxiter*.$wpars$mcmc$preburnin_frac) & .$wpars$mcmc$adapt_pCR ) .$mcmc$adapt_pCR <- T
+  # debugging
+#  if(.$wpars$mcmc$adapt_pCR) {
+#    print('')
+#    print('.$mcmc$CR'); print(.$mcmc$CR)
+#    print('.$mcmc$CR_counter'); print(.$mcmc$CR_counter)
+#    print('.$mcmc$sd_state'); print(.$mcmc$sd_state)
+#    print('.$mcmc$jump_delta_norm'); print(.$mcmc$jump_delta_norm)
+#  }
+  if(.$mcmc$adapt_pCR) {
+    .$mcmc$p_CR[] <- .$mcmc$j_true*.$wpars$mcmc$chains * (.$mcmc$jump_delta_norm/.$mcmc$CR_counter) / sum(.$mcmc$jump_delta_norm)
+    .$mcmc$p_CR[] <- .$mcmc$p_CR/sum(.$mcmc$p_CR)
+#    # debugging
+#    print('');  print('adapt_pCR calculation')
+#    print('.$mcmc$j_true'); print(.$mcmc$j_true)
+#    print('.$mcmc$CR_counter'); print(.$mcmc$CR_counter)
+#    print('.$mcmc$jump_delta_norm'); print(.$mcmc$jump_delta_norm)
+#    print('.$mcmc$p_CR'); print(.$mcmc$p_CR)
+
+    if(.$mcmc$j_true==.$wpars$mcmc$CR_burnin) {
+      print('',quote=F); print('',quote=F)
+      print('Adapted selection probabilities of crossover values:',quote=F); print(.$mcmc$p_CR,quote=F)
+      .$wpars$mcmc$adapt_pCR[] <- .$mcmc$adapt_pCR[] <- F
+    }
+  }
+
 
   # MCMC checks
   mcmc_check <- ((j>(.$wpars$mcmc$maxiter*.$wpars$mcmc$preburnin_frac))|.$wpars$parsinit_read) & (j%%.$wpars$mcmc$check_iter==0)
-  if( mcmc_check | (j==.$wpars$mcmc$maxiter) ) {
+  if(mcmc_check | (j==.$wpars$mcmc$maxiter)) {
 
     # subscript for convergence etc arrays, and 50 % of current post-outlier samples in pars etc arrays
-    .$mcmc$check_ss <- .$mcmc$check_ss + 1 
-    .$mcmc$j_burnin50     <-
+    .$mcmc$check_ss   <- .$mcmc$check_ss + 1 
+    .$mcmc$j_burnin50 <-
       if(.$mcmc$outlier_detected | !.$wpars$parsinit_read) .$mcmc$j_start_burnin + ceiling((j-.$mcmc$j_start_burnin)/2)
       else                                                 j - ceiling((j+.$wpars$mcmc$start_iter-1)/2) + 1
 
-    # test for and handle outlier chains / convergence
-    .$mcmc_outlier(j=j)
-    .$mcmc_converge(j=j)
+    # test for and handle outlier chains 
+    outliers <- .$mcmc_outlier(j=j)
+    if(length(outliers)>0) {
+      print('',quote=F)
+      print(paste('Outlier chain(s) detected. Chain(s):', outliers, 'at iteration:', .$mcmc$j_true ), quote=F )
+  
+      # replace outlier chain(s) & likelihood history for next iqr calculation
+      replace_ss <- sample((1:.$wpars$mcmc$chains)[-outliers], length(outliers) )
+      .$dataf$pars_array[1:.$mcmc$pars_n,outliers,j] <- .$dataf$pars_array[1:.$mcmc$pars_n,replace_ss,j]
+      .$dataf$pars_lklihood[outliers,j]              <- .$dataf$pars_lklihood[replace_ss,j]
+  
+      # restart burn-in
+      .$mcmc$outlier_detected <- T
+      .$mcmc$j_start_burnin   <- j + 1
+      .$mcmc$j_burnin50       <- j
+    }
+
+    # test for convergence
+    R_hat <- .$mcmc_converge(j=j)
+    .$dataf$conv_check[,.$mcmc$check_ss] <- c(.$mcmc$j_true, j, R_hat )
+    if(j==.$wpars$mcmc$maxiter) {
+      names(R_hat)[1] <- 'iterations since outlier detection'
+      print('',quote=F); print('',quote=F)
+      print(paste("At (final) iteration:", .$mcmc$j_true, ", R-statistic of Gelman and Rubin:"), quote=F )
+      print(R_hat,quote=F); print('',quote=F)
+    }
   }
 
+
   # update MCMC iteration counter
-  .$mcmc$j_true <- .$mcmc$j_true + 1
+  .$mcmc$j_true[] <- .$mcmc$j_true + 1
 
   # return nothing - allows use of the stable vapply to call this function
   numeric(0)

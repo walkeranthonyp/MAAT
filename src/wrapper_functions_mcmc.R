@@ -302,14 +302,14 @@ init_mcmc_dream <- function(.) {
 
 
 # generate proposal using DREAM algorithm (Vrugt et al. 2011)
-# - gamma = gamma in V2011
-# - lambda = e in V2011
-# - chain_pairs_n = delta in V2011
-# - length(jump_pars_ss) = dprime in V2011
-# - CR = m in V2011
-# - CR/nCR = CR in V2011
-# - p_CR = p_m in V2011
 proposal_generate_mcmc_dream <- function(.,j) {
+  # - gamma = gamma in V2011
+  # - lambda = e in V2011
+  # - chain_pairs_n = delta in V2011
+  # - length(jump_pars_ss) = dprime in V2011
+  # - CR = m in V2011
+  # - CR/nCR = CR in V2011
+  # - p_CR = p_m in V2011
 
   # debugging
   #print(paste0('j = ',j))
@@ -327,7 +327,7 @@ proposal_generate_mcmc_dream <- function(.,j) {
   }
 
   # create proposals for each chain
-  for (ii in 1:.$dataf$lp) {
+  for(ii in 1:.$dataf$lp) {
 
     # determine chain pairs used to calculate each jump
     # APW: why choose 1 value w replacement? Maybe this should be outside of the chain loop? Given it's inside the loop it will be with replacement
@@ -355,7 +355,7 @@ proposal_generate_mcmc_dream <- function(.,j) {
     .$dataf$pars[,ii]            <- .$mcmc$current_state[,ii] + .$mcmc$jump[,ii]
 
     # boundary handling
-    # APW: prob can happen outside of chain loop 
+    # APW: prob can happen outside of chain loop, if so can happen i main run function 
     for(jj in 1:.$mcmc$pars_n) .$mcmc_bdry_handling(j=j, ii=ii, jj=jj )
 
   # chain loop
@@ -364,73 +364,10 @@ proposal_generate_mcmc_dream <- function(.,j) {
 
 
 # proposal acceptance function for the DREAM algorithm
-proposal_accept_mcmc_dream <- function(.,j) {
-
-  # likelihoods of proposed and current states
-  prop_lklihood <- .$proposal_lklihood()
-  curr_lklihood <- .$dataf$pars_lklihood[,j-1]
-
-  # iterate through chains
-  for(ii in 1:.$dataf$lp) {
-
-    # Metropolis acceptance probability
-    alpha  <- min(1, exp(prop_lklihood[ii]-curr_lklihood[ii]) )
-    accept <- alpha>runif(1)
-
-    # APW: also not strictly related to specific acceptance function
-    if(accept) {
-      .$dataf$pars_array[,ii,j]   <- .$dataf$pars[,ii]
-      .$dataf$pars_lklihood[ii,j] <-  prop_lklihood[ii]
-      .$dataf$out_mcmc[,ii,j]     <- .$dataf$out[ii,] 
-    } else {
-      .$dataf$pars_array[,ii,j]   <- .$dataf$pars_array[,ii,j-1]
-      .$dataf$pars_lklihood[ii,j] <- curr_lklihood[ii]
-      .$dataf$out_mcmc[,ii,j]     <- .$dataf$out_mcmc[,ii,j-1]
-    }
-
-    # APW: not directly related to acceptance, could move to DREAM run function, fix
-    # compute squared normalized jumping distance
-    # - count selected crosover values
-    # APW: potentially inefficient, does this need calculating for each chain or can it be simultaneous?, fix
-    # - jump_delta_norm = Delta_m V2011
-    # - CR_counter = L_m V2011
-    if(.$wpars$mcmc$adapt_pCR) {
-      summation <- sum(((.$dataf$pars_array[,ii,j] - .$mcmc$current_state[,ii]) / .$mcmc$sd_state)^2 )
-      .$mcmc$jump_delta_norm[.$mcmc$CR[ii]] <- .$mcmc$jump_delta_norm[.$mcmc$CR[ii]] + summation
-      .$mcmc$CR_counter[.$mcmc$CR[ii]]      <- .$mcmc$CR_counter[.$mcmc$CR[ii]] + 1
-    } 
-  }
-
-  # APW: not directly related to acceptance, could move to DREAM run function, fix
-  # update the selection probability of crossover probabilities/values
-  # debugging
-  if(.$wpars$mcmc$adapt_pCR) {
-    print('')
-    print('.$mcmc$CR'); print(.$mcmc$CR)
-    print('.$mcmc$CR_counter'); print(.$mcmc$CR_counter)
-    print('.$mcmc$sd_state'); print(.$mcmc$sd_state)
-    print('.$mcmc$jump_delta_norm'); print(.$mcmc$jump_delta_norm)
-  }
-  if(.$mcmc$adapt_pCR) {
-
-    .$mcmc$p_CR[] <- .$mcmc$j_true*.$wpars$mcmc$chains * (.$mcmc$jump_delta_norm/.$mcmc$CR_counter) / sum(.$mcmc$jump_delta_norm)
-    .$mcmc$p_CR[] <- .$mcmc$p_CR/sum(.$mcmc$p_CR)
-  
-    # debugging
-    print('')
-    print('adapt_pCR calculation')
-    print('.$mcmc$j_true'); print(.$mcmc$j_true)
-    print('.$mcmc$CR_counter'); print(.$mcmc$CR_counter)
-    print('.$mcmc$jump_delta_norm'); print(.$mcmc$jump_delta_norm)
-    print('.$mcmc$p_CR'); print(.$mcmc$p_CR)
-
-    if(.$mcmc$j_true==.$wpars$mcmc$CR_burnin) {
-      print('',quote=F)
-      print('',quote=F)
-      print('Adapted selection probabilities of crossover values:',quote=F); print(.$mcmc$p_CR,quote=F)
-      .$wpars$mcmc$adapt_pCR[] <- .$mcmc$adapt_pCR[] <- F
-    }
-  }
+# Metropolis acceptance probability
+proposal_accept_mcmc_dream <- function(., prop_lklihood, curr_lklihood ) {
+  alpha <- exp(prop_lklihood-curr_lklihood)
+  alpha > runif(.$dataf$lp)
 }
 
 
@@ -452,10 +389,6 @@ mcmc_outlier_none <- function(.,j) {
 # function that detects and corrects outlier Markov chains using the Inter Quartile-Range (IQR) statistic
 mcmc_outlier_iqr <- function(.,j) {
 
-#  print('')
-#  print('jstartburnin,jb50, j, check_ss:')
-#  print(c(.$mcmc$j_start_burnin,.$mcmc$j_burnin50,j,.$mcmc$check_ss))
-
   # identify outlier chains 
   # - based on IQR across chains mean log posterior densities of last 50 % of burnin
   # IMPORTANT: all current likelihood function options return log-likelihood
@@ -464,25 +397,7 @@ mcmc_outlier_iqr <- function(.,j) {
   .$dataf$omega[,.$mcmc$check_ss] <- apply(.$dataf$pars_lklihood[,.$mcmc$j_burnin50:j], 1, mean )
   q1q3     <- quantile(.$dataf$omega[1:.$wpars$mcmc$chains,.$mcmc$check_ss], prob=c(0.25,0.75), type=1 )
   iqr      <- q1q3[2]-q1q3[1]
-  outliers <- which(.$dataf$omega[,.$mcmc$check_ss] < (q1q3[1]-2*iqr))
-
-  # if outlier chains are detected
-  # APW: could move this to main DREAM run functon as it is generic
-  if (length(outliers)>0) {
-
-    print('',quote=F)
-    print(paste('Outlier chain(s) detected. Chain(s):', outliers, 'at iteration:', .$mcmc$j_true ), quote=F )
-
-    # replace outlier chain(s) & likelihood history for next iqr calculation
-    replace_ss <- sample((1:.$wpars$mcmc$chains)[-outliers], length(outliers) )
-    .$dataf$pars_array[1:.$mcmc$pars_n,outliers,j] <- .$dataf$pars_array[1:.$mcmc$pars_n,replace_ss,j]
-    .$dataf$pars_lklihood[outliers,j]         <- .$dataf$pars_lklihood[replace_ss,j]
-
-    # restart burn-in
-    .$mcmc$outlier_detected <- T
-    .$mcmc$j_start_burnin   <- j + 1
-    .$mcmc$j_burnin50       <- j
-  }
+  which(.$dataf$omega[,.$mcmc$check_ss] < (q1q3[1]-2*iqr))
 }
 
 
@@ -520,30 +435,13 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
   
     # R-statistic of Gelman and Rubin
     R_hat        <- sqrt(((.$wpars$mcmc$chains+1)/.$wpars$mcmc$chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc$chains*iter_effective)))
-    R_hat_new    <- c(.$mcmc$j_true, j, iter_effective, R_hat )
+    R_hat        <- c(iter_effective, R_hat )
 
   } else {
-    R_hat_new    <- c(.$mcmc$j_true, j, 0, rep(NA,.$mcmc$pars_n) )
-    R_hat        <- 'NA, outlier detected on final iteration'
+    R_hat        <- c(0, rep(NA,.$mcmc$pars_n) )
   }
 
-  # APW: could move this to main DREAM run functon as it is generic
-  .$dataf$conv_check[,.$mcmc$check_ss] <- R_hat_new
-
-  #print('',quote=F)
-  #print(.$mcmc$t,quote=F)
-  #print(.$mcmc$j_true,quote=F)
-
-  if (j==.$wpars$mcmc$maxiter) {
-    print('',quote=F)
-    print('',quote=F)
-    print(paste("At (final) iteration:", .$mcmc$j_true, ", R-statistic of Gelman and Rubin ="), quote=F )
-    print(R_hat,quote=F)
-    print('',quote=F)
-    #print('Convergence criterion:',quote=F)
-    #print(.$dataf$conv_check,quote=F)
-    #print('',quote=F)
-  }
+  R_hat
 }
 
 
@@ -586,6 +484,7 @@ proposal_generate_mcmc_demc <- function(., j ) {
 
 
 # calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
+# - this is the same as DREAM
 proposal_accept_mcmc_demc <- function(., j, lklihood ) {
 
   # Metropolis ratio
