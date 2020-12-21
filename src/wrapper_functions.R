@@ -102,10 +102,8 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   #      not sure if this will work with unit testing now?
   #      also, requires initializing variables differently in init file
 
-  # read values from character string code snippets
+  # read character string code snippets & sample initial proposal from prior
   .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-
-  # generate initial proposal from priors and create pars / proposal matrix
   if(!.$wpars$parsinit_read) .$mcmc_prior()
 
   # determine boundary handling limits for parameter space
@@ -115,7 +113,7 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
   # if observation subsampling specified - currently evenly spaced subsampling
-  if(.$wpars$mcmc$thin_obs < 1.0) {
+  if(!.$wpars$parsinit_read & .$wpars$mcmc$thin_obs<1.0) {
     if(.$wpars$mcmc$thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc$thin_obs )
     thin <- floor( 1 / .$wpars$mcmc$thin_obs )
     oss  <- seq(1, dim(.$dataf$metdata)[2], thin )
@@ -674,6 +672,7 @@ run2_mcmc_dream <- function(.,j) {
 
   # generate proposal matrix
   .$proposal_generate(j=j)
+  .$boundary_handling()
 
   # evaluate model for proposal on each chain
   .$dataf$out[]  <-
@@ -735,7 +734,7 @@ run2_mcmc_dream <- function(.,j) {
 
     if(.$mcmc$j_true==.$wpars$mcmc$CR_burnin) {
       print('',quote=F); print('',quote=F)
-      print('Adapted selection probabilities of crossover values:',quote=F); print(.$mcmc$p_CR,quote=F)
+      print(paste0('Adapted selection probabilities of crossover values, at iteration, ',.$mcmc$j_true,':'),quote=F); print(.$mcmc$p_CR,quote=F)
       .$wpars$mcmc$adapt_pCR[] <- .$mcmc$adapt_pCR[] <- F
     }
   }

@@ -144,7 +144,7 @@ mcmc_outlier        <- 'iqr'
 # MCMC convergence testing (options: none, Gelman_Rubin)
 mcmc_conv           <- 'Gelman_Rubin'
 # MCMC option for parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
-mcmc_bdry_handling  <- 'bound'
+boundary_handling  <- 'fold'
 # initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
 mcmc_prior          <- 'uniform'
 # number of chains to run (minumum = 2 * mcmc_chain_delta + 1)
@@ -276,7 +276,7 @@ maat$wpars$parsinit_read <- !is.null(parsinit_mcmc)
 maat$wpars$mcmc$mcmc_type     <- mcmc_type
 maat$wpars$mcmc$lklihood      <- mcmc_lklihood
 maat$wpars$mcmc$outlier       <- mcmc_outlier
-maat$wpars$mcmc$bdry_handling <- mcmc_bdry_handling
+maat$wpars$mcmc$boundary_handling <- boundary_handling
 maat$wpars$mcmc$prior         <- mcmc_prior
 maat$wpars$mcmc$converge      <- mcmc_converge
 if(grepl('mcmc',runtype) & is.null(parsinit_mcmc)) { 

@@ -83,7 +83,7 @@ mcmc_prior_normal <- function(.) {
   mean_vals <- vals[seq(3, length(vals), 4)]
   sd_vals   <- vals[seq(4, length(vals), 4)]
 
-  # draw priors from uniform distribution to create pars / proposal matrix
+  # draw priors from normal distribution to create pars / proposal matrix
   .$dataf$pars <- matrix(0, nrow = d, ncol = n)
   for (jj in 1:d) {
     .$dataf$pars[jj, 1:n] <- rnorm(n, mean = mean_vals[jj], sd = sd_vals[jj])
@@ -153,67 +153,121 @@ boundary_handling_set <- function(.) {
 
   # if prior initialized with normal distribution, do boundary check
   if(.$wpars$mcmc$prior=='normal') {
-    d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
-    for(ii in 1:.$wpars$mcmc$chains) {
-      for(jj in  1:d) {
-        .$mcmc_bdry_handling(j=1, ii=ii, jj=jj )
-      }
-    }
+    .$boundary_handling()
+#    d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
+#    for(ii in 1:.$wpars$mcmc$chains) {
+#      for(jj in  1:d) {
+#        .$boundary_handling(j=1, ii=ii, jj=jj )
+#      }
+#    }
   }
 }
 
 
 # no boundary handling: should be chosen when search space is not theoretically restricted
-mcmc_bdry_handling_none <- function(., j, ii, jj) {
-  if ((j == .$wpars$mcmc$maxiter) & (ii == .$wpars$mcmc$chains) & (jj == .$mcmc$pars_n)) {
+boundary_handling_none <- function(., j, ii, jj ) {
+  if((j==.$wpars$mcmc$maxiter) & (ii==.$wpars$mcmc$chains) & (jj==.$mcmc$pars_n)) {
     print('No option was chosen for MCMC boundary handling.')
   }
 }
 
 
-# restrict parameter proposals that are beyond the boundary (reset them back to the min/max bound)
-mcmc_bdry_handling_bound <- function(., j, ii, jj ) {
+# restrict parameter proposals that are beyond the boundary to the boundary 
+boundary_handling_bound <- function(., ii, jj ) {
 
-  # if outside bound of parameter space, restrict proposal value to corresponding dimension min
-  if (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj]) .$dataf$pars[jj, ii] <- .$mcmc$boundary_min[jj]
+#  if(.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj]) {
+#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_min[jj]
+#  } else if(.$dataf$pars[jj,ii]>.$mcmc$boundary_max[jj]) {
+#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_max[jj]
+#  }
+  pm   <- .$dataf$pars
+  bmax <- .$mcmc$boundary_max 
+  bmin <- .$mcmc$boundary_min
 
-  # if outside bound of parameter space, restrict proposal value to corresponding dimension max
-  else if (.$dataf$pars[jj, ii] > .$mcmc$boundary_max[jj]) .$dataf$pars[jj, ii] <- .$mcmc$boundary_max[jj]
+  t(sapply(1:dim(pm)[1], function(p, pm2=pm[p,], min2=bmin[p], max2=bmax[p])
+     ifelse(pm2<min2, min2, 
+     ifelse(pm2>max2, max2, 
+            pm2) 
+     )))
 }
 
+# reflect parameter proposals beyond the min/max values back across the boundary
+#boundary_handling_reflect_innerloop <- function(., ii, jj ) {
+#
+#  # if outside bound of parameter space, reflect proposal back across minimum boundary
+#  if(.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj]) {
+#    .$dataf$pars[jj,ii] <- 2*.$mcmc$boundary_min[jj] - .$dataf$pars[jj,ii]
+#
+#  # if outside bound of parameter space, reflect proposal back across maximum boundary
+#  } else if(.$dataf$pars[ii,jj]>.$mcmc$boundary_max[jj]) {
+#    .$dataf$pars[jj,ii] <- 2*.$mcmc$boundary_max[jj] - .$dataf$pars[jj,ii]
+#  }
+#
+#  # numerical check: see if new reflected proposal value is out of bounds
+#  if ((.$dataf$pars[jj,ii]>.$mcmc$boundary_max[jj]) | (.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj])) {
+#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_min[jj] + runif(1)*(.$mcmc$boundary_max[jj]-.$mcmc$boundary_min[jj])
+#  }
+#}
+boundary_handling_reflect <- function(.) {
 
-# reflect parameter proposals that are beyond the min/max values back accros the boundary
-mcmc_bdry_handling_reflect <- function(., j, ii, jj ) {
+  pm   <- .$dataf$pars
+  bmax <- .$mcmc$boundary_max 
+  bmin <- .$mcmc$boundary_min
 
-  if (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj]) {
-    # if outside bound of parameter space, reflect proposal back across minimum boundary
-    .$dataf$pars[jj, ii] <- 2 * .$mcmc$boundary_min[jj] - .$dataf$pars[jj, ii]
-  } else if (.$dataf$pars[ii, jj] > .$mcmc$boundary_max[jj]) {
-    # if outside bound of parameter space, reflect proposal back across maximum boundary
-    .$dataf$pars[jj, ii] <- 2 * .$mcmc$boundary_max[jj] - .$dataf$pars[jj, ii]
-  }
+  # vectorised ifelse
+  pm3 <- 
+    t(sapply(1:dim(pm)[1], function(p, pm2=pm[p,], min2=bmin[p], max2=bmax[p])
+       ifelse(pm2<min2, 2*min2 - pm2, 
+       ifelse(pm2>max2, 2*max2 - pm2, 
+              pm2) 
+       )))
 
-  # numerical check: see if new reflected proposal value is out of bounds
-  if ((.$dataf$pars[jj, ii] > .$mcmc$boundary_max[jj]) | (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj])) {
-    .$dataf$pars[jj, ii] <- .$mcmc$boundary_min[jj] + runif(1, min = 0, max = 1) * (.$mcmc$boundary_max[jj] - .$mcmc$boundary_min[jj])
-  }
+  # redo in case new "folded" proposal value is out of bounds 
+  .$dataf$pars[] <- 
+    t(sapply(1:dim(pm)[1], function(p, pm2=pm3[p,], min2=bmin[p], max2=bmax[p])
+       ifelse(pm2<min2, 2*min2 - pm2, 
+       ifelse(pm2>max2, 2*max2 - pm2, 
+              pm2) 
+       )))
 }
 
+# restrict parameter proposals beyond the boundary by "folding" them back across the opposite boundary
+# - maintains statistical balance
+#boundary_handling_fold_innerloop <- function(., ii, jj ) {
+#
+#  if(.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj]) {
+#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_max[jj] - (.$mcmc$boundary_min[jj]-.$dataf$pars[jj,ii])
+#
+#  } else if(.$dataf$pars[jj,ii]>.$mcmc$boundary_max[jj]) {
+#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_min[jj] + (.$dataf$pars[jj,ii]-.$mcmc$boundary_max[jj])
+#  }
+#
+#  # numerical check: see if new "folded" proposal value is out of bounds
+#  if((.$dataf$pars[jj,ii]>.$mcmc$boundary_max[jj]) |(.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj])) {
+#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_min[jj] + runif(1)*(.$mcmc$boundary_max[jj]-.$mcmc$boundary_min[jj])
+#  }
+#}
+boundary_handling_fold <- function(.) {
 
-# restrict parameter proposals that are beyond the boundary by "folding" them back across the boundary
-# this boundary handling approach maintains detailed statistical balance, which is healthy for the MCMC algorithm
-mcmc_bdry_handling_fold <- function(., j, ii, jj ) {
+  pm   <- .$dataf$pars
+  bmax <- .$mcmc$boundary_max 
+  bmin <- .$mcmc$boundary_min
 
-  if (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj]) {
-    .$dataf$pars[jj, ii] <- .$mcmc$boundary_max[jj] - (.$mcmc$boundary_min[jj] - .$dataf$pars[jj, ii])
-  } else if (.$dataf$pars[jj, ii] > .$mcmc$boundary_max[jj]) {
-    .$dataf$pars[jj, ii] <- .$mcmc$boundary_min[jj] + (.$dataf$pars[jj, ii] - .$mcmc$boundary_max[jj])
-  }
+  # vectorised ifelse
+  pm3 <- 
+    t(sapply(1:dim(pm)[1], function(p, pm2=pm[p,], min2=bmin[p], max2=bmax[p])
+       ifelse(pm2<min2, max2 - (min2-pm2), 
+       ifelse(pm2>max2, min2 + (pm2-max2), 
+              pm2) 
+       )))
 
-  # numerical check: see if new "folded" proposal value is out of bounds
-  if ((.$dataf$pars[jj, ii] > .$mcmc$boundary_max[jj]) | (.$dataf$pars[jj, ii] < .$mcmc$boundary_min[jj])) {
-    .$dataf$pars[jj, ii] <- .$mcmc$boundary_min[jj] + runif(1, min = 0, max = 1) * (.$mcmc$boundary_max[jj] - .$mcmc$boundary_min[jj])
-  }
+  # redo in case new "folded" proposal value is out of bounds 
+  .$dataf$pars[] <- 
+    t(sapply(1:dim(pm)[1], function(p, pm2=pm3[p,], min2=bmin[p], max2=bmax[p])
+       ifelse(pm2<min2, max2 - (min2-pm2), 
+       ifelse(pm2>max2, min2 + (pm2-max2), 
+              pm2) 
+       )))
 }
 
 
@@ -224,8 +278,6 @@ mcmc_bdry_handling_fold <- function(., j, ii, jj ) {
 # expects model output to be probability
 # - as in the output from the mixture model
 f_proposal_lklihood_log <- function(.) {
-
-  # return log density
   log(.$dataf$out)
 }
 
@@ -233,16 +285,11 @@ f_proposal_lklihood_log <- function(.) {
 # standard error probability density function with i.i.d. error residuals
 f_proposal_lklihood_ssquared <- function(.) {
 
-  # number of measured data points
-  obs_n <- length(.$dataf$obs)
-
-  # calculate error residual
+  obs_n                 <- length(.$dataf$obs)
   error_residual_matrix <- t(.$dataf$out) - .$dataf$obs
+  SSR                   <- apply(error_residual_matrix, 2, function(v) sum(v^2) )
 
-  # calculate sum of squared error
-  SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2) )
-
-  # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
+  # log-likelihood vector corresponding to each chain/column in .$dataf$pars matrix
   -(obs_n/2) * log(SSR)
 }
 
@@ -251,10 +298,8 @@ f_proposal_lklihood_ssquared <- function(.) {
 # - incorporates measurement errors (unlike "ssquared" option)
 f_proposal_lklihood_ssquared_se <- function(.) {
 
-  # read in measurement error; remove zeros from measurement error
+  # remove obs with zero measurement error
   sspos <- which(.$dataf$obsse>1e-9)
-
-  # number of measured data points (that do not have zero uncertainty)
   obs_n <- length(sspos)
 
   # observed error (heteroscedastic and homoscedastic options)
@@ -263,11 +308,9 @@ f_proposal_lklihood_ssquared_se <- function(.) {
 
   # calculate error residual
   error_residual_matrix <- ( t(.$dataf$out)[sspos,]-.$dataf$obs[sspos] ) / obsse
+  SSR                   <- apply(error_residual_matrix, 2, function(v) sum(v^2) )
 
-  # calculate sum of squared error
-  SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2) )
-
-  # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
+  # log-likelihood vector corresponding to each chain/column in .$dataf$pars matrix
   -(obs_n/2) * log(2*pi) - sum(log(obsse)) - 0.5*SSR
 }
 
@@ -353,10 +396,6 @@ proposal_generate_mcmc_dream <- function(.,j) {
                       apply(.$mcmc$current_state[jump_pars_ss,chain_pairs_ss[,2],drop=F], 1, sum )
     .$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+.$mcmc$lambda[ii])*gamma*chain_diff 
     .$dataf$pars[,ii]            <- .$mcmc$current_state[,ii] + .$mcmc$jump[,ii]
-
-    # boundary handling
-    # APW: prob can happen outside of chain loop, if so can happen i main run function 
-    for(jj in 1:.$mcmc$pars_n) .$mcmc_bdry_handling(j=j, ii=ii, jj=jj )
 
   # chain loop
   }

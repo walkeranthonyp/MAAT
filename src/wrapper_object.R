@@ -48,15 +48,15 @@ wrapper_object$build <- function(., ... ) {
 
   # MCMC specific functions
   if(grepl('mcmc',.$wpars$runtype)) {
-    .$proposal_generate     <- get(paste0('proposal_generate_',.$wpars$runtype))
-    .$proposal_accept       <- get(paste0('proposal_accept_',.$wpars$runtype))
-    .$proposal_lklihood     <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc$lklihood))
     .$init_mcmc             <- get(paste0('init_',.$wpars$runtype))
+    .$mcmc_prior            <- get(paste0('mcmc_prior_', .$wpars$mcmc$prior))
+    .$boundary_handling     <- get(paste0('boundary_handling_', .$wpars$mcmc$boundary_handling))
+    .$boundary_handling_set <- boundary_handling_set
+    .$proposal_generate     <- get(paste0('proposal_generate_',.$wpars$runtype))
+    .$proposal_lklihood     <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc$lklihood))
+    .$proposal_accept       <- get(paste0('proposal_accept_',.$wpars$runtype))
     .$mcmc_outlier          <- get(paste0('mcmc_outlier_', .$wpars$mcmc$outlier))
     .$mcmc_converge         <- get(paste0('mcmc_converge_', .$wpars$mcmc$converge))
-    .$mcmc_bdry_handling    <- get(paste0('mcmc_bdry_handling_', .$wpars$mcmc$bdry_handling))
-    .$mcmc_prior            <- get(paste0('mcmc_prior_', .$wpars$mcmc$prior))
-    .$boundary_handling_set <- boundary_handling_set
   }
 
   # build model
@@ -297,7 +297,7 @@ wrapper_object$wpars <- list(
     lklihood        = 'ssquared',
     outlier         = 'iqr',
     mcmc_converge   = 'Gelman_Rubin',
-    bdry_handling   = 'bound',
+    boundary_handling   = 'fold',
     init_prior      = 'uniform',
     chains          = 7,
     maxiter         = 1000,
