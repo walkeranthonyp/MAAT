@@ -49,7 +49,7 @@ wrapper_object$build <- function(., ... ) {
   # MCMC specific functions
   if(grepl('mcmc',.$wpars$runtype)) {
     .$init_mcmc             <- get(paste0('init_',.$wpars$runtype))
-    .$mcmc_prior            <- get(paste0('mcmc_prior_', .$wpars$mcmc$prior))
+    #.$mcmc_prior            <- get(paste0('mcmc_prior_', .$wpars$mcmc$prior))
     .$boundary_handling     <- get(paste0('boundary_handling_', .$wpars$mcmc$boundary_handling))
     .$boundary_handling_set <- boundary_handling_set
     .$proposal_generate     <- get(paste0('proposal_generate_',.$wpars$runtype))

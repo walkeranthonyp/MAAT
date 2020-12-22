@@ -62,7 +62,7 @@ generate_ensemble_pars_SApar_saltelli <- function(.) {
         # sample parameters from character string code snippets to generate matrices A and B
         n <- 2 * .$wpars$n
         .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
-      } else  stop('wrapper: pars (or pars_eval) list in vars list is empty')
+      } else  stop('wrapper: pars (or pars_eval) list in dynamic list is empty')
     }
 
     # create pars matrix
@@ -87,10 +87,10 @@ generate_ensemble_pars_SAprocess_ye <- function(.) {
   test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
   if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
 
-  # assign same list structure as dynamic$pars_eval to vars$pars
+  # assign same list structure as dynamic$pars_eval to dynamic$pars
   .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(e) numeric(1) )
 
-  # check input vars$pars* elements have same names
+  # check input dynamic$pars* elements have same names
   # - to be done
 }
 
@@ -103,22 +103,43 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
   #      also, requires initializing variables differently in init file
 
   # read character string code snippets & sample initial proposal from prior
-  .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-  if(!.$wpars$parsinit_read) .$mcmc_prior()
+  #.$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+  #if(!.$wpars$parsinit_read) .$mcmc_prior()
 
   # determine boundary handling limits for parameter space
   .$boundary_handling_set()
 
+  # read character string code snippets & sample initial proposal from prior
+  if(!.$wpars$parsinit_read) {
+    if(!is.null(.$dynamic$pars_eval)) {
+      n <- .$wpars$mcmc$chains
+      .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
+      .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
+
+      # boundary handling in case of bounded normal (or other bounded) distributions as prior 
+      pm   <- .$dataf$pars
+      bmax <- .$mcmc$boundary_max 
+      bmin <- .$mcmc$boundary_min
+      .$dataf$pars[] <- 
+        t(sapply(1:dim(pm)[1], function(p, pm2=pm[p,], min2=bmin[p], max2=bmax[p], pt=.$dynamic$pars_eval[[p]]  )
+           ifelse(pm2==min2 | pm2==max2, eval(parse(text=pt)), 
+                  pm2) 
+           ))
+
+    } else  stop('wrapper: pars (or pars_eval) list in dynamic list is empty')
+  }
+
   # remove initialisation pars list
   .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
-  # if observation subsampling specified - currently evenly spaced subsampling
+  # observation subsampling
+  # - currently evenly spaced subsampling
   if(!.$wpars$parsinit_read & .$wpars$mcmc$thin_obs<1.0) {
-    if(.$wpars$mcmc$thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc$thin_obs )
-    thin <- floor( 1 / .$wpars$mcmc$thin_obs )
-    oss  <- seq(1, dim(.$dataf$metdata)[2], thin )
-    .$dataf$met   <- .$dataf$met[,oss]
-    .$dataf$obs   <- .$dataf$obs[oss]
+    .$wpars$mcmc$thin_obs <- min(0.5, .$wpars$mcmc$thin_obs )
+    thin                  <- floor(1/.$wpars$mcmc$thin_obs)
+    oss                   <- seq(1, dim(.$dataf$metdata)[2], thin )
+    .$dataf$met           <- .$dataf$met[,oss]
+    .$dataf$obs           <- .$dataf$obs[oss]
     if(!is.null(.$dataf$obsse)) .$dataf$obsse <- .$dataf$obsse[oss]
   }
 }
@@ -140,7 +161,6 @@ init_output_matrix_SApar_saltelli <- init_output_matrix_factorial
 
 
 init_output_matrix_SApar_saltelli_ABi <- function(.) {
-  # initialise output array
   # - dim 1 (rows)      output variable
   # - dim 2 (columns)   sample
   # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
@@ -153,7 +173,7 @@ init_output_matrix_SApar_saltelli_ABi <- function(.) {
 
 
 init_output_matrix_SAprocess_ye <- function(.) {
-  # Ye method does not generate a single for whole simulation but rather a separate ensemble for each process
+  # Ye method does not generate a single ensemble for whole simulation but rather a separate ensemble for each process
   # - dim 1 (rows)        output variable
   # - dim 2 (columns)     environment combination
   # - dim 3 (slices)      process(es) B parameter sample

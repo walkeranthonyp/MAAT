@@ -8,160 +8,172 @@
 
 
 
-# prior distribution functions
-################################
-
-# initialize chains with uniform distributions
-# APW: code can be simplified I think, fix, add in code snippets that are more consistent with the existing method 
-mcmc_prior_uniform <- function(.) {
-
-  # IMPORTANT: when initializing parameters in the init file
-  #            it needs to be in the following format:
-  #            parameter = 'list(min = value, max = value)'
-  #            if there is a nested list
-  #            it needs to be in the following format:
-  #            list = 'list(
-  #                    parameter 1 = list(min = value, max = value),
-  #                    parameter 2 = list(min = value, max = value)
-  #                   )'
-
-  # future work: re-structure prior functions to be less dependent on the order
-  #              of terms listed in the init file
-  #              (then can also restructure boundary_handling_set)
-
-  # number of Markov chains
-  n <- .$wpars$mcmc$chains
-
-  #print('')
-  #print(.$dynamic$pars)
-  #print('')
-  
-  # number of parameters (dimensionality of parameter space)
-  d <- length(unlist(.$dynamic$pars, recursive = T)) / 2
-
-  # determine minimums and maximums for parameters
-  dynamic_pars_un <- unlist(.$dynamic$pars)
-  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
-  max_vals <- vals[seq(2, length(vals), 2)]
-  min_vals <- vals[seq(1, length(vals), 2)]
-
-  # draw priors from uniform distribution to create pars / proposal matrix
-  .$dataf$pars <- matrix(0, nrow = d, ncol = n)
-  for (jj in 1:d) {
-    .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
-  }
-
-  # assign parameter names
-  row_names <- gsub(pattern = '.min', replacement = '', names(dynamic_pars_un))
-  row_names <- row_names[seq(1, length(row_names), 2)]
-  rownames(.$dataf$pars) <- row_names
-}
-
-
-# initialize chains with normal distributions
-mcmc_prior_normal <- function(.) {
-
-  # IMPORTANT: when initializing parameters in the init file
-  #            it needs to be in the following format:
-  #            parameter = 'list(min = value, max = value, mean = value, sd = value)'
-  #            if there is a nested list
-  #            it needs to be in the following format:
-  #            list = 'list(
-  #                    parameter 1 = list(min = value, max = value, mean = value, sd = value),
-  #                    parameter 2 = list(min = value, max = value, mean = value, sd = value)
-  #                   )'
-
-  # number of Markov chains
-  n <- .$wpars$mcmc$chains
-
-  # number of parameters (dimensionality of parameter space)
-  d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
-
-  # determine minimums and maximums for parameters
-  dynamic_pars_un <- unlist(.$dynamic$pars)
-  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
-  mean_vals <- vals[seq(3, length(vals), 4)]
-  sd_vals   <- vals[seq(4, length(vals), 4)]
-
-  # draw priors from normal distribution to create pars / proposal matrix
-  .$dataf$pars <- matrix(0, nrow = d, ncol = n)
-  for (jj in 1:d) {
-    .$dataf$pars[jj, 1:n] <- rnorm(n, mean = mean_vals[jj], sd = sd_vals[jj])
-  }
-
-  # assign parameter names
-  row_names <- gsub(pattern = '.min', replacement = '', names(dynamic_pars_un))
-  row_names <- row_names[seq(1, length(row_names), 4)]
-  rownames(.$dataf$pars) <- row_names
-
-  # future work: add check to see if mean and sd are not specified
-  #              and if not, make the mean the median of the parameter range
-  #              and make it 2-3 standard deviations to the boundary
-}
-
-
-# option for initializing chains when re-starting MCMC algorithm
-mcmc_prior_none <- function(.) {
-
-  # use the last accepted proposal from previous MCMC run
-  # future work: ideally would not like to hardcode this
-  #              currently just copying and pasting
-
-  #.$dataf$pars <- matrix(c(127.1412287, 85.6479380,  0.9263817,
-  #                         151.1674128, 267.4227537, 0.9635282,
-  #                         153.8731369, 201.6820169, 0.9468014,
-  #                         153.7184214, 254.7146791, 0.9295626,
-  #                         155.9559049, 251.6358836, 0.9570725,
-  #                         140.8245361, 223.8698299, 0.9495525,
-  #                         133.0800970, 249.0815415, 0.9322175),
-  #                        ncol = .$wpars$mcmc$chains)
-
-  #rownames(.$dataf$pars) <- c('leaf.atref.vcmax', 'leaf.atref.jmax', 'leaf.theta_col_cj')
-  print('')
-  print('dataf$pars from MCMC run:')
-  print(.$dataf$pars)
-}
+## prior distribution functions
+#################################
+#
+## initialize chains with uniform distributions
+## APW: code can be simplified I think, fix, add in code snippets that are more consistent with the existing method 
+#mcmc_prior_uniform <- function(.) {
+#
+#  # IMPORTANT: when initializing parameters in the init file
+#  #            it needs to be in the following format:
+#  #            parameter = 'list(min = value, max = value)'
+#  #            if there is a nested list
+#  #            it needs to be in the following format:
+#  #            list = 'list(
+#  #                    parameter 1 = list(min = value, max = value),
+#  #                    parameter 2 = list(min = value, max = value)
+#  #                   )'
+#
+#  # future work: re-structure prior functions to be less dependent on the order
+#  #              of terms listed in the init file
+#  #              (then can also restructure boundary_handling_set)
+#
+#  # number of Markov chains
+#  n <- .$wpars$mcmc$chains
+#
+#  #print('')
+#  #print(.$dynamic$pars)
+#  #print('')
+#  
+#  # number of parameters (dimensionality of parameter space)
+#  d <- length(unlist(.$dynamic$pars, recursive = T)) / 2
+#
+#  # determine minimums and maximums for parameters
+#  dynamic_pars_un <- unlist(.$dynamic$pars)
+#  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
+#  max_vals <- vals[seq(2, length(vals), 2)]
+#  min_vals <- vals[seq(1, length(vals), 2)]
+#
+#  # draw priors from uniform distribution to create pars / proposal matrix
+#  .$dataf$pars <- matrix(0, nrow = d, ncol = n)
+#  for (jj in 1:d) {
+#    .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
+#  }
+#
+#  # assign parameter names
+#  row_names <- gsub(pattern = '.min', replacement = '', names(dynamic_pars_un))
+#  row_names <- row_names[seq(1, length(row_names), 2)]
+#  rownames(.$dataf$pars) <- row_names
+#}
+#
+#
+## initialize chains with normal distributions
+#mcmc_prior_normal <- function(.) {
+#
+#  # IMPORTANT: when initializing parameters in the init file
+#  #            it needs to be in the following format:
+#  #            parameter = 'list(min = value, max = value, mean = value, sd = value)'
+#  #            if there is a nested list
+#  #            it needs to be in the following format:
+#  #            list = 'list(
+#  #                    parameter 1 = list(min = value, max = value, mean = value, sd = value),
+#  #                    parameter 2 = list(min = value, max = value, mean = value, sd = value)
+#  #                   )'
+#
+#  # number of Markov chains
+#  n <- .$wpars$mcmc$chains
+#
+#  # number of parameters (dimensionality of parameter space)
+#  d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
+#
+#  # determine minimums and maximums for parameters
+#  dynamic_pars_un <- unlist(.$dynamic$pars)
+#  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
+#  mean_vals <- vals[seq(3, length(vals), 4)]
+#  sd_vals   <- vals[seq(4, length(vals), 4)]
+#
+#  # draw priors from normal distribution to create pars / proposal matrix
+#  .$dataf$pars <- matrix(0, nrow = d, ncol = n)
+#  for (jj in 1:d) {
+#    .$dataf$pars[jj, 1:n] <- rnorm(n, mean = mean_vals[jj], sd = sd_vals[jj])
+#  }
+#
+#  # assign parameter names
+#  row_names <- gsub(pattern = '.min', replacement = '', names(dynamic_pars_un))
+#  row_names <- row_names[seq(1, length(row_names), 4)]
+#  rownames(.$dataf$pars) <- row_names
+#
+#  # future work: add check to see if mean and sd are not specified
+#  #              and if not, make the mean the median of the parameter range
+#  #              and make it 2-3 standard deviations to the boundary
+#}
+#
+#
+## option for initializing chains when re-starting MCMC algorithm
+#mcmc_prior_none <- function(.) {
+#
+#  # use the last accepted proposal from previous MCMC run
+#  # future work: ideally would not like to hardcode this
+#  #              currently just copying and pasting
+#
+#  #.$dataf$pars <- matrix(c(127.1412287, 85.6479380,  0.9263817,
+#  #                         151.1674128, 267.4227537, 0.9635282,
+#  #                         153.8731369, 201.6820169, 0.9468014,
+#  #                         153.7184214, 254.7146791, 0.9295626,
+#  #                         155.9559049, 251.6358836, 0.9570725,
+#  #                         140.8245361, 223.8698299, 0.9495525,
+#  #                         133.0800970, 249.0815415, 0.9322175),
+#  #                        ncol = .$wpars$mcmc$chains)
+#
+#  #rownames(.$dataf$pars) <- c('leaf.atref.vcmax', 'leaf.atref.jmax', 'leaf.theta_col_cj')
+#  print('')
+#  print('dataf$pars from MCMC run:')
+#  print(.$dataf$pars)
+#}
 
 
 
 # boundary handling functions
 ################################
 
+## set parameter boundaries from prior distributions
+#boundary_handling_set <- function(.) {
+#
+#  dynamic_pars_un <- unlist(.$dynamic$pars)
+#  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
+#
+#  if(.$wpars$mcmc$prior=='uniform') {
+#    min_vals <- vals[seq(1, length(vals), 2)]
+#    max_vals <- vals[seq(2, length(vals), 2)]
+#  }
+#
+#  if(.$wpars$mcmc$prior=='normal') {
+#    min_vals  <- vals[seq(1, length(vals), 4)]
+#    max_vals  <- vals[seq(2, length(vals), 4)]
+#  }
+#
+#  if(.$wpars$mcmc$prior=='none') {
+#    # future work: need to figure this out
+#    #              but this depends on the restart process
+#  }
+#
+#  .$mcmc$boundary_min <- min_vals
+#  .$mcmc$boundary_max <- max_vals
+#
+#  # if prior initialized with normal distribution, do boundary check
+#  if(.$wpars$mcmc$prior=='normal') {
+#    .$boundary_handling()
+##    d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
+##    for(ii in 1:.$wpars$mcmc$chains) {
+##      for(jj in  1:d) {
+##        .$boundary_handling(j=1, ii=ii, jj=jj )
+##      }
+##    }
+#  }
+#}
+
+
 # set parameter boundaries from prior distributions
 boundary_handling_set <- function(.) {
-
-  dynamic_pars_un <- unlist(.$dynamic$pars)
-  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
-
-  if(.$wpars$mcmc$prior=='uniform') {
-    min_vals <- vals[seq(1, length(vals), 2)]
-    max_vals <- vals[seq(2, length(vals), 2)]
-  }
-
-  if(.$wpars$mcmc$prior=='normal') {
-    min_vals  <- vals[seq(1, length(vals), 4)]
-    max_vals  <- vals[seq(2, length(vals), 4)]
-  }
-
-  if(.$wpars$mcmc$prior=='none') {
-    # future work: need to figure this out
-    #              but this depends on the restart process
-  }
-
-  .$mcmc$boundary_min <- min_vals
-  .$mcmc$boundary_max <- max_vals
-
-  # if prior initialized with normal distribution, do boundary check
-  if(.$wpars$mcmc$prior=='normal') {
-    .$boundary_handling()
-#    d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
-#    for(ii in 1:.$wpars$mcmc$chains) {
-#      for(jj in  1:d) {
-#        .$boundary_handling(j=1, ii=ii, jj=jj )
-#      }
-#    }
-  }
+  # number of samples to be used in boundary handling
+  n <- 1000
+  boundary_sample     <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+  .$mcmc$boundary_min <- unlist(lapply(boundary_sample,min))
+  .$mcmc$boundary_max <- unlist(lapply(boundary_sample,max))
+  rm(boundary_sample)
 }
+
 
 
 # no boundary handling: should be chosen when search space is not theoretically restricted
@@ -173,7 +185,7 @@ boundary_handling_none <- function(., j, ii, jj ) {
 
 
 # restrict parameter proposals that are beyond the boundary to the boundary 
-boundary_handling_bound <- function(., ii, jj ) {
+boundary_handling_bound <- function(.) {
 
 #  if(.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj]) {
 #    .$dataf$pars[jj,ii] <- .$mcmc$boundary_min[jj]
@@ -184,11 +196,12 @@ boundary_handling_bound <- function(., ii, jj ) {
   bmax <- .$mcmc$boundary_max 
   bmin <- .$mcmc$boundary_min
 
-  t(sapply(1:dim(pm)[1], function(p, pm2=pm[p,], min2=bmin[p], max2=bmax[p])
-     ifelse(pm2<min2, min2, 
-     ifelse(pm2>max2, max2, 
-            pm2) 
-     )))
+  .$dataf$pars[] <- 
+    t(sapply(1:dim(pm)[1], function(p, pm2=pm[p,], min2=bmin[p], max2=bmax[p])
+       ifelse(pm2<min2, min2, 
+       ifelse(pm2>max2, max2, 
+              pm2) 
+       )))
 }
 
 # reflect parameter proposals beyond the min/max values back across the boundary
