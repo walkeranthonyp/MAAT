@@ -430,6 +430,7 @@ if(!is.null(parsinit_mcmc)) {
    
    
   } else if(parsinit_mcmc=='ensemble') {
+   
     print('forward run from MCMC calibrated parameters',quote=F)
     if(runtype!='factorial') {
       print(paste0('parsinit requested but can only work with factorial runtype, requested runtype:', runtype ),quote=F)

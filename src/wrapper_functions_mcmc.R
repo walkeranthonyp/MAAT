@@ -8,161 +8,8 @@
 
 
 
-## prior distribution functions
-#################################
-#
-## initialize chains with uniform distributions
-## APW: code can be simplified I think, fix, add in code snippets that are more consistent with the existing method 
-#mcmc_prior_uniform <- function(.) {
-#
-#  # IMPORTANT: when initializing parameters in the init file
-#  #            it needs to be in the following format:
-#  #            parameter = 'list(min = value, max = value)'
-#  #            if there is a nested list
-#  #            it needs to be in the following format:
-#  #            list = 'list(
-#  #                    parameter 1 = list(min = value, max = value),
-#  #                    parameter 2 = list(min = value, max = value)
-#  #                   )'
-#
-#  # future work: re-structure prior functions to be less dependent on the order
-#  #              of terms listed in the init file
-#  #              (then can also restructure boundary_handling_set)
-#
-#  # number of Markov chains
-#  n <- .$wpars$mcmc$chains
-#
-#  #print('')
-#  #print(.$dynamic$pars)
-#  #print('')
-#  
-#  # number of parameters (dimensionality of parameter space)
-#  d <- length(unlist(.$dynamic$pars, recursive = T)) / 2
-#
-#  # determine minimums and maximums for parameters
-#  dynamic_pars_un <- unlist(.$dynamic$pars)
-#  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
-#  max_vals <- vals[seq(2, length(vals), 2)]
-#  min_vals <- vals[seq(1, length(vals), 2)]
-#
-#  # draw priors from uniform distribution to create pars / proposal matrix
-#  .$dataf$pars <- matrix(0, nrow = d, ncol = n)
-#  for (jj in 1:d) {
-#    .$dataf$pars[jj, 1:n] <- runif(n, min = min_vals[jj], max = max_vals[jj])
-#  }
-#
-#  # assign parameter names
-#  row_names <- gsub(pattern = '.min', replacement = '', names(dynamic_pars_un))
-#  row_names <- row_names[seq(1, length(row_names), 2)]
-#  rownames(.$dataf$pars) <- row_names
-#}
-#
-#
-## initialize chains with normal distributions
-#mcmc_prior_normal <- function(.) {
-#
-#  # IMPORTANT: when initializing parameters in the init file
-#  #            it needs to be in the following format:
-#  #            parameter = 'list(min = value, max = value, mean = value, sd = value)'
-#  #            if there is a nested list
-#  #            it needs to be in the following format:
-#  #            list = 'list(
-#  #                    parameter 1 = list(min = value, max = value, mean = value, sd = value),
-#  #                    parameter 2 = list(min = value, max = value, mean = value, sd = value)
-#  #                   )'
-#
-#  # number of Markov chains
-#  n <- .$wpars$mcmc$chains
-#
-#  # number of parameters (dimensionality of parameter space)
-#  d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
-#
-#  # determine minimums and maximums for parameters
-#  dynamic_pars_un <- unlist(.$dynamic$pars)
-#  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
-#  mean_vals <- vals[seq(3, length(vals), 4)]
-#  sd_vals   <- vals[seq(4, length(vals), 4)]
-#
-#  # draw priors from normal distribution to create pars / proposal matrix
-#  .$dataf$pars <- matrix(0, nrow = d, ncol = n)
-#  for (jj in 1:d) {
-#    .$dataf$pars[jj, 1:n] <- rnorm(n, mean = mean_vals[jj], sd = sd_vals[jj])
-#  }
-#
-#  # assign parameter names
-#  row_names <- gsub(pattern = '.min', replacement = '', names(dynamic_pars_un))
-#  row_names <- row_names[seq(1, length(row_names), 4)]
-#  rownames(.$dataf$pars) <- row_names
-#
-#  # future work: add check to see if mean and sd are not specified
-#  #              and if not, make the mean the median of the parameter range
-#  #              and make it 2-3 standard deviations to the boundary
-#}
-#
-#
-## option for initializing chains when re-starting MCMC algorithm
-#mcmc_prior_none <- function(.) {
-#
-#  # use the last accepted proposal from previous MCMC run
-#  # future work: ideally would not like to hardcode this
-#  #              currently just copying and pasting
-#
-#  #.$dataf$pars <- matrix(c(127.1412287, 85.6479380,  0.9263817,
-#  #                         151.1674128, 267.4227537, 0.9635282,
-#  #                         153.8731369, 201.6820169, 0.9468014,
-#  #                         153.7184214, 254.7146791, 0.9295626,
-#  #                         155.9559049, 251.6358836, 0.9570725,
-#  #                         140.8245361, 223.8698299, 0.9495525,
-#  #                         133.0800970, 249.0815415, 0.9322175),
-#  #                        ncol = .$wpars$mcmc$chains)
-#
-#  #rownames(.$dataf$pars) <- c('leaf.atref.vcmax', 'leaf.atref.jmax', 'leaf.theta_col_cj')
-#  print('')
-#  print('dataf$pars from MCMC run:')
-#  print(.$dataf$pars)
-#}
-
-
-
 # boundary handling functions
 ################################
-
-## set parameter boundaries from prior distributions
-#boundary_handling_set <- function(.) {
-#
-#  dynamic_pars_un <- unlist(.$dynamic$pars)
-#  vals <- sapply(dynamic_pars_un, function(x) x[[1]])
-#
-#  if(.$wpars$mcmc$prior=='uniform') {
-#    min_vals <- vals[seq(1, length(vals), 2)]
-#    max_vals <- vals[seq(2, length(vals), 2)]
-#  }
-#
-#  if(.$wpars$mcmc$prior=='normal') {
-#    min_vals  <- vals[seq(1, length(vals), 4)]
-#    max_vals  <- vals[seq(2, length(vals), 4)]
-#  }
-#
-#  if(.$wpars$mcmc$prior=='none') {
-#    # future work: need to figure this out
-#    #              but this depends on the restart process
-#  }
-#
-#  .$mcmc$boundary_min <- min_vals
-#  .$mcmc$boundary_max <- max_vals
-#
-#  # if prior initialized with normal distribution, do boundary check
-#  if(.$wpars$mcmc$prior=='normal') {
-#    .$boundary_handling()
-##    d <- length(unlist(.$dynamic$pars, recursive = T)) / 4
-##    for(ii in 1:.$wpars$mcmc$chains) {
-##      for(jj in  1:d) {
-##        .$boundary_handling(j=1, ii=ii, jj=jj )
-##      }
-##    }
-#  }
-#}
-
 
 # set parameter boundaries from prior distributions
 boundary_handling_set <- function(.) {
@@ -187,11 +34,6 @@ boundary_handling_none <- function(., j, ii, jj ) {
 # restrict parameter proposals that are beyond the boundary to the boundary 
 boundary_handling_bound <- function(.) {
 
-#  if(.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj]) {
-#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_min[jj]
-#  } else if(.$dataf$pars[jj,ii]>.$mcmc$boundary_max[jj]) {
-#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_max[jj]
-#  }
   pm   <- .$dataf$pars
   bmax <- .$mcmc$boundary_max 
   bmin <- .$mcmc$boundary_min
@@ -205,22 +47,6 @@ boundary_handling_bound <- function(.) {
 }
 
 # reflect parameter proposals beyond the min/max values back across the boundary
-#boundary_handling_reflect_innerloop <- function(., ii, jj ) {
-#
-#  # if outside bound of parameter space, reflect proposal back across minimum boundary
-#  if(.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj]) {
-#    .$dataf$pars[jj,ii] <- 2*.$mcmc$boundary_min[jj] - .$dataf$pars[jj,ii]
-#
-#  # if outside bound of parameter space, reflect proposal back across maximum boundary
-#  } else if(.$dataf$pars[ii,jj]>.$mcmc$boundary_max[jj]) {
-#    .$dataf$pars[jj,ii] <- 2*.$mcmc$boundary_max[jj] - .$dataf$pars[jj,ii]
-#  }
-#
-#  # numerical check: see if new reflected proposal value is out of bounds
-#  if ((.$dataf$pars[jj,ii]>.$mcmc$boundary_max[jj]) | (.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj])) {
-#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_min[jj] + runif(1)*(.$mcmc$boundary_max[jj]-.$mcmc$boundary_min[jj])
-#  }
-#}
 boundary_handling_reflect <- function(.) {
 
   pm   <- .$dataf$pars
@@ -245,21 +71,6 @@ boundary_handling_reflect <- function(.) {
 }
 
 # restrict parameter proposals beyond the boundary by "folding" them back across the opposite boundary
-# - maintains statistical balance
-#boundary_handling_fold_innerloop <- function(., ii, jj ) {
-#
-#  if(.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj]) {
-#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_max[jj] - (.$mcmc$boundary_min[jj]-.$dataf$pars[jj,ii])
-#
-#  } else if(.$dataf$pars[jj,ii]>.$mcmc$boundary_max[jj]) {
-#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_min[jj] + (.$dataf$pars[jj,ii]-.$mcmc$boundary_max[jj])
-#  }
-#
-#  # numerical check: see if new "folded" proposal value is out of bounds
-#  if((.$dataf$pars[jj,ii]>.$mcmc$boundary_max[jj]) |(.$dataf$pars[jj,ii]<.$mcmc$boundary_min[jj])) {
-#    .$dataf$pars[jj,ii] <- .$mcmc$boundary_min[jj] + runif(1)*(.$mcmc$boundary_max[jj]-.$mcmc$boundary_min[jj])
-#  }
-#}
 boundary_handling_fold <- function(.) {
 
   pm   <- .$dataf$pars
@@ -424,13 +235,8 @@ proposal_accept_mcmc_dream <- function(., prop_lklihood, curr_lklihood ) {
 
 
 
-# outlier handling functions
+# outlier detection functions
 #####################################
-
-# IMPORTANT: identifying and correcting outliers should only be done during burn-in
-#            because it violates the balance of sampled chains and destroys reversibility
-#            if outlier chain is detected, discard all previous sample history, then append
-#            and apply another burn-in period before generating posterior moments
 
 # no outlier handling for Markov chains
 mcmc_outlier_none <- function(.,j) {
@@ -438,14 +244,11 @@ mcmc_outlier_none <- function(.,j) {
 }
 
 
-# function that detects and corrects outlier Markov chains using the Inter Quartile-Range (IQR) statistic
+# function that detects and corrects outlier Markov chains using the Inter Quartile-Range (IQR) statistic (Vrugt et al 2011)
+# - based on IQR across chains mean log posterior densities of last 50 % of burnin
+# - all current likelihood functions return log-likelihood, so log likelihood not taken here
 mcmc_outlier_iqr <- function(.,j) {
 
-  # identify outlier chains 
-  # - based on IQR across chains mean log posterior densities of last 50 % of burnin
-  # IMPORTANT: all current likelihood function options return log-likelihood
-  #            so it's not necessary to take the log lklihood here
-  #            but may change in future with different likelihood functions
   .$dataf$omega[,.$mcmc$check_ss] <- apply(.$dataf$pars_lklihood[,.$mcmc$j_burnin50:j], 1, mean )
   q1q3     <- quantile(.$dataf$omega[1:.$wpars$mcmc$chains,.$mcmc$check_ss], prob=c(0.25,0.75), type=1 )
   iqr      <- q1q3[2]-q1q3[1]
@@ -499,59 +302,60 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
 
 
 # DEMC functions
+# APW: not currrently in use as during development it became clear that this algorithm is not computationally parallel 
 ################################
 
-init_mcmc_demc <- function(.) NULL
-
-# generate proposal using DE-MC algorithm
-proposal_generate_mcmc_demc <- function(., j ) {
-
-  # scaling factor
-  # APW: can be calculated once I think, fix
-  d          <- dim(.$dataf$pars)[1]
-  gamma_star <- 2.38 / sqrt(d + d)
-
-  # b-value should be small compared to width of target distribution; specifies range for drawn "randomization" value
-  b_rand  <- 0.01
-  uniform_r <- runif(1, min=(-b_rand), max=b_rand)
-
-  # evaluate for each chain
-  for(ii in 1:.$dataf$lp) {
-
-    # randomly select two different numbers R1 and R2 unequal to j, from uniform distribution without replacement
-    chain_pair <- sample((1:.$dataf$lp)[-.$dataf$lp], 2, F )
-
-    # evaluate for each parameter
-    for(jj in 1:d) {
-
-      # generate proposal via Differential Evolution
-      .$dataf$pars[jj,ii] <- .$dataf$pars_array[jj,ii,j-1] + uniform_r + 
-        gamma_star*( .$dataf$pars_array[jj,chain_pair[1],j-1] - .$dataf$pars_array[jj,chain_pair[2],j-1] )
-
-      # boundary handling 
-      .$boundary_handling(ii=ii, jj=jj )
-    }
-  }
-}
-
-
-# calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
-# - this is the same as DREAM
-proposal_accept_mcmc_demc <- function(., j, lklihood ) {
-
-  # Metropolis ratio
-  metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[,j-1])
-  alpha        <- pmin(1, metrop_ratio)
-
-  # evaluate for each chain
-  for(ii in 1:.$dataf$lp) {
-    # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
-    accept <- log(alpha[ii]) > log(runif(1, min = 0, max = 1))
-    .$dataf$pars_array[,ii,j]   <- if(accept)          .$dataf$pars[,ii] else .$dataf$pars_array[,ii,j-1]
-    .$dataf$pars_lklihood[ii,j] <- if(accept)          lklihood[ii]      else .$dataf$pars_lklihood[ii,j-1]
-    .$dataf$out_mcmc[ii,,j]     <- if(accept | j == 1) .$dataf$out[ii,]  else .$dataf$out_mcmc[ii,,(j-1)]
-  }
-}
+#init_mcmc_demc <- function(.) NULL
+#
+## generate proposal using DE-MC algorithm
+#proposal_generate_mcmc_demc <- function(., j ) {
+#
+#  # scaling factor
+#  # APW: can be calculated once I think, fix
+#  d          <- dim(.$dataf$pars)[1]
+#  gamma_star <- 2.38 / sqrt(d + d)
+#
+#  # b-value should be small compared to width of target distribution; specifies range for drawn "randomization" value
+#  b_rand  <- 0.01
+#  uniform_r <- runif(1, min=(-b_rand), max=b_rand)
+#
+#  # evaluate for each chain
+#  for(ii in 1:.$dataf$lp) {
+#
+#    # randomly select two different numbers R1 and R2 unequal to j, from uniform distribution without replacement
+#    chain_pair <- sample((1:.$dataf$lp)[-.$dataf$lp], 2, F )
+#
+#    # evaluate for each parameter
+#    for(jj in 1:d) {
+#
+#      # generate proposal via Differential Evolution
+#      .$dataf$pars[jj,ii] <- .$dataf$pars_array[jj,ii,j-1] + uniform_r + 
+#        gamma_star*( .$dataf$pars_array[jj,chain_pair[1],j-1] - .$dataf$pars_array[jj,chain_pair[2],j-1] )
+#
+#      # boundary handling 
+#      .$boundary_handling(ii=ii, jj=jj )
+#    }
+#  }
+#}
+#
+#
+## calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
+## - this is the same as DREAM
+#proposal_accept_mcmc_demc <- function(., j, lklihood ) {
+#
+#  # Metropolis ratio
+#  metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[,j-1])
+#  alpha        <- pmin(1, metrop_ratio)
+#
+#  # evaluate for each chain
+#  for(ii in 1:.$dataf$lp) {
+#    # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
+#    accept <- log(alpha[ii]) > log(runif(1, min = 0, max = 1))
+#    .$dataf$pars_array[,ii,j]   <- if(accept)          .$dataf$pars[,ii] else .$dataf$pars_array[,ii,j-1]
+#    .$dataf$pars_lklihood[ii,j] <- if(accept)          lklihood[ii]      else .$dataf$pars_lklihood[ii,j-1]
+#    .$dataf$out_mcmc[ii,,j]     <- if(accept | j == 1) .$dataf$out[ii,]  else .$dataf$out_mcmc[ii,,(j-1)]
+#  }
+#}
 
 
 

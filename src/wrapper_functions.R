@@ -23,17 +23,20 @@ generate_ensemble <- function(.) {
   .$dataf$env     <- if(!is.null(.$dynamic$env))    t(as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   ))) else NULL
   .$generate_ensemble_pars()
 
+  # remove potentially large data from pars list
+  .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
+
   # check names of ensemble matrices are character vectors
   if(!is.null(.$dataf$met)) .$model$configure_check(vlist='env', df=.$dataf$met[,1] )
 
-  # calculate input matrix lengths - separate out as a function
+  # calculate input matrix lengths
   # - used to set the number of iterations in the run functions
   # - if no matrix return 1
-  if(.$wpars$UQ&.$wpars$runtype=='SAprocess_ye') {
-    # determine number of processes to be analaysed
+  if(.$wpars$UQ & .$wpars$runtype=='SAprocess_ye') {
     .$dataf$lf <- length(.$dynamic$fnames)
+
+  # any type of run other than Ye process sensitivity analysis
   } else {
-    # any type of run other than Ye process sensitivity analysis
     .$dataf$lf <- if(is.null(.$dataf$fnames)) 1 else dim(.$dataf$fnames)[2]
     .$dataf$lp <- if(is.null(.$dataf$pars))   1 else dim(.$dataf$pars)[2]
   }
@@ -54,22 +57,24 @@ generate_ensemble_pars_factorial <- function(.) {
 
 # parameter matrix for Saltelli parameter SA
 generate_ensemble_pars_SApar_saltelli <- function(.) {
+
+  # sample parameters 
   if(!.$wpars$parsinit_read) {
     if(is.null(.$dynamic$pars)) {
+
+      #from character string code snippets to generate matrices A and B
       if(!is.null(.$dynamic$pars_eval)) {
-        # increase parameter sample number
-        .$wpars$n <- .$wpars$n * .$wpars$nmult
-        # sample parameters from character string code snippets to generate matrices A and B
-        n <- 2 * .$wpars$n
+
+        .$wpars$n      <- .$wpars$n * .$wpars$nmult
+        n              <- 2 * .$wpars$n
         .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
+        .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
+
       } else  stop('wrapper: pars (or pars_eval) list in dynamic list is empty')
     }
 
-    # create pars matrix
-    .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
-
-    # remove potentially large pars list
-    .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
+    ## remove potentially large pars list
+    #.$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
   }
 }
 
@@ -80,7 +85,6 @@ generate_ensemble_pars_SApar_saltelli <- function(.) {
 generate_ensemble_pars_SAprocess_ye <- function(.) {
 
   # need a minimum of >1 processes
-  #if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sensitivity analysis')
   if(dim(.$dataf$fnames)[1]<=1) stop('need more than one process for a process sensitivity analysis')
 
   # check input dynamic$pars* are same length
@@ -98,20 +102,14 @@ generate_ensemble_pars_SAprocess_ye <- function(.) {
 # parameter matrix for initial proposal of MCMC
 generate_ensemble_pars_mcmc_dream <- function(.) {
 
-  # ALJ: new code to generate prior distribution
-  #      not sure if this will work with unit testing now?
-  #      also, requires initializing variables differently in init file
-
-  # read character string code snippets & sample initial proposal from prior
-  #.$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-  #if(!.$wpars$parsinit_read) .$mcmc_prior()
-
   # determine boundary handling limits for parameter space
   .$boundary_handling_set()
 
   # read character string code snippets & sample initial proposal from prior
   if(!.$wpars$parsinit_read) {
+    if(is.null(.$dynamic$pars)) {
     if(!is.null(.$dynamic$pars_eval)) {
+
       n <- .$wpars$mcmc$chains
       .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
       .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
@@ -127,10 +125,7 @@ generate_ensemble_pars_mcmc_dream <- function(.) {
            ))
 
     } else  stop('wrapper: pars (or pars_eval) list in dynamic list is empty')
-  }
-
-  # remove initialisation pars list
-  .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
+  }}
 
   # observation subsampling
   # - currently evenly spaced subsampling
@@ -771,6 +766,7 @@ run2_mcmc_dream <- function(.,j) {
       else                                                 j - ceiling((j+.$wpars$mcmc$start_iter-1)/2) + 1
 
     # test for and handle outlier chains 
+    # - if identified, burnin restarted
     outliers <- .$mcmc_outlier(j=j)
     if(length(outliers)>0) {
       print('',quote=F)
@@ -795,6 +791,9 @@ run2_mcmc_dream <- function(.,j) {
       print('',quote=F); print('',quote=F)
       print(paste("At (final) iteration:", .$mcmc$j_true, ", R-statistic of Gelman and Rubin:"), quote=F )
       print(R_hat,quote=F); print('',quote=F)
+      R_hat <- R_hat[2:length(R_hat)]
+      if((sum(R_hat<1.2)) == length(R_hat)) print('ALL PARAMETERS CONVERGED.',quote=F) else print('NON-CONVERGENCE, RESTART RECOMMENDED.',quote=F)
+      print('',quote=F); print('',quote=F); print('',quote=F)
     }
   }
 
