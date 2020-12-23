@@ -187,7 +187,7 @@ proposal_generate_mcmc_dream <- function(.,j) {
   # - continuous uniform random values between -c_rand and c_rand
   .$mcmc$jump[]          <- 0
   .$mcmc$current_state[] <- .$dataf$pars_array[,,j-1]
-  .$mcmc$lambda[]        <- runif(.$dataf$lp, -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
+  #.$mcmc$lambda[]        <- runif(.$dataf$lp, -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
 
   # if adapting crossover values, compute standard deviation of each parameter/dimension
   if(.$wpars$mcmc$adapt_pCR) {
@@ -217,14 +217,14 @@ proposal_generate_mcmc_dream <- function(.,j) {
     # APW: for online code, when gamma = 1 CR=nCR i.e. all dimensions update
     gamma_d        <- 2.38 / sqrt(2*chain_pairs_n*length(jump_pars_ss))
     gamma          <- sample(c(gamma_d,1), 1, T, c(1-.$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma ))
-    #if(gamma==1) { jump_pars_ss <- 1:.$mcmc$pars_n; .$mcmc$CR[ii] <- NA }
+    if(gamma==1) { jump_pars_ss <- 1:.$mcmc$pars_n; .$mcmc$CR[ii] <- NA }
 
     # compute 'jump' for params to be updated/crossover (differential evolution)
-    #lambda         <- runif(length(jump_pars_ss), -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
+    lambda         <- runif(length(jump_pars_ss), -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
     chain_diff     <- apply(.$mcmc$current_state[jump_pars_ss,chain_pairs_ss[,1],drop=F], 1, sum ) - 
                       apply(.$mcmc$current_state[jump_pars_ss,chain_pairs_ss[,2],drop=F], 1, sum )
-    .$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+.$mcmc$lambda[ii])*gamma*chain_diff 
-    #.$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+lambda)*gamma*chain_diff 
+    #.$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+.$mcmc$lambda[ii])*gamma*chain_diff 
+    .$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+lambda)*gamma*chain_diff 
     .$dataf$pars[,ii]            <- .$mcmc$current_state[,ii] + .$mcmc$jump[,ii]
 
   # chain loop
@@ -248,7 +248,7 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
   # initialise
   .$mcmc$jump[]          <- 0
   .$mcmc$current_state[] <- .$dataf$pars_array[,,j-1]
-  .$mcmc$lambda[]        <- runif(.$dataf$lp, -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
+  #.$mcmc$lambda[]        <- runif(.$dataf$lp, -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
 
   # if adapting crossover values, compute standard deviation of each parameter/dimension
   if(.$wpars$mcmc$adapt_pCR) {
@@ -285,14 +285,14 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
       #gamma_d        <- 2.38 / sqrt(2*chain_pairs_n*length(jump_pars_ss))
       gamma_d        <- 2.38 / sqrt(2*chain_delta*length(jump_pars_ss))
       gamma          <- sample(c(gamma_d,1), 1, T, c(1-.$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma ))
-      #if(gamma==1) { jump_pars_ss <- 1:.$mcmc$pars_n; .$mcmc$CR[ii] <- NA }
+      if(gamma==1) { jump_pars_ss <- 1:.$mcmc$pars_n; .$mcmc$CR[ii] <- NA }
   
       # compute 'jump' for params to be updated/crossover (differential evolution)
-      #lambda         <- runif(length(jump_pars_ss), -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
+      lambda         <- runif(length(jump_pars_ss), -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
       chain_diff     <- apply(.$dataf$past_states[jump_pars_ss,past_states_ss[,1],drop=F], 1, sum ) - 
                         apply(.$dataf$past_states[jump_pars_ss,past_states_ss[,2],drop=F], 1, sum )
-      .$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+.$mcmc$lambda[ii])*gamma*chain_diff 
-      #.$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+lambda)*gamma*chain_diff 
+      #.$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+.$mcmc$lambda[ii])*gamma*chain_diff 
+      .$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+lambda)*gamma*chain_diff 
    
    
     # snooker update, orthogonal rather than parallel jump
@@ -303,7 +303,8 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
   
       # jump rate / scaling factor
       gamma          <- 1.2 + runif(1) 
-      .$mcmc$CR[ii]  <- .$wpars$mcmc$n_CR
+      #.$mcmc$CR[ii]  <- .$wpars$mcmc$n_CR
+      .$mcmc$CR[ii]  <- NA
       
       # compute 'jump' for all parameters
       # - taken from https://github.com/Zaijab/DREAM/blob/master/functions/offde.m 
