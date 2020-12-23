@@ -166,6 +166,8 @@ init_mcmc_dream <- function(.) {
     .$mcmc$CR              <- numeric(.$wpars$mcmc$chains)
   }
 }
+# APW: could add past_state initialisation to here, 
+init_mcmc_dreamzs <- init_mcmc_dream 
 
 
 # generate proposal using DREAM algorithm (Vrugt et al. 2011)
@@ -212,15 +214,107 @@ proposal_generate_mcmc_dream <- function(.,j) {
     if(length(jump_pars_ss)==0) jump_pars_ss <- which.min(zz)
 
     # jump rate / scaling factor
+    # APW: for online code, when gamma = 1 CR=nCR i.e. all dimensions update
     gamma_d        <- 2.38 / sqrt(2*chain_pairs_n*length(jump_pars_ss))
     gamma          <- sample(c(gamma_d,1), 1, T, c(1-.$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma ))
+    #if(gamma==1) { jump_pars_ss <- 1:.$mcmc$pars_n; .$mcmc$CR[ii] <- NA }
 
     # compute 'jump' for params to be updated/crossover (differential evolution)
+    #lambda         <- runif(length(jump_pars_ss), -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
     chain_diff     <- apply(.$mcmc$current_state[jump_pars_ss,chain_pairs_ss[,1],drop=F], 1, sum ) - 
                       apply(.$mcmc$current_state[jump_pars_ss,chain_pairs_ss[,2],drop=F], 1, sum )
     .$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+.$mcmc$lambda[ii])*gamma*chain_diff 
+    #.$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+lambda)*gamma*chain_diff 
     .$dataf$pars[,ii]            <- .$mcmc$current_state[,ii] + .$mcmc$jump[,ii]
 
+  # chain loop
+  }
+}
+
+
+# generate proposal using DREAM algorithm (Vrugt et al. 2011)
+proposal_generate_mcmc_dreamzs <- function(.,j) {
+  # - gamma = gamma in V2011
+  # - lambda = e in V2011
+  # - chain_pairs_n = delta in V2011
+  # - length(jump_pars_ss) = dprime in V2011
+  # - CR = m in V2011
+  # - CR/nCR = CR in V2011
+  # - p_CR = p_m in V2011
+
+  # debugging
+  #print(paste0('j = ',j))
+
+  # initialise
+  .$mcmc$jump[]          <- 0
+  .$mcmc$current_state[] <- .$dataf$pars_array[,,j-1]
+  .$mcmc$lambda[]        <- runif(.$dataf$lp, -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
+
+  # if adapting crossover values, compute standard deviation of each parameter/dimension
+  if(.$wpars$mcmc$adapt_pCR) {
+    .$mcmc$sd_state[] <- apply(.$mcmc$current_state, 1, sd )
+    .$mcmc$sd_state[.$mcmc$sd_state==0] <- 1e-9
+  }
+
+  # create proposals for each chain
+  for(ii in 1:.$dataf$lp) {
+    if(runif(1)>.$wpars$mcmc$psnooker) {
+
+      # select crossover value
+      # - weighted sample from multinomial distribution
+      # - replacement relevant if this gets moved outside of chain loop 
+      .$mcmc$CR[ii]  <- sample(1:.$wpars$mcmc$n_CR, 1, T, .$mcmc$p_CR )
+  
+      # determine which parameters will "crossover" (i.e. how many dimensions are sampled/updated jointly)
+      zz             <- runif(.$mcmc$pars_n)
+      jump_pars_ss   <- which(zz < (.$mcmc$CR[ii]/.$wpars$mcmc$n_CR) )
+      if(length(jump_pars_ss)==0) jump_pars_ss <- which.min(zz)
+  
+      # determine past states used to calculate each jump
+      # APW: why choose 1 value w replacement? Maybe this should be outside of the chain loop? Given it's inside the loop it will be with replacement
+      #chain_pairs_n  <- sample(1:.$wpars$mcmc$chain_delta, 1, T )
+      #chain_pairs_ss <- t(sapply(1:chain_pairs_n, function(v) sample((1:.$dataf$lp)[-ii],2,F) ))
+      chain_delta    <- sample(1:.$wpars$mcmc$chain_delta, 1, T )
+      past_states_n  <- 2*chain_delta*.$wpars$mcmc$chains
+      past_states_ss <- cbind(
+                          sample((1:.$dataf$lps), past_states_n, F ),
+                          sample((1:.$dataf$lps), past_states_n, F )
+                        )
+  
+      # jump rate / scaling factor
+      #gamma_d        <- 2.38 / sqrt(2*chain_pairs_n*length(jump_pars_ss))
+      gamma_d        <- 2.38 / sqrt(2*chain_delta*length(jump_pars_ss))
+      gamma          <- sample(c(gamma_d,1), 1, T, c(1-.$wpars$mcmc$p_gamma, .$wpars$mcmc$p_gamma ))
+      #if(gamma==1) { jump_pars_ss <- 1:.$mcmc$pars_n; .$mcmc$CR[ii] <- NA }
+  
+      # compute 'jump' for params to be updated/crossover (differential evolution)
+      #lambda         <- runif(length(jump_pars_ss), -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
+      chain_diff     <- apply(.$dataf$past_states[jump_pars_ss,past_states_ss[,1],drop=F], 1, sum ) - 
+                        apply(.$dataf$past_states[jump_pars_ss,past_states_ss[,2],drop=F], 1, sum )
+      .$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+.$mcmc$lambda[ii])*gamma*chain_diff 
+      #.$mcmc$jump[jump_pars_ss,ii] <- .$wpars$mcmc$c_ergod*rnorm(length(jump_pars_ss)) + (1+lambda)*gamma*chain_diff 
+   
+   
+    # snooker update, orthogonal rather than parallel jump
+    } else {
+
+      # select 3 past states 
+      past_states_ss <- sample((1:.$dataf$lps), 3, F )
+  
+      # jump rate / scaling factor
+      gamma          <- 1.2 + runif(1) 
+      .$mcmc$CR[ii]  <- .$wpars$mcmc$n_CR
+      
+      # compute 'jump' for all parameters
+      # - taken from https://github.com/Zaijab/DREAM/blob/master/functions/offde.m 
+      Fv  <- t(.$mcmc$current_state[,ii] - .$dataf$past_states[,past_states_ss[1]])
+      D   <- pmax(Fv %*% t(Fv), 1e-20 )
+      chain_diff        <- Fv * as.numeric(sum((.$dataf$past_states[,past_states_ss[2]] - .$dataf$past_states[,past_states_ss[1]]) * Fv) / D )
+      .$mcmc$jump[,ii]  <- gamma*chain_diff 
+
+    }
+
+    .$dataf$pars[,ii] <- .$mcmc$current_state[,ii] + .$mcmc$jump[,ii]
   # chain loop
   }
 }
@@ -232,7 +326,7 @@ proposal_accept_mcmc_dream <- function(., prop_lklihood, curr_lklihood ) {
   alpha <- exp(prop_lklihood-curr_lklihood)
   alpha > runif(.$dataf$lp)
 }
-
+proposal_accept_mcmc_dreamzs <- proposal_accept_mcmc_dream 
 
 
 # outlier detection functions
@@ -241,6 +335,7 @@ proposal_accept_mcmc_dream <- function(., prop_lklihood, curr_lklihood ) {
 # no outlier handling for Markov chains
 mcmc_outlier_none <- function(.,j) {
   if(j==.$wpars$mcmc$maxiter) print('No option was chosen to identify outlier Markov chains.')
+  numeric(0)
 }
 
 

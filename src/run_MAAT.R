@@ -146,9 +146,11 @@ mcmc_conv           <- 'Gelman_Rubin'
 # MCMC option for parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
 boundary_handling  <- 'fold'
 # initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
-mcmc_prior          <- 'uniform'
+#mcmc_prior          <- 'uniform'
 # number of chains to run (minumum = 2 * mcmc_chain_delta + 1)
 mcmc_chains         <- 7
+# number of samples from prior distribution to initialise past_states, recommended 10 * number of estimated parameters  
+mcmc_prior_n        <- 40
 # number of iterations / steps in chain
 mcmc_maxiter        <- 1000
 # fraction of maxiter before convergence checking & adapt pCR  starts, not used when a restart 
@@ -162,12 +164,14 @@ mcmc_homosced       <- F
 # DREAM number chain pairs in proposal
 # - max number of chain pairs used to calculate the jump for each chain
 mcmc_chain_delta    <- 3
-# DREAM randomization (default value)
+# DREAM randomization, scalar noise
 mcmc_c_rand         <- 0.01
-# DREAM ergodicicty (default value)
-mcmc_c_ergod        <- 1e-12
+# DREAM ergodicicty, additive noise - should be small relative to width of posterior distribution
+mcmc_c_ergod        <- 1e-6
 # DREAM probability of unit jump rate (probability gamma = 1) (default value)
 mcmc_p_gamma        <- 0.2
+# DREAM-ZS probability of orthogonal 'snooker' update 
+mcmc_psnooker       <- 0.1
 # DREAM number of crossover values 
 mcmc_n_CR           <- 3
 # adapt probability of selecting crossover values
@@ -176,6 +180,8 @@ mcmc_adapt_pCR      <- T
 mcmc_CR_burnin      <- 1e4
 # checking for convergence and outlier chains every N iterations
 mcmc_check_iter     <- 10
+# every N iterations append past_states matrix with updated state on all chains
+mcmc_iterappend     <- 10
 
 
 
@@ -277,10 +283,11 @@ maat$wpars$mcmc$mcmc_type     <- mcmc_type
 maat$wpars$mcmc$lklihood      <- mcmc_lklihood
 maat$wpars$mcmc$outlier       <- mcmc_outlier
 maat$wpars$mcmc$boundary_handling <- boundary_handling
-maat$wpars$mcmc$prior         <- mcmc_prior
+#maat$wpars$mcmc$prior         <- mcmc_prior
 maat$wpars$mcmc$converge      <- mcmc_converge
 if(grepl('mcmc',runtype) & is.null(parsinit_mcmc)) { 
   maat$wpars$mcmc$chains        <- mcmc_chains
+  maat$wpars$mcmc$prior_n       <- mcmc_prior_n
   maat$wpars$mcmc$thin          <- mcmc_thin
   maat$wpars$mcmc$thin_obs      <- mcmc_thin_obs
   maat$wpars$mcmc$homosced      <- mcmc_homosced
@@ -288,6 +295,7 @@ if(grepl('mcmc',runtype) & is.null(parsinit_mcmc)) {
   maat$wpars$mcmc$c_rand        <- mcmc_c_rand
   maat$wpars$mcmc$c_ergod       <- mcmc_c_ergod
   maat$wpars$mcmc$p_gamma       <- mcmc_p_gamma
+  maat$wpars$mcmc$psnooker      <- mcmc_psnooker
   maat$wpars$mcmc$n_CR          <- mcmc_n_CR
   maat$wpars$mcmc$adapt_pCR     <- mcmc_adapt_pCR
   maat$wpars$mcmc$CR_burnin     <- mcmc_CR_burnin
@@ -298,6 +306,7 @@ if(grepl('mcmc',runtype) & is.null(parsinit_mcmc)) {
     if(mcmc_maxiter<12) mcmc_maxiter <- 12
   } 
   maat$wpars$mcmc$check_iter     <- mcmc_check_iter
+  maat$wpars$mcmc$iterappend     <- mcmc_iterappend
   maat$wpars$mcmc$maxiter        <- mcmc_maxiter
   maat$wpars$mcmc$preburnin_frac <- mcmc_preburnin_frac
 }
@@ -413,7 +422,7 @@ if(!is.null(parsinit_mcmc)) {
 
     # update beginning and end iteration counters
     maat$wpars$mcmc$start_iter      <- mcmc_restart_pars_dim[3] + 1
-    maat$mcmc$start_iter_thin       <- mcmc_restart_pars_dim[3]%%maat$wpars$mcmc$check_iter
+    #APW can delete: maat$mcmc$start_iter_thin       <- mcmc_restart_pars_dim[3]%%maat$wpars$mcmc$check_iter
     maat$wpars$mcmc$maxiter         <- mcmc_maxiter + mcmc_restart_pars_dim[3]
     maat$wpars$mcmc$maxiter_restart <- mcmc_maxiter
     print('',quote=F)

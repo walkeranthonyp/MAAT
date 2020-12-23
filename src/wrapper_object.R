@@ -49,12 +49,11 @@ wrapper_object$build <- function(., ... ) {
   # MCMC specific functions
   if(grepl('mcmc',.$wpars$runtype)) {
     .$init_mcmc             <- get(paste0('init_',.$wpars$runtype))
-    #.$mcmc_prior            <- get(paste0('mcmc_prior_', .$wpars$mcmc$prior))
+    .$proposal_generate     <- get(paste0('proposal_generate_',.$wpars$runtype))
+    .$proposal_accept       <- get(paste0('proposal_accept_',.$wpars$runtype))
     .$boundary_handling     <- get(paste0('boundary_handling_', .$wpars$mcmc$boundary_handling))
     .$boundary_handling_set <- boundary_handling_set
-    .$proposal_generate     <- get(paste0('proposal_generate_',.$wpars$runtype))
     .$proposal_lklihood     <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc$lklihood))
-    .$proposal_accept       <- get(paste0('proposal_accept_',.$wpars$runtype))
     .$mcmc_outlier          <- get(paste0('mcmc_outlier_', .$wpars$mcmc$outlier))
     .$mcmc_converge         <- get(paste0('mcmc_converge_', .$wpars$mcmc$converge))
   }
@@ -260,6 +259,7 @@ wrapper_object$dataf  <- list(
   lfB     = NULL,
   lp      = NULL,
   lpB     = NULL,
+  lps     = NULL,         # number of usable columns in MCMC past_states matrix
   le      = NULL,
   lm      = NULL,
   # output matrices / arrays
@@ -298,8 +298,9 @@ wrapper_object$wpars <- list(
     outlier         = 'iqr',
     mcmc_converge   = 'Gelman_Rubin',
     boundary_handling   = 'fold',
-    init_prior      = 'uniform',
+    #init_prior      = 'uniform',
     chains          = 7,
+    prior_n         = 40,          # number of samples from prior to initialise past_states
     maxiter         = 1000,
     maxiter_restart = numeric(1),
     preburnin_frac  = 0.1,
@@ -314,7 +315,8 @@ wrapper_object$wpars <- list(
     n_CR            = 3,           # max number of chain pairs used to calculate the jump for each chain
     adapt_pCR       = T,           # adapt probability of CR, switched off when CR_burnin iterations reached
     CR_burnin       = 1e4,         # if adapt_pCR & j_true<CR_burnin adapt cross-over probabilities 
-    check_iter      = 10           # check convergence for iterations 
+    check_iter      = 10,          # check convergence (and outliers) every check_iter iterations 
+    iterappend      = 10           # append past_states every iterappend iterations 
   )
 )
 
