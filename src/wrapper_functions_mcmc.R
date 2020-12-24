@@ -251,6 +251,7 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
   #.$mcmc$lambda[]        <- runif(.$dataf$lp, -.$wpars$mcmc$c_rand, .$wpars$mcmc$c_rand )
 
   # if adapting crossover values, compute standard deviation of each parameter/dimension
+  # APW: once adapt
   if(.$wpars$mcmc$adapt_pCR) {
     .$mcmc$sd_state[] <- apply(.$mcmc$current_state, 1, sd )
     .$mcmc$sd_state[.$mcmc$sd_state==0] <- 1e-9
@@ -276,10 +277,11 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
       #chain_pairs_ss <- t(sapply(1:chain_pairs_n, function(v) sample((1:.$dataf$lp)[-ii],2,F) ))
       chain_delta    <- sample(1:.$wpars$mcmc$chain_delta, 1, T )
       past_states_n  <- 2*chain_delta*.$wpars$mcmc$chains
-      past_states_ss <- cbind(
-                          sample((1:.$dataf$lps), past_states_n, F ),
-                          sample((1:.$dataf$lps), past_states_n, F )
-                        )
+#      past_states_ss <- cbind(
+#                          sample((1:.$dataf$lps), past_states_n, F ),
+#                          sample((1:.$dataf$lps), past_states_n, F )
+#                        )
+      past_states_ss <- t(sapply(1:past_states_n, function(v) sample((1:.$dataf$lps),2,F) ))
   
       # jump rate / scaling factor
       #gamma_d        <- 2.38 / sqrt(2*chain_pairs_n*length(jump_pars_ss))
@@ -299,7 +301,7 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
     } else {
 
       # select 3 past states 
-      past_states_ss <- sample((1:.$dataf$lps), 3, F )
+      past_states_ss <- sample(1:.$dataf$lps, 3, F )
   
       # jump rate / scaling factor
       gamma          <- 1.2 + runif(1) 
@@ -322,7 +324,7 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
 
 
 # proposal acceptance function for the DREAM algorithm
-# Metropolis acceptance probability
+# Metropolis acceptance probability - assumes likelihood is log-likelihood
 proposal_accept_mcmc_dream <- function(., prop_lklihood, curr_lklihood ) {
   alpha <- exp(prop_lklihood-curr_lklihood)
   alpha > runif(.$dataf$lp)
