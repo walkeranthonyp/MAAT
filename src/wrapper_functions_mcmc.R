@@ -278,7 +278,7 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
     for(ii in 1:.$dataf$lp) {
 
       # select 3 past states 
-      past_ss           <- c(draw[,ii], sample((1:past_states_n)[-draw[,ii]], 1 ) )
+      #past_ss           <- c(draw[,ii], sample((1:past_states_n)[-draw[,ii]], 1 ) )
       past_ss           <- sample(1:past_states_n, 3 ) 
       #past_ss           <- sample(1:.$dataf$lps, 3 ) 
   
@@ -413,7 +413,7 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
     sigma_hat    <- ((iter_effective-2)/iter_effective)*W + (2/iter_effective)*B
   
     # R-statistic of Gelman and Rubin
-    R_hat        <- sqrt(((.$wpars$mcmc$chains+1)/.$wpars$mcmc$chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc$chains*iter_effective)))
+    R_hat        <- sqrt( ((.$wpars$mcmc$chains+1)/.$wpars$mcmc$chains)*(sigma_hat/W) - ((iter_effective-2)/(.$wpars$mcmc$chains*iter_effective)) )
     R_hat        <- c(iter_effective, R_hat )
 
   } else {

@@ -242,7 +242,7 @@ runtype <-
   if(factorial) 'factorial'      else
   if(procSA)    'SAprocess_ye'   else
   if(salt)      'SApar_saltelli' else
-  if(mcmc)      paste0('mcmc_',mcmc_type)
+  if(mcmc)      'mcmc'
 
 print(paste('Run type:',runtype,'selected') ,quote=F)
 
@@ -279,13 +279,12 @@ maat$wpars$parsinit_read <- !is.null(parsinit_mcmc)
 
 # define MCMC run parameters (sublist of wpars)
 # APW: if statement doesn't work for all MCMC functions as maat builds immediately after this before the restart can be read, fix 
-maat$wpars$mcmc$mcmc_type     <- mcmc_type
-maat$wpars$mcmc$lklihood      <- mcmc_lklihood
-maat$wpars$mcmc$outlier       <- mcmc_outlier
+maat$wpars$mcmc$mcmc_type         <- mcmc_type
+maat$wpars$mcmc$lklihood          <- mcmc_lklihood
+maat$wpars$mcmc$outlier           <- mcmc_outlier
 maat$wpars$mcmc$boundary_handling <- boundary_handling
-#maat$wpars$mcmc$prior         <- mcmc_prior
-maat$wpars$mcmc$converge      <- mcmc_converge
-if(grepl('mcmc',runtype) & is.null(parsinit_mcmc)) { 
+maat$wpars$mcmc$converge          <- mcmc_converge
+if((runtype=='mcmc') & is.null(parsinit_mcmc)) { 
   maat$wpars$mcmc$chains        <- mcmc_chains
   maat$wpars$mcmc$prior_n       <- mcmc_prior_n
   maat$wpars$mcmc$thin          <- mcmc_thin
@@ -371,7 +370,7 @@ maat$init_dynamic <- init_dynamic
 
 
 # get mcmc filename, delete history files if not a restart and they exist
-if(grepl('mcmc',runtype)) {
+if(runtype=='mcmc') {
   maat$wpars$of_name <- paste(ofname, 'mcmc', sep='_' )
   if(is.null(parsinit_mcmc)) {
     setwd(odir)
@@ -519,15 +518,6 @@ if(!is.null(metdata)) {
 
     print(head(metdf), quote=F )
 
-    ###################################
-    # future work: add eval data to model object - total hack for now
-    # for Sphagnum simulations
-    # maat$dataf$obs    <- metdf$GPP.PAR.ecor.real
-    # maat$dataf$obsse  <- metdf$GPP.PAR.ecor.real.se
-    # for ACi simulations
-    # maat$dataf$obs <- metdf$A
-    ###################################
-
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
     # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML
     cols  <- match(unlist(sapply(met_trans,function(l) l)),names(metdf))
@@ -606,20 +596,15 @@ if(!is.null(evaldata)&T) {
   setwd(edir)
 
   if(evaldata=='metdata') {
-    #evaldf <- metdf
     evaldfobs <- metdf
     rm(metdf)
 
   } else if(file.exists(evaldata)&!kill) {
     print(evaldata, quote=F )
-    #evaldf   <- read.csv(evaldata,strip.white=T)
     evaldfobs   <- read.csv(evaldata,strip.white=T)
-    #print(head(evaldf), quote=F )
     print(head(evaldfobs), quote=F )
 
     # check met and eval data sets are of same length
-    # ALJ: check 1st dimension of eval data set instead of second
-    #if(dim(maat$dataf$met)[2]!=dim(evaldf)[2])
     if(dim(maat$dataf$met)[2]!=dim(evaldfobs)[1])
       stop(paste('Eval data not same length as met data: check equal length of files:', evaldata, metdata ))
 
@@ -634,9 +619,7 @@ if(!is.null(evaldata)&T) {
 
   # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML
   # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML
-  #cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldf))
   cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldfobs))
-  #evaldf <- evaldf[,cols] # if a single column will be dropped to a vector
   evaldf <- evaldfobs[,cols] # if a single column will be dropped to a vector
 
   # add to MAAT object
@@ -647,19 +630,12 @@ if(!is.null(evaldata)&T) {
     print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"')
 
     # extract se data
-    #cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldf),'se',sep='.'))
-    #cols     <- match(unlist(sapply(eval_trans,function(l) l)),paste(names(evaldfobs),'se',sep='.'))
-    cols     <- match(paste(unlist(sapply(eval_trans,function(l) l)),'se',sep='.'), names(evaldfobs))
-
-    #evaldfse <- evaldf[,cols]
-    evaldfse <- evaldfobs[,cols]
-
-    # add to MAAT object
+    cols             <- match(paste(unlist(sapply(eval_trans,function(l) l)),'se',sep='.'), names(evaldfobs))
+    evaldfse         <- evaldfobs[,cols]
     maat$dataf$obsse <- evaldfse
   }
 
   # remove eval data file
-  #rm(evaldf)
   rm(evaldfobs)
 }
 

@@ -33,8 +33,7 @@ wrapper_object$build <- function(., ... ) {
   # - a set of if/else statements to initialise the wrapper functions with specific functions
   # - could be built around get paste type setup based on runtype argument
   .$generate_ensemble_pars <- get(paste0('generate_ensemble_pars_',.$wpars$runtype))
-  #.$init_output_matrix     <- get(paste0('init_output_matrix_',.$wpars$runtype))
-  .$init_output_matrix     <- get(paste0('init_output_matrix_mcmc'))
+  .$init_output_matrix     <- get(paste0('init_output_matrix_',.$wpars$runtype))
   .$write_output           <- get(paste0('write_output_',.$wpars$runtype))
   .$output                 <- get(paste0('output_',.$wpars$runtype))
   .$run0                   <- get(paste0('run0_',.$wpars$runtype))
@@ -48,10 +47,9 @@ wrapper_object$build <- function(., ... ) {
   .$run8                   <- get(paste0('run8_',.$wpars$runtype))
 
   # MCMC specific functions
-  if(grepl('mcmc',.$wpars$runtype)) {
-    #.$init_mcmc              <- get(paste0('init_',.$wpars$runtype))
-    .$proposal_generate      <- get(paste0('proposal_generate_',.$wpars$runtype))
-    .$proposal_accept        <- get(paste0('proposal_accept_',.$wpars$runtype))
+  if(.$wpars$runtype=='mcmc') {
+    .$proposal_generate      <- get(paste0('proposal_generate_mcmc_',.$wpars$mcmc$mcmc_type))
+    .$proposal_accept        <- get(paste0('proposal_accept_mcmc_',.$wpars$mcmc$mcmc_type))
     .$boundary_handling      <- get(paste0('boundary_handling_', .$wpars$mcmc$boundary_handling))
     .$boundary_handling_set  <- boundary_handling_set
     .$proposal_lklihood      <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc$lklihood))
@@ -86,7 +84,7 @@ wrapper_object$run   <- function(.,verbose=T) {
 
   # Initialise
   if(!.$wpars$unit_testing) {
-    if(.$wpars$runtype=='SAprocess_ye' | grepl('mcmc',.$wpars$runtype))  .$wpars$eval_strings <- T
+    if(.$wpars$runtype=='SAprocess_ye' | .$wpars$runtype=='mcmc')  .$wpars$eval_strings <- T
     .$init()
   } else {
     .$wpars$of_dir       <- '~/tmp'
@@ -181,7 +179,7 @@ wrapper_object$init <- function(.) {
     }
   }
 
-  if(.$wpars$UQ | grepl('mcmc',.$wpars$runtype)) .$init_uq()
+  if(.$wpars$UQ | (.$wpars$runtype=='mcmc')) .$init_uq()
 }
 
 
@@ -929,21 +927,21 @@ wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
   library(lattice)
   # build wrapper and the model object
   .$wpars$UQ      <- T
-  .$wpars$runtype <- paste0('mcmc_',mcmc_type)
+  .$wpars$runtype <- 'mcmc'
   .$wpars$mod_obj <- 'mcmc_test'
 
   # define control parameters
-  .$wpars$unit_testing  <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions)
-  .$wpars$verbose       <- verbose
-  .$wpars$cverbose      <- cverbose
-  .$wpars$multic        <- mc           # multicore the ensemble
-  .$wpars$procs         <- pr           # number of cores to use if above is true
-  .$wpars$UQ            <- T            # run a UQ/SA style ensemble
-  .$wpars$UQtype        <- 'mcmc'       # MCMC ensemble
-  .$wpars$mcmc$type     <- mcmc_type    # MCMC type, 'demc' or 'dream'
-  .$wpars$mcmc$chains   <- mcmc_chains  # MCMC number of chains
-  .$wpars$mcmc$maxiter  <- mcmc_maxiter # MCMC max number of steps / iterations on each chain
-  .$wpars$mcmc$lklihood <- 'log'        # MCMC likelihood function
+  .$wpars$unit_testing   <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions)
+  .$wpars$verbose        <- verbose
+  .$wpars$cverbose       <- cverbose
+  .$wpars$multic         <- mc           # multicore the ensemble
+  .$wpars$procs          <- pr           # number of cores to use if above is true
+  .$wpars$UQ             <- T            # run a UQ/SA style ensemble
+  .$wpars$UQtype         <- 'mcmc'       # MCMC ensemble
+  .$wpars$mcmc$mcmc_type <- mcmc_type    # MCMC type, 'demc' or 'dream'
+  .$wpars$mcmc$chains    <- mcmc_chains  # MCMC number of chains
+  .$wpars$mcmc$maxiter   <- mcmc_maxiter # MCMC max number of steps / iterations on each chain
+  .$wpars$mcmc$lklihood  <- 'log'        # MCMC likelihood function
   .$build(mod_out='mixture', switches=c(diag,verbose,cverbose) )
 
   # set model system function
@@ -1020,7 +1018,7 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_cha
   library(lattice)
   # build wrapper and the model object
   .$wpars$UQ      <- T
-  .$wpars$runtype <- paste0('mcmc_',mcmc_type)
+  .$wpars$runtype <- 'mcmc'
   .$wpars$mod_obj <- 'mcmc_test'
 
   # define control parameters
@@ -1032,10 +1030,10 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_cha
   .$wpars$procs         <- pr            # number of cores to use if above is true
   .$wpars$UQ            <- T             # run a UQ/SA style ensemble
   .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble
-  .$wpars$mcmc$type     <- mcmc_type     # MCMC type, 'demc' or 'dream'
-  .$wpars$mcmc$chains   <- mcmc_chains   # MCMC number of chains
-  .$wpars$mcmc$homosced <- mcmc_homosced # MCMC homoscedastic error
-  .$wpars$mcmc$maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
+  .$wpars$mcmc$mcmc_type <- mcmc_type     # MCMC type, 'demc' or 'dream'
+  .$wpars$mcmc$chains    <- mcmc_chains   # MCMC number of chains
+  .$wpars$mcmc$homosced  <- mcmc_homosced # MCMC homoscedastic error
+  .$wpars$mcmc$maxiter   <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
   .$build(mod_out='regression', switches=c(diag,verbose,cverbose) )
 
   # Define static variables
