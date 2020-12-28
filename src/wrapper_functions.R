@@ -797,30 +797,7 @@ run2_mcmc_dream <- function(.,j) {
   # update the selection probability of crossover probabilities/values
   if(!.$wpars$parsinit_read)
     if(j==ceiling(.$wpars$mcmc$maxiter*.$wpars$mcmc$preburnin_frac) & .$wpars$mcmc$adapt_pCR ) .$mcmc$adapt_pCR <- T
-  # debugging
-#  if(.$wpars$mcmc$adapt_pCR) {
-#    print('')
-#    print('.$mcmc$CR'); print(.$mcmc$CR)
-#    print('.$mcmc$CR_counter'); print(.$mcmc$CR_counter)
-#    print('.$mcmc$sd_state'); print(.$mcmc$sd_state)
-#    print('.$mcmc$jump_delta_norm'); print(.$mcmc$jump_delta_norm)
-#  }
-  if(.$mcmc$adapt_pCR) {
-    .$mcmc$p_CR[] <- .$mcmc$j_true*.$wpars$mcmc$chains * (.$mcmc$jump_delta_norm/.$mcmc$CR_counter) / sum(.$mcmc$jump_delta_norm)
-    .$mcmc$p_CR[] <- .$mcmc$p_CR/sum(.$mcmc$p_CR)
-#    # debugging
-#    print('');  print('adapt_pCR calculation')
-#    print('.$mcmc$j_true'); print(.$mcmc$j_true)
-#    print('.$mcmc$CR_counter'); print(.$mcmc$CR_counter)
-#    print('.$mcmc$jump_delta_norm'); print(.$mcmc$jump_delta_norm)
-#    print('.$mcmc$p_CR'); print(.$mcmc$p_CR)
-
-    if(.$mcmc$j_true==.$wpars$mcmc$CR_burnin) {
-      print('',quote=F); print('',quote=F)
-      print(paste0('Adapted selection probabilities of crossover values, at iteration, ',.$mcmc$j_true,':'),quote=F); print(.$mcmc$p_CR,quote=F)
-      .$wpars$mcmc$adapt_pCR[] <- .$mcmc$adapt_pCR[] <- F
-    }
-  }
+  if(.$mcmc$adapt_pCR) .$mcmc_adapt_pCR() 
 
   
   # append history matrix
@@ -845,35 +822,13 @@ run2_mcmc_dream <- function(.,j) {
       else                                                 j - ceiling((j+.$wpars$mcmc$start_iter-1)/2) + 1
 
     # test for and handle outlier chains 
-    # - if identified, burnin restarted
     outliers <- .$mcmc_outlier(j=j)
-    if(length(outliers)>0) {
-      print('',quote=F)
-      print(paste('Outlier chain(s) detected. Chain(s):', outliers, 'at iteration:', .$mcmc$j_true ), quote=F )
-  
-      # replace outlier chain(s) & likelihood history for next iqr calculation
-      replace_ss <- sample((1:.$wpars$mcmc$chains)[-outliers], length(outliers) )
-      .$dataf$pars_array[1:.$mcmc$pars_n,outliers,j] <- .$dataf$pars_array[1:.$mcmc$pars_n,replace_ss,j]
-      .$dataf$pars_lklihood[outliers,j]              <- .$dataf$pars_lklihood[replace_ss,j]
-  
-      # restart burn-in
-      .$mcmc$outlier_detected <- T
-      .$mcmc$j_start_burnin   <- j + 1
-      .$mcmc$j_burnin50       <- j
-    }
+    if(length(outliers)>0) .$mcmc_outlier_handling(outliers, j ) 
 
     # test for convergence
     R_hat <- .$mcmc_converge(j=j)
     .$dataf$conv_check[,.$mcmc$check_ss] <- c(.$mcmc$j_true, j, R_hat )
-    if(j==.$wpars$mcmc$maxiter) {
-      names(R_hat)[1] <- 'iterations since outlier detection'
-      print('',quote=F); print('',quote=F)
-      print(paste("At (final) iteration:", .$mcmc$j_true, ", R-statistic of Gelman and Rubin:"), quote=F )
-      print(R_hat,quote=F); print('',quote=F)
-      R_hat <- R_hat[2:length(R_hat)]
-      if((sum(R_hat<1.2)) == length(R_hat)) print('ALL PARAMETERS CONVERGED.',quote=F) else print('NON-CONVERGENCE, RESTART RECOMMENDED.',quote=F)
-      print('',quote=F); print('',quote=F); print('',quote=F)
-    }
+    if(j==.$wpars$mcmc$maxiter) .$mcmc_handle_iter_final(R_hat)
   }
 
 

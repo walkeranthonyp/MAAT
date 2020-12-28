@@ -325,6 +325,33 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
 }
 
 
+# Adapt the probability of selecting a specific 'crossover' value
+# - i.e. fraction of parameters (on average) that are updated for each proposal
+adapt_pCR <- function(.) {
+
+  .$mcmc$p_CR[] <- .$mcmc$j_true*.$wpars$mcmc$chains * (.$mcmc$jump_delta_norm/.$mcmc$CR_counter) / sum(.$mcmc$jump_delta_norm)
+  .$mcmc$p_CR[] <- .$mcmc$p_CR/sum(.$mcmc$p_CR)
+
+#   # debugging
+#   print('');  print('adapt_pCR calculation')
+#   print('.$mcmc$CR'); print(.$mcmc$CR)
+#   print('.$mcmc$CR_counter'); print(.$mcmc$CR_counter)
+#   print('.$mcmc$sd_state'); print(.$mcmc$sd_state)
+#   print('.$mcmc$jump_delta_norm'); print(.$mcmc$jump_delta_norm)
+#   print('')
+#   print('.$mcmc$j_true'); print(.$mcmc$j_true)
+#   print('.$mcmc$CR_counter'); print(.$mcmc$CR_counter)
+#   print('.$mcmc$jump_delta_norm'); print(.$mcmc$jump_delta_norm)
+#   print('.$mcmc$p_CR'); print(.$mcmc$p_CR)
+
+  if(.$mcmc$j_true==.$wpars$mcmc$CR_burnin) {
+    print('',quote=F); print('',quote=F)
+    print(paste0('Adapted selection probabilities of crossover values, at iteration, ',.$mcmc$j_true,':'),quote=F); print(.$mcmc$p_CR,quote=F)
+    .$wpars$mcmc$adapt_pCR[] <- .$mcmc$adapt_pCR[] <- F
+  }
+}
+
+
 
 # proposal acceptance functions
 #####################################
@@ -349,7 +376,7 @@ mcmc_outlier_none <- function(.,j) {
 }
 
 
-# function that detects and corrects outlier Markov chains using the Inter Quartile-Range (IQR) statistic (Vrugt et al 2011)
+# function that detects outlier Markov chains using the Inter Quartile-Range (IQR) statistic (Vrugt et al 2011)
 # - based on IQR across chains mean log posterior densities of last 50 % of burnin
 # - all current likelihood functions return log-likelihood, so log likelihood not taken here
 mcmc_outlier_iqr <- function(.,j) {
@@ -358,6 +385,25 @@ mcmc_outlier_iqr <- function(.,j) {
   q1q3     <- quantile(.$dataf$omega[1:.$wpars$mcmc$chains,.$mcmc$check_ss], prob=c(0.25,0.75), type=1 )
   iqr      <- q1q3[2]-q1q3[1]
   which(.$dataf$omega[,.$mcmc$check_ss] < (q1q3[1]-2*iqr))
+}
+
+
+# handle detected outliers
+# - burnin restarted
+mcmc_outlier_handling <- function(., outliers, j ) {
+  
+  print('',quote=F)
+  print(paste('Outlier chain(s) detected. Chain(s):', outliers, 'at iteration:', .$mcmc$j_true ), quote=F )
+  
+  # replace outlier chain(s) & likelihood history for next iqr calculation
+  replace_ss <- sample((1:.$wpars$mcmc$chains)[-outliers], length(outliers) )
+  .$dataf$pars_array[1:.$mcmc$pars_n,outliers,j] <- .$dataf$pars_array[1:.$mcmc$pars_n,replace_ss,j]
+  .$dataf$pars_lklihood[outliers,j]              <- .$dataf$pars_lklihood[replace_ss,j]
+  
+  # restart burn-in
+  .$mcmc$outlier_detected <- T
+  .$mcmc$j_start_burnin   <- j + 1
+  .$mcmc$j_burnin50       <- j
 }
 
 
@@ -403,6 +449,21 @@ mcmc_converge_Gelman_Rubin <- function(.,j) {
 
   R_hat
 }
+
+
+# final iteration handline
+mcmc_handle_iter_final <- function(., R_hat ) {
+
+  names(R_hat)[1] <- 'iterations since outlier detection'
+  print('',quote=F); print('',quote=F)
+  print(paste("At (final) iteration:", .$mcmc$j_true, ", R-statistic of Gelman and Rubin:"), quote=F )
+  print(R_hat,quote=F); print('',quote=F)
+
+  R_hat <- R_hat[2:length(R_hat)]
+  if((sum(R_hat<1.2)) == length(R_hat)) print('ALL PARAMETERS CONVERGED.',quote=F)
+  else                                  print('NON-CONVERGENCE, RESTART RECOMMENDED.',quote=F)
+  print('',quote=F); print('',quote=F); print('',quote=F)
+} 
 
 
 

@@ -48,14 +48,17 @@ wrapper_object$build <- function(., ... ) {
 
   # MCMC specific functions
   if(grepl('mcmc',.$wpars$runtype)) {
-    .$init_mcmc             <- get(paste0('init_',.$wpars$runtype))
-    .$proposal_generate     <- get(paste0('proposal_generate_',.$wpars$runtype))
-    .$proposal_accept       <- get(paste0('proposal_accept_',.$wpars$runtype))
-    .$boundary_handling     <- get(paste0('boundary_handling_', .$wpars$mcmc$boundary_handling))
-    .$boundary_handling_set <- boundary_handling_set
-    .$proposal_lklihood     <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc$lklihood))
-    .$mcmc_outlier          <- get(paste0('mcmc_outlier_', .$wpars$mcmc$outlier))
-    .$mcmc_converge         <- get(paste0('mcmc_converge_', .$wpars$mcmc$converge))
+    .$init_mcmc              <- get(paste0('init_',.$wpars$runtype))
+    .$proposal_generate      <- get(paste0('proposal_generate_',.$wpars$runtype))
+    .$proposal_accept        <- get(paste0('proposal_accept_',.$wpars$runtype))
+    .$boundary_handling      <- get(paste0('boundary_handling_', .$wpars$mcmc$boundary_handling))
+    .$boundary_handling_set  <- boundary_handling_set
+    .$proposal_lklihood      <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc$lklihood))
+    .$mcmc_outlier           <- get(paste0('mcmc_outlier_', .$wpars$mcmc$outlier))
+    .$mcmc_outlier_handling  <- mcmc_outlier_handling  
+    .$mcmc_converge          <- get(paste0('mcmc_converge_', .$wpars$mcmc$converge))
+    .$mcmc_handle_iter_final <- mcmc_handle_iter_final 
+    .$mcmc_adapt_pCR         <- adapt_pCR
   }
 
   # build model
