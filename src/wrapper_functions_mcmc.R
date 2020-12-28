@@ -143,33 +143,6 @@ f_proposal_lklihood_ssquared_se <- function(.) {
 # Proposal generation functions
 ################################
 
-# initialisation of DREAM algorithm
-# APW: could move this to main mcmc init output matrix function, perhaps with an mcmc type-specific sub function
-init_mcmc_dream <- function(.) {
-
-  # number of parameters being estimated
-  .$mcmc$pars_n   <- dim(.$dataf$pars)[1]
-  .$mcmc$sd_state <- numeric(.$mcmc$pars_n)
-
-  # preallocate memory space for algorithmic variables
-  .$mcmc$current_state <- matrix(0, nrow=.$mcmc$pars_n, ncol=.$wpars$mcmc$chains )
-  .$mcmc$jump          <- matrix(0, nrow=.$mcmc$pars_n, ncol=.$wpars$mcmc$chains )
-  .$mcmc$lambda        <- numeric(.$wpars$mcmc$chains)
-
-  # initialise crossover variables if not a restart
-  if(!.$wpars$parsinit_read) {
-    .$mcmc$CR_counter      <- numeric(.$wpars$mcmc$n_CR)
-    .$mcmc$jump_delta_norm <- numeric(.$wpars$mcmc$n_CR)
-    .$mcmc$p_CR            <- numeric(.$wpars$mcmc$n_CR)
-    # initial probability of each crossover value
-    .$mcmc$p_CR[]          <- 1/.$wpars$mcmc$n_CR
-    .$mcmc$CR              <- numeric(.$wpars$mcmc$chains)
-  }
-}
-# APW: could add past_state initialisation to here, 
-init_mcmc_dreamzs <- init_mcmc_dream 
-
-
 # generate proposal using DREAM algorithm (Vrugt et al. 2011)
 proposal_generate_mcmc_dream <- function(.,j) {
   # - gamma = gamma in V2011
@@ -259,7 +232,7 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
   past_states_ss     <- sample(1:.$dataf$lps, past_states_n, F ) 
   past_states_sample <- .$dataf$past_states[,past_states_ss]
   chain_delta        <- sample(1:.$wpars$mcmc$chain_delta, .$wpars$mcmc$chains, T )
-  past_ss            <- numeric(4)
+  #past_ss            <- numeric(4)
 
   # create proposals for each chain
   if(runif(1)>.$wpars$mcmc$psnooker) {
@@ -276,10 +249,10 @@ proposal_generate_mcmc_dreamzs <- function(.,j) {
       if(length(jump_pars_ss)==0) jump_pars_ss <- which.min(zz)
   
       # subscripts for past_states_sample
-      past_ss[1]     <- past_ss[4] + 1
-      past_ss[2]     <- past_ss[1] + chain_delta[ii] - 1
-      past_ss[3]     <- past_ss[2] + 1
-      past_ss[4]     <- past_ss[3] + chain_delta[ii] - 1
+      #past_ss[1]     <- past_ss[4] + 1
+      #past_ss[2]     <- past_ss[1] + chain_delta[ii] - 1
+      #past_ss[3]     <- past_ss[2] + 1
+      #past_ss[4]     <- past_ss[3] + chain_delta[ii] - 1
       past_ss        <- t(sapply(1:chain_delta[ii], function(v) sample(1:past_states_n,2,F) ))
       #past_ss        <- t(sapply(1:chain_delta[ii], function(v) sample(1:.$dataf$lps,2,F) ))
   

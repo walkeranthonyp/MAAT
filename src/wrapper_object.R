@@ -33,7 +33,8 @@ wrapper_object$build <- function(., ... ) {
   # - a set of if/else statements to initialise the wrapper functions with specific functions
   # - could be built around get paste type setup based on runtype argument
   .$generate_ensemble_pars <- get(paste0('generate_ensemble_pars_',.$wpars$runtype))
-  .$init_output_matrix     <- get(paste0('init_output_matrix_',.$wpars$runtype))
+  #.$init_output_matrix     <- get(paste0('init_output_matrix_',.$wpars$runtype))
+  .$init_output_matrix     <- get(paste0('init_output_matrix_mcmc'))
   .$write_output           <- get(paste0('write_output_',.$wpars$runtype))
   .$output                 <- get(paste0('output_',.$wpars$runtype))
   .$run0                   <- get(paste0('run0_',.$wpars$runtype))
@@ -48,7 +49,7 @@ wrapper_object$build <- function(., ... ) {
 
   # MCMC specific functions
   if(grepl('mcmc',.$wpars$runtype)) {
-    .$init_mcmc              <- get(paste0('init_',.$wpars$runtype))
+    #.$init_mcmc              <- get(paste0('init_',.$wpars$runtype))
     .$proposal_generate      <- get(paste0('proposal_generate_',.$wpars$runtype))
     .$proposal_accept        <- get(paste0('proposal_accept_',.$wpars$runtype))
     .$boundary_handling      <- get(paste0('boundary_handling_', .$wpars$mcmc$boundary_handling))

@@ -185,70 +185,37 @@ init_output_matrix_SAprocess_ye <- function(.) {
 }
 
 
-init_output_matrix_mcmc_dream <- function(.) {
+init_output_matrix_mcmc <- function(.) {
 
-  # initialise accepted proposal & likelihood arrays
-  .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc$maxiter ))
-  # APW: parameter names could be associated with dimnames of the array sooner, i.e. for all runtypes 
-  row.names(.$dataf$pars_array) <- row.names(.$dataf$pars)
-  .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc$chains, .$wpars$mcmc$maxiter )
+  # number of parameters being estimated
+  .$mcmc$pars_n   <- dim(.$dataf$pars)[1]
+  .$mcmc$sd_state <- numeric(.$mcmc$pars_n)
 
-  # initialise output matricies
-  .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm )
-  .$dataf$out_mcmc      <- array(0, dim=c(.$dataf$lm, .$dataf$lp, .$wpars$mcmc$maxiter ))
+  # preallocate memory space for algorithmic variables
+  .$mcmc$current_state <- matrix(0, nrow=.$mcmc$pars_n, ncol=.$wpars$mcmc$chains )
+  .$mcmc$jump          <- matrix(0, nrow=.$mcmc$pars_n, ncol=.$wpars$mcmc$chains )
+  .$mcmc$lambda        <- numeric(.$wpars$mcmc$chains)
 
-  # initialise matricies for storing outlier & convergence diagnostics
-  check_iter_n <-
-    if(!.$wpars$parsinit_read) { 
-      ceiling(.$wpars$mcmc$maxiter*(1-.$wpars$mcmc$preburnin_frac) / .$wpars$mcmc$check_iter )
+  # initialise past state array, reconfigure pars array 
+  # - for DREAM-ZS
+  if(.$wpars$mcmc$mcmc_type=='dreamzs') {
+    if(!.$wpars$parsinit_read) {
+      lps     <- NULL
+      lps_new <- dim(.$dataf$pars)[2] + .$wpars$mcmc$chains*floor(.$wpars$mcmc$maxiter/.$wpars$mcmc$iterappend)
+      .$dataf$past_states    <- matrix(1, dim(.$dataf$pars)[1], lps_new )
+      .$dataf$past_states[,1:.$wpars$mcmc$prior_n] <- .$dataf$pars
+      .$dataf$pars           <- .$dataf$pars[,(.$wpars$mcmc$prior_n-.$wpars$mcmc$chains+1):.$wpars$mcmc$prior_n]
+      .$dataf$lps            <- .$wpars$mcmc$prior_n
+      .$dataf$lp             <- .$wpars$mcmc$chains
+
+    # a restart  
     } else {
-      cin <- dim(.$dataf$mcmc_input$conv_check)[2] 
-      cin <- cin + floor(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) - floor(.$wpars$mcmc$start_iter/.$wpars$mcmc$check_iter)
-      if(.$wpars$mcmc$maxiter%%.$wpars$mcmc$check_iter!=0) cin <- cin + 1
-      cin
+      lps     <- dim(.$dataf$mcmc_input$past_states)[2]
+      lps_new <- lps + .$wpars$mcmc$chains*floor(.$wpars$mcmc$maxiter_restart/.$wpars$mcmc$iterappend)
+      .$dataf$past_states         <- matrix(1, dim(.$dataf$pars)[1], lps_new )
+      .$dataf$lps                 <- lps 
+      .$dataf$past_states[,1:lps] <- .$dataf$mcmc_input$past_states
     }
-  .$dataf$omega         <- matrix(NA, .$wpars$mcmc$chains, check_iter_n )
-  .$dataf$conv_check    <- matrix(0, ncol=check_iter_n, nrow=(dim(.$dataf$pars)[1]+3) )
-
-  # if a restart assign values from restart
-  if(.$wpars$parsinit_read) {
-#    print('dim dataf pars array:')
-#    print(dim(.$dataf$pars_array))
-#    print('start iter:')
-#    print(.$wpars$mcmc$start_iter)   
-#    print('mcmc input pars_array:')
-#    print(.$dataf$mcmc_input$pars_array)
-    
-    # ALJ: could try to find more efficient way to store/read in model evaluations
-    .$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
-    .$dataf$pars_array[,,1:.$wpars$mcmc$start_iter-1]   <- .$dataf$mcmc_input$pars_array
-    .$dataf$pars_lklihood[,1:.$wpars$mcmc$start_iter-1] <- .$dataf$mcmc_input$pars_lklihood
-    .$mcmc$check_ss                        <- dim(.$dataf$mcmc_input$conv_check)[2]
-    .$dataf$conv_check[,1:.$mcmc$check_ss] <- .$dataf$mcmc_input$conv_check
-    .$dataf$omega[,1:.$mcmc$check_ss]      <- .$dataf$mcmc_input$omega
-    .$dataf$mcmc_input <- NULL
-  }
-}
-
-#init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream
-
-init_output_matrix_mcmc_dreamzs <- function(.) {
-
-  # initialise past state array, initialise chains
-  # APW: could add this to MCMC init function if that call is moved to run0  
-  if(.$wpars$parsinit_read) {
-    lps     <- dim(.$dataf$mcmc_input$past_states)[2]
-    lps_new <- lps + .$wpars$mcmc$chains*floor(.$wpars$mcmc$maxiter_restart/.$wpars$mcmc$iterappend)
-    .$dataf$past_states    <- matrix(1, dim(.$dataf$pars)[1], lps_new )
-    .$dataf$lps            <- lps 
-  } else {
-    lps     <- NULL
-    lps_new <- dim(.$dataf$pars)[2] + .$wpars$mcmc$chains*floor(.$wpars$mcmc$maxiter/.$wpars$mcmc$iterappend)
-    .$dataf$past_states    <- matrix(1, dim(.$dataf$pars)[1], lps_new )
-    .$dataf$past_states[,1:.$wpars$mcmc$prior_n] <- .$dataf$pars
-    .$dataf$pars           <- .$dataf$pars[,(.$wpars$mcmc$prior_n-.$wpars$mcmc$chains+1):.$wpars$mcmc$prior_n]
-    .$dataf$lps            <- .$wpars$mcmc$prior_n
-    .$dataf$lp             <- .$wpars$mcmc$chains
   }
 
   # initialise accepted proposal & likelihood arrays
@@ -271,26 +238,27 @@ init_output_matrix_mcmc_dreamzs <- function(.) {
       if(.$wpars$mcmc$maxiter%%.$wpars$mcmc$check_iter!=0) cin <- cin + 1
       cin
     }
-  #.$dataf$omega         <- matrix(NA, .$wpars$mcmc$chains, check_iter_n )
+  .$dataf$omega         <- matrix(NA, .$wpars$mcmc$chains, check_iter_n )
   .$dataf$conv_check    <- matrix(0, ncol=check_iter_n, nrow=(dim(.$dataf$pars)[1]+3) )
 
-  # if a restart assign values from restart
-  if(.$wpars$parsinit_read) {
-#    print('dim dataf pars array:')
-#    print(dim(.$dataf$pars_array))
-#    print('start iter:')
-#    print(.$wpars$mcmc$start_iter)   
-#    print('mcmc input pars_array:')
-#    print(.$dataf$mcmc_input$pars_array)
-    
-    # ALJ: could try to find more efficient way to store/read in model evaluations
+  # initialise crossover variables if not a restart
+  if(!.$wpars$parsinit_read) {
+    .$mcmc$CR_counter      <- numeric(.$wpars$mcmc$n_CR)
+    .$mcmc$jump_delta_norm <- numeric(.$wpars$mcmc$n_CR)
+    .$mcmc$p_CR            <- numeric(.$wpars$mcmc$n_CR)
+    .$mcmc$p_CR[]          <- 1/.$wpars$mcmc$n_CR
+    .$mcmc$CR              <- numeric(.$wpars$mcmc$chains)
+  
+  # assign values from restart
+  } else {
+
     .$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
     .$dataf$pars_array[,,1:.$wpars$mcmc$start_iter-1]   <- .$dataf$mcmc_input$pars_array
     .$dataf$pars_lklihood[,1:.$wpars$mcmc$start_iter-1] <- .$dataf$mcmc_input$pars_lklihood
-    .$dataf$past_states[,1:lps]            <- .$dataf$mcmc_input$past_states
     .$mcmc$check_ss                        <- dim(.$dataf$mcmc_input$conv_check)[2]
     .$dataf$conv_check[,1:.$mcmc$check_ss] <- .$dataf$mcmc_input$conv_check
-    #.$dataf$omega[,1:.$mcmc$check_ss]      <- .$dataf$mcmc_input$omega
+    .$dataf$omega[,1:.$mcmc$check_ss]      <- .$dataf$mcmc_input$omega
+
     .$dataf$mcmc_input <- NULL
   }
 }
@@ -699,9 +667,9 @@ run0_mcmc_dream <- function(.) {
   # if more than one model output has been specified, stop
   if(length(.$dataf$mout)!=1) stop('No current method to run MCMC with multiple model outputs')
 
-  # initialise output array
+  # initialise output arrays & other MCMC data structures
   .$init_output_matrix()
-  .$init_mcmc()
+  #.$init_mcmc()
 
   # call run function
   #if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$run1, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
