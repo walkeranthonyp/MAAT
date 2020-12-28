@@ -167,7 +167,7 @@ mcmc_chain_delta    <- 3
 # DREAM randomization, scalar noise - fraction of jump
 mcmc_c_rand         <- 0.01
 # DREAM ergodicicty, additive noise - should be small relative to width of posterior distribution
-mcmc_c_ergod        <- 1e-6
+mcmc_c_ergod        <- 1e-12
 # DREAM probability of unit jump rate (probability gamma = 1) (default value)
 mcmc_p_gamma        <- 0.2
 # DREAM-ZS probability of orthogonal 'snooker' update 

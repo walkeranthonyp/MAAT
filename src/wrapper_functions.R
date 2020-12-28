@@ -189,7 +189,7 @@ init_output_matrix_mcmc_dream <- function(.) {
 
   # initialise accepted proposal & likelihood arrays
   .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc$maxiter ))
-  # APW: parameter names could be associated with dimnames of the array sooner 
+  # APW: parameter names could be associated with dimnames of the array sooner, i.e. for all runtypes 
   row.names(.$dataf$pars_array) <- row.names(.$dataf$pars)
   .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc$chains, .$wpars$mcmc$maxiter )
 
@@ -236,7 +236,6 @@ init_output_matrix_mcmc_dreamzs <- function(.) {
 
   # initialise past state array, initialise chains
   # APW: could add this to MCMC init function if that call is moved to run0  
-  # APW: this will not work for a restart
   if(.$wpars$parsinit_read) {
     lps     <- dim(.$dataf$mcmc_input$past_states)[2]
     lps_new <- lps + .$wpars$mcmc$chains*floor(.$wpars$mcmc$maxiter_restart/.$wpars$mcmc$iterappend)
@@ -288,7 +287,7 @@ init_output_matrix_mcmc_dreamzs <- function(.) {
     .$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
     .$dataf$pars_array[,,1:.$wpars$mcmc$start_iter-1]   <- .$dataf$mcmc_input$pars_array
     .$dataf$pars_lklihood[,1:.$wpars$mcmc$start_iter-1] <- .$dataf$mcmc_input$pars_lklihood
-    .$dataf$past_states[,1:lps]           <- .$dataf$mcmc_input$past_states
+    .$dataf$past_states[,1:lps]            <- .$dataf$mcmc_input$past_states
     .$mcmc$check_ss                        <- dim(.$dataf$mcmc_input$conv_check)[2]
     .$dataf$conv_check[,1:.$mcmc$check_ss] <- .$dataf$mcmc_input$conv_check
     #.$dataf$omega[,1:.$mcmc$check_ss]      <- .$dataf$mcmc_input$omega
@@ -702,6 +701,7 @@ run0_mcmc_dream <- function(.) {
 
   # initialise output array
   .$init_output_matrix()
+  .$init_mcmc()
 
   # call run function
   #if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$run1, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
@@ -736,10 +736,6 @@ run1_mcmc_dream <- function(.,i) {
     .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
     .$dataf$out_mcmc[,,1]     <- t(.$dataf$out[,]) 
   }
-
-  # run initialisation part of algorithm
-  # APW: why is this not in run0?
-  .$init_mcmc()
 
   # run MCMC
   vapply(.$wpars$mcmc$start_iter:.$wpars$mcmc$maxiter, .$run2, numeric(0) )
