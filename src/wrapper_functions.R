@@ -330,6 +330,9 @@ run2_factorial <- function(.,j) {
 
   # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
   # returns matrix
+  print('')
+  print(class(out))
+  print(out)
   if(class(out)=='matrix') t(out) else if(class(out)=='array') .$stack(out) else as.matrix(out)
 }
 

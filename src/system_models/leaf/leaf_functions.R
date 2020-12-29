@@ -352,12 +352,12 @@ f_rs_medlyn2011 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / (.super$pars$g0 + .$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
+  1 / ( .super$pars$g0 + .$rs_fe()*A*.super$env$atm_press*1e-6/c ) 
 }
 
 f_rs_medlyn2011_fe <- function(.) {
   # f(e) component of rs from Medlyn 2011   
-  ( 1 + .super$pars$g1_medlyn / .$env$vpd^0.5 )
+  1.6 * ( 1 + .super$pars$g1_medlyn/.$env$vpd^0.5 )
 }
 
 f_rs_medlyn2011_r0 <- function(.) {
@@ -365,13 +365,23 @@ f_rs_medlyn2011_r0 <- function(.) {
   1 / max(.super$pars$g0,1e-6)
 }
 
+f_rs_medlyn_lin2015 <- function(., A=.super$state$A, c=.super$state$cb ) {
+  # expects c in Pa
+  # output in m2s mol-1 h2o
+  
+  1 / ( .$rs_fe()*A*.super$env$atm_press*1e-6/c ) 
+}
+
+f_rs_medlyn_lin2015_fe <- f_rs_medlyn2011_fe
+f_rs_medlyn_lin2015_r0 <- f_rs_medlyn2011_r0
+
 
 # Leuning et al 1995 eq for stomatal resistance
 f_rs_leuning1995 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1  h2o
 
-  1 / (.super$pars$g0 + .$rs_fe(c=c) * A * .super$env$atm_press*1e-6 / c)  
+  1 / (.super$pars$g0 + .$rs_fe(c=c)*A*.super$env$atm_press*1e-6/c )  
 }
 
 f_rs_leuning1995_fe <- function(., c=.super$state$cb ) {
@@ -391,7 +401,7 @@ f_rs_ball1987 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / (.super$pars$g0 + .$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
+  1 / ( .super$pars$g0 + .$rs_fe()*A*.super$env$atm_press*1e-6/c ) 
 }
 
 f_rs_ball1987_fe <- function(.) {
@@ -413,7 +423,7 @@ f_rs_constantCiCa <- function(., A=.super$state$A, c=.super$state$cb ) {
   # set Ci:Ca ratio
   .super$state_pars$cica_chi <- .$cica_ratio()
   
-  1 / (.$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
+  1 / ( .$rs_fe()*A*.super$env$atm_press*1e-6/c ) 
 }
 
 f_rs_constantCiCa_fe <- function(.) {
@@ -438,7 +448,7 @@ f_rs_cox1998 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / (.$rs_fe(c=c) * A * .super$env$atm_press*1e-6 / c)
+  1 / ( .$rs_fe(c=c)*A*.super$env$atm_press*1e-6/c )
 }
 
 f_rs_cox1998_fe <- function(., c=.super$state$cb ) {

@@ -19,7 +19,7 @@
       <rl_rd>'c( 'f_rl_rd_fixed', 'f_rl_rd_lloyd1995' )'</rl_rd>
       <gstar>'c( 'f_gstar_c1991', 'f_gstar_constant', 'f_gstar_constref', 'f_gstar_f1980' )'</gstar>
       <ri>'c( 'f_ri_constant', 'f_ri_sphag_wf1998' )'</ri>
-      <rs>'c( 'f_rs_ball1987', 'f_rs_ball1987_fe', 'f_rs_ball1987_r0', 'f_rs_constant', 'f_rs_constantCiCa', 'f_rs_constantCiCa_fe', 'f_rs_constantCiCa_r0', 'f_rs_constant_fe', 'f_rs_constant_r0', 'f_rs_cox1998', 'f_rs_cox1998_fe', 'f_rs_cox1998_r0', 'f_rs_leuning1995', 'f_rs_leuning1995_fe', 'f_rs_leuning1995_r0', 'f_rs_medlyn2011', 'f_rs_medlyn2011_fe', 'f_rs_medlyn2011_r0', 'f_rs_yin2009', 'f_rs_yin2009_fe', 'f_rs_yin2009_r0' )'</rs>
+      <rs>'c( 'f_rs_ball1987', 'f_rs_constant', 'f_rs_constantCiCa', 'f_rs_cox1998', 'f_rs_leuning1995', 'f_rs_medlyn2011', 'f_rs_medlyn_lin2015', 'f_rs_yin2009' )'</rs>
       <rb>'c( 'f_rb_constant', 'f_rb_leafdim', 'f_rb_water_e2009' )'</rb>
       <cica_ratio>'c( 'f_cica_ratio_constant' )'</cica_ratio>
       <d13c>'c( 'f_d13c_classical', 'f_d13c_lin' )'</d13c>

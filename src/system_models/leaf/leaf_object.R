@@ -374,11 +374,11 @@ leaf_object$pars   <- list(
 # run control parameters
 ####################################
 leaf_object$cpars <- list(
-  diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
-  verbose       = F,          # write diagnostic output during runtime 
+  diag      = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
+  verbose   = F,          # write diagnostic output during runtime 
   cverbose  = F,          # write diagnostic output on the solver during runtime 
-  cverbose      = F,          # write configuration output during runtime 
-  output        = 'slim'      # type of output from run function
+  cverbose  = F,          # write configuration output during runtime 
+  output    = 'slim'      # type of output from run function
 )
 
 
@@ -410,7 +410,7 @@ f_output_leaf_full <- function(.) {
 
 f_output_leaf_all_lim <- function(.) {
   c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
-    .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
+    .$state_retrive(snames=c('gstar','ri','rs','rb'), state='state_pars' ) )
 }
 
 f_output_leaf_canopy <- function(.) {
@@ -425,8 +425,8 @@ f_output_leaf_sphagnum <- function(.) {
 }
 
 f_output_leaf_WUE <- function(.) {
-  c(.$state_retrive(snames=c('A','cc','ci','ca','gstar')), 
-    gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb ) 
+  c(.$state_retrive(snames=c('A','cc','ci','ca')), 
+    gstar=.$state_pars$gstar, gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb ) 
 }
 
 
@@ -516,12 +516,17 @@ leaf_object$.test_tscalar <- function(., diag=F, verbose=F, cverbose=F,
   .$configure_test()
 
   # configure met data and run
-  .$dataf     <- list()
-  .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par','leaf.temp')))      
-  .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+  .$dataf          <- list()
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('leaf.ca_conc','leaf.par','leaf.temp')))))      
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
+  .$dataf$out      <- .$run_met() 
+  .$dataf$out_full <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  print(.$dataf$out_full)
   
-  p1 <- xyplot(I(vcmaxlt/vcmax) ~ leaf.temp | as.factor(paste(tcor_asc,tcor_des)), .$dataf$out, abline=list(h=c(0,1), v=.$pars$reftemp[['vcmax']]),
-               ylab=expression('scalar'),xlab=expression(T*' ['^o*C*']'))
+  p1 <- xyplot(I(vcmaxlt/vcmax) ~ leaf.temp | as.factor(paste(tcor_asc,tcor_des)), .$dataf$out_full, 
+	       abline=list(h=c(0,1), v=.$pars$reftemp[['vcmax']]),
+               ylab=expression('scalar'), xlab=expression(T*' ['^o*C*']') )
   print(p1)
 }
 
@@ -542,19 +547,22 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
   .$configure_test()
 
   # configure met data and run
-  .$dataf     <- list()
-  .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
-  .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+  .$dataf          <- list()
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('leaf.ca_conc','leaf.par')))))      
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
+  .$dataf$out      <- .$run_met() 
+  .$dataf$out_full <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  print(.$dataf$out_full)
   
-  print(cbind(.$dataf$met,.$dataf$out))
-  p1 <- xyplot(A~cc|as.factor(.$dataf$met$leaf.par),.$dataf$out,groups=unlist(lim),abline=0,
-               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[c]*' [Pa]'),
-               panel=function(subscripts=subscripts,...) {
+  p1 <- xyplot(A ~ cc | as.factor(.$dataf$met['leaf.par',]), .$dataf$out_full, groups=lim, #abline=0,
+               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'), xlab=expression(C[c]*' [Pa]'),
+               panel=function(subscripts=subscripts, ... ) {
                  if(diag) {
-                   panel.abline(v=.$dataf$out$transition[subscripts][1])
-                   panel.points(y=.$dataf$out$A_noR[subscripts],x=.$dataf$out$cc[subscripts],col='black')                       
+                   panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                   panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                  }
-                 panel.xyplot(subscripts=subscripts,...)
+                 panel.xyplot(subscripts=subscripts, ... )
                })
   print(p1)
 }
@@ -576,28 +584,33 @@ leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=
 
   # configure met data and run
   .$dataf          <- list()
-  .$dataf$met      <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))
-  .$dataf$out      <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-  .$dataf$out_full <- cbind(.$dataf$met,.$dataf$out)
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('leaf.ca_conc','leaf.par')))))      
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
+  .$dataf$out      <- .$run_met() 
+  .$dataf$out_full <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  print(.$dataf$out_full)
   
-  p1 <- xyplot(A~cc,.$dataf$out_full,subset=leaf.par==1010,abline=0,groups=unlist(lim),
-               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[c]*' [Pa]'),
+  p1 <- xyplot(A ~ cc, .$dataf$out_full, subset=leaf.par==1010, groups=lim,
+               abline=0, 
+	       ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'), xlab=expression(C[c]*' [Pa]'),
                panel=function(subscripts=subscripts,...) {
                  if(diag) {
                    panel.abline(v=.$dataf$out_full$transition[subscripts][1])
-                   panel.points(y=.$dataf$out_full$A_noR[subscripts],x=.$dataf$out_full$cc[subscripts],col='black')                       
+                   panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                  }
-                 panel.xyplot(subscripts=subscripts,...)
+                 panel.xyplot(subscripts=subscripts, ... )
                })
   
-  p2 <- xyplot(A~leaf.par,.$dataf$out_full,subset=leaf.ca_conc==401,abline=0,groups=unlist(lim),
-               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression('PAR ['*mu*mol*' '*m^-2*s-1*']'),
-               panel=function(subscripts=subscripts,...) {
+  p2 <- xyplot(A ~ leaf.par, .$dataf$out_full, subset=leaf.ca_conc==401, groups=unlist(lim),
+	       abline=0,
+               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'), xlab=expression('PAR ['*mu*mol*' '*m^-2*s-1*']'),
+               panel=function(subscripts=subscripts, ... ) {
                  if(diag) {
                    #                        panel.abline(v=.$dataf$out_full$transition[subscripts][1])
-                   panel.points(y=.$dataf$out_full$A_noR[subscripts],x=.$dataf$out_full$leaf.par[subscripts],col='black')                       
+                   panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$leaf.par[subscripts], col='black' )                       
                  }
-                 panel.xyplot(subscripts=subscripts,...)
+                 panel.xyplot(subscripts=subscripts, ... )
                })
   
   print(p1,split=c(1,1,2,1),more=T)
@@ -621,67 +634,74 @@ leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011',
   .$pars$g0   <- leaf.g0
   
   # configure met data 
-  .$dataf     <- list()
-  .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
+  .$dataf          <- list()
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('leaf.ca_conc','leaf.par')))))      
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
   
   if(!ana_only) {
     .$fnames$solver <- 'f_solver_brent'
     .$configure_test()
-    .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
-    num_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver )
+    .$dataf$out     <- .$run_met() 
+    num_soln        <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+    num_soln$sol    <- .$fnames$solver
   }
 
   .$fnames$solver <- 'f_solver_analytical_leaf_simple'
   .$configure_test()
-  .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
-  ana_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver)
+  .$dataf$out     <- .$run_met() 
+  ana_soln        <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  ana_soln$sol    <- .$fnames$solver
 
   .$fnames$solver <- 'f_solver_analytical_leaf_quad'
   .$configure_test()
-  .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
-  ana_soln        <- rbind(ana_soln,  cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver) )
+  .$dataf$out     <- .$run_met() 
+  ana_soln1       <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  ana_soln1$sol   <- .$fnames$solver
+  ana_soln        <- rbind(ana_soln, ana_soln1 )
 
-
-  odf <- if(ana_only) ana_soln else rbind(num_soln,ana_soln)
+  .$dataf$out_full <- if(ana_only) ana_soln else rbind(num_soln,ana_soln)
   
   if(!ana_only) {
-    p1 <- xyplot(A~cc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,
-                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[c]*' [Pa]'),
-                 panel=function(subscripts=subscripts,...) {
+    p1 <- xyplot(A ~ cc | as.factor(leaf.par), .$dataf$out_full, groups=sol,
+		 abline=0,
+                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'), xlab=expression(C[c]*' [Pa]'),
+                 panel=function(subscripts=subscripts, ... ) {
                    if(diag) {
-                     panel.abline(v=odf$transition[subscripts][1])
-                     panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                     panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                     panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                    }
-                   panel.xyplot(subscripts=subscripts,...)
+                   panel.xyplot(subscripts=subscripts, ... )
                  })
     
-    p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,
-                 main=rs,auto.key=T,
-                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
-                 panel=function(subscripts=subscripts,...) {
+    p2 <- xyplot(A ~ leaf.ca_conc | as.factor(leaf.par), .$dataf$out_full, groups=sol,
+		 abline=0,
+                 main=rs, auto.key=T,
+                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'), xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
+                 panel=function(subscripts=subscripts, ... ) {
                    if(diag) {
-                     panel.abline(v=odf$transition[subscripts][1])
-                     panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                     panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                     panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                    }
-                   panel.xyplot(subscripts=subscripts,...)
+                   panel.xyplot(subscripts=subscripts, ... )
                  })
     
-    ol <- list(odf,p2,p1)        
+    ol <- list(.$dataf$out_full,p2,p1)        
 
   } else {
     p1 <- NULL
-    p2 <- xyplot(A~leaf.ca_conc,odf,groups=as.factor(odf$leaf.par),abline=0,
-                 main=rs,
-                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
-                 panel=function(subscripts=subscripts,...) {
+    p2 <- xyplot(A ~ leaf.ca_conc, .$dataf$out_full, groups=as.factor(odf$leaf.par), 
+		 abline=0, main=rs,
+                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'), xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
+                 panel=function(subscripts=subscripts, ... ) {
                    if(diag) {
-                     panel.abline(v=odf$transition[subscripts][1])
-                     panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                     panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                     panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                    }
-                   panel.xyplot(subscripts=subscripts,...)
+                   panel.xyplot(subscripts=subscripts, ... )
                  })
     
-    ol <- list(odf,p2,p1)        
+    ol <- list(.$dataf$out_full,p2,p1)        
   }
 
   print(p2)
@@ -689,8 +709,11 @@ leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011',
 }
 
 
-leaf_object$.test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_etrans_farquharwong1984',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1500,50), 
-                                      ana_only=F,verbose=F,cverbose=F,diag=F) {
+leaf_object$.test_aci_lim <- function(.,
+				      rs='f_rs_medlyn2011',
+				      et='f_etrans_farquharwong1984',
+				      leaf.par=c(100,1000), leaf.ca_conc=seq(100,1500,50), 
+                                      ana_only=F, verbose=F, cverbose=F, diag=F ) {
   
   if(verbose) str(.)
   .$build(mod_out='all_lim', switches=c(diag,verbose,cverbose) )
@@ -700,47 +723,53 @@ leaf_object$.test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_etrans_farquh
   .$fnames$gas_diff     <- 'f_gas_diff_ficks_ci'
   .$fnames$etrans       <- et
   
-  .$dataf     <- list()
-  .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
-  
+  .$dataf      <- list()
+  .$dataf$met  <- t(as.matrix(expand.grid(mget(c('leaf.ca_conc','leaf.par')))))      
+  .$dataf$lm   <- dim(.$dataf$met)[2]
+  .$dataf$mout <- .$output()
+   
   .$fnames$Alim <- 'f_Alim_farquhar1980'
   .$configure_test()
-  .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-  Fout          <- cbind(.$dataf$met,.$dataf$out,Alim='F1980')
+  .$dataf$out   <- .$run_met() 
+  Fout          <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  Fout$Alim     <- 'F1980' 
   
   .$fnames$Alim <- 'f_Alim_collatz1991'
   .$configure_test()
-  .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-  Cout          <- cbind(.$dataf$met,.$dataf$out,Alim='C1991')
+  .$dataf$out   <- .$run_met() 
+  Cout          <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  Cout$Alim     <- 'C1991' 
   
-  odf <- rbind(Fout,Cout)
+  .$dataf$out_full <- rbind(Fout,Cout)
   
-  p1 <- xyplot(A~cc|as.factor(et),odf,groups=unlist(Alim),abline=0,
-               ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[c]*' [Pa]'),
-               type='l',auto.key=list(x=0.9,y=0.1,corner=c(1,0),points=F,lines=T),
+  p1 <- xyplot(A ~ cc | as.factor(et), .$dataf$out_full, groups=as.factor(Alim),
+	       abline=0,
+               ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'), xlab=expression(C[c]*' [Pa]'),
+               type='l', auto.key=list(x=0.9, y=0.1, corner=c(1,0), points=F, lines=T ),
                strip=strip.custom(bg='grey90'),
-               panel=function(subscripts=subscripts,...) {
+               panel=function(subscripts=subscripts, ... ) {
                  if(diag) {
-                   panel.abline(v=odf$transition[subscripts][1])
-                   panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                   panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                   panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                  }
-                 panel.xyplot(subscripts=subscripts,...)
+                 panel.xyplot(subscripts=subscripts, ... )
                })
   
-  p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(Alim),abline=0,
+  p2 <- xyplot(A ~ leaf.ca_conc | as.factor(leaf.par), .$dataf$out_full, groups=Alim,
+	       abline=0,
                auto.key=T,
-               ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
+               ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'), xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
                panel=function(subscripts=subscripts,...) {
                  if(diag) {
-                   panel.abline(v=odf$transition[subscripts][1])
-                   panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                   panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                   panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                  }
                  panel.xyplot(subscripts=subscripts,...)
                })
   
   print(p1)
   # print(p2)
-  odf
+  .$dataf$out_full
 }
 
 

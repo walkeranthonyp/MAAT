@@ -105,6 +105,9 @@ canopy_object$fnames <- list(
   rt            = 'f_rt_beerslaw_goudriaan',
   scale_n       = 'f_scale_n_CLMuniform',
   scale_vcmax   = 'f_scale_vcmax_beerslaw',
+  scale_jmax    = 'f_scale_two_layer',
+  scale_f       = 'f_scale_two_layer',
+  scale_g1      = 'f_scale_two_layer',
   vcmax0        = 'f_vcmax0_constant',
   k_vcmax       = 'f_k_vcmax_constant',
   scale_ca      = 'f_scale_ca_uniform',
@@ -150,7 +153,10 @@ canopy_object$state <- list(
       leaf.ca_conc     = numeric(1),
       leaf.vpd         = numeric(1),
       leaf.par         = numeric(1),
-      leaf.atref.vcmax = numeric(1),
+      leaf.atref.vcmax = numeric(1), 
+      leaf.atref.jmax  = numeric(1), 
+      leaf.f           = numeric(1), 
+      leaf.g1_medlyn   = numeric(1), 
       leaf.leafN_area  = numeric(1)
     ),
     # variable canopy light & physiology by sun and shade leaves
@@ -165,7 +171,10 @@ canopy_object$state <- list(
       gs       = numeric(1),
       gi       = numeric(1),
       g        = numeric(1),
-      lim      = numeric(1)
+      lim      = numeric(1),
+      Acg      = numeric(1),        # assimilation rate of canopy layers Ac limited    (umol m-2s-1)
+      Ajg      = numeric(1),        # assimilation rate of canopy layers Aj limited    (umol m-2s-1)        
+      Apg      = numeric(1)         # assimilation rate of canopy layers Ap limited    (umol m-2s-1)        
     ),
     shade = list(
       apar     = numeric(1),
@@ -178,7 +187,10 @@ canopy_object$state <- list(
       gs       = numeric(1),
       gi       = numeric(1),
       g        = numeric(1),
-      lim      = numeric(1)
+      lim      = numeric(1),
+      Acg      = numeric(1),        # assimilation rate of canopy layers Ac limited    (umol m-2s-1)
+      Ajg      = numeric(1),        # assimilation rate of canopy layers Aj limited    (umol m-2s-1)        
+      Apg      = numeric(1)         # assimilation rate of canopy layers Ap limited    (umol m-2s-1)        
     ),
     layer = list(
       apar     = numeric(1),
@@ -238,6 +250,7 @@ canopy_object$state_pars <- list(
 canopy_object$pars   <- list(
   layers           = 10,
   lai              = 10,
+  can_lai_upper    = 2.6,     # LAI of upper canopy for two layer scaling scheme 
   lai_max          = 4,
   lai_curve        = 0.5,
   leaf_cores       = 1,
@@ -249,12 +262,29 @@ canopy_object$pars   <- list(
   vcmax0           = 35,      # vcmax at extreme top of canopy
   k_vcmax          = 0.2,     # scaling exponent for vcmax through canopy
   k_vcmax_expa     = -2.43,   # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
-  k_vcmax_expb     = 9.63e-3, # slope parameter in exponnent to calculate scaling exponent for vcmax through canopy
-  fwdw_wl_slope    = -0.022,  # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6
-  fwdw_wl_sat      = 16,      # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010
+  k_vcmax_expb     = 9.63e-3, # slope parameter in exponent to calculate scaling exponent for vcmax through canopy
+  vcmax = list(               # vcmax:
+    layer1 = 108.7,           #   in first canopy layer
+    layer2 = 67.9             #   in second canopy layer
+  ),
+  jmax = list(                # jmax:
+    layer1 = 170,             #   in first canopy layer
+    layer2 = 76.3             #   in second canopy layer
+  ),
+  f = list(                   # f:
+    layer1 = 0.41,            #   in first canopy layer
+    layer2 = 0.34             #   in second canopy layer
+  ),
+  g1 = list(                  # g1 (medlyn):
+    layer1 = 3.41,            #   in first canopy layer
+    layer2 = 8.82             #   in second canopy layer
+  ),
+  fwdw_wl_slope    = -0.022,  # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
+  fwdw_wl_sat      = 16,      # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
   fwdw_wl_exp_a    = -0.037,  # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
   fwdw_wl_exp_b    = 3.254    # decrease in sphagnum fwdw ratio as an exponential f of water level (cm)
 )
+
 
 
 # run control parameters
@@ -307,6 +337,16 @@ f_output_canopy_canopy_structure <- function(.) {
   vapply(.$state$vert$layer, function(v) v, .$state$vert$layer[[1]] )
 }
 
+f_output_canopy_wtc <- function(.) {
+  c(A=.$state$integrated$A, 
+    gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd,
+    Acg_lim=.$state$integrated$Acg_lim, 
+    Ajg_lim=.$state$integrated$Ajg_lim, 
+    Apg_lim=.$state$integrated$Apg_lim#,
+    #Alayer=.$state$vert$layer$A 
+    )
+}
+
 
 
 # test functions
@@ -344,16 +384,19 @@ canopy_object$.test_aca <- function(., verbose=F, cverbose=F,
 
   .$fnames$rt      <- canopy.rt
   .$leaf$fnames$rs <- leaf.rs
-  .$configure_test()
-  .$leaf$configure_test()
-
-  .$dataf       <- list()
-  .$dataf$met   <- expand.grid(mget(c('canopy.ca_conc','canopy.par')))
-  .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-
-  print(cbind(.$dataf$met,.$dataf$out))
-  p1 <- xyplot(A~.$dataf$met$canopy.ca_conc|as.factor(.$dataf$met$canopy.par),.$dataf$out,abline=0,
-               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'))
+  .$configure_test() 
+  .$leaf$configure_test() 
+  
+  .$dataf          <- list()
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('canopy.ca_conc','canopy.par')))))
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
+  .$dataf$out      <- .$run_met() 
+  .$dataf$out_full <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  print(.$dataf$out_full)
+  
+  p1 <- xyplot(A ~ canopy.ca_conc | as.factor(canopy.par), .$dataf$out_full, abline=0,
+               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'), xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'))
   print(p1)
 }
 
