@@ -419,6 +419,8 @@ leaf_object$cpars <- list(
 # output functions
 #######################################################################        
 
+f_output_leaf_eval <- f_output_eval 
+
 f_output_leaf_run <- function(.) {
   c(.$state_retrive(snames=c('A','cc','ci','rd','lim')),
             .$state_retrive(snames=c('ri','rs','rb'), state='state_pars') )
@@ -442,7 +444,7 @@ f_output_leaf_full <- function(.) {
 
 f_output_leaf_all_lim <- function(.) {
   c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
-    .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
+    .$state_retrive(snames=c('gstar','ri','rs','rb'), state='state_pars' ) )
 }
 
 f_output_leaf_canopy <- function(.) {
@@ -457,8 +459,8 @@ f_output_leaf_sphagnum <- function(.) {
 }
 
 f_output_leaf_WUE <- function(.) {
-  c(.$state_retrive(snames=c('A','cc','ci','ca','gstar')), 
-    gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb ) 
+  c(.$state_retrive(snames=c('A','cc','ci','ca')), 
+    gstar=.$state_pars$gstar, gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb ) 
 }
 
 

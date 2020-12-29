@@ -25,6 +25,8 @@ f_lai_sphagnum_lin <- function(.) {
   
 }
 
+
+
 # Light Scaling
 ################################
 
@@ -165,22 +167,24 @@ f_scale_n_beerslaw <- function(.,l) {
   .super$state$totalN * exp(-.super$state_pars$k_dir*l) /  sum(exp(-.super$state_pars$k_dir*1:.super$state$lai))  
 }
 
-# Use Beer's Law to scale leaf vcmax through the canopy 
-f_scale_vcmax_beerslaw <- function(.,l) {
-  # for use with a multilayer phototsynthesis scheme
-  
-  .$state$vcmax0 * exp(-.$state_pars$k_vcmax*l) 
-}
+## Use Beer's Law to scale leaf vcmax through the canopy 
+#f_scale_vcmax_beerslaw <- function(.,l) {
+#  # for use with a multilayer phototsynthesis scheme
+#  
+#  .$state$vcmax0 * exp(-.$state_pars$k_vcmax*l) 
+#}
+#
+#f_scale_vcmax_uniform <- function(., layers ) {
+#  rep(.$state$vcmax0, length(layers) ) 
+#}
+#
+#f_k_vcmax_constant  <- function(.) .$pars$k_vcmax
+#
+#f_k_vcmax_lloyd2012 <- function(.) {
+#   exp( .$pars$k_vcmax_expa + .$pars$k_vcmax_expb*.$state$vcmax0 )
+#}
 
-f_scale_vcmax_uniform <- function(., layers ) {
-  rep(.$state$vcmax0, length(layers) ) 
-}
 
-f_k_vcmax_constant  <- function(.) .$pars$k_vcmax
-
-f_k_vcmax_lloyd2012 <- function(.) {
-   exp( .$pars$k_vcmax_expa + .$pars$k_vcmax_expb*.$state$vcmax0 )
-}
 
 # Vcmax Scaling
 ################################
@@ -191,22 +195,37 @@ f_vcmax0_constant <- function(.) {
   .super$pars$vcmax0
 }
 
-# Use Beer's Law to scale leaf vcmax through the canopy 
-f_scale_vcmax_beerslaw <- function(.,l) {
-  # for use with a multilayer phototsynthesis scheme
-  
-  .super$state$vcmax0 * exp(-.super$state_pars$k_vcmax*l) 
-}
-
-f_scale_vcmax_uniform <- function(., layers ) {
-  rep(.super$state$vcmax0, length(layers) ) 
-}
 
 f_k_vcmax_constant  <- function(.) .super$pars$k_vcmax
+
 
 f_k_vcmax_lloyd2012 <- function(.) {
    exp( .super$pars$k_vcmax_expa + .super$pars$k_vcmax_expb*.super$state$vcmax0 )
 }
+
+
+# Use Beer's Law to scale leaf vcmax through the canopy 
+f_scale_vcmax_beerslaw <- function(., l, var ) {
+  # for use with a multilayer phototsynthesis scheme
+  # currently var is a dummy argument for compatibility with two_layer
+  
+  .super$state$vcmax0 * exp(-.super$state_pars$k_vcmax*l) 
+}
+
+
+f_scale_vcmax_uniform <- function(., layers, var ) {
+  # currently var is a dummy argument for compatibility with two_layer
+  rep(.super$state$vcmax0, length(layers) ) 
+}
+
+
+f_scale_two_layer <- function(., l, var ) {
+  can_vector <- l
+  can_vector[] <- .super$pars[[var]]$layer2
+  can_vector[l<.super$pars$can_lai_upper] <- .super$pars[[var]]$layer1
+  can_vector
+}
+
 
 
 # Canopy Environment 
@@ -221,6 +240,7 @@ f_scale_ca_uniform <- function(., layers ) {
 f_scale_vpd_uniform <- function(., layers ) {
   rep(.super$env$vpd, length(layers) ) 
 }
+
 
 
 # Canopy/Leaf water status  

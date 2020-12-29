@@ -59,17 +59,16 @@ env.static  <- list()
 # if this is a UQ analysis, the "pars" list must contain parameter vectors that are of equal length - need to put a check for this in the wrapper 
 # if not a UQ analysis the parameter vectors in the "pars" list can be of different lengths
 # set to NA where variation is not required  
+# pars eval can be used to specify code snippets that when evaluated generate n samples from a distribution, e.g.:
+# - 'runif(n,-30,30)' for a uniform distribution from -30 to 30
+# - 'pmax(-30,pmin(30,rnorm(n,0,20)))' for a bounded normal distribution, mean = 0, sd = 20, min = -30, max = 30  
 
 # define lists
-fnames.var <- list()
-
-pars.var <- NA
-
-pars_proc.var <- NA
-
-pars_eval.var <- NA
-
-env.var <- list()
+fnames.var    <- NULL
+pars.var      <- NULL
+pars_proc.var <- NULL
+pars_eval.var <- NULL
+env.var       <- NULL
 
 
 
