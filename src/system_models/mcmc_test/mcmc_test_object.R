@@ -119,6 +119,8 @@ mcmc_test_object$cpars <- list(
 # output functions
 #######################################################################
 
+f_output_mcmc_test_eval <- f_output_eval 
+
 f_output_mcmc_test_mixture <- function(.) {
   .$state$mixture_p
 }

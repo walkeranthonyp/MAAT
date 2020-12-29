@@ -23,26 +23,25 @@ generate_ensemble <- function(.) {
   .$dataf$env     <- if(!is.null(.$dynamic$env))    t(as.matrix(expand.grid(.$dynamic$env,stringsAsFactors=F   ))) else NULL
   .$generate_ensemble_pars()
 
+  # remove potentially large data from pars list
+  .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
+
   # check names of ensemble matrices are character vectors
   if(!is.null(.$dataf$met)) .$model$configure_check(vlist='env', df=.$dataf$met[,1] )
-  #.$model$configure_check(vlist='env', df=.$dataf$met[1,] )
 
-  # calculate input matrix lengths - separate out as a function
+  # calculate input matrix lengths
   # - used to set the number of iterations in the run functions
   # - if no matrix return 1
-  if(.$wpars$UQ&.$wpars$runtype=='SAprocess_ye') {
-    # determine number of processes to be analaysed
+  if(.$wpars$UQ & .$wpars$runtype=='SAprocess_ye') {
     .$dataf$lf <- length(.$dynamic$fnames)
+
+  # any type of run other than Ye process sensitivity analysis
   } else {
-    # any type of run other than Ye process sensitivity analysis
-    #.$dataf$lf <- if(is.null(.$dataf$fnames)) 1 else length(.$dataf$fnames[,1])
     .$dataf$lf <- if(is.null(.$dataf$fnames)) 1 else dim(.$dataf$fnames)[2]
-    #.$dataf$lp <- if(is.null(.$dataf$pars))   1 else length(.$dataf$pars[,1])
     .$dataf$lp <- if(is.null(.$dataf$pars))   1 else dim(.$dataf$pars)[2]
   }
+
   # enviroment matrix and met matrix
-  #.$dataf$le <- if(is.null(.$dataf$env)) 1 else length(.$dataf$env[,1])
-  #.$dataf$lm <- if(is.null(.$dataf$met)) 1 else length(.$dataf$met[,1])
   .$dataf$le <- if(is.null(.$dataf$env)) 1 else dim(.$dataf$env)[2]
   .$dataf$lm <- if(is.null(.$dataf$met)) 1 else dim(.$dataf$met)[2]
 }
@@ -50,27 +49,33 @@ generate_ensemble <- function(.) {
 
 # parameter matrix for factorial run
 generate_ensemble_pars_factorial <- function(.) {
-  .$dataf$pars <- if(!is.null(.$dynamic$pars)) t(as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F))) else NULL
+  if(!.$wpars$parsinit_read) {
+    .$dataf$pars <- if(!is.null(.$dynamic$pars)) t(as.matrix(expand.grid(.$dynamic$pars,stringsAsFactors=F))) else NULL
+  }
 }
 
 
 # parameter matrix for Saltelli parameter SA
 generate_ensemble_pars_SApar_saltelli <- function(.) {
-  if(is.null(.$dynamic$pars)) {
-    if(!is.null(.$dynamic$pars_eval)) {
-      # increase parameter sample number
-      .$wpars$n <- .$wpars$n * .$wpars$nmult
-      # sample parameters from character string code snippets to generate matrices A and B
-      n <- 2 * .$wpars$n
-      .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
-    } else  stop('wrapper: pars (or pars_eval) list in vars list is empty')
+
+  # sample parameters 
+  if(!.$wpars$parsinit_read) {
+    if(is.null(.$dynamic$pars)) {
+
+      #from character string code snippets to generate matrices A and B
+      if(!is.null(.$dynamic$pars_eval)) {
+
+        .$wpars$n      <- .$wpars$n * .$wpars$nmult
+        n              <- 2 * .$wpars$n
+        .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
+        .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
+
+      } else  stop('wrapper: pars (or pars_eval) list in dynamic list is empty')
+    }
+
+    ## remove potentially large pars list
+    #.$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
   }
-
-  # create pars matrix
-  .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
-
-  # remove potentially large pars list
-  .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 }
 
 
@@ -78,54 +83,89 @@ generate_ensemble_pars_SApar_saltelli <- function(.) {
 # - the paramter matrices for the Ye method are generated in run function 1
 # - here a list structure in .$dynamic$pars is created from .$dynamic$pars_eval
 generate_ensemble_pars_SAprocess_ye <- function(.) {
+
   # need a minimum of >1 processes
-  #if(dim(.$dataf$fnames)[2]<=1) stop('need more than one process for a process sensitivity analysis')
   if(dim(.$dataf$fnames)[1]<=1) stop('need more than one process for a process sensitivity analysis')
 
   # check input dynamic$pars* are same length
   test_in <- length(.$dynamic$pars_eval) - length(.$dynamic$pars_proc)
   if(test_in!=0) stop('wrapper: Parameter input vectors - pars_eval & pars_proc - are not the same length')
 
-  # assign same list structure as dynamic$pars_eval to vars$pars
+  # assign same list structure as dynamic$pars_eval to dynamic$pars
   .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(e) numeric(1) )
 
-  # check input vars$pars* elements have same names
+  # check input dynamic$pars* elements have same names
   # - to be done
 }
 
 
 # parameter matrix for initial proposal of MCMC
-generate_ensemble_pars_mcmc_dream <- function(.) {
-
-  # ALJ: new code to generate prior distribution
-  #      not sure if this will work with unit testing now?
-  #      also, requires initializing variables differently in init file
-
-  # read values from character string code snippets
-  .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-
-  # generate initial proposal from priors and create pars / proposal matrix
-  .$mcmc_prior()
+generate_ensemble_pars_mcmc <- function(.) {
 
   # determine boundary handling limits for parameter space
   .$boundary_handling_set()
 
-  # remove initialisation pars list
-  .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
+  # read character string code snippets & sample initial proposal from prior
+  if(!.$wpars$parsinit_read) {
+    if(is.null(.$dynamic$pars)) {
+    if(!is.null(.$dynamic$pars_eval)) {
 
-  # if observation subsampling specified - currently evenly spaced subsampling
-  if(.$wpars$mcmc_thin_obs < 1.0) {
-    if(.$wpars$mcmc_thin_obs > 0.5) stop('mcmc_thin_obs must be < 0.5, current value: ', .$wpars$mcmc_thin_obs )
-    thin <- floor( 1 / .$wpars$mcmc_thin_obs )
-    #oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
-    oss  <- seq(1, dim(.$dataf$metdata)[2], thin )
-    .$dataf$met   <- .$dataf$met[,oss]
-    .$dataf$obs   <- .$dataf$obs[oss]
-    #.$dataf$obsse <- .$dataf$obsse[oss]
+      if(.$wpars$mcmc$mcmc_type=='dream') {
+        n <- .$wpars$mcmc$chains
+      } else if(.$wpars$mcmc$mcmc_type=='dreamzs') {
+        n <- .$wpars$mcmc$prior_n 
+      }
+      .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
+      .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
+
+      # boundary handling in case of bounded normal (or other bounded) distributions as prior 
+      pm   <- .$dataf$pars
+      bmax <- .$mcmc$boundary_max 
+      bmin <- .$mcmc$boundary_min
+      .$dataf$pars[] <- 
+        t(sapply(1:dim(pm)[1], function(p, pm2=pm[p,], min2=bmin[p], max2=bmax[p], pt=.$dynamic$pars_eval[[p]]  )
+           ifelse(pm2==min2 | pm2==max2, eval(parse(text=pt)), 
+                  pm2) 
+           ))
+
+    } else  stop('wrapper: pars (or pars_eval) list in dynamic list is empty')
+  }}
+
+  # for DREAM-ZS reconfigure pars array 
+  # - initialise past state array
+  if(.$wpars$mcmc$mcmc_type=='dreamzs') {
+    if(!.$wpars$parsinit_read) {
+      lps     <- NULL
+      lps_new <- dim(.$dataf$pars)[2] + .$wpars$mcmc$chains*floor(.$wpars$mcmc$maxiter/.$wpars$mcmc$iterappend)
+      .$dataf$past_states    <- matrix(0, dim(.$dataf$pars)[1], lps_new )
+      .$dataf$past_states[,1:.$wpars$mcmc$prior_n] <- .$dataf$pars
+      .$dataf$pars           <- .$dataf$pars[,(.$wpars$mcmc$prior_n-.$wpars$mcmc$chains+1):.$wpars$mcmc$prior_n]
+      .$dataf$lps            <- .$wpars$mcmc$prior_n
+
+    # a restart  
+    } else {
+      lps     <- dim(.$dataf$mcmc_input$past_states)[2]
+      lps_new <- lps + .$wpars$mcmc$chains*floor(.$wpars$mcmc$maxiter_restart/.$wpars$mcmc$iterappend)
+      .$dataf$past_states         <- matrix(0, dim(.$dataf$pars)[1], lps_new )
+      .$dataf$lps                 <- lps 
+      .$dataf$past_states[,1:lps] <- .$dataf$mcmc_input$past_states
+      print('')
+      print('past states array')
+      print(.$dataf$past_states[,(lps-10):lps])
+    }
+  }
+
+  # observation subsampling
+  # - currently evenly spaced subsampling
+  if(!.$wpars$parsinit_read & .$wpars$mcmc$thin_obs<1.0) {
+    .$wpars$mcmc$thin_obs <- min(0.5, .$wpars$mcmc$thin_obs )
+    thin                  <- floor(1/.$wpars$mcmc$thin_obs)
+    oss                   <- seq(1, dim(.$dataf$metdata)[2], thin )
+    .$dataf$met           <- .$dataf$met[,oss]
+    .$dataf$obs           <- .$dataf$obs[oss]
+    if(!is.null(.$dataf$obsse)) .$dataf$obsse <- .$dataf$obsse[oss]
   }
 }
-
-generate_ensemble_pars_mcmc_demc <- generate_ensemble_pars_mcmc_dream
 
 
 
@@ -142,55 +182,87 @@ init_output_matrix_SApar_saltelli <- init_output_matrix_factorial
 
 
 init_output_matrix_SApar_saltelli_ABi <- function(.) {
-  # initialise output array
   # - dim 1 (rows)      output variable
   # - dim 2 (columns)   sample
   # - dim 3 (slices)    parameter that has used value from matrix B while all other par values are from matrix A
   # - dim 4 (cube rows) environment combination
   # - dim 5 (cube cols) model combination
-  #.$dataf$out_saltelli <- array(0, dim=c(length(.$dataf$mout), .$wpars$n, dim(.$dataf$pars)[2], .$dataf$le, .$dataf$lf ))
+
   .$dataf$out_saltelli <- array(0, dim=c(length(.$dataf$mout), .$wpars$n, dim(.$dataf$pars)[1], .$dataf$le, .$dataf$lf ))
-  #dimnames(.$dataf$out_saltelli) <- list(names(.$dataf$mout), NULL, colnames(.$dataf$pars), NULL, apply(.$dataf$fnames, 1, toString) )
   dimnames(.$dataf$out_saltelli) <- list(names(.$dataf$mout), NULL, rownames(.$dataf$pars), NULL, apply(.$dataf$fnames, 2, toString) )
 }
 
 
 init_output_matrix_SAprocess_ye <- function(.) {
-  # Ye method does not generate a single for whole simulation but rather a separate ensemble for each process
+  # Ye method does not generate a single ensemble for whole simulation but rather a separate ensemble for each process
   # - dim 1 (rows)        output variable
   # - dim 2 (columns)     environment combination
   # - dim 3 (slices)      process(es) B parameter sample
   # - dim 4 (cube rows)   process(es) B representation(s)
   # - dim 5 (cube cols)   process A parameter sample
   # - dim 6 (cube slices) process A representation
-  # if met data then ... .$dataf$out     <- array(0, c(length(.$dataf$mout), .$dataf$lm, .$dataf$le, .$wpars$n, .$dataf$lfB, .$wpars$n, .$dataf$lfA  ) )
+
   .$dataf$out           <- array(0, c(length(.$dataf$mout), .$dataf$le, .$wpars$n, .$dataf$lfB, .$wpars$n, .$dataf$lfA  ) )
-  #dimnames(.$dataf$out) <- list(names(.$dataf$mout), NULL, NULL, apply(.$dataf$fnamesB, 1, toString), NULL, .$dataf$fnames )
   dimnames(.$dataf$out) <- list(names(.$dataf$mout), NULL, NULL, apply(.$dataf$fnamesB, 2, toString), NULL, .$dataf$fnames[,] )
 }
 
 
-init_output_matrix_mcmc_dream <- function(.) {
+init_output_matrix_mcmc <- function(.) {
 
-  # create accepted proposal array
-  .$dataf$pars_array    <- array(1, dim = c( dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
+  # number of parameters being estimated
+  .$mcmc$pars_n   <- dim(.$dataf$pars)[1]
+  .$mcmc$sd_state <- numeric(.$mcmc$pars_n)
 
-  # create accepted proposal likelihood matrix
-  .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc_chains, .$wpars$mcmc_maxiter )
+  # preallocate memory space for algorithmic variables
+  .$mcmc$current_state <- matrix(0, nrow=.$mcmc$pars_n, ncol=.$wpars$mcmc$chains )
+  .$mcmc$jump          <- matrix(0, nrow=.$mcmc$pars_n, ncol=.$wpars$mcmc$chains )
+  .$mcmc$lambda        <- numeric(.$wpars$mcmc$chains)
 
-  # initialise output matrix
-  .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm)
+  # initialise accepted proposal & likelihood arrays
+  .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc$maxiter ))
+  # APW: parameter names could be associated with dimnames of the array sooner 
+  row.names(.$dataf$pars_array) <- row.names(.$dataf$pars)
+  .$dataf$pars_lklihood <- matrix(1, .$wpars$mcmc$chains, .$wpars$mcmc$maxiter )
 
-  # create matrix for storing chain outlier information
-  .$dataf$omega         <- matrix(NA, .$wpars$mcmc_chains, ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter))
+  # initialise output matricies
+  .$dataf$out           <- matrix(0, .$dataf$lp, .$dataf$lm )
+  .$dataf$out_mcmc      <- array(0, dim=c(.$dataf$lm, .$dataf$lp, .$wpars$mcmc$maxiter ))
 
-  .$dataf$out_mcmc      <- array(0, dim = c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
+  # initialise matricies for storing outlier & convergence diagnostics
+  check_iter_n <-
+    if(!.$wpars$parsinit_read) { 
+      ceiling(.$wpars$mcmc$maxiter*(1-.$wpars$mcmc$preburnin_frac) / .$wpars$mcmc$check_iter )
+    } else {
+      cin <- dim(.$dataf$mcmc_input$conv_check)[2] 
+      cin <- cin + floor(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) - floor(.$wpars$mcmc$start_iter/.$wpars$mcmc$check_iter)
+      if(.$wpars$mcmc$maxiter%%.$wpars$mcmc$check_iter!=0) cin <- cin + 1
+      cin
+    }
+  .$dataf$omega         <- matrix(NA, .$wpars$mcmc$chains, check_iter_n )
+  .$dataf$conv_check    <- matrix(0, ncol=check_iter_n, nrow=(dim(.$dataf$pars)[1]+3) )
 
-  # create matrix for storing convergence diagnostic
-  .$dataf$conv_check    <- matrix(0, nrow = ceiling(.$wpars$mcmc_maxiter / .$wpars$mcmc_check_iter), ncol = (dim(.$dataf$pars)[1] + 1))
+  # initialise crossover variables if not a restart
+  if(!.$wpars$parsinit_read) {
+    .$mcmc$CR_counter      <- numeric(.$wpars$mcmc$n_CR)
+    .$mcmc$jump_delta_norm <- numeric(.$wpars$mcmc$n_CR)
+    .$mcmc$p_CR            <- numeric(.$wpars$mcmc$n_CR)
+    .$mcmc$p_CR[]          <- 1/.$wpars$mcmc$n_CR
+    .$mcmc$CR              <- numeric(.$wpars$mcmc$chains)
+  
+  # assign values from restart
+  } else {
+
+    .$dataf$out_mcmc[,,1:.$wpars$mcmc$start_iter-1]     <- .$dataf$mcmc_input$out_mcmc
+    .$dataf$pars_array[,,1:.$wpars$mcmc$start_iter-1]   <- .$dataf$mcmc_input$pars_array
+    .$dataf$pars_lklihood[,1:.$wpars$mcmc$start_iter-1] <- .$dataf$mcmc_input$pars_lklihood
+    .$mcmc$check_ss                        <- dim(.$dataf$mcmc_input$conv_check)[2]
+    .$dataf$conv_check[,1:.$mcmc$check_ss] <- .$dataf$mcmc_input$conv_check
+    .$dataf$omega[,1:.$mcmc$check_ss]      <- .$dataf$mcmc_input$omega
+
+    .$dataf$mcmc_input <- NULL
+  }
 }
 
-init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream
 
 
 ###########################################################################
@@ -199,7 +271,6 @@ init_output_matrix_mcmc_demc <- init_output_matrix_mcmc_dream
 
 ################################
 # for factorial runs or matrix A and B of Saltelli method for parametric sensitivity analysis (SA)
-
 # run0
 run0_factorial <- function(.) {
 
@@ -586,12 +657,20 @@ run8_SAprocess_ye <- run4_factorial # i.e. NULL
 ################################
 # for MCMC runs
 
-run0_mcmc_dream <- function(.) {
+run0_mcmc <- function(.) {
+
+  # MCMC run cannot run with more than one model
+  if(.$dataf$lf>1) {
+    print('MCMC cannot run with more than one process representation due to')
+    print('current output file naming. Also to avoid the risk of specifying')
+    print('parameters to estimate that do not belong to a specified process representation.')
+    stop('More than one process representation requested, not compatible with MCMC run.')
+  }
 
   # if more than one model output has been specified, stop
   if(length(.$dataf$mout)!=1) stop('No current method to run MCMC with multiple model outputs')
 
-  # initialise output array
+  # initialise output arrays & other MCMC data structures
   .$init_output_matrix()
 
   # call run function
@@ -604,7 +683,7 @@ run0_mcmc_dream <- function(.) {
 }
 
 
-run1_mcmc_dream <- function(.,i) {
+run1_mcmc <- function(.,i) {
   # assumes that each column of the fnames matrix are independent and non-sequential
   # call run2
 
@@ -613,24 +692,22 @@ run1_mcmc_dream <- function(.,i) {
   if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[,i] )
 
   # evaluate model over initial proposals derived from prior
-  .$dataf$out[]  <-
-    do.call( 'rbind', {
-        if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run3, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
-        else                 lapply(1:.$dataf$lp, .$run3 )
-    })
+  # - if not a restart
+  if(!.$wpars$parsinit_read) {
+    .$dataf$out[]  <-
+      do.call( 'rbind', {
+          if(.$wpars$multic) mclapply(1:.$dataf$lp, .$run3, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
+          else                 lapply(1:.$dataf$lp, .$run3 )
+      })
 
-  # add to pars array and calculate likelihood of initial proposal
-  .$dataf$pars_array[,,1]   <- .$dataf$pars
-  .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
-
-  # determine boundary handling limits for parameter space
-  # .$boundary_handling_set()
-
-  # run initialisation part of algorithm
-  .$init_mcmc()
+    # add to pars array and calculate likelihood of initial proposal
+    .$dataf$pars_array[,,1]   <- .$mcmc$prior_sample <- .$dataf$pars
+    .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
+    .$dataf$out_mcmc[,,1]     <- t(.$dataf$out[,]) 
+  }
 
   # run MCMC
-  vapply(2:.$wpars$mcmc_maxiter, .$run2, numeric(0) )
+  vapply(.$wpars$mcmc$start_iter:.$wpars$mcmc$maxiter, .$run2, numeric(0) )
 
   # write output from MCMC
   .$write_output(i=i)
@@ -638,13 +715,15 @@ run1_mcmc_dream <- function(.,i) {
   numeric(0)
 }
 
+
 # This wrapper function is called from a vapply function to iterate / step chains in an MCMC
-run2_mcmc_dream <- function(.,j) {
+run2_mcmc <- function(.,j) {
   # runs in serial as each step depends on the previous step
   # call runp_mcmc
 
   # generate proposal matrix
   .$proposal_generate(j=j)
+  .$boundary_handling()
 
   # evaluate model for proposal on each chain
   .$dataf$out[]  <-
@@ -653,28 +732,87 @@ run2_mcmc_dream <- function(.,j) {
         else                 lapply(1:.$dataf$lp, .$run3 )
     })
 
-  # calculate likelihood of proposals on each chain (likelihood function is independent of DREAM algorithm)
-  lklihood <- .$proposal_lklihood()
 
-  # accept / reject proposals on each chain
-  .$proposal_accept(j=j, lklihood )
+  # calculate likelihood of proposals on each chain, accept/reject proposals
+  prop_lklihood <- .$proposal_lklihood()
+  curr_lklihood <- .$dataf$pars_lklihood[,j-1]
+  accept        <- .$proposal_accept(prop_lklihood, curr_lklihood )
 
-  # if test for and handle outlier chains (if outlier is detected, throw out all previous MCMC samples)
-  if (j %% .$wpars$mcmc_check_iter == 0) .$mcmc_outlier(j=j)
+  # update chains
+  for(ii in 1:.$dataf$lp) {
+    if(accept[ii]) {
+      .$dataf$pars_array[,ii,j]   <- .$dataf$pars[,ii]
+      .$dataf$pars_lklihood[ii,j] <-  prop_lklihood[ii]
+      .$dataf$out_mcmc[,ii,j]     <- .$dataf$out[ii,] 
+    } else {
+      .$dataf$pars_array[,ii,j]   <- .$dataf$pars_array[,ii,j-1]
+      .$dataf$pars_lklihood[ii,j] <- curr_lklihood[ii]
+      .$dataf$out_mcmc[,ii,j]     <- .$dataf$out_mcmc[,ii,j-1]
+    }
 
-  # calculate convergence diagnostic
-  if ((j %% .$wpars$mcmc_check_iter == 0) | (j == .$wpars$mcmc_maxiter)) .$mcmc_converge(j=j)
+    # compute squared normalized jumping distance
+    # - count selected crosover values
+    # - jump_delta_norm = Delta_m V2011
+    # - CR_counter = L_m V2011
+    # APW: potentially inefficient, does this need calculating for each chain or can it be simultaneous?, fix
+    if(.$wpars$mcmc$adapt_pCR) {
+      summation <- sum(((.$dataf$pars_array[,ii,j] - .$mcmc$current_state[,ii]) / .$mcmc$sd_state)^2 )
+      .$mcmc$jump_delta_norm[.$mcmc$CR[ii]] <- .$mcmc$jump_delta_norm[.$mcmc$CR[ii]] + summation
+      .$mcmc$CR_counter[.$mcmc$CR[ii]]      <- .$mcmc$CR_counter[.$mcmc$CR[ii]] + 1
+    } 
+  }
 
-  # return nothing - this is not part of the MCMC, allows use of the more stable vapply to call this function
+  # update the selection probability of crossover probabilities/values
+  if(!.$wpars$parsinit_read)
+    if(j==ceiling(.$wpars$mcmc$maxiter*.$wpars$mcmc$preburnin_frac) & .$wpars$mcmc$adapt_pCR ) .$mcmc$adapt_pCR <- T
+  if(.$mcmc$adapt_pCR) .$mcmc_adapt_pCR() 
+
+  
+  # append history matrix
+  # - for dreamzs
+  if(.$wpars$mcmc$mcmc_type=='dreamzs') {
+    if((.$mcmc$j_true%%.$wpars$mcmc$iterappend)==0) {
+      new_lps                                       <- .$dataf$lps + .$wpars$mcmc$chains
+      .$dataf$past_states[,(.$dataf$lps+1):new_lps] <- .$dataf$pars_array[,,j] 
+      .$dataf$lps                                   <- new_lps 
+    } 
+  }
+
+
+  # MCMC checks
+  mcmc_check <- ((j>(.$wpars$mcmc$maxiter*.$wpars$mcmc$preburnin_frac))|.$wpars$parsinit_read) & (j%%.$wpars$mcmc$check_iter==0)
+  if(mcmc_check | (j==.$wpars$mcmc$maxiter)) {
+
+    # subscript for convergence etc arrays, and 50 % of current post-outlier samples in pars etc arrays
+    .$mcmc$check_ss   <- .$mcmc$check_ss + 1 
+    .$mcmc$j_burnin50 <-
+      if(.$mcmc$outlier_detected | !.$wpars$parsinit_read) .$mcmc$j_start_burnin + ceiling((j-.$mcmc$j_start_burnin)/2)
+      else                                                 j - ceiling((j+.$wpars$mcmc$start_iter-1)/2) + 1
+
+    # test for and handle outlier chains 
+    outliers <- .$mcmc_outlier(j=j)
+    if(length(outliers)>0) .$mcmc_outlier_handling(outliers, j ) 
+
+    # test for convergence
+    R_hat <- .$mcmc_converge(j=j)
+    .$dataf$conv_check[,.$mcmc$check_ss] <- c(.$mcmc$j_true, j, R_hat )
+    if(j==.$wpars$mcmc$maxiter) .$mcmc_handle_iter_final(R_hat)
+  }
+
+
+  # update MCMC iteration counter
+  .$mcmc$j_true[] <- .$mcmc$j_true + 1
+
+  # return nothing - allows use of the stable vapply to call this function
   numeric(0)
 }
 
+
 # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$pars matrix to the model
-run3_mcmc_dream <- function(.,k) {
+run3_mcmc <- function(.,k) {
   # runs each chain at each iteration in MCMC
 
-  # assumes that each column of the pars matrix are independent and non-sequential
-  # ALJ: this assumption is valid only for DREAM, not DE-MC
+  # assumes that columns of the pars matrix (i.e. chains) are independent and non-sequential
 
   # configure parameters in the model
   if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[,k], F )
@@ -682,15 +820,13 @@ run3_mcmc_dream <- function(.,k) {
 
   # call model/met run function
   if(is.null(.$dataf$met)) .$model$run() else .$model$run_met()
-  #if(.$dataf$lm==1) .$model$run()
-  #else              vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
 }
 
-run4_mcmc_dream <- run4_factorial # i.e. NULL
-run5_mcmc_dream <- run4_factorial # i.e. NULL
-run6_mcmc_dream <- run4_factorial # i.e. NULL
-run7_mcmc_dream <- run4_factorial # i.e. NULL
-run8_mcmc_dream <- run4_factorial # i.e. NULL
+run4_mcmc <- run4_factorial # i.e. NULL
+run5_mcmc <- run5_factorial # i.e. NULL
+run6_mcmc <- run6_factorial # i.e. NULL
+run7_mcmc <- run7_factorial # i.e. NULL
+run8_mcmc <- run8_factorial # i.e. NULL
 
 
 
@@ -742,9 +878,26 @@ write_output_SAprocess_ye <- function(.,f) {
 
 
 # write MCMC output list
-write_output_mcmc_dream <- function(.,i) {
-  .$wpars$of_name <- paste(ofname, 'mcmc', 'f', i, sep='_' )
+write_output_mcmc <- function(.,i) {
+
+  # write MCMC output
+  #.$wpars$of_name <- paste(ofname, 'mcmc', 'f', i, sep='_' )
   .$write_to_file()
+
+  # determine restart iteration number 
+  hist_file_list <- list.files(pattern=paste0(.$wpars$of_name, '_history_' ))      
+  if(length(hist_file_list)==0) {
+    hn <- 1
+  } else {
+    hstart <- regexpr('history_', hist_file_list )
+    hend   <- regexpr('.RDS', hist_file_list )
+    hns    <- as.numeric(substr(hist_file_list, hstart[1]+attr(hstart,'match.length')[1], hend-1 ))
+    hn     <- max(hns) + 1
+  } 
+
+  # make and write history file 
+  df <- .$output(iter_out_start=1, iter_out_end=.$mcmc$j_burnin50-1 )
+  saveRDS(df, paste0(.$wpars$of_name, '_history_', hn, '.RDS' ))
 }
 
 
@@ -840,16 +993,35 @@ output_SAprocess_ye <- function(.) {
   .$dataf$out
 }
 
+# creates output for an MCMC simulation
+output_mcmc <- function(., iter_out_start=.$mcmc$j_burnin50, 
+                        iter_out_end=.$wpars$mcmc$maxiter ) {
 
-# creates output for a MCMC simulation
-output_mcmc_dream <- function(.) {
-  list(pars_array    = .$dataf$pars_array,
-       pars_lklihood = .$dataf$pars_lklihood,
-       mod_out_final = .$dataf$out,
-       obs           = .$dataf$obs,
-       mod_eval      = .$dataf$out_mcmc,
-       prop_storage  = .$dataf$prop_storage,
-       conv_check    = .$dataf$conv_check)
+  list(
+    pars_array     = .$dataf$pars_array[,,iter_out_start:iter_out_end,drop=F],
+    pars_lklihood  = .$dataf$pars_lklihood[,iter_out_start:iter_out_end,drop=F],
+    out_mcmc       = .$dataf$out_mcmc[,,iter_out_start:iter_out_end,drop=F],
+    past_states    = .$dataf$past_states,
+    mod_out_final  = .$dataf$out,
+    obs            = .$dataf$obs,
+    conv_check     = .$dataf$conv_check,
+    omega          = .$dataf$omega,
+
+    # user defined MCMC parameters
+    wpars = list(
+      mcmc = .$wpars$mcmc
+    ),
+
+    # dynamic MCMC variables that need preserving
+    mcmc = list(
+      prior_sample    = .$mcmc$prior_sample,
+      p_CR            = .$mcmc$p_CR,
+      jump_delta_norm = .$mcmc$jump_delta_norm,
+      CR_counter      = .$mcmc$CR_counter,
+      j_true          = .$mcmc$j_true,
+      adapt_pCR       = .$mcmc$adapt_pCR
+    )
+  )
 }
 
 

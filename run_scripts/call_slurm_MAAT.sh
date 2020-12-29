@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# bash script to excute MAAT 
-# this example/default script excutes a factorial MAAT run on a single core 
+# bash script to excute MAAT on a cluster using slurm and sbatch script
+# this example/default script excutes an MCMC MAAT run on 32 cores, but needs more arguments like met data and evaluation data 
 # this script is copied to $PDIR and should only be edited there to customise a run 
 
 # Optional single argument - the MAAT runid
@@ -10,7 +10,6 @@
 
 # 1st argument - the MAAT runid
 RUNID=$1
-
 
 # directories - defined when 'setup_MAAT_project.bs' is run
 SDIR="##SDIR##"
@@ -24,36 +23,26 @@ MOBJ="##MOBJ##"
 #   - edit in this script once copied to $PDIR
 #   - do not edit in repo
 
+# met data directory
+MDIR=""
+
+# number of processors to use
+NP=32
+
 # command line arguments to pass to run_MAAT.R - argument names and options can be found in run_MAAT.R 
-ARGS="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' multic<-F uq<-F factorial<-T"
+ARGS="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' runid<-'${RUNID}' procs<-${NP} mdir<-'${MDIR}' multic<-T uq<-T procSA<-F salt<-F factorial<-F mcmc<-T"
 
 
 
 ##########################################
 ### DO NOT MODIFY ANYTHING BELOW THIS LINE
 
-# date for labelling log files
+FORMATTED_ARGS=$(printf "%q" "$ARGS")
+
 YMD=`date +%Y-%m-%d`
 
-LOGF="${PDIR}/logs/${YMD}_runlog.txt"
-if [[ ! -z $RUNID ]]; then
-  ARGS="${ARGS} runid<-'${RUNID}'" 
-  LOGF="${PDIR}/logs/${YMD}_${RUNID}_runlog.txt"
-fi
-
-# run MAAT
-cd $SDIR
-if [[ $ARGS =~ 'restart' ]]; then
-  echo >> $LOGF
-  echo >> $LOGF
-  echo >> $LOGF
-  echo =========================================== >> $LOGF
-  echo Restart >> $LOGF
-  echo >> $LOGF
-  Rscript run_MAAT.R ${ARGS} >> $LOGF
-else
-  Rscript run_MAAT.R ${ARGS} > $LOGF
-fi
+cd $PDIR
+sbatch --job-name="${YMD}_MAAT_${RUNID}"  --export=ALL,SDIR=$SDIR,PDIR=$PDIR,MDIR=$MDIR,MOBJ=$MOBJ,NP=$NP,YMD=$YMD,FORMATTED_ARGS="'$FORMATTED_ARGS'" slurm_MAAT_arg_ORNLCADES.sbatch
 
 
 

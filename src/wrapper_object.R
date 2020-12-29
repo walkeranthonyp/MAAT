@@ -47,16 +47,17 @@ wrapper_object$build <- function(., ... ) {
   .$run8                   <- get(paste0('run8_',.$wpars$runtype))
 
   # MCMC specific functions
-  if(grepl('mcmc',.$wpars$runtype)) {
-    .$proposal_generate     <- get(paste0('proposal_generate_',.$wpars$runtype))
-    .$proposal_accept       <- get(paste0('proposal_accept_',.$wpars$runtype))
-    .$proposal_lklihood     <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc_lklihood))
-    .$init_mcmc             <- get(paste0('init_',.$wpars$runtype))
-    .$mcmc_outlier          <- get(paste0('mcmc_outlier_', .$wpars$mcmc_outlier))
-    .$mcmc_converge         <- get(paste0('mcmc_converge_', .$wpars$mcmc_converge))
-    .$mcmc_bdry_handling    <- get(paste0('mcmc_bdry_handling_', .$wpars$mcmc_bdry_handling))
-    .$mcmc_prior            <- get(paste0('mcmc_prior_', .$wpars$mcmc_prior))
-    .$boundary_handling_set <- boundary_handling_set
+  if(.$wpars$runtype=='mcmc') {
+    .$proposal_generate      <- get(paste0('proposal_generate_mcmc_',.$wpars$mcmc$mcmc_type))
+    .$proposal_accept        <- get(paste0('proposal_accept_mcmc_',.$wpars$mcmc$mcmc_type))
+    .$boundary_handling      <- get(paste0('boundary_handling_', .$wpars$mcmc$boundary_handling))
+    .$boundary_handling_set  <- boundary_handling_set
+    .$proposal_lklihood      <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc$lklihood))
+    .$mcmc_outlier           <- get(paste0('mcmc_outlier_', .$wpars$mcmc$outlier))
+    .$mcmc_outlier_handling  <- mcmc_outlier_handling  
+    .$mcmc_converge          <- get(paste0('mcmc_converge_', .$wpars$mcmc$converge))
+    .$mcmc_handle_iter_final <- mcmc_handle_iter_final 
+    .$mcmc_adapt_pCR         <- adapt_pCR
   }
 
   # build model
@@ -83,8 +84,7 @@ wrapper_object$run   <- function(.,verbose=T) {
 
   # Initialise
   if(!.$wpars$unit_testing) {
-    # if(.$wpars$runtype=='SAprocess_ye')  .$wpars$eval_strings <- T
-    if(.$wpars$runtype=='SAprocess_ye' | .$wpars$mcmc)  .$wpars$eval_strings <- T
+    if(.$wpars$runtype=='SAprocess_ye' | .$wpars$runtype=='mcmc')  .$wpars$eval_strings <- T
     .$init()
   } else {
     .$wpars$of_dir       <- '~/tmp'
@@ -93,13 +93,11 @@ wrapper_object$run   <- function(.,verbose=T) {
     hd <- getwd()
   }
 
-  # ALJ: probably a stupid question on my part, but why is the below if-statement eval_string and not eval_strings?
   # Initialisation checks
   # need to add a check for equal par vector lengths if this is a UQ run and not eval_strings
   # for Ye et al SA method
   # - due to different parameter sample numbers in process A and B loops,
   # - parameters samples must be generated from code snippets as strings
-  # if(.$wpars$eval_string&is.null(.$dynamic$pars_eval)) {
   if(.$wpars$eval_strings & is.null(.$dynamic$pars_eval)) {
     stop(paste('wrapper: eval_strings = T but dynamic$pars_eval not set. \n
           vars$pars_eval:,\n',.$dynamic$pars_eval,'\n
@@ -144,11 +142,13 @@ wrapper_object$run6 <- function(.,n) {}
 wrapper_object$run7 <- function(.,o) {}
 wrapper_object$run8 <- function(.,p) {}
 
+
 # print function for run cascade
 wrapper_object$printc <- function(.,r1,r2) {
   print(r1,quote=F)
   print(r2,quote=F)
 }
+
 
 # takes a >=3 D array and stacks it into a 2D matrix
 wrapper_object$stack <- function(., a ) {
@@ -179,8 +179,9 @@ wrapper_object$init <- function(.) {
     }
   }
 
-  if(.$wpars$UQ|.$wpars$mcmc) .$init_uq()
+  if(.$wpars$UQ | (.$wpars$runtype=='mcmc')) .$init_uq()
 }
+
 
 # as above for pars code snippets (pars_eval input) and assigment of parameters to a process (pars_proc input)
 wrapper_object$init_uq <- function(.) {
@@ -206,12 +207,14 @@ wrapper_object$init_uq <- function(.) {
 }
 
 
+
 # Wrapper object data struture
 ###########################################################################
 
 # initialisation lists
 wrapper_object$init_static  <- NULL
 wrapper_object$init_dynamic <- NULL
+
 
 # static variables
 # each element in the below list is a character or numeric vector to overwrite default initialisation values
@@ -220,6 +223,7 @@ wrapper_object$static <- list(
   pars   = NULL,
   env    = NULL
 )
+
 
 # dynamic variables
 # all elements expected to be of class 'list'
@@ -240,6 +244,7 @@ wrapper_object$dynamic <- list(
   env       = NULL
 )
 
+
 # input/output matrices and dataframes
 # with an associated length for input matrices
 wrapper_object$dataf  <- list(
@@ -256,75 +261,90 @@ wrapper_object$dataf  <- list(
   lfB     = NULL,
   lp      = NULL,
   lpB     = NULL,
+  lps     = NULL,         # number of usable columns in MCMC past_states matrix
   le      = NULL,
   lm      = NULL,
   # output matrices / arrays
+  mcmc_input   = NULL,    # list of output matrices and arrays from a previous MCMC run
   mout         = NULL,    # example model output vector, for setting up vapply functions
   out          = NULL,    # output matrix
   out_saltelli = NULL,    # saltelli output list
   # observation matrices /dataframes
-  obs     = NULL,         # a dataframe of observations against which to valiadate/ calculate likelihood of model
-  obsse   = NULL          # a dataframe of observation errors for the obs data, must exactly match the above dataframe
+  obs          = NULL,    # a dataframe of observations against which to valiadate/ calculate likelihood of model
+  obsse        = NULL     # a dataframe of observation errors for the obs data, must exactly match the above dataframe
 )
+
 
 # parameters specific to the wrapper object
 wrapper_object$wpars <- list(
-  multic             = F,           # multicore the simulation
-  procs              = 6,           # number of processors to use if multic = T
-  cverbose           = F,           # write configuration output during runtime
-  UQ                 = F,           # run a UQ analysis
-  runtype            = 'none',      # ensemble type - 'factorial', 'SApar_saltelli', and 'SAprocess_ye' available so far
-  of_dir             = '~/tmp',     # output directory
-  of_type            = 'csv',       # output file type - 'csv' or 'rds'
-  of_name            = '',          # output file name - excluding file extension
-  of_name_stem       = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
-  n                  = numeric(1),  # parameter sample number
-  nmult              = 1,           # parameter sample number multiplier for saltelli method
-  eval_strings       = F,        # switch telling wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
-  sobol_init         = T,        # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
-  unit_testing       = F,
-  mcmc_type          = 'dream',
-  mcmc_lklihood      = 'ssquared',
-  mcmc_outlier       = 'iqr',
-  mcmc_converge      = 'Gelman_Rubin',
-  mcmc_bdry_handling = 'bound',
-  mcmc_prior         = 'uniform',
-  mcmc_chains        = 7,
-  mcmc_maxiter       = 1000,
-  mcmc_thin          = 0.1,
-  mcmc_thin_obs      = 1,
-  mcmc_homosced      = F,
-  mcmc_delta         = 3,
-  mcmc_c_rand        = 0.01,
-  mcmc_c_ergod       = 1e-12,
-  mcmc_p_gamma       = 0.2,
-  mcmc_n_CR          = 3,
-  mcmc_adapt_pCR     = T,
-  mcmc_CR_burnin     = 0.1,
-  mcmc_check_iter    = 10
+  multic          = F,             # multicore the simulation
+  procs           = 6,             # number of processors to use if multic = T
+  cverbose        = F,             # write configuration output during runtime
+  UQ              = F,             # run a UQ analysis
+  runtype         = 'none',        # ensemble type - 'factorial', 'SApar_saltelli', and 'SAprocess_ye' available so far
+  of_dir          = '~/tmp',       # output directory
+  of_type         = 'csv',         # output file type - 'csv' or 'rds'
+  of_name         = '',            # output file name - excluding file extension
+  of_name_history = '',            # history output file name - excluding file extension
+  of_name_stem    = 'MAAT_output', # output file name stem - all output file in an ensemble will begin with this
+  n               = numeric(1),    # parameter sample number
+  parsinit_read   = F,             # parameter samples have been read from a file
+  nmult           = 1,             # parameter sample number multiplier for saltelli method
+  eval_strings    = F,             # switch telling wrapper that vars$pars are to be evaluated from code string snippets in vars$pars_eval
+  sobol_init      = T,             # initialise sobol sequence or not when calling rsobol. This should not be modified by the user.
+  unit_testing    = F,
+
+  mcmc = list(
+    mcmc_type       = 'dream',
+    lklihood        = 'ssquared',
+    outlier         = 'iqr',
+    mcmc_converge   = 'Gelman_Rubin',
+    boundary_handling   = 'fold',
+    #init_prior      = 'uniform',
+    chains          = 7,
+    prior_n         = 40,          # number of samples from prior to initialise past_states
+    maxiter         = 1000,
+    maxiter_restart = numeric(1),
+    preburnin_frac  = 0.1,
+    start_iter      = 2,
+    thin            = 0.1,
+    thin_obs        = 1,
+    homosced        = F,
+    chain_delta     = 3,
+    c_rand          = 0.01,
+    c_ergod         = 1e-12,
+    p_gamma         = 0.2,
+    n_CR            = 3,           # max number of chain pairs used to calculate the jump for each chain
+    adapt_pCR       = T,           # adapt probability of CR, switched off when CR_burnin iterations reached
+    CR_burnin       = 1e4,         # if adapt_pCR & j_true<CR_burnin adapt cross-over probabilities 
+    check_iter      = 10,          # check convergence (and outliers) every check_iter iterations 
+    iterappend      = 10           # append past_states every iterappend iterations 
+  )
 )
+
 
 # MCMC specific data, size depends on MCMC set up
 wrapper_object$mcmc <- list(
-  d              = numeric(1),
-  CR             = numeric(1),
-  p_CR           = numeric(1),
-  R              = matrix(1,1,1),
-  current_state  = matrix(1,1,1),
-  p_state        = numeric(1),
-  sd_state       = numeric(1),
-  jump           = matrix(1,1,1),
-  draw           = matrix(1,1,1),
-  lambda         = matrix(1,1,1),
-  boundary_min   = numeric(1),
-  boundary_max   = numeric(1),
-  del            = numeric(1),
-  L              = numeric(1),
-  t              = numeric(1),
-  m              = numeric(1),
-  CR_burnin      = numeric(1),
-  d_star         = numeric(1)
+  outlier_detected = F,
+  j_true           = 2,           # true number of iterations, 2 assumes model eval on the prior is the first iteration
+  j_start_burnin   = 1,           # iteration counter at which burnin began, reset when outlier detected
+  j_burnin50       = numeric(1),  # iteration counter at 50 % of burnin
+  check_ss         = numeric(1),  # column subscript for convergence output array
+  pars_n           = numeric(1),  # number of parameters (dimensions of the posterior) being estimated
+  prior_sample     = matrix(),    # matrix of parameter values sampled from prior, pars x chains
+  current_state    = matrix(),    # matrix of current pars x chains
+  sd_state         = numeric(1),  # sd of current state 
+  jump             = matrix(),    # matrix of change in pars for proposal, pars x chains
+  lambda           = matrix(),    # jump scaling
+  boundary_min     = numeric(1),  # vector of parameter minima
+  boundary_max     = numeric(1),  # vector of parameter maxima
+  CR               = numeric(1),  # Crossover number, probability of parameters on a given chain and iteration making the 'jump' is CR/n_CR
+  adapt_pCR        = F,           # pCR adaptation active
+  p_CR             = numeric(1),  # Crossover probability vector, probability that a given CR (of 1:n_CR) will be selected
+  jump_delta_norm  = numeric(1),  # sd normalised jump for each CR, used in adapting pCR
+  CR_counter       = numeric(1)   # CR counter, used in adapting pCR
 )
+
 
 
 # Output processing functions
@@ -335,14 +355,17 @@ wrapper_object$mcmc <- list(
 # - this is called from an lapply to expand each each ensemble member values of fnames, pars, and env with every column of the met matrix
 wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(t(.$dataf$met),df[i,]))
 
+
 # function to write ensemble output data to file
 wrapper_object$write_to_file <- function(., df=.$output(), app=F ) {
 
   setwd(.$wpars$of_dir)
-  if(.$wpars$of_type=='csv')      write.table(format(df,width=12),paste(.$wpars$of_name,'.csv',sep=''),quote=F,row.names=F,col.names=!app,sep=',',append=app)
-  else if(.$wpars$of_type=='rds') saveRDS(df,paste(.$wpars$of_name,'RDS',sep='.'))
+  if(.$wpars$of_type=='csv')      write.table(format(df,width=12), paste(.$wpars$of_name,'.csv',sep=''),
+                                              quote=F, row.names=F, col.names=!app, sep=',', append=app )
+  else if(.$wpars$of_type=='rds') saveRDS(df, paste(.$wpars$of_name,'RDS',sep='.') )
   else print(paste('No methods for output file format:',.$wpars$of_type))
 }
+
 
 
 # Print functions
@@ -904,21 +927,21 @@ wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
   library(lattice)
   # build wrapper and the model object
   .$wpars$UQ      <- T
-  .$wpars$runtype <- paste0('mcmc_',mcmc_type)
+  .$wpars$runtype <- 'mcmc'
   .$wpars$mod_obj <- 'mcmc_test'
 
   # define control parameters
-  .$wpars$unit_testing  <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions)
-  .$wpars$verbose       <- verbose
-  .$wpars$cverbose      <- cverbose
-  .$wpars$multic        <- mc           # multicore the ensemble
-  .$wpars$procs         <- pr           # number of cores to use if above is true
-  .$wpars$UQ            <- T            # run a UQ/SA style ensemble
-  .$wpars$UQtype        <- 'mcmc'       # MCMC ensemble
-  .$wpars$mcmc_type     <- mcmc_type    # MCMC type, 'demc' or 'dream'
-  .$wpars$mcmc_chains   <- mcmc_chains  # MCMC number of chains
-  .$wpars$mcmc_maxiter  <- mcmc_maxiter # MCMC max number of steps / iterations on each chain
-  .$wpars$mcmc_lklihood <- 'log'        # MCMC likelihood function
+  .$wpars$unit_testing   <- T            # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unite test to test just the init functions)
+  .$wpars$verbose        <- verbose
+  .$wpars$cverbose       <- cverbose
+  .$wpars$multic         <- mc           # multicore the ensemble
+  .$wpars$procs          <- pr           # number of cores to use if above is true
+  .$wpars$UQ             <- T            # run a UQ/SA style ensemble
+  .$wpars$UQtype         <- 'mcmc'       # MCMC ensemble
+  .$wpars$mcmc$mcmc_type <- mcmc_type    # MCMC type, 'demc' or 'dream'
+  .$wpars$mcmc$chains    <- mcmc_chains  # MCMC number of chains
+  .$wpars$mcmc$maxiter   <- mcmc_maxiter # MCMC max number of steps / iterations on each chain
+  .$wpars$mcmc$lklihood  <- 'log'        # MCMC likelihood function
   .$build(mod_out='mixture', switches=c(diag,verbose,cverbose) )
 
   # set model system function
@@ -995,22 +1018,22 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_cha
   library(lattice)
   # build wrapper and the model object
   .$wpars$UQ      <- T
-  .$wpars$runtype <- paste0('mcmc_',mcmc_type)
+  .$wpars$runtype <- 'mcmc'
   .$wpars$mod_obj <- 'mcmc_test'
 
   # define control parameters
   .$wpars$unit_testing  <- T
   .$wpars$verbose       <- verbose
   .$wpars$cverbose      <- cverbose
-  .$wpars$mcmc_lklihood <- mcmc_lklihood # MCMC likelihood function
+  .$wpars$mcmc$lklihood <- mcmc_lklihood # MCMC likelihood function
   .$wpars$multic        <- mc            # multicore the ensemble
   .$wpars$procs         <- pr            # number of cores to use if above is true
   .$wpars$UQ            <- T             # run a UQ/SA style ensemble
   .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble
-  .$wpars$mcmc_type     <- mcmc_type     # MCMC type, 'demc' or 'dream'
-  .$wpars$mcmc_chains   <- mcmc_chains   # MCMC number of chains
-  .$wpars$mcmc_homosced <- mcmc_homosced # MCMC homoscedastic error
-  .$wpars$mcmc_maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
+  .$wpars$mcmc$mcmc_type <- mcmc_type     # MCMC type, 'demc' or 'dream'
+  .$wpars$mcmc$chains    <- mcmc_chains   # MCMC number of chains
+  .$wpars$mcmc$homosced  <- mcmc_homosced # MCMC homoscedastic error
+  .$wpars$mcmc$maxiter   <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
   .$build(mod_out='regression', switches=c(diag,verbose,cverbose) )
 
   # Define static variables

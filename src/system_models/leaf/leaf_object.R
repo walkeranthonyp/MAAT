@@ -385,6 +385,8 @@ leaf_object$cpars <- list(
 # output functions
 #######################################################################        
 
+f_output_leaf_eval <- f_output_eval 
+
 f_output_leaf_run <- function(.) {
   c(.$state_retrive(snames=c('A','cc','ci','rd','lim')),
             .$state_retrive(snames=c('ri','rs','rb'), state='state_pars') )

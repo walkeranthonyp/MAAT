@@ -48,6 +48,9 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   # assign model output function
   if(.$cpars$diag) mod_out <- 'full' ### this will assign full to all child objects too could add a child switch
   .$output <- get(paste('f', 'output', .$name, .$cpars$mod_out, sep='_' ))
+  # could add a catch here to test that requested eval variables exist.
+  # will need to be done once latest soil model development has been merged
+  # to work with soil_decomp will need to be called after structure build
 
   # assign default and mod mimic values to data structure
   .$configure(vlist='pars',   df=unlist(init_default$pars))
@@ -134,17 +137,14 @@ run_met1 <- function(.,l) {
 
 ## output functions
 ############################################################################
-#
-#output <- function(.){
-#
-#  if(.$cpars$output=='full') {
-#
-#    lout <- unlist(c(.$state, .$state_pars ))
-#
-#  }
-#
-#  lout
-#}
+
+f_output_eval <- function(.){
+
+  lout <- unlist(c(.$state, .$state_pars ))
+
+  # NAs in this match operation means requested eval variables have been mis-labled - needs a trap 
+  lout[match(names(.$dataf$out), names(lout) )]
+}
 
 
 # configure functions

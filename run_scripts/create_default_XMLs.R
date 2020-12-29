@@ -50,7 +50,7 @@ names(l2$env) <- mod_obj
 l2[[1]][[1]][] <- 'column name of variable in metdata file'
 
 # create eval data list
-l3 <- list(state = list(get(mo)[['state']]))
+l3 <- list(state = list(as.list(unlist(get(mo)[['state']]))))
 names(l3$state) <- mod_obj
 l3[[1]][[1]][] <- 'column name of variable in evaldata file'
 
