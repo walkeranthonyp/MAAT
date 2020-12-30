@@ -142,11 +142,9 @@ mcmc_lklihood       <- 'ssquared'
 # outlier handling (options: none, iqr)
 mcmc_outlier        <- 'iqr'
 # MCMC convergence testing (options: none, Gelman_Rubin)
-mcmc_conv           <- 'Gelman_Rubin'
+mcmc_converge       <- 'Gelman_Rubin'
 # MCMC option for parameter treatment in bounded search spaces (options: none, bound, reflect, fold)
-boundary_handling  <- 'fold'
-# initializing Markov chains with chosen prior distribution (options: uniform, normal, none)
-#mcmc_prior          <- 'uniform'
+boundary_handling   <- 'fold'
 # number of chains to run (minumum = 2 * mcmc_chain_delta + 1)
 mcmc_chains         <- 7
 # number of samples from prior distribution to initialise past_states, recommended 10 * number of estimated parameters  
