@@ -38,7 +38,7 @@ canopy_object$run <- function(.) {
   if(.$cpars$verbose) print('canopy run()')
 
   # initialise canopy
-  .$state$lai <- .$fns$lai() # this also could point to a higher level plant object
+  #.$env$lai <- .$fns$lai() # this also could point to a higher level plant object
   .$fns$pars_init()
 
   # assign canopy environment to leaf environment
@@ -52,9 +52,9 @@ canopy_object$run <- function(.) {
   # APW: shift this to a leaf init XML that configures a leaf for the canopy
   .$leaf$pars$a <- 1.0
 
-  # calculate water status
-  .$fns$water_status()
-
+#  # calculate water status
+#  .$fns$water_status()
+#
   # calculate diffuse and direct radiation
   .$fns$par_partition()
 
@@ -103,26 +103,27 @@ canopy_object$run_leaf <- function(., ii, df ) {
 canopy_object$fnames <- list(
   sys           = 'f_sys_multilayer',
   pars_init     = 'f_pars_init',
+  par_partition = 'f_par_partition_spitters',
   rt            = 'f_rt_beerslaw_goudriaan',
+  vcmax0        = 'f_vcmax0_constant',
+  k_vcmax       = 'f_k_vcmax_constant',
   scale_n       = 'f_scale_n_CLMuniform',
   scale_vcmax   = 'f_scale_vcmax_beerslaw',
   scale_jmax    = 'f_scale_two_layer',
   scale_f       = 'f_scale_two_layer',
   scale_g1      = 'f_scale_two_layer',
-  vcmax0        = 'f_vcmax0_constant',
-  k_vcmax       = 'f_k_vcmax_constant',
   scale_ca      = 'f_scale_ca_uniform',
-  scale_vpd     = 'f_scale_vpd_uniform',
-  lai           = 'f_lai_constant',
-  par_partition = 'f_par_partition_spitters',
-  water_status  = 'f_water_status_none',
-  fwdw          = 'f_fwdw_wtd_lin'
+  scale_vpd     = 'f_scale_vpd_uniform'
+#  lai           = 'f_lai_constant',
+#  water_status  = 'f_water_status_none',
+#  fwdw          = 'f_fwdw_wtd_lin'
 )
 
 
 # environment
 ####################################
 canopy_object$env <- list(
+  lai       = 6, 
   temp      = 25,
   par       = 1000,
   par_dir   = numeric(1),
@@ -130,9 +131,9 @@ canopy_object$env <- list(
   ca_conc   = 400,
   vpd       = 1,
   clearness = 1,
-  zenith    = 0,
-  water_td  = numeric(1),
-  sphag_h   = numeric(1)
+  zenith    = 0
+#  water_td  = numeric(1),
+#  sphag_h   = numeric(1)
 )
 
 
@@ -140,7 +141,7 @@ canopy_object$env <- list(
 ####################################
 canopy_object$state <- list(
   # External
-  lai     = numeric(1),
+#  lai     = numeric(1),
   mass_a  = 10,
   C_to_N  = 40,
   totalN  = 7,
@@ -250,10 +251,10 @@ canopy_object$state_pars <- list(
 ####################################
 canopy_object$pars   <- list(
   layers           = 10,
-  lai              = 10,
+#  lai              = 10,
   can_lai_upper    = 2.6,     # LAI of upper canopy for two layer scaling scheme 
-  lai_max          = 4,
-  lai_curve        = 0.5,
+#  lai_max          = 4,
+#  lai_curve        = 0.5,
   leaf_cores       = 1,
   G                = 0.5,     # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
   can_clump        = 1,       # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
@@ -279,11 +280,11 @@ canopy_object$pars   <- list(
   g1 = list(                  # g1 (medlyn):
     layer1 = 3.41,            #   in first canopy layer
     layer2 = 8.82             #   in second canopy layer
-  ),
-  fwdw_wl_slope    = -0.022,  # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
-  fwdw_wl_sat      = 16,      # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
-  fwdw_wl_exp_a    = -0.037,  # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
-  fwdw_wl_exp_b    = 3.254    # decrease in sphagnum fwdw ratio as an exponential f of water level (cm)
+  )
+#  fwdw_wl_slope    = -0.022,  # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
+#  fwdw_wl_sat      = 16,      # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
+#  fwdw_wl_exp_a    = -0.037,  # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
+#  fwdw_wl_exp_b    = 3.254    # decrease in sphagnum fwdw ratio as an exponential f of water level (cm)
 )
 
 
@@ -362,7 +363,7 @@ canopy_object$.test <- function(., verbose=T,
 
   .$env$par        <- canopy.par
   .$env$ca_conc    <- canopy.ca_conc
-  .$pars$lai       <- canopy.lai
+  .$env$lai        <- canopy.lai
   .$state$mass_a   <- 175
   .$state$C_to_N   <- 40
 
@@ -379,7 +380,7 @@ canopy_object$.test_aca <- function(., verbose=F, cverbose=F,
   if(verbose) str.proto(canopy_object)
   .$leaf$cpars$verbose  <- F
 
-  .$pars$lai       <- 10
+  .$env$lai        <- 10 
   .$state$mass_a   <- 175
   .$state$C_to_N   <- 40
 

@@ -3,29 +3,23 @@
     <canopy>
       <sys>NA</sys>
       <pars_init>NA</pars_init>
+      <par_partition>NA</par_partition>
       <rt>NA</rt>
+      <vcmax0>NA</vcmax0>
+      <k_vcmax>NA</k_vcmax>
       <scale_n>NA</scale_n>
       <scale_vcmax>NA</scale_vcmax>
       <scale_jmax>NA</scale_jmax>
       <scale_f>NA</scale_f>
       <scale_g1>NA</scale_g1>
-      <vcmax0>NA</vcmax0>
-      <k_vcmax>NA</k_vcmax>
       <scale_ca>NA</scale_ca>
       <scale_vpd>NA</scale_vpd>
-      <lai>NA</lai>
-      <par_partition>NA</par_partition>
-      <water_status>NA</water_status>
-      <fwdw>NA</fwdw>
     </canopy>
   </fnames>
   <pars>
     <canopy>
       <layers>NA</layers>
-      <lai>NA</lai>
       <can_lai_upper>NA</can_lai_upper>
-      <lai_max>NA</lai_max>
-      <lai_curve>NA</lai_curve>
       <leaf_cores>NA</leaf_cores>
       <G>NA</G>
       <can_clump>NA</can_clump>
@@ -48,18 +42,15 @@
         <layer1>NA</layer1>
         <layer2>NA</layer2>
       </f>
-      <g1_medlyn>
+      <g1>
         <layer1>NA</layer1>
         <layer2>NA</layer2>
-      </g1_medlyn>
-      <fwdw_wl_slope>NA</fwdw_wl_slope>
-      <fwdw_wl_sat>NA</fwdw_wl_sat>
-      <fwdw_wl_exp_a>NA</fwdw_wl_exp_a>
-      <fwdw_wl_exp_b>NA</fwdw_wl_exp_b>
+      </g1>
     </canopy>
   </pars>
   <env>
     <canopy>
+      <lai>NA</lai>
       <temp>NA</temp>
       <par>NA</par>
       <par_dir>NA</par_dir>
@@ -68,8 +59,6 @@
       <vpd>NA</vpd>
       <clearness>NA</clearness>
       <zenith>NA</zenith>
-      <water_td>NA</water_td>
-      <sphag_h>NA</sphag_h>
     </canopy>
   </env>
 </static>

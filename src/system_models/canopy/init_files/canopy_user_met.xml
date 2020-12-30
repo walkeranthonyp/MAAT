@@ -1,6 +1,7 @@
 <met_data_translator>
   <env>
     <canopy>
+      <lai>'column name of variable in metdata file'</lai>
       <temp>'column name of variable in metdata file'</temp>
       <par>'column name of variable in metdata file'</par>
       <par_dir>'column name of variable in metdata file'</par_dir>
@@ -9,8 +10,6 @@
       <vpd>'column name of variable in metdata file'</vpd>
       <clearness>'column name of variable in metdata file'</clearness>
       <zenith>'column name of variable in metdata file'</zenith>
-      <water_td>'column name of variable in metdata file'</water_td>
-      <sphag_h>'column name of variable in metdata file'</sphag_h>
     </canopy>
   </env>
 </met_data_translator>
