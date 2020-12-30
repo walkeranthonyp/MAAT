@@ -24,7 +24,7 @@ generate_ensemble <- function(.) {
   .$generate_ensemble_pars()
 
   # remove potentially large data from pars list
-  .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
+  if(.$wpars$runtype!='factorial') .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
   # check names of ensemble matrices are character vectors
   if(!is.null(.$dataf$met)) .$model$configure_check(vlist='env', df=.$dataf$met[,1] )
@@ -330,10 +330,10 @@ run2_factorial <- function(.,j) {
 
   # out has the potential to be a vector, matrix (needs transposed), or an array (needs stacking)
   # returns matrix
-  print('')
-  print(class(out))
-  print(out)
-  if(class(out)=='matrix') t(out) else if(class(out)=='array') .$stack(out) else as.matrix(out)
+  #print('')
+  #print(class(out))
+  #print(out)
+  if(class(out)[1]=='matrix') t(out) else if(class(out)[1]=='array') .$stack(out) else as.matrix(out)
 }
 
 
@@ -912,10 +912,15 @@ output_factorial  <- function(.){
     # if at least one of fnames, pars, and env are varied
     if(is.null(.$dataf$env)+is.null(.$dataf$pars)+is.null(.$dataf$fnames) < 3) {
 
-      vpars    <- if(is.null(.$dataf$pars))    NULL else .$dynamic$pars
-      venv     <- if(is.null(.$dataf$env))     NULL else .$dynamic$env
-      vfnames  <- if(is.null(.$dataf$fnames))  NULL else .$dynamic$fnames
-      vardf <- expand.grid(c(venv,vpars,vfnames),stringsAsFactors=F)
+      vpars   <- if(is.null(.$dataf$pars))    NULL else .$dynamic$pars
+      venv    <- if(is.null(.$dataf$env))     NULL else .$dynamic$env
+      vfnames <- if(is.null(.$dataf$fnames))  NULL else .$dynamic$fnames
+      vardf   <- expand.grid(c(venv,vpars,vfnames), stringsAsFactors=F )
+
+      #print('')
+      #print('output processing')
+      #print(.$dataf$pars)
+      #print(vpars)
 
       # if no met data
       if(is.null(.$dataf$met)) {
@@ -942,7 +947,7 @@ output_factorial  <- function(.){
     # if no vars
     } else {
       # if met data
-      if(!is.null(.$dataf$met)) cbind(t(.$dataf$met) , .$dataf$out ) else .$dataf$out
+      if(!is.null(.$dataf$met)) cbind(t(.$dataf$met), .$dataf$out ) else .$dataf$out
     }
   )
 }
@@ -993,6 +998,7 @@ output_SAprocess_ye <- function(.) {
   .$dataf$out
 }
 
+
 # creates output for an MCMC simulation
 output_mcmc <- function(., iter_out_start=.$mcmc$j_burnin50, 
                         iter_out_end=.$wpars$mcmc$maxiter ) {
@@ -1012,7 +1018,7 @@ output_mcmc <- function(., iter_out_start=.$mcmc$j_burnin50,
       mcmc = .$wpars$mcmc
     ),
 
-    # dynamic MCMC variables that need preserving
+    # dynamic MCMC variables that need preserving across a restart
     mcmc = list(
       prior_sample    = .$mcmc$prior_sample,
       p_CR            = .$mcmc$p_CR,

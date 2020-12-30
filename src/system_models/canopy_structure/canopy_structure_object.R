@@ -113,18 +113,22 @@ canopy_structure_object$env <- list(
 ####################################
 canopy_structure_object$state <- list(
   # External
-  lai            = numeric(1),    
-  lai_young      = numeric(1),    
-  lai_mature     = numeric(1),    
-  lai_old        = numeric(1),    
-  upper_can_prop = numeric(3), 
-  lower_can_prop = numeric(3), 
+  lai             = numeric(1),    
+  lai_young       = numeric(1),    
+  lai_mature      = numeric(1),    
+  lai_old         = numeric(1),    
+  upper_can_prop  = numeric(3), 
+  lower_can_prop  = numeric(3), 
   
   # leaf demography associated traits
   leafdem_traits <- list(
     vcmax0 = numeric(3)
   ),
- 
+
+  # water status
+  fwdw_ratio      = numeric(1),
+  sphag_dto_water = numeric(1),
+
   # Calculated state
   # canopy_structure layer vectors
   vert    = list(
@@ -279,6 +283,13 @@ f_output_canopy_structure_all_lim <- function(.) {
     Ajg_lim=.$state$integrated$Ajg_lim, 
     Apg_lim=.$state$integrated$Apg_lim 
     )
+}
+
+f_output_canopy_structure_sphagnum <- function(.) {
+  c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
+    gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd,
+    fwdw_ratio=.$state$fwdw_ratio, sphag_dto_water=.$state$sphag_dto_water,
+    canstruct.lai=.$state$lai, can.lai=.$canopy$env$lai, can.par=.$canopy$env$par, leaf.par=.$canopy$leaf$env$par )
 }
 
 
