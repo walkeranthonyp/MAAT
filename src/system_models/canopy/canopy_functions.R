@@ -65,7 +65,6 @@ f_par_partition_spitters <- function(.) {
 
    .super$env$par_diff[] <- .super$env$par*diffprop
    .super$env$par_dir[]  <- .super$env$par - .super$env$par_diff
-
 }
 
 
@@ -105,18 +104,21 @@ f_rt_beerslaw_goudriaan <- function(.,l) {
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
   
-  .super$state$vert$sun$apar[]     <- (1 - .super$state_pars$lscattering) * .super$state_pars$k_dir * .super$env$par * exp(-.super$state_pars$k_dirprime*l)
+  .super$state$vert$sun$apar[]     <- (1-.super$state_pars$lscattering)*.super$state_pars$k_dir*.super$env$par * exp(-.super$state_pars$k_dirprime*l)
   .super$state$vert$sun$fraction[] <- 1.0 
 }
 
 
-# misconstrued Beer's Law - ignores conversion of incident light per unit ground area to incident light per unit leaf area
+# misconstrued Beer's Law
+# - ignores conversion of incident light per unit ground area to incident light per unit leaf area
+# - considers scattering in absorption because the leaf models does not when nested in canopy
+# - but scattering is not considered in RT, k_dir not k_dirprime is used
 f_rt_beerslaw <- function(.,l) {
   # calculates direct beam light attenuation through the canopy
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
   
-  .super$state$vert$sun$apar[]     <- (1 - .super$state_pars$lscattering) * .super$env$par * exp(-.super$state_pars$k_dir*l)
+  .super$state$vert$sun$apar[]     <- (1-.super$state_pars$lscattering)*.super$env$par * exp(-.super$state_pars$k_dir*l)
   .super$state$vert$sun$fraction[] <- 1.0 
 }
 
@@ -128,10 +130,11 @@ f_rt_goudriaan <- function(.,l) {
 
   # calculate albedos
   # after Wang 2003
-  alb_h                     <- (1-.super$state_pars$m)/(1+.super$state_pars$m)
+  alb_h                          <- (1-.super$state_pars$m)/(1+.super$state_pars$m)
   .super$state_pars$alb_dir_can  <- alb_h*2*.super$state_pars$k_dir / (.super$state_pars$k_dir + .super$state_pars$k_diff)
-  .super$state_pars$alb_diff_can <- 4 * .super$state_pars$G_dir * alb_h *
-    ( .super$state_pars$G_dir * (log(.super$state_pars$G_dir)-log(.super$state_pars$G_dir+.super$state_pars$k_diff)) / .super$state_pars$k_diff^2 + 1/.super$state_pars$k_diff)
+  .super$state_pars$alb_diff_can <- 4 * .super$state_pars$G_dir * alb_h * ( .super$state_pars$G_dir *
+                                      (log(.super$state_pars$G_dir)-log(.super$state_pars$G_dir+.super$state_pars$k_diff)) / .super$state_pars$k_diff^2 + 
+                                      1/.super$state_pars$k_diff )
 
   .super$state_pars$alb_dir      <- .super$state_pars$alb_dir_can  + (.super$pars$alb_soil-.super$state_pars$alb_dir_can)  * exp(-2*.super$state_pars$k_dirprime  * .super$state$lai)
   .super$state_pars$alb_diff     <- .super$state_pars$alb_diff_can + (.super$pars$alb_soil-.super$state_pars$alb_diff_can) * exp(-2*.super$state_pars$k_diffprime * .super$state$lai)
@@ -148,7 +151,6 @@ f_rt_goudriaan <- function(.,l) {
   # calculate fraction sunlit vs shaded leaves
   .super$state$vert$sun$fraction[]   <- exp(-.super$state_pars$k_dir*l)
   .super$state$vert$shade$fraction[] <- 1 - .super$state$vert$sun$fraction
-
 }
 
 

@@ -49,6 +49,7 @@ canopy_object$run <- function(.) {
   .$leaf$configure(vlist='env', df=df )
 
   # set leaf absorptance to 1 as all cansys functions (should) account for leaf scattering
+  # APW: shift this to a leaf init XML that configures a leaf for the canopy
   .$leaf$pars$a <- 1.0
 
   # calculate water status

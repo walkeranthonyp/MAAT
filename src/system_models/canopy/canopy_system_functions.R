@@ -10,6 +10,7 @@
 
 # Big Leaf canopy scaling
 ###############################
+
 # Sellers et al 1992
 f_sys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
   # this function was described in Sellers to deal with time intergrated values of fpar and k
@@ -19,8 +20,9 @@ f_sys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
   fpar <- 1 - exp(-k*.super$state$lai)
 
   # set leaf environment
-  # incident light - F_0 * first half of B_2 in Eq 37b (Sellers 1992)
-  .super$leaf$env$par[] <- .super$state_pars$k_dir * (1-.super$state_pars$lscattering) * .super$env$par
+  # absorbed light in leaf layer 0 - F_0 * first half of B_2 in Eq 37b (Sellers 1992)
+  # APW: same as beerslaw RT function when l = 0
+  .super$leaf$env$par[] <- (1-.super$state_pars$lscattering)*.super$state_pars$k_dir * .super$env$par
   # assume no variation in CO2 concentration, VPD, and T
   #.super$leaf$env$ca_conc <- .super$env$ca_conc
   #.super$leaf$env$vpd     <- .super$env$vpd
