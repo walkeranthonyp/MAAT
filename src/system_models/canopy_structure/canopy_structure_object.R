@@ -288,8 +288,16 @@ f_output_canopy_structure_all_lim <- function(.) {
 f_output_canopy_structure_sphagnum <- function(.) {
   c(A=.$state$integrated$A, cc=.$state$integrated$cc, ci=.$state$integrated$ci, 
     gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd,
-    fwdw_ratio=.$state$fwdw_ratio, sphag_dto_water=.$state$sphag_dto_water,
-    canstruct.lai=.$state$lai, can.lai=.$canopy$env$lai, can.par=.$canopy$env$par, leaf.par=.$canopy$leaf$env$par )
+    fwdw_ratio=.$state$fwdw_ratio, sphag_dto_water=.$state$sphag_dto_water)#,
+    #canstruct.lai=.$state$lai, can.lai=.$canopy$env$lai, can.par=.$canopy$env$par, leaf.par=.$canopy$leaf$env$par )
+}
+
+f_output_canopy_structure_mcmc<- function(.) {
+  c(A=.$state$integrated$A)
+}
+
+f_output_canopy_structure_mcmc<- function(.) {
+ unlist(.$state)[.$mcmc$obs_vars] 
 }
 
 

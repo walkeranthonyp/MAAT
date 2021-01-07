@@ -160,7 +160,7 @@ generate_ensemble_pars_mcmc <- function(.) {
   if(!.$wpars$parsinit_read & .$wpars$mcmc$thin_obs<1.0) {
     .$wpars$mcmc$thin_obs <- min(0.5, .$wpars$mcmc$thin_obs )
     thin                  <- floor(1/.$wpars$mcmc$thin_obs)
-    oss                   <- seq(1, dim(.$dataf$metdata)[2], thin )
+    oss                   <- seq(1, dim(.$dataf$met)[2], thin )
     .$dataf$met           <- .$dataf$met[,oss]
     .$dataf$obs           <- .$dataf$obs[oss]
     if(!is.null(.$dataf$obsse)) .$dataf$obsse <- .$dataf$obsse[oss]
@@ -259,6 +259,7 @@ init_output_matrix_mcmc <- function(.) {
     .$dataf$conv_check[,1:.$mcmc$check_ss] <- .$dataf$mcmc_input$conv_check
     .$dataf$omega[,1:.$mcmc$check_ss]      <- .$dataf$mcmc_input$omega
 
+    # remove potentialy large input data
     .$dataf$mcmc_input <- NULL
   }
 }
@@ -1009,9 +1010,11 @@ output_mcmc <- function(., iter_out_start=.$mcmc$j_burnin50,
     out_mcmc       = .$dataf$out_mcmc[,,iter_out_start:iter_out_end,drop=F],
     past_states    = .$dataf$past_states,
     mod_out_final  = .$dataf$out,
-    obs            = .$dataf$obs,
     conv_check     = .$dataf$conv_check,
     omega          = .$dataf$omega,
+    met            = .$dataf$met,
+    obs            = .$dataf$obs,
+    obsse          = .$dataf$obsse,
 
     # user defined MCMC parameters
     wpars = list(
@@ -1025,7 +1028,8 @@ output_mcmc <- function(., iter_out_start=.$mcmc$j_burnin50,
       jump_delta_norm = .$mcmc$jump_delta_norm,
       CR_counter      = .$mcmc$CR_counter,
       j_true          = .$mcmc$j_true,
-      adapt_pCR       = .$mcmc$adapt_pCR
+      adapt_pCR       = .$mcmc$adapt_pCR,
+      obs_vars        = .$mcmc$obs_vars
     )
   )
 }

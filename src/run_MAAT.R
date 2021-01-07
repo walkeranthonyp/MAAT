@@ -93,7 +93,7 @@ parsinit_n    <- NULL
 metdata       <- NULL
 
 # evaluation data file name
-evaldata      <- NULL
+evaldata      <- NULL 
 
 # load standard error from evaluation data file (T/F)
 evalse        <- F
@@ -186,8 +186,9 @@ mcmc_iterappend     <- 10
 ##################################
 # parse command line arguments
 
-print('',quote=F)
+print('',quote=F); print('',quote=F)
 print('Read command line arguments:',quote=F)
+print('',quote=F)
 print(commandArgs(T),quote=F)
 if(length(commandArgs(T))>=1) {
   for( ca in 1:length(commandArgs(T)) ) {
@@ -195,7 +196,7 @@ if(length(commandArgs(T))>=1) {
   }
 }
 
-print('',quote=F)
+print('',quote=F); print('',quote=F)
 if(is.null(srcdir))  stop('srcdir argument not specified but required, check command line arguments to run_MAAT.R')
 print(paste('Source directory:',srcdir) ,quote=F)
 if(is.null(pdir))    stop('pdir argument not specified but required, check command line arguments to run_MAAT.R')
@@ -231,7 +232,7 @@ ofname      <- if(is.null(mod_mimic)) ofname                     else paste(mod_
 if(factorial&(uq|mcmc)) {
  uq   <- F
  mcmc <- F
- print('',quote=F)
+ print('',quote=F); print('',quote=F)
  print(paste('Both factorial and UQ or MCMC run specified: Factorial ensemble will be run'),quote=F)
 }
 
@@ -242,11 +243,12 @@ runtype <-
   if(salt)      'SApar_saltelli' else
   if(mcmc)      'mcmc'
 
-print(paste('Run type:',runtype,'selected') ,quote=F)
+print('',quote=F); print('',quote=F)
+print(paste('Run type selected:',runtype) ,quote=F)
 
 if((uq|mcmc)&of_format!='rds') {
   of_format <- 'rds'
-  print('',quote=F)
+  print('',quote=F); print('',quote=F)
   print(paste('of_format changed to rds due to high output volume with SA/UQ ensembles'),quote=F)
 }
 
@@ -349,7 +351,7 @@ search_fnames <-  function(v, ln ) {
   for( c1 in v ) if(!(c1 %in% ls(pos=1)))
     stop(paste('The function: ',c1,' , specified in init', ln ,'does not exist')) else 'exists'
 }
-print('', quote=F )
+print('',quote=F); print('',quote=F)
 print('Check static fnames requested exist:', quote=F )
 out <- lapply(init_static$fnames,
          function(l) lapply(l, function(l1) if(is.list(l1)) lapply(l1, search_fnames, ln='static') else search_fnames(l1, ln='static' )) )
@@ -382,12 +384,13 @@ if(runtype=='mcmc') {
 
 
 # write directly to dataf$pars if parsinit specified
+mcmc_restart <- F 
 if(!is.null(parsinit_mcmc)) {
   if(parsinit_mcmc=='restart') mcmcout <- paste0(maat$wpars$of_name,'.RDS')
   if(is.null(mcmcdir))         mcmcdir <- paste0('results/',date)
 
-  print('',quote=F)
-  print('Read input from restarted MCMC run:',quote=F)
+  print('',quote=F); print('',quote=F)
+  print('Read input from MCMC run output.',quote=F)
   print('directory:',quote=F)
   print(paste(' ',mcmcdir),quote=F)
   print('filename:',quote=F)
@@ -404,6 +407,8 @@ if(!is.null(parsinit_mcmc)) {
     print('  no MCMC parameters will be read from init file,',quote=F)
     print('  all set from restarted MCMC run,',quote=F)
     print('  all output will be saved in the directory (see above) of restarted MCMC run.',quote=F)
+    mcmc_restart <- T
+    
     # debugging
 #    print('')
 #    print('MCMCinput:')
@@ -433,10 +438,16 @@ if(!is.null(parsinit_mcmc)) {
     # update MCMC variables passed from restart
     maat$mcmc[names(maat$dataf$mcmc_input$mcmc)] <- maat$dataf$mcmc_input$mcmc[names(maat$dataf$mcmc_input$mcmc)]
 
+    # reload met and obs data
+    maat$dataf$met     <- maat$dataf$mcmc_input$met
+    maat$dataf$obs     <- maat$dataf$mcmc_input$obs
+    maat$dataf$obsse   <- maat$dataf$mcmc_input$obsse
+    maat$mcmc$obs_vars <- maat$dataf$mcmc_input$mcmc$obs_vars
+   
     # set output to mcmc dir 
     maat$wpars$of_dir <- mcmcdir
    
-   
+
   } else if(parsinit_mcmc=='ensemble') {
    
     print('forward run from MCMC calibrated parameters',quote=F)
@@ -462,7 +473,7 @@ if(!is.null(parsinit_mcmc)) {
 
 # output static variables used in simulation
 # APW: this will not report pars that have been read by the above if statement
-print('',quote=F)
+print('',quote=F); print('',quote=F)
 print('Write record of static run variables:',quote=F)
 setwd(odir)
 listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=init_static)
@@ -476,14 +487,18 @@ listtoXML(paste(ofname,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dyn
 # - not used unless specified
 
 kill <- F
-if(!is.null(metdata)) {
+if(!mcmc_restart & !is.null(metdata)) {
+
   # read user defined met data translator
   setwd(pdir)
   if(file.exists(paste0(mod_obj,'_user_met.xml'))) {
     met_trans <- readXML(paste0(mod_obj,'_user_met.xml'))
-    if(any(names(met_trans$env)==mod_obj)) met_trans <- met_trans$env[[which(names(met_trans$env)==mod_obj)]]
-    else {
-      print('',quote=F)
+
+    if(any(names(met_trans$env)==mod_obj)) {
+      met_trans <- met_trans$env[[which(names(met_trans$env)==mod_obj)]]
+
+    } else {
+      print('',quote=F); print('',quote=F)
       print('Met translator file:',quote=F)
       print(paste0(mod_obj,'_user_met.xml'),quote=F)
       print('does not contain list for:',quote=F)
@@ -492,7 +507,7 @@ if(!is.null(metdata)) {
     }
 
   } else {
-    print('',quote=F)
+    print('',quote=F); print('',quote=F)
     print('Met translator file:',quote=F)
     print(paste0(mod_obj,'_user_met.xml'),quote=F)
     print('does not exist in:',quote=F)
@@ -501,27 +516,28 @@ if(!is.null(metdata)) {
   }
 
   # read metdata file
-  print('', quote=F )
-  print('Met data directory & filename:' , quote=F )
+  print('',quote=F); print('',quote=F)
+  print('Met data directory, filename, & translation:' , quote=F )
   print(mdir, quote=F )
   setwd(mdir)
   if(file.exists(metdata)&!kill) {
     print(metdata, quote=F )
-    metdf <- read.csv(metdata,strip.white=T)
+    metdffull <- read.csv(metdata,strip.white=T)
 
     # ALJ: if doing a Sphagnum simulation
     #      screen out night-time values from met data file
     #      subset it to remove 0's and negative values
     # APW: thinking of a flexible way to do this, it's not that easy. Long term might need to do this in the met data itself
-    # sub_idx <- which(metdf$EM_PAR_8100_x > 0)
-    # metdf <- metdf[sub_idx, ]
-
-    print(head(metdf), quote=F )
+    sub_idx   <- which(metdffull$EM_PAR_8100_x > 0)
+    metdffull <- metdffull[sub_idx, ]
+    #print(head(metdffull), quote=F )
 
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
     # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML
-    cols  <- match(unlist(sapply(met_trans,function(l) l)),names(metdf))
-    metdf <- metdf[,cols, drop=F ]
+    cols      <- match(unlist(sapply(met_trans,function(l) l)), names(metdffull) )
+    metdf     <- metdffull[,cols, drop=F ]
+    print('', quote=F )
+    print(met_trans, quote=F )
 
     # if time variable specified put it first and don't rename it
     if('time'%in%names(met_trans)) {
@@ -532,7 +548,7 @@ if(!is.null(metdata)) {
       names(metdf)[1] <- 'time'
       names(metdf)[2:length(metdf)] <- paste(mod_obj,names(met_trans)[-tcol],sep='.')
 
-      # due to matrix data structure a character time vector will mess the numeric matric up
+      # due to matrix data structure a character time vector will mess the numeric matrix up
       # - could do something with posix convention
       if(!is.numeric(metdf[,1])) metdf <- metdf[,-1,drop=F ]
 
@@ -541,13 +557,15 @@ if(!is.null(metdata)) {
     }
 
     # add to MAAT object
+    #print(head(metdf), quote=F )
     maat$dataf$met <- t(as.matrix(metdf))
 
     # remove met data file
-    if(is.null(evaldata)) rm(metdf) else if(evaldata!='metdata') rm(metdf)
+    rm(metdf)
+    if(is.null(evaldata)) rm(metdffull) else if(evaldata!='metdata') rm(metdffull)
 
   } else {
-    print('',quote=F)
+    print('',quote=F); print('',quote=F)
     print('Met data file:',quote=F)
     print(metdata,quote=F)
     print('does not exist in:',quote=F)
@@ -564,14 +582,18 @@ if(!is.null(metdata)) {
 # - not used unless specified
 
 kill <- F
-if(!is.null(evaldata)&T) {
+if(!mcmc_restart & !is.null(evaldata)) {
+
   # read user defined eval data translator
   setwd(pdir)
   if(file.exists(paste0(mod_obj,'_user_eval.xml'))) {
     eval_trans <- readXML(paste0(mod_obj,'_user_eval.xml'))
-    if(any(names(eval_trans$state)==mod_obj)) eval_trans <- eval_trans$state[[which(names(eval_trans$state)==mod_obj)]]
-    else {
-      print('',quote=F)
+
+    if(any(names(eval_trans$state)==mod_obj)) {
+      eval_trans <- eval_trans$state[[which(names(eval_trans$state)==mod_obj)]]
+
+    } else {
+      print('',quote=F); print('',quote=F)
       print('Evaluation data translator file:',quote=F)
       print(paste0(mod_obj,'_user_eval.xml'),quote=F)
       print('does not contain list for:',quote=F)
@@ -580,7 +602,7 @@ if(!is.null(evaldata)&T) {
     }
 
   } else {
-    print('',quote=F)
+    print('',quote=F); print('',quote=F)
     print('Evaluation data translator file:',quote=F)
     print(paste0(mod_obj,'_user_eval.xml'),quote=F)
     print('does not exist in:',quote=F)
@@ -590,14 +612,14 @@ if(!is.null(evaldata)&T) {
 
   # read eval data file
   if(is.null(edir)) edir <- mdir
-  print('', quote=F )
-  print('Eval data directory & filename:' , quote=F )
+  print('',quote=F); print('',quote=F)
+  print('Eval data directory, filename, & translation:' , quote=F )
   print(edir, quote=F )
-  setwd(edir)
 
+  setwd(edir)
   if(evaldata=='metdata') {
-    evaldfobs <- metdf
-    rm(metdf)
+    evaldfobs <- metdffull
+    rm(metdffull)
 
   } else if(file.exists(evaldata)&!kill) {
     print(evaldata, quote=F )
@@ -609,7 +631,7 @@ if(!is.null(evaldata)&T) {
       stop(paste('Eval data not same length as met data: check equal length of files:', evaldata, metdata ))
 
   } else {
-    print('',quote=F)
+    print('',quote=F); print('',quote=F)
     print('Eval data file:',quote=F)
     print(evaldata,quote=F)
     print('does not exist in:',quote=F)
@@ -619,15 +641,22 @@ if(!is.null(evaldata)&T) {
 
   # order eval data in evalfile according to that specified in the <mod_obj>_user_eval.XML
   # - need to add a trap to catch eval data files that do not contain all the data specified in <mod_obj>_user_eval.XML
-  cols   <- match(unlist(sapply(eval_trans,function(l) l)),names(evaldfobs))
+  cols   <- match(unlist(sapply(eval_trans,function(l) l)), names(evaldfobs) )
   evaldf <- evaldfobs[,cols] # if a single column will be dropped to a vector
 
   # add to MAAT object
-  maat$dataf$obs <- evaldf
+  maat$dataf$obs     <- evaldf
+  maat$mcmc$obs_vars <- names(eval_trans)
+  print('', quote=F )
+  print(eval_trans, quote=F )
 
   # Read standard error for eval data
+  if(grepl('_se',mcmc_lklihood) & !evalse) {
+    evalse <- T
+    print('MCMC likelihood function that requires standard error selected, "evalse" changed to TRUE.', quote=F )
+  }
   if(evalse) {
-    print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"')
+    print('Standard error selected for eval data, variables should be named same as eval data appended by ".se"', quote=F )
 
     # extract se data
     cols             <- match(paste(unlist(sapply(eval_trans,function(l) l)),'se',sep='.'), names(evaldfobs))

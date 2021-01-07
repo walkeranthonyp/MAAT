@@ -119,6 +119,8 @@ wrapper_object$run   <- function(.,verbose=T) {
 
   # store model output template (currently must be a vector)
   # - code will fail when output is a vector of variable length depending on parameter values
+  print('',quote=F); print('Model output variables:', quote=F )
+  print(names(.$model$output()))
   .$dataf$mout <- .$model$output()
 
   # run model ensemble
@@ -300,7 +302,6 @@ wrapper_object$wpars <- list(
     outlier         = 'iqr',
     mcmc_converge   = 'Gelman_Rubin',
     boundary_handling   = 'fold',
-    #init_prior      = 'uniform',
     chains          = 7,
     prior_n         = 40,          # number of samples from prior to initialise past_states
     maxiter         = 1000,
@@ -342,7 +343,8 @@ wrapper_object$mcmc <- list(
   adapt_pCR        = F,           # pCR adaptation active
   p_CR             = numeric(1),  # Crossover probability vector, probability that a given CR (of 1:n_CR) will be selected
   jump_delta_norm  = numeric(1),  # sd normalised jump for each CR, used in adapting pCR
-  CR_counter       = numeric(1)   # CR counter, used in adapting pCR
+  CR_counter       = numeric(1),  # CR counter, used in adapting pCR
+  obs_vars         = character(1) # name of unlisted state variable to compare with observations 
 )
 
 
@@ -382,10 +384,7 @@ wrapper_object$print_data <- function(.,otype='data') {
 
     print('',quote=F)
     print('',quote=F)
-    print('',quote=F)
-    print('',quote=F)
     print("MAAT :: summary of data",quote=F)
-    print('',quote=F)
     print('',quote=F)
     print("fnames ::",quote=F)
     if(!is.null(.$dataf$fnames)) print(summary(t(.$dataf$fnames)), quote=F )
@@ -436,7 +435,11 @@ wrapper_object$print_data <- function(.,otype='data') {
 wrapper_object$print_output <- function(.) {
   print("output ::",quote=F)
   print(paste('length ::', length(.$dataf$out[,1])), quote=F)
-  print(head(.$dataf$out), quote=F)
+  if(is.null(.$dataf$met)) {
+    print(head(.$dataf$out), quote=F)
+  } else {
+    print(head(t(.$dataf$out)), quote=F)
+  }
   print('', quote=F)
   print('', quote=F)
   print(Sys.time(), quote=F)
