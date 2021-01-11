@@ -9,6 +9,7 @@
 source('leaf_system_functions.R')
 source('leaf_functions.R')
 source('leaf_solver_functions.R')
+source('../../functions/packagemod_functions_uniroot.R')
 
 
 
