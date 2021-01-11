@@ -2,8 +2,6 @@
 
 
 
-### MAAT Version 1.3 ###
-
 The multi-assumption architecture and testbed (MAAT) is a modelling framework designed to facilitate simple and rapid comparison of multiple modelling hypotheses and assumptions, i.e. ways in which to represent processes, in a systems context.
 MAAT is designed to easily specify and run large ensembles of simulations.
 Ensembles can vary in process representation, parameter values, and environmental conditions.
@@ -28,6 +26,11 @@ MAAT is designed to be run from the command line (and in some instances from wit
 * A number of bug fixes.
 * Semi-analytical solver functions, still a work in progress.
 * Canopy struncture system model developments, still a work in progress.
+
+#### version 1.3.1 ####
+
+* Sphagnum LAI functions now in canopy_structure object.
+* Met and obs data now passed through an MCMC restart.
 
 
 ### Use guidelines ### 
