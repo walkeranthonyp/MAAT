@@ -7,6 +7,7 @@
 ################################
 
 library(parallel)
+library(lattice)
 
 source('functions/general_functions.R')
 source('functions/calc_functions.R')
@@ -156,11 +157,12 @@ generate_ensemble_pars_mcmc <- function(.) {
   }
 
   # observation subsampling
-  # - currently evenly spaced subsampling
+  # - evenly spaced or random subsampling, currently manual switch
   if(!.$wpars$parsinit_read & .$wpars$mcmc$thin_obs<1.0) {
-    .$wpars$mcmc$thin_obs <- min(0.5, .$wpars$mcmc$thin_obs )
-    thin                  <- floor(1/.$wpars$mcmc$thin_obs)
-    oss                   <- seq(1, dim(.$dataf$met)[2], thin )
+    #.$wpars$mcmc$thin_obs <- min(0.5, .$wpars$mcmc$thin_obs )
+    #thin                  <- floor(1/.$wpars$mcmc$thin_obs)
+    #oss                   <- seq(1, dim(.$dataf$met)[2], thin )
+    oss                   <- which(runif(dim(.$dataf$met)[2]) < .$wpars$mcmc$thin_obs)
     .$dataf$met           <- .$dataf$met[,oss]
     .$dataf$obs           <- .$dataf$obs[oss]
     if(!is.null(.$dataf$obsse)) .$dataf$obsse <- .$dataf$obsse[oss]
@@ -791,8 +793,22 @@ run2_mcmc <- function(.,j) {
       else                                                 j - ceiling((j+.$wpars$mcmc$start_iter-1)/2) + 1
 
     # test for and handle outlier chains 
-    outliers <- .$mcmc_outlier(j=j)
-    if(length(outliers)>0) .$mcmc_outlier_handling(outliers, j ) 
+    # - if mean of last conv_period convergence stat calculations for all parameters <1.2 no longer check outliers 
+    if(.$mcmc$outlier_test) { 
+      if(.$mcmc$check_ss>.$wpars$mcmc$conv_period) {
+        cc_ss <- (.$mcmc$check_ss-.$wpars$mcmc$conv_period):(.$mcmc$check_ss-1)
+        if(!is.na(sum(.$dataf$conv_check[,cc_ss]))) {
+          cc_mean <- apply(.$dataf$conv_check[,cc_ss], 1, mean, na.rm=T )
+          if(sum(cc_mean<1.18) == dim(.$dataf$pars)[1]) {
+            .$mcmc$outlier_test <- F 
+            print('',quote=F); print('',quote=F)
+            print(paste('Parameters converged over last',.$wpars$mcmc$check_iter*.$wpars$mcmc$conv_period,'iterations:'),quote=F); print(cc_mean,quote=F)
+          }
+        }
+      }
+      outliers <- .$mcmc_outlier(j=j)
+      if(length(outliers)>0) .$mcmc_outlier_handling(outliers, j ) 
+    }
 
     # test for convergence
     R_hat <- .$mcmc_converge(j=j)
@@ -1003,7 +1019,37 @@ output_SAprocess_ye <- function(.) {
 # creates output for an MCMC simulation
 output_mcmc <- function(., iter_out_start=.$mcmc$j_burnin50, 
                         iter_out_end=.$wpars$mcmc$maxiter ) {
+  # print output  
+  pa_dim <- dim(.$dataf$pars_array)
+  cc_dim <- dim(.$dataf$conv_check)
+  df1    <- data.frame(convstat=as.vector(t(.$dataf$conv_check[4:cc_dim[1],])), iter=.$dataf$conv_check[1,], pars=rep(letters[1:pa_dim[1]],each=cc_dim[2]) )
+  df2    <- data.frame(omega=as.vector(t(.$dataf$omega[1:pa_dim[2],])), iter=.$dataf$conv_check[1,], chain=rep(letters[1:pa_dim[2]],each=dim(.$dataf$omega)[2]) )
+  # iter_effective
+  p1 <-
+    xyplot(.$dataf$conv_check[3,]~.$dataf$conv_check[1,], df2, type='l', 
+           abline=list(v=.$dataf$conv_check[1,is.na(.$dataf$conv_check[4,])],h=0), 
+           ylab='Effective iteration', xlab='iteration (vert. line = outlier detected)' )
+  # convergence check
+  p2 <-
+  xyplot(omega~iter, df2, groups=chain,type='l', 
+         abline=list(v=.$dataf$conv_check[1,is.na(.$dataf$conv_check[4,])]), ylab='Outlier stat.', xlab='iteration'  )
+  p3 <-
+  xyplot(convstat~iter, df1, groups=pars, type='l', 
+         abline=list(h=c(1.1,1.2)), ylab='Convergence stat.', xlab='iteration' )
+  
+  # parameter histograms
+  mcmc_pa <- array(.$dataf$pars_array, dim=c(pa_dim[1],prod(pa_dim[2:3])) )
+  mcmc_pa <- data.frame(par_val=as.vector(t(mcmc_pa)), par_name=rep(dimnames(.$dataf$pars_array)[[1]], each=prod(pa_dim[2:3]) ))
+  p4      <- histogram(~par_val|par_name, mcmc_pa, breaks=3e1, scales='free', xlab='', as.table=T )
+  pdf(paste0(.$wpars$of_name,'_stats.pdf'))
+  print(p1, split=c(1,1,1,3), more=T )
+  print(p2, split=c(1,2,1,3), more=T )
+  print(p3, split=c(1,3,1,3), more=F )
+  print(p4, split=c(1,1,1,1), more=F )
+  dev.off()
 
+
+  # combine output
   list(
     pars_array     = .$dataf$pars_array[,,iter_out_start:iter_out_end,drop=F],
     pars_lklihood  = .$dataf$pars_lklihood[,iter_out_start:iter_out_end,drop=F],
@@ -1029,6 +1075,7 @@ output_mcmc <- function(., iter_out_start=.$mcmc$j_burnin50,
       CR_counter      = .$mcmc$CR_counter,
       j_true          = .$mcmc$j_true,
       adapt_pCR       = .$mcmc$adapt_pCR,
+      outlier_test    = .$mcmc$outlier_test,
       obs_vars        = .$mcmc$obs_vars
     )
   )

@@ -162,11 +162,11 @@ mcmc_homosced       <- F
 # DREAM number chain pairs in proposal
 # - max number of chain pairs used to calculate the jump for each chain
 mcmc_chain_delta    <- 3
-# DREAM randomization, scalar noise - fraction of jump
+# DREAM randomization, scalar noise min/max = 1 +- c_rand 
 mcmc_c_rand         <- 0.01
-# DREAM ergodicicty, additive noise - should be small relative to width of posterior distribution
+# DREAM ergodicicty, additive noise, c_ergod is sd of normal distribution - should be small relative to width of posterior distribution
 mcmc_c_ergod        <- 1e-12
-# DREAM probability of unit jump rate (probability gamma = 1) (default value)
+# DREAM probability of unit jump rate (i.e. probability gamma = 1)
 mcmc_p_gamma        <- 0.2
 # DREAM-ZS probability of orthogonal 'snooker' update 
 mcmc_psnooker       <- 0.1
@@ -178,7 +178,9 @@ mcmc_adapt_pCR      <- T
 mcmc_CR_burnin      <- 1e4
 # checking for convergence and outlier chains every N iterations
 mcmc_check_iter     <- 10
-# every N iterations append past_states matrix with updated state on all chains
+# conv_period * check_iter iterations is the averaging period over which to assess convergence, once converged stop outlier detection (DREAM only) 
+mcmc_conv_period    <- 40
+# every N iterations append past_states matrix with updated state on all chains (DREAMZS only)
 mcmc_iterappend     <- 10
 
 
@@ -305,6 +307,7 @@ if((runtype=='mcmc') & is.null(parsinit_mcmc)) {
     if(mcmc_maxiter<12) mcmc_maxiter <- 12
   } 
   maat$wpars$mcmc$check_iter     <- mcmc_check_iter
+  maat$wpars$mcmc$conv_period    <- mcmc_conv_period
   maat$wpars$mcmc$iterappend     <- mcmc_iterappend
   maat$wpars$mcmc$maxiter        <- mcmc_maxiter
   maat$wpars$mcmc$preburnin_frac <- mcmc_preburnin_frac

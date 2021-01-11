@@ -301,7 +301,7 @@ wrapper_object$wpars <- list(
     lklihood        = 'ssquared',
     outlier         = 'iqr',
     mcmc_converge   = 'Gelman_Rubin',
-    boundary_handling   = 'fold',
+    boundary_handling = 'fold',
     chains          = 7,
     prior_n         = 40,          # number of samples from prior to initialise past_states
     maxiter         = 1000,
@@ -312,14 +312,15 @@ wrapper_object$wpars <- list(
     thin_obs        = 1,
     homosced        = F,
     chain_delta     = 3,
-    c_rand          = 0.01,
-    c_ergod         = 1e-12,
-    p_gamma         = 0.2,
-    n_CR            = 3,           # max number of chain pairs used to calculate the jump for each chain
-    adapt_pCR       = T,           # adapt probability of CR, switched off when CR_burnin iterations reached
-    CR_burnin       = 1e4,         # if adapt_pCR & j_true<CR_burnin adapt cross-over probabilities 
-    check_iter      = 10,          # check convergence (and outliers) every check_iter iterations 
-    iterappend      = 10           # append past_states every iterappend iterations 
+    c_rand          = 0.01,       # scalar noise min/max = 1 +- c_rand 
+    c_ergod         = 1e-12,      # additive noise
+    p_gamma         = 0.2,        # proportion of jumps with no scaling
+    n_CR            = 3,          # max number of chain pairs used to calculate the jump for each chain
+    adapt_pCR       = T,          # adapt probability of CR, switched off when CR_burnin iterations reached
+    CR_burnin       = 1e4,        # if adapt_pCR & j_true<CR_burnin adapt cross-over probabilities 
+    check_iter      = 10,         # check convergence (and outliers) every check_iter iterations 
+    conv_period     = 20,         # conv_period * check_iter iterations is the averaging period over which to assess convergence, once converged stop outlier detection 
+    iterappend      = 10          # append past_states every iterappend iterations 
   )
 )
 
@@ -341,6 +342,7 @@ wrapper_object$mcmc <- list(
   boundary_max     = numeric(1),  # vector of parameter maxima
   CR               = numeric(1),  # Crossover number, probability of parameters on a given chain and iteration making the 'jump' is CR/n_CR
   adapt_pCR        = F,           # pCR adaptation active
+  outlier_test     = T,           # check for outliers
   p_CR             = numeric(1),  # Crossover probability vector, probability that a given CR (of 1:n_CR) will be selected
   jump_delta_norm  = numeric(1),  # sd normalised jump for each CR, used in adapting pCR
   CR_counter       = numeric(1),  # CR counter, used in adapting pCR
