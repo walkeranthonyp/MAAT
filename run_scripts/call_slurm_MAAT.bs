@@ -37,12 +37,11 @@ ARGS="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' runid<-'${RUNID}' pro
 ##########################################
 ### DO NOT MODIFY ANYTHING BELOW THIS LINE
 
-FORMATTED_ARGS=$(printf "%q" "$ARGS")
 
 YMD=`date +%Y-%m-%d`
 
 cd $PDIR
-sbatch --job-name="${YMD}_MAAT_${RUNID}"  --export=ALL,SDIR=$SDIR,PDIR=$PDIR,MDIR=$MDIR,MOBJ=$MOBJ,NP=$NP,YMD=$YMD,FORMATTED_ARGS="'$FORMATTED_ARGS'" slurm_MAAT_ORNLCADES.sbatch
+sbatch --job-name="${YMD}_MAAT_${RUNID}"  --export=ALL,ARGS="$ARGS" slurm_MAAT_ORNLCADES.sbatch
 
 
 

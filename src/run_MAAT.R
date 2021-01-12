@@ -205,7 +205,7 @@ if(is.null(pdir))    stop('pdir argument not specified but required, check comma
 print(paste('Project directory:',pdir) ,quote=F)
 if(is.null(mod_obj)) stop('mod_obj argument not specified but required, check command line arguments to run_MAAT.R')
 print(paste('Model:',mod_obj) ,quote=F)
-if(runid=='') runid <- NULL
+if(!is.null(runid)) if(runid=='') runid <- NULL
 print(paste('Run ID:',runid) ,quote=F)
 
 # set default values if not specified on command line

@@ -24,7 +24,8 @@ export R_LIBS_USER="/home/alp/bin/Rlibs"
 # Run script
 cd "##SDIR##"
 
-echo
+echo; echo; echo
+echo "ARGS passed to batch script:"
 echo $ARGS
 echo
 
