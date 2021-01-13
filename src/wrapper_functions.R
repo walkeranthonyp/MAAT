@@ -159,10 +159,13 @@ generate_ensemble_pars_mcmc <- function(.) {
   # observation subsampling
   # - evenly spaced or random subsampling, currently manual switch
   if(!.$wpars$parsinit_read & .$wpars$mcmc$thin_obs<1.0) {
-    #.$wpars$mcmc$thin_obs <- min(0.5, .$wpars$mcmc$thin_obs )
-    #thin                  <- floor(1/.$wpars$mcmc$thin_obs)
-    #oss                   <- seq(1, dim(.$dataf$met)[2], thin )
-    oss                   <- which(runif(dim(.$dataf$met)[2]) < .$wpars$mcmc$thin_obs)
+    if(.$wpars$mcmc$thin_obs_random) {
+      oss                   <- which(runif(dim(.$dataf$met)[2]) < .$wpars$mcmc$thin_obs)
+    } else {
+      .$wpars$mcmc$thin_obs <- min(0.5, .$wpars$mcmc$thin_obs )
+      thin                  <- floor(1/.$wpars$mcmc$thin_obs)
+      oss                   <- seq(1, dim(.$dataf$met)[2], thin )
+    }
     .$dataf$met           <- .$dataf$met[,oss]
     .$dataf$obs           <- .$dataf$obs[oss]
     if(!is.null(.$dataf$obsse)) .$dataf$obsse <- .$dataf$obsse[oss]
@@ -233,7 +236,7 @@ init_output_matrix_mcmc <- function(.) {
   # initialise matricies for storing outlier & convergence diagnostics
   check_iter_n <-
     if(!.$wpars$parsinit_read) { 
-      ceiling(.$wpars$mcmc$maxiter*(1-.$wpars$mcmc$preburnin_frac) / .$wpars$mcmc$check_iter )
+      ceiling((.$wpars$mcmc$maxiter-.$wpars$mcmc$preburnin_iter+1) / .$wpars$mcmc$check_iter )
     } else {
       cin <- dim(.$dataf$mcmc_input$conv_check)[2] 
       cin <- cin + floor(.$wpars$mcmc$maxiter/.$wpars$mcmc$check_iter) - floor(.$wpars$mcmc$start_iter/.$wpars$mcmc$check_iter)
@@ -767,7 +770,7 @@ run2_mcmc <- function(.,j) {
 
   # update the selection probability of crossover probabilities/values
   if(!.$wpars$parsinit_read)
-    if(j==ceiling(.$wpars$mcmc$maxiter*.$wpars$mcmc$preburnin_frac) & .$wpars$mcmc$adapt_pCR ) .$mcmc$adapt_pCR <- T
+    if(j==.$wpars$mcmc$preburnin_iter & .$wpars$mcmc$adapt_pCR ) .$mcmc$adapt_pCR <- T
   if(.$mcmc$adapt_pCR) .$mcmc_adapt_pCR() 
 
   
@@ -783,7 +786,7 @@ run2_mcmc <- function(.,j) {
 
 
   # MCMC checks
-  mcmc_check <- ((j>(.$wpars$mcmc$maxiter*.$wpars$mcmc$preburnin_frac))|.$wpars$parsinit_read) & (j%%.$wpars$mcmc$check_iter==0)
+  mcmc_check <- ((j>=.$wpars$mcmc$preburnin_iter)|.$wpars$parsinit_read) & (j%%.$wpars$mcmc$check_iter==0)
   if(mcmc_check | (j==.$wpars$mcmc$maxiter)) {
 
     # subscript for convergence etc arrays, and 50 % of current post-outlier samples in pars etc arrays
@@ -795,6 +798,7 @@ run2_mcmc <- function(.,j) {
     # test for and handle outlier chains 
     # - if mean of last conv_period convergence stat calculations for all parameters <1.2 no longer check outliers 
     if(.$mcmc$outlier_test) { 
+      if(!is.null(.$wpars$mcmc$conv_period)) {
       if(.$mcmc$check_ss>.$wpars$mcmc$conv_period) {
         cc_ss <- (.$mcmc$check_ss-.$wpars$mcmc$conv_period):(.$mcmc$check_ss-1)
         if(!is.na(sum(.$dataf$conv_check[,cc_ss]))) {
@@ -805,7 +809,7 @@ run2_mcmc <- function(.,j) {
             print(paste('Parameters converged over last',.$wpars$mcmc$check_iter*.$wpars$mcmc$conv_period,'iterations:'),quote=F); print(cc_mean,quote=F)
           }
         }
-      }
+      }}
       outliers <- .$mcmc_outlier(j=j)
       if(length(outliers)>0) .$mcmc_outlier_handling(outliers, j ) 
     }

@@ -302,13 +302,14 @@ wrapper_object$wpars <- list(
     mcmc_converge   = 'Gelman_Rubin',
     boundary_handling = 'fold',
     chains          = 7,
-    prior_n         = 40,          # number of samples from prior to initialise past_states
+    prior_n         = 40,         # number of samples from prior to initialise past_states
     maxiter         = 1000,
     maxiter_restart = numeric(1),
-    preburnin_frac  = 0.1,
+    preburnin_iter  = 100,        # numer if iterations at very beginning of run before outlier and convergence and adapt pCR 
     start_iter      = 2,
     thin            = 0.1,
-    thin_obs        = 1,
+    thin_obs        = 1,          # proportion for thinning observations eval and met data
+    thin_obs_random = F,          # thin randomly, or evenly
     homosced        = F,
     chain_delta     = 3,
     c_rand          = 0.01,       # scalar noise min/max = 1 +- c_rand 

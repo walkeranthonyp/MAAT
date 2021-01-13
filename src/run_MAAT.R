@@ -151,12 +151,14 @@ mcmc_chains         <- 7
 mcmc_prior_n        <- 40
 # number of iterations / steps in chain
 mcmc_maxiter        <- 1000
-# fraction of maxiter before convergence checking & adapt pCR  starts, not used when a restart 
-mcmc_preburnin_frac <- 0.1 
+# iterations before convergence checking & adapt pCR  starts, not used when a restart 
+mcmc_preburnin_iter <- 100 
 # thinning for posterior, as a proportion
 mcmc_thin           <- 0.1
 # thinning for observations, as a proportion
 mcmc_thin_obs       <- 1
+# thinning for observations, random (T) or evenly spaced (F)
+mcmc_thin_obs_random<- F
 # option to assume homoscedastic error in measured observations (else, heteroscedastic)
 mcmc_homosced       <- F
 # DREAM number chain pairs in proposal
@@ -291,6 +293,7 @@ if((runtype=='mcmc') & is.null(parsinit_mcmc)) {
   maat$wpars$mcmc$prior_n       <- mcmc_prior_n
   maat$wpars$mcmc$thin          <- mcmc_thin
   maat$wpars$mcmc$thin_obs      <- mcmc_thin_obs
+  maat$wpars$mcmc$thin_obs_random <- mcmc_thin_obs_random
   maat$wpars$mcmc$homosced      <- mcmc_homosced
   maat$wpars$mcmc$chain_delta   <- mcmc_chain_delta
   maat$wpars$mcmc$c_rand        <- mcmc_c_rand
@@ -310,7 +313,7 @@ if((runtype=='mcmc') & is.null(parsinit_mcmc)) {
   maat$wpars$mcmc$conv_period    <- mcmc_conv_period
   maat$wpars$mcmc$iterappend     <- mcmc_iterappend
   maat$wpars$mcmc$maxiter        <- mcmc_maxiter
-  maat$wpars$mcmc$preburnin_frac <- mcmc_preburnin_frac
+  maat$wpars$mcmc$preburnin_iter <- mcmc_preburnin_iter
 }
 
 # build maat and model objects
