@@ -69,20 +69,20 @@ soil_decomp_object$fnames <- list(
 
   sys            = 'f_sys_npools',
   solver         = 'plsoda',
-  solver_func    = 'f_solver_func_corpse',
-  input          = 'f_input',
+  solver_func    = 'f_solver_func_mimics',
+  input          = 'f_input_mimics',
   DotO           = 'f_DotO',
   transfermatrix = 'f_transfermatrix',
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_rmm_sulman', 
-    d2 = 'f_decomp_rmm_sulman',
-    d3 = 'f_decomp_rmm_sulman',
-    d4 = 'f_micturn_sulman',
+    d1 = 'f_decomp_rmm_wieder', 
+    d2 = 'f_decomp_rmm_wieder',
+    d3 = 'f_decomp_lin',
+    d4 = 'f_decomp_lin',
     d5 = 'f_zero',
-    d6 = 'f_zero',
-    d7 = 'f_zero'
+    d6 = 'f_decomp_rmm_wieder',
+    d7 = 'f_decomp_rmm_wieder'
   ),
   
   desorp = list(
@@ -91,27 +91,27 @@ soil_decomp_object$fnames <- list(
     ds3 = 'f_zero',
     ds4 = 'f_zero',
     ds5 = 'f_decomp_lin',
-    ds6 = 'f_decomp_lin',
-    ds7 = 'f_decomp_lin'
+    ds6 = 'f_zero',
+    ds7 = 'f_zero'
   ),
   
   sorp = list(
-    s1 = 'f_decomp_lin',
-    s2 = 'f_decomp_lin',
-    s3 = 'f_decomp_lin',
+    s1 = 'f_zero',
+    s2 = 'f_zero',
+    s3 = 'f_zero',
     s4 = 'f_zero',
     s5 = 'f_zero',
     s6 = 'f_zero',
     s7 = 'f_zero'
   ),
   
-  scor = 'f_scor_sulman',
-  wcor = 'f_wcor_sulman',
+  scor = 'f_zero',
+  wcor = 'f_zero',
   
   tcor = list(
-    t1 = 'f_tcor_arrhenius',
-    t2 = 'f_tcor_arrhenius',
-    t3 = 'f_tcor_arrhenius',
+    t1 = 'f_tcor_wieder', #mimics will apply this to all pools
+    t2 = 'f_zero',
+    t3 = 'f_zero',
     t4 = 'f_zero',
     t5 = 'f_zero',
     t6 = 'f_zero',
@@ -144,7 +144,11 @@ soil_decomp_object$env <- list(
   temp   = 20,
   vwc    = .25,
   porosity = 0.5,
-  clay = 5
+  clay = .4, #MIMICS takes proportion, CORPSE takes percentage
+  lignin = 16.6,
+  N = 1.37,
+  anpp = 500,
+  depth = 20
 )
 
 
@@ -221,24 +225,40 @@ soil_decomp_object$pars <- list(
   # - if this varies by the 'to' pool we need another function / parameters
   # MC: I've created a function cue_remainder that can allocate the remainder to another pool rather than CO2
   cue = list(
-    cue1 = 0.6,       
-    cue2 = 0.05,       
-    cue3 = 0.6,
-    cue4 = 0.5,
-    cue5 = 0,      
-    cue6 = 0,
-    cue7 = 0
+    cue1 = list(mic1 = .5, mic2 = .7),       
+    cue2 = list(mic1 = .25, mic2 = .35),       
+    cue3 = list(mic1 = 0, mic2 = 0),
+    cue4 = list(mic1 = 0, mic2 = 0),
+    cue5 = list(mic1 = 0, mic2 = 0),      
+    cue6 = list(mic1 = 0, mic2 = 0),
+    cue7 = list(mic1 = .5, mic2 = .7)
   ),  
 
   # max turnover rate per unit microbial biomass for pool i 
-  vmax = list(   
-    vmax1 = 1500/365,     
-    vmax2 = 50/365,     
-    vmax3 = 600/365,
-    vmax4 = 0,
-    vmax5 = 0,
-    vmax6 = 0,
-    vmax7 = 0
+  #commented out old list (updating to allow for multiple mic groups or catalysts)
+  # vmax = list(   
+  #   vmax1 = 1500/365,     
+  #   vmax2 = 50/365,     
+  #   vmax3 = 600/365,
+  #   vmax4 = 0,
+  #   vmax5 = 0,
+  #   vmax6 = 0,
+  #   vmax7 = 0
+  # ),
+  
+  vmax = list(
+    #vmax of pool 1
+    vmax1 = list(
+      #specific to first catalyst (mic or enz pool)
+      cat1 = 0,
+      #specific to second catalyst (mic or enz pool)
+      cat2 = 0),
+    vmax2 = list(cat1 = 0, cat2 = 0),
+    vmax3 = list(cat1 = 0, cat2 = 0),
+    vmax4 = list(cat1 = 0, cat2 = 0),
+    vmax5 = list(cat1 = 0, cat2 = 0),
+    vmax6 = list(cat1 = 0, cat2 = 0),
+    vmax7 = list(cat1 = 0, cat2 = 0)
   ),
  
   # half-saturation constant for microbial d3ecomnp of pool i      
@@ -272,6 +292,44 @@ soil_decomp_object$pars <- list(
     poolmax5 = 26.725,
     poolmax6 = 26.725,
     poolmax7 = 26.725
+  ),
+  
+  #mimics-specific parameters
+  mimics = list(
+    fmet_p1 = .5,
+    fmet_p2 = .85,
+    fmet_p3 = .013,
+    tau_mod1_p1 = 100,
+    tau_mod1_p2 = .6,
+    tau_mod1_p3 = 1.3,
+    tau_r_p1 = .00052,
+    tau_r_p2 = .3,
+    tau_mod2 = 2,
+    tau_k_p1 = .00024,
+    tau_k_p2 = .1,
+    desorb_p1 = .00002,
+    desorb_p2 = -4.5,
+    fSOMp_r_p1 = .15,
+    fSOMp_r_p2 = 1.3,
+    fSOMc_r_p1 = .1,
+    fSOMc_r_p2 = -3,
+    fSOMc_r_p3 = 1,
+    fSOMp_k_p1 = .1,
+    fSOMp_k_p2 = .8,
+    fSOMc_k_p1 = .3,
+    fSOMc_k_p2 = -3,
+    fSOMc_k_p3 = 1,
+    V_slope = .063,
+    V_int = 5.47,
+    aV = .000000125,
+    pscalar_p1 = 3,
+    pscalar_p2 = -2,
+    ko = 6,
+    K_slope = .02,
+    K_int = 3.19,
+    aK = .15625,
+    fi_LITm = .005,
+    fi_LITs = .005
   )
 )
 
@@ -326,7 +384,7 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.001369863, n
   }
 }
 
-soil_decomp_object$.test_coprpse <- function(., verbose=F, metdf=F, litter=.001369863, ntimes=100 ) {
+soil_decomp_object$.test_corpse <- function(., verbose=F, metdf=F, litter=.001369863, ntimes=100 ) {
   
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))

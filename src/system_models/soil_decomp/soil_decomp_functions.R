@@ -21,6 +21,10 @@ f_wcor_sulman <- function(.,C,t,i){
   theta^3 * (1-theta)^2.5
 }
 
+f_tcor_wieder <- function(.,C,t,i){
+  exp(.super$env$temp * .super$pars$mimics[['V_slope']] + .super$pars$mimics[['V_int']]) * .super$pars$mimics[['aV']]
+}
+
 # f_tcor_arrhenius <- function(.,C,t,i) {
 #   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
 #   # Arrhenius equation
@@ -54,6 +58,11 @@ f_decomp_dd_georgiou         <- function(.,C,t,i) (C[i]^.super$pars$beta) * .sup
 # non-linear Michaelis-Menten decomp, a function of microbial biomass
 f_decomp_MM_microbe <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[i])
 
+f_zero <- function(.,C,t,i) 0
+
+#########
+#MEND-SPECIFIC FUNCTIONS
+#########
 # non-linear Michaelis-Menten decomp of POM, a function of POM-specific enzymes
 #MEND O1
 f_decomp_MM_enzpom <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[6]*C[i]) / (.super$pars$km[[i]]+C[i])
@@ -80,13 +89,35 @@ f_decomp_doc_mend <- function(.,C,t,i) {
   C[5]*((.super$pars$Kads*(.super$pars$poolmax[[4]]-C[4]))/.super$pars$poolmax[[4]])             #Fa
 }
 
+#########
+#CORPSE-SPECIFIC FUNCTIONS
+#########
 f_decomp_rmm_sulman <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
 
 f_micturn_sulman <- function(.,C,t,i) {
   (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[i]] 
 }
 
-f_zero <- function(.,C,t,i) 0
+#########
+#MIMICS-SPECIFIC FUNCTIONS
+#########
+#environmental controls are embedded,
+#would be ideal to pull these out
+f_decomp_rmm_wieder <- function(.,C,t,i,cat = 'cat1', cat_pool = 3){
+  if(i==7){
+    pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+    Km = .super$pars$km[[7]][[cat]] * pscalar
+  } else if(i==6) {
+    #km par same as structural litter (km2)
+    Km = .super$pars$km[[2]][[cat]] *.super$pars$mimics[['ko']][[cat]]
+  }  else {
+    Km = .super$pars$km[[i]][[cat]]
+  }
+  #correcting Km for temperature
+  Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+
+  C[i] * .super$pars$vmax[[i]][[cat]] * C[cat_pool] / (Km_cor + C[cat_pool])
+}
 
 # transfer functions
 ###################
