@@ -2,17 +2,17 @@
   <fnames>
     <soil_decomp>
       <sys>'c( 'f_sys_npools' )'</sys>
-      <solver>'c( 'f_solver_func', 'f_solver_func_corpse' )'</solver>
-      <solver_func>'c( 'f_solver_func', 'f_solver_func_corpse' )'</solver_func>
-      <input>'c( 'f_input' )'</input>
+      <solver>'c( 'f_solver_func', 'f_solver_func_corpse', 'f_solver_func_mimics' )'</solver>
+      <solver_func>'c( 'f_solver_func', 'f_solver_func_corpse', 'f_solver_func_mimics' )'</solver_func>
+      <input>'c( 'f_input', 'f_input_mimics' )'</input>
       <DotO>'c( 'f_DotO' )'</DotO>
       <transfermatrix>'c( 'f_transfermatrix' )'</transfermatrix>
-      <decomp>'c( 'f_decomp_dd_georgiou', 'f_decomp_dd_mend', 'f_decomp_doc_mend', 'f_decomp_lin', 'f_decomp_mbc_mend', 'f_decomp_MM_enzmaom', 'f_decomp_MM_enzpom', 'f_decomp_MM_microbe', 'f_decomp_rmm_sulman' )'</decomp>
+      <decomp>'c( 'f_decomp_dd_georgiou', 'f_decomp_dd_mend', 'f_decomp_doc_mend', 'f_decomp_lin', 'f_decomp_mbc_mend', 'f_decomp_MM_enzmaom', 'f_decomp_MM_enzpom', 'f_decomp_MM_microbe', 'f_decomp_rmm_sulman', 'f_decomp_rmm_wieder' )'</decomp>
       <desorp>'c(  )'</desorp>
       <sorp>'c(  )'</sorp>
       <scor>'c( 'f_scor_sulman' )'</scor>
       <wcor>'c( 'f_wcor_sulman' )'</wcor>
-      <tcor>'c( 'f_tcor_arrhenius', 'f_tcor_century1', 'f_tcor_century2', 'f_tcor_daycent1', 'f_tcor_daycent2', 'f_tcor_demeter', 'f_tcor_kb', 'f_tcor_landt', 'f_tcor_lin_adair', 'f_tcor_q10', 'f_tcor_rothc', 'f_tcor_standcarb' )'</tcor>
+      <tcor>'c( 'f_tcor_arrhenius', 'f_tcor_century1', 'f_tcor_century2', 'f_tcor_daycent1', 'f_tcor_daycent2', 'f_tcor_demeter', 'f_tcor_kb', 'f_tcor_landt', 'f_tcor_lin_adair', 'f_tcor_q10', 'f_tcor_rothc', 'f_tcor_standcarb', 'f_tcor_wieder' )'</tcor>
       <transfer>'c( 'f_transfer_all', 'f_transfer_cue', 'f_transfer_cue_remainder', 'f_transfer_cue_sat', 'f_transfer_mend21', 'f_transfer_mend25', 'f_transfer_mend26', 'f_transfer_mend27', 'f_transfer_mend52', 'f_transfer_mend54', 'f_transfer_zero', 'f_transfermatrix' )'</transfer>
     </soil_decomp>
   </fnames>

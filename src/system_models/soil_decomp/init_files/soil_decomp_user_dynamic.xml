@@ -105,31 +105,94 @@
         <cstate07>NA</cstate07>
       </cstate0>
       <cue>
-        <cue1>NA</cue1>
-        <cue2>NA</cue2>
-        <cue3>NA</cue3>
-        <cue4>NA</cue4>
-        <cue5>NA</cue5>
-        <cue6>NA</cue6>
-        <cue7>NA</cue7>
+        <cue1>
+          <mic1>NA</mic1>
+          <mic2>NA</mic2>
+        </cue1>
+        <cue2>
+          <mic1>NA</mic1>
+          <mic2>NA</mic2>
+        </cue2>
+        <cue3>
+          <mic1>NA</mic1>
+          <mic2>NA</mic2>
+        </cue3>
+        <cue4>
+          <mic1>NA</mic1>
+          <mic2>NA</mic2>
+        </cue4>
+        <cue5>
+          <mic1>NA</mic1>
+          <mic2>NA</mic2>
+        </cue5>
+        <cue6>
+          <mic1>NA</mic1>
+          <mic2>NA</mic2>
+        </cue6>
+        <cue7>
+          <mic1>NA</mic1>
+          <mic2>NA</mic2>
+        </cue7>
       </cue>
       <vmax>
-        <vmax1>NA</vmax1>
-        <vmax2>NA</vmax2>
-        <vmax3>NA</vmax3>
-        <vmax4>NA</vmax4>
-        <vmax5>NA</vmax5>
-        <vmax6>NA</vmax6>
-        <vmax7>NA</vmax7>
+        <vmax1>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </vmax1>
+        <vmax2>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </vmax2>
+        <vmax3>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </vmax3>
+        <vmax4>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </vmax4>
+        <vmax5>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </vmax5>
+        <vmax6>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </vmax6>
+        <vmax7>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </vmax7>
       </vmax>
       <km>
-        <km1>NA</km1>
-        <km2>NA</km2>
-        <km3>NA</km3>
-        <km4>NA</km4>
-        <km5>NA</km5>
-        <km6>NA</km6>
-        <km7>NA</km7>
+        <km1>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </km1>
+        <km2>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </km2>
+        <km3>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </km3>
+        <km4>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </km4>
+        <km5>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </km5>
+        <km6>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </km6>
+        <km7>
+          <cat1>NA</cat1>
+          <cat2>NA</cat2>
+        </km7>
       </km>
       <k>
         <k1>NA</k1>
@@ -149,6 +212,42 @@
         <poolmax6>NA</poolmax6>
         <poolmax7>NA</poolmax7>
       </poolmax>
+      <mimics>
+        <fmet_p1>NA</fmet_p1>
+        <fmet_p2>NA</fmet_p2>
+        <fmet_p3>NA</fmet_p3>
+        <tau_mod1_p1>NA</tau_mod1_p1>
+        <tau_mod1_p2>NA</tau_mod1_p2>
+        <tau_mod1_p3>NA</tau_mod1_p3>
+        <tau_r_p1>NA</tau_r_p1>
+        <tau_r_p2>NA</tau_r_p2>
+        <tau_mod2>NA</tau_mod2>
+        <tau_k_p1>NA</tau_k_p1>
+        <tau_k_p2>NA</tau_k_p2>
+        <desorb_p1>NA</desorb_p1>
+        <desorb_p2>NA</desorb_p2>
+        <fSOMp_r_p1>NA</fSOMp_r_p1>
+        <fSOMp_r_p2>NA</fSOMp_r_p2>
+        <fSOMc_r_p1>NA</fSOMc_r_p1>
+        <fSOMc_r_p2>NA</fSOMc_r_p2>
+        <fSOMc_r_p3>NA</fSOMc_r_p3>
+        <fSOMp_k_p1>NA</fSOMp_k_p1>
+        <fSOMp_k_p2>NA</fSOMp_k_p2>
+        <fSOMc_k_p1>NA</fSOMc_k_p1>
+        <fSOMc_k_p2>NA</fSOMc_k_p2>
+        <fSOMc_k_p3>NA</fSOMc_k_p3>
+        <V_slope>NA</V_slope>
+        <V_int>NA</V_int>
+        <aV>NA</aV>
+        <pscalar_p1>NA</pscalar_p1>
+        <pscalar_p2>NA</pscalar_p2>
+        <ko>NA</ko>
+        <K_slope>NA</K_slope>
+        <K_int>NA</K_int>
+        <aK>NA</aK>
+        <fi_LITm>NA</fi_LITm>
+        <fi_LITs>NA</fi_LITs>
+      </mimics>
     </soil_decomp>
   </pars>
   <env>
@@ -158,6 +257,10 @@
       <vwc>NA</vwc>
       <porosity>NA</porosity>
       <clay>NA</clay>
+      <lignin>NA</lignin>
+      <N>NA</N>
+      <anpp>NA</anpp>
+      <depth>NA</depth>
     </soil_decomp>
   </env>
 </dynamic>

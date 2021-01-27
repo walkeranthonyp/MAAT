@@ -263,13 +263,13 @@ soil_decomp_object$pars <- list(
  
   # half-saturation constant for microbial d3ecomnp of pool i      
   km = list(   
-    km1 = 0.01,       
-    km2 = 0.01,       
-    km3 = 0.01,
-    km4 = 0,
-    km5 = 0,
-    km6 = 0,
-    km7 = 0
+    km1 = list(cat1 = 0, cat2 = 0),      
+    km2 = list(cat1 = 0, cat2 = 0),     
+    km3 = list(cat1 = 0, cat2 = 0),
+    km4 = list(cat1 = 0, cat2 = 0),
+    km5 = list(cat1 = 0, cat2 = 0),
+    km6 = list(cat1 = 0, cat2 = 0),
+    km7 = list(cat1 = 0, cat2 = 0)
   ),       
 
   # turnover rate for linear decomposition

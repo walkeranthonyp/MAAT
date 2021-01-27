@@ -20,7 +20,7 @@ f_input <- function(., t ) {
   .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 )
 }
 
-f_input_mimcs <- function(., t ) {
+f_input_mimics <- function(., t ) {
   EST_LIT_in = .super$env$anpp / (365*24) # gC/m2/h (from gC/m2/y)
   EST_LIT    = EST_LIT_in  * 1e3 / 1e4    #mgC/cm2/h(from gC/m2/h)
   EST_LIT/.super$env$depth 
@@ -143,5 +143,117 @@ f_solver_func_mimics <- function(., t, y, parms){
   dSOMa = .$decomp.d3(t=t,C=y,i=3)*t3_to_7 + .$decomp.d4(t=t,C=y,i=4)*t4_to_7 + .$desorp.ds5(t=t,C=y,i=5) + d6 - d7*.$tcor(.)[[1]]  
 }
 
+f_solver_func_millennial <- function(., t, y, parms) {
+  #State parameters (i.e. calculated parameters)
+  
+  ##wcor FUNCTION##
+  #Sw = (1 / (1+w1*exp(-w2*swc/.35)))
+  
+  ##tcor FUNCTION##
+  #St = (t2 + (t3/pi)* atan(pi*t4*(Temp - t1))) / (t2 + (t3/pi)* atan(pi*t4*(Tref - t1)))
+  
+  #temperature dependence of CUE
+  #ae = assimilation_efficiency; could rename this for consistency but assimilation efficiency is more correct
+  #because maintenance respiration is modeled separately
+  #function of temp
+  #ae = (CUEref - (CUEt*(Temp-Taeref)))
+  ae = (.super$pars$cue[[4]] - (.super$pars$millennial[['cuet']]*(.super$env$temp-.super$pars$millennial[['Taeref']])))
+  
+  #Maximum sorption capacity from Mayes et al. 2012
+  #function of clay
+  ##state par or calculate in sorption function##
+  #Qmax = (BD * 10^(c1*log10(pclay) + c2))/1000 
+  
+  #Desorption function from Mayes et al. 2012
+  #function of pH
+  ##state par or calculate in sorption function##
+  #Kdm = 10^(-.186*pH - .216)
+  
+  ######
+  #Pools
+  ######
+  # C1 = POM
+  # C2 = MB
+  # C3 = MAOM
+  # C4 = DOC
+  # C5 = Aggregate
+  
+  #######
+  #Fluxes
+  #######
+  
+  # Fa = kb * A*Sw*St
+  #Aggregate breakdown
+  Fa = .$decomp.d5(t=t,C=y,i=5) * .$tcor(.) *.$wcor(.)
+  #decomp = lin
+  
+  # Fpa = ( Vpa * P) / (Kpa + P)*(1 - A / Amax)*Sw*St
+  #  # "The formation of aggregate C (A) from POM follows Michaelis–Menten dynamics,
+  # where Vpa is the maximum rate of aggregate formation, Kpa is the half-
+  # saturation constant of aggregate formation, and Amax is the maximum capacity
+  # of C in soil aggregates.
+  # NOT A FUNCTION OF MICROBIAL BIOMASS
+  Fpa = .$aggform.a1(t=t,C=y,i=1) * .$tcor(.) *.$wcor(.)
+  #aggform = ( Vpa * P) / (Kpa + P)*(1 - A / Amax) where...
+  #Amax = 500 in the paper or is caculated based on a separate equation in the source code
+  
+  # Fpd = Vpd * (P/(Kpd + P)) * (B/(Kpe+B))*Sw*St
+  #decomposition of POM governed by double Michaelis-Menten equation
+  Fpd = .$decomp.d1(t=t,C=y,i=1) * .$tcor(.) *.$wcor(.)
+  #decomp = Vpd * (P/(Kpd + P)) * (B/(Kpe+B))
+  
+  # Fd = kd * D*St*Sw
+  #DOC loss via leaching
+  Fd = .$decomp.d4(t=t,C=y,i=4) * .$tcor(.) *.$wcor(.)
+  #decomp = lin; this is technically leaching and not decomposition though...
+  
+  # Fdm = Sw*St*D * ((Kdm*Qmax*D)/(1+Kdm*D) - M) / Qmax
+  #Sorption
+  #This is a two-way equation reflecting the instantaneous net balance between sorption and desorption
+  Fdm = .$sorp.s4(t=t,C=y,i=4) * .$tcor(.) *.$wcor(.)
+  #sorp = D * ((Kdm*Qmax*D)/(1+Kdm*D) - M) / Qmax
+  #Kdm and Qmax state parameters
+  #Kdm may need to be calculated dynamically in function (based on pH which could be f(time))
+  
+  # Fdb = Vdm * D * B/(B+Kdb)*Sw*St
+  #Uptake: Microbial uptake of DOC
+  Fdb = .$uptake.u4(t=t,C=y,i=4)* .$tcor(.) *.$wcor(.)
+  #uptake = Vdm * D * B/(B+Kdb) #reverse michaelis-menten
+  
+  # Fma = (Vma * M) / (Kma + M) * (1-A/Amax)*Sw*St
+  #Aggregate formation from MAOM
+  Fma = .$aggform(t=t,C=y,i=3)* .$tcor(.) *.$wcor(.)
+  #aggform = same as for Fpa
+  
+  # Fbm = kmm * B*Sw*St
+  #turnover (and sorption) of microbial necromass
+  #here it is more of a turnover process (i.e. independent of mineral properties)
+  #but in the source code it depends on saturation level of MAOM (which is really weird because it implies
+  #that mineral saturation limits microbial turnover)
+  #Though I guess maintenance respiration would increase to compensate??? This would be worth investigating
+  Fbm = .$sorp(t=t,C=y,i=2)* .$tcor(.) *.$wcor(.) 
+  #sorp = lin
+  #this will need a separate k value from the decomp flux...
+  
+  # Fmr = km * B*Sw*St
+  # Maintenance respiration
+  Fmr = .$decomp(t=t,C=y,i=2)* .$tcor(.) *.$wcor(.)
+  #decomp = lin
+  
+  
+  #ODE system
+  # dP <- pri*i + pa* Fa - Fpa  - Fpd
+  dP <- .$input(t)[[1]] + .super$pars$pa * Fa - Fpa - Fpd
+  # dB <- ae * Fdb - Fbm - Fmr
+  dB <- ae * Fdb - Fbm - Fmr
+  # dM <- Fdm + Fbm - Fma + (1-pa)*Fa  
+  dM <- Fdm + Fbm - Fma + (1-.super$pars$pa)*Fa
+  # dD <- i * (1-pri) - Fd + Fpd - Fdm - Fdb
+  dD <- .$input(t)[[4]] - Fd + Fpd - Fdm - Fdb
+  # dA <- Fma + Fpa - Fa
+  dA <- Fma + Fpa - Fa
+
+  list(c(dP, dB, dM, dD, dA))
+}
 
 ### END ###
