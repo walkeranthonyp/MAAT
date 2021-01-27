@@ -69,54 +69,39 @@ soil_decomp_object$fnames <- list(
 
   sys            = 'f_sys_npools',
   solver         = 'plsoda',
-  solver_func    = 'f_solver_func_mimics',
-  input          = 'f_input_mimics',
+  solver_func    = 'f_solver_func_millennial',
+  input          = 'f_input',
   DotO           = 'f_DotO',
   transfermatrix = 'f_transfermatrix',
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_rmm_wieder', 
-    d2 = 'f_decomp_rmm_wieder',
-    d3 = 'f_decomp_lin',
-    d4 = 'f_decomp_lin',
-    d5 = 'f_zero',
-    d6 = 'f_decomp_rmm_wieder',
-    d7 = 'f_decomp_rmm_wieder'
+    d1 = 'f_decomp_dmm', #double michaelis menten 
+    d2 = 'f_decomp_lin', #maintenance respiration
+    d3 = 'f_zero',
+    d4 = 'f_decomp_lin', #leaching
+    d5 = 'f_decomp_lin'  #aggregate breakdown
   ),
   
   desorp = list(
     ds1 = 'f_zero',
     ds2 = 'f_zero',
-    ds3 = 'f_zero',
-    ds4 = 'f_zero',
-    ds5 = 'f_decomp_lin',
-    ds6 = 'f_zero',
-    ds7 = 'f_zero'
+    ds3 = 'f_zero', #zero because sorption is a two-way function
+    ds4 = 'f_zero', 
+    ds5 = 'f_zero'
   ),
   
   sorp = list(
-    s1 = 'f_zero',
-    s2 = 'f_zero',
+    s1 = 'f_zero', 
+    s2 = 'f_sorp_lin',
     s3 = 'f_zero',
-    s4 = 'f_zero',
-    s5 = 'f_zero',
-    s6 = 'f_zero',
-    s7 = 'f_zero'
+    s4 = 'f_sorp_abramoff',
+    s5 = 'f_zero'
   ),
   
   scor = 'f_zero',
-  wcor = 'f_zero',
-  
-  tcor = list(
-    t1 = 'f_tcor_wieder', #mimics will apply this to all pools
-    t2 = 'f_zero',
-    t3 = 'f_zero',
-    t4 = 'f_zero',
-    t5 = 'f_zero',
-    t6 = 'f_zero',
-    t7 = 'f_zero'
-  ),
+  wcor = 'f_wcor_abramoff',
+  tcor = 'f_tcor_abramoff',
   
   # transfer list
   transfer = list(
@@ -132,7 +117,6 @@ soil_decomp_object$fnames <- list(
     t5_to_4 = 'f_transfer_mend54',
     t6_to_5 = 'f_transfer_all',
     t7_to_5 = 'f_transfer_all'
-    #######left off here#######
   )
 )
 
@@ -140,15 +124,16 @@ soil_decomp_object$fnames <- list(
 # environment
 ####################################
 soil_decomp_object$env <- list(
-  litter = .5/365,
+  litter = 172/365,
   temp   = 20,
   vwc    = .25,
   porosity = 0.5,
-  clay = .4, #MIMICS takes proportion, CORPSE takes percentage
+  clay = 4, #MIMICS takes proportion, CORPSE and MILLENNIAL takes percentage
   lignin = 16.6,
   N = 1.37,
   anpp = 500,
-  depth = 20
+  depth = 20,
+  pH = 7
 )
 
 

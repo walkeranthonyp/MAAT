@@ -25,6 +25,21 @@ f_tcor_wieder <- function(.,C,t,i){
   exp(.super$env$temp * .super$pars$mimics[['V_slope']] + .super$pars$mimics[['V_int']]) * .super$pars$mimics[['aV']]
 }
 
+f_tcor_abramoff <- function(.,C,t,i){
+  t1 = 15.4
+  t2 = 11.75
+  t3 = 29.7
+  t4 = 0.031
+  (t2 + (t3/pi)* atan(pi*t4*(.super$env$temp - t1))) / (t2 + (t3/pi)* atan(pi*t4*(.super$pars$reftemp - t1)))
+}
+
+f_wcor_abramoff <- function(.,C,t,i){
+  w1 = 30
+  w2 = 9
+  (1 / (1+w1*exp(-w2*.super$env$vwc/.35)))
+  #.35 is whc I think? this should be specified in env. Perhaps porosity as in sulman.
+}
+
 # f_tcor_arrhenius <- function(.,C,t,i) {
 #   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
 #   # Arrhenius equation
