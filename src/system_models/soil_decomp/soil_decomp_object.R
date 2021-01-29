@@ -93,11 +93,21 @@ soil_decomp_object$fnames <- list(
   
   sorp = list(
     s1 = 'f_zero', 
-    s2 = 'f_sorp_lin',
+    s2 = 'f_decomp_lin',
     s3 = 'f_zero',
-    s4 = 'f_sorp_abramoff',
+    s4 = 'f_docsorp_abramoff',
     s5 = 'f_zero'
   ),
+  
+  aggform = list(
+    a1 = 'f_aggform_abramoff', 
+    a2 = 'f_zero',
+    a3 = 'f_aggform_abramoff',
+    a4 = 'f_zero',
+    a5 = 'f_zero'
+  ),
+  
+  docuptake = 'f_docuptake_abramoff',
   
   scor = 'f_zero',
   wcor = 'f_wcor_abramoff',
@@ -133,7 +143,8 @@ soil_decomp_object$env <- list(
   N = 1.37,
   anpp = 500,
   depth = 20,
-  pH = 7
+  pH = 7,
+  BD = 1  #Bulk density 
 )
 
 
@@ -159,7 +170,7 @@ soil_decomp_object$state_pars <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 7,          # number of pools in model  
+  n_pools = 5,          # number of pools in model  
   beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = 0.2,        # soil silt content (proportion)
   clay    = 0.2,        # soil clay content (proportion)
@@ -186,13 +197,11 @@ soil_decomp_object$pars <- list(
  
   #input coefficients (allocaties proportions of inputs into different pools)
   input_coefs = list(
-    input_coef1 = .1,
-    input_coef2 = .9,
+    input_coef1 = .66666,
+    input_coef2 = 0,
     input_coef3 = 0,
-    input_coef4 = 0,
-    input_coef5 = 0,
-    input_coef6 = 0,
-    input_coef7 = 0
+    input_coef4 = .33334,
+    input_coef5 = 0
   ),
   
   # initial pool mass for each pool
@@ -201,61 +210,60 @@ soil_decomp_object$pars <- list(
     cstate02 = 0.1,          
     cstate03 = 0.1,      
     cstate04 = 0.1,       
-    cstate05 = 0.1,     
-    cstate06 = 0.1,    
-    cstate07 = 0.1     
+    cstate05 = 0.1  
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
   # - if this varies by the 'to' pool we need another function / parameters
   # MC: I've created a function cue_remainder that can allocate the remainder to another pool rather than CO2
   cue = list(
-    cue1 = list(mic1 = .5, mic2 = .7),       
-    cue2 = list(mic1 = .25, mic2 = .35),       
-    cue3 = list(mic1 = 0, mic2 = 0),
-    cue4 = list(mic1 = 0, mic2 = 0),
-    cue5 = list(mic1 = 0, mic2 = 0),      
-    cue6 = list(mic1 = 0, mic2 = 0),
-    cue7 = list(mic1 = .5, mic2 = .7)
+    cue1 = 0,       
+    cue2 = 0,       
+    cue3 = 0,
+    cue4 = 0,
+    cue5 = 0
   ),  
 
-  # max turnover rate per unit microbial biomass for pool i 
-  #commented out old list (updating to allow for multiple mic groups or catalysts)
-  # vmax = list(   
-  #   vmax1 = 1500/365,     
-  #   vmax2 = 50/365,     
-  #   vmax3 = 600/365,
-  #   vmax4 = 0,
-  #   vmax5 = 0,
-  #   vmax6 = 0,
-  #   vmax7 = 0
-  # ),
-  
+  # max turnover rate per unit microbial biomass for pool i
+  # commented out old list (updating to allow for multiple mic groups or catalysts)
   vmax = list(
-    #vmax of pool 1
-    vmax1 = list(
-      #specific to first catalyst (mic or enz pool)
-      cat1 = 0,
-      #specific to second catalyst (mic or enz pool)
-      cat2 = 0),
-    vmax2 = list(cat1 = 0, cat2 = 0),
-    vmax3 = list(cat1 = 0, cat2 = 0),
-    vmax4 = list(cat1 = 0, cat2 = 0),
-    vmax5 = list(cat1 = 0, cat2 = 0),
-    vmax6 = list(cat1 = 0, cat2 = 0),
-    vmax7 = list(cat1 = 0, cat2 = 0)
+    vmax1 = 1500/365,
+    vmax2 = 50/365,
+    vmax3 = 600/365,
+    vmax4 = 0,
+    vmax5 = 0
   ),
+  
+  # vmax = list(
+  #   #vmax of pool 1
+  #   vmax1 = list(
+  #     #specific to first catalyst (mic or enz pool)
+  #     cat1 = 0,
+  #     #specific to second catalyst (mic or enz pool)
+  #     cat2 = 0),
+  #   vmax2 = list(cat1 = 0, cat2 = 0),
+  #   vmax3 = list(cat1 = 0, cat2 = 0),
+  #   vmax4 = list(cat1 = 0, cat2 = 0),
+  #   vmax5 = list(cat1 = 0, cat2 = 0)
+  # ),
  
-  # half-saturation constant for microbial d3ecomnp of pool i      
+  # michaelis-menten half-saturation constant for microbial decomnp of pool i      
   km = list(   
-    km1 = list(cat1 = 0, cat2 = 0),      
-    km2 = list(cat1 = 0, cat2 = 0),     
-    km3 = list(cat1 = 0, cat2 = 0),
-    km4 = list(cat1 = 0, cat2 = 0),
-    km5 = list(cat1 = 0, cat2 = 0),
-    km6 = list(cat1 = 0, cat2 = 0),
-    km7 = list(cat1 = 0, cat2 = 0)
-  ),       
+    km1 = 0,      
+    km2 = 0,     
+    km3 = 0,
+    km4 = 0,
+    km5 = 0
+  ),
+  
+  # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i 
+  rkm = list(   
+    rkm1 = 0,      
+    rkm2 = 0,     
+    rkm3 = 0,
+    rkm4 = 0,
+    rkm5 = 0
+  ),   
 
   # turnover rate for linear decomposition
   k = list(   
@@ -270,13 +278,11 @@ soil_decomp_object$pars <- list(
 
   # maximum size for pool i 
   poolmax = list(       
-    poolmax1 = 2,       # POM value
-    poolmax2 = 2,       # microbial biomass max value
-    poolmax3 = 26.725,   # max maom capacity (calculated using Hassink formula assuming 15% clay)
-    poolmax4 = 1.7,
-    poolmax5 = 26.725,
-    poolmax6 = 26.725,
-    poolmax7 = 26.725
+    poolmax1 = 0,       # POM value
+    poolmax2 = 0,       # microbial biomass max value
+    poolmax3 = 0,   # max maom capacity (calculated using Hassink formula assuming 15% clay)
+    poolmax4 = 0,
+    poolmax5 = 500
   ),
   
   #mimics-specific parameters
@@ -315,6 +321,20 @@ soil_decomp_object$pars <- list(
     aK = .15625,
     fi_LITm = .005,
     fi_LITs = .005
+  ),
+  
+  #millennial-specific parameters
+  millennial = list(
+    cuet = ,
+    Taeref = ,
+    Vpa = ,
+    Kpa = ,
+    c1 = , #parameter relating clay to Qmax (i.e. MAOM poolmax)
+    c2 = , #parameter relating clay to Qmax (i.e. MAOM poolmax)
+    Vpa = ,
+    Kpa = ,
+    Vdm = , #max DOC turnover rate (for microbial uptake, not leaching or sorption)
+    Kd = , #half-saturation constant for microbial uptake of doc
   )
 )
 

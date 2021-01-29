@@ -73,6 +73,11 @@ f_decomp_dd_georgiou         <- function(.,C,t,i) (C[i]^.super$pars$beta) * .sup
 # non-linear Michaelis-Menten decomp, a function of microbial biomass
 f_decomp_MM_microbe <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[i])
 
+# double Michaelis-Menten decomp
+f_decomp_dmm <- function(.,C,t,i){
+  .super$pars$vmax[[i]] * (C[1]/(.super$pars$km[[1]] + C[1])) * (C[2]/(.super$pars$rkm[[1]]+C[2]))
+}
+
 f_zero <- function(.,C,t,i) 0
 
 #########
@@ -111,6 +116,24 @@ f_decomp_rmm_sulman <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[
 
 f_micturn_sulman <- function(.,C,t,i) {
   (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[i]] 
+}
+
+#########
+#MILLENNIAL-SPECIFIC FUNCTIONS
+#########
+f_aggform_abramoff <- function(.,C,t,i, agg_pool = 5){
+  ( .super$pars$millennial[['Vpa']] * C[i]) / (.super$pars$millennial[['Kpa']] + C[i])*(1 - C[agg_pool] / .super$poolmax[[5]])
+}
+
+f_sorp_abramoff <- function(.,C,t,i){
+  Qmax = (.super$env$BD * 10^(.super$pars$millennial[['c1']]*log10(.super$env$clay) + .super$pars$millennial[['c2']]))/1000
+  Kdm = 10^(-.186*.super$env$pH - .216)
+  C[i] * ((Kdm*Qmax*C[i])/(1+Kdm*C[i]) - C[3]) / Qmax
+}
+
+f_docuptake_abramoff <- function(.,C,t,i){
+  #this is a reverse michaelis-menten equation so could potentially use a f_decomp_rmm function instead
+  .super$pars$millennial[['Vdm']] * C[i] * C[2]/(C[2]+.super$pars$millennial[['Kdb']])
 }
 
 #########
