@@ -135,16 +135,16 @@ soil_decomp_object$fnames <- list(
 ####################################
 soil_decomp_object$env <- list(
   litter = 172/365,
-  temp   = 20,
-  vwc    = .25,
+  temp   = 11.2,
+  vwc    = .24,
   porosity = 0.5,
-  clay = 4, #MIMICS takes proportion, CORPSE and MILLENNIAL takes percentage
+  clay = 40, #MIMICS takes proportion, CORPSE and MILLENNIAL takes percentage
   lignin = 16.6,
   N = 1.37,
   anpp = 500,
   depth = 20,
   pH = 7,
-  BD = 1  #Bulk density 
+  BD = 1350  #Bulk density 
 )
 
 
@@ -220,16 +220,16 @@ soil_decomp_object$pars <- list(
     cue1 = 0,       
     cue2 = 0,       
     cue3 = 0,
-    cue4 = 0,
+    cue4 = 0.6,
     cue5 = 0
   ),  
 
   # max turnover rate per unit microbial biomass for pool i
   # commented out old list (updating to allow for multiple mic groups or catalysts)
   vmax = list(
-    vmax1 = 1500/365,
-    vmax2 = 50/365,
-    vmax3 = 600/365,
+    vmax1 = 10, #Vpd or Vpl in Millennial, decomp of POM toward DOC
+    vmax2 = 0,
+    vmax3 = 0,
     vmax4 = 0,
     vmax5 = 0
   ),
@@ -249,7 +249,7 @@ soil_decomp_object$pars <- list(
  
   # michaelis-menten half-saturation constant for microbial decomnp of pool i      
   km = list(   
-    km1 = 0,      
+    km1 = 150, #Kpd in MILLENNIAL double michaelis-menten equation     
     km2 = 0,     
     km3 = 0,
     km4 = 0,
@@ -258,7 +258,7 @@ soil_decomp_object$pars <- list(
   
   # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i 
   rkm = list(   
-    rkm1 = 0,      
+    rkm1 = 12, #Kpe in MILLENNIAL double michaelis-menten equation (the reverse part i.e. the microbial limited part) 
     rkm2 = 0,     
     rkm3 = 0,
     rkm4 = 0,
@@ -267,13 +267,11 @@ soil_decomp_object$pars <- list(
 
   # turnover rate for linear decomposition
   k = list(   
-    k1 = 1.0/365,       
-    k2 = 0.00005/365,   
-    k3 = 1.0/365,
-    k4 = .15*365,
-    k5 = 3.652968e-5,
-    k6 = 3.652968e-5,
-    k7 = 3.652968e-5
+    k1 = 0,       
+    k2 = 0.036,   
+    k3 = 0,
+    k4 = 0,
+    k5 = 0.0002 #aggregrate breakdown rate (kb)
   ),
 
   # maximum size for pool i 
@@ -325,17 +323,17 @@ soil_decomp_object$pars <- list(
   
   #millennial-specific parameters
   millennial = list(
-    cuet = ,
-    Taeref = ,
-    Vpa = ,
-    Kpa = ,
-    c1 = , #parameter relating clay to Qmax (i.e. MAOM poolmax)
-    c2 = , #parameter relating clay to Qmax (i.e. MAOM poolmax)
-    Vpa = ,
-    Kpa = ,
-    Vdm = , #max DOC turnover rate (for microbial uptake, not leaching or sorption)
-    Kd = , #half-saturation constant for microbial uptake of doc
-    kmm = , #rate constant for microbial turnover (and sorption in published eq version)
+    cuet = -0.012, #slope relating assimilation efficiency to temperature
+    Taeref = 15,   #ref temp for CUE temp-dependence equation
+    Vpa = 0.002,   #max aggregation rate of POM
+    Kpa = 50,      #half-saturation constant for aggregation of POM
+    c1 = 0.297,    #parameter relating clay to Qmax (i.e. MAOM poolmax)
+    c2 = 3.355,    #parameter relating clay to Qmax (i.e. MAOM poolmax)
+    Vma = 0.07,    #max aggregation rate of MAOM
+    Kma = 200,     #half-saturation constant for aggregation of MAOM
+    Vdm = 0.35,    #max DOC turnover rate (for microbial uptake, not leaching or sorption)
+    Kdb = 7.2,     #half-saturation constant for microbial uptake of doc
+    kmm = 0.025   #rate constant for microbial turnover (and sorption in published eq version)
   )
 )
 

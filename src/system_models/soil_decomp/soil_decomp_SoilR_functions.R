@@ -233,7 +233,6 @@ f_solver_func_millennial <- function(., t, y, parms) {
   #Though I guess maintenance respiration would increase to compensate??? This would be worth investigating
   Fbm = .$sorp(t=t,C=y,i=2, k_from_list = FALSE, k = .super$pars$millenial[['kmm']])* .$tcor(.) *.$wcor(.) 
   #sorp = lin
-  #this will need a separate k value from the decomp flux...
   
   # Fmr = km * B*Sw*St
   # Maintenance respiration
