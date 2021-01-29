@@ -10,6 +10,8 @@
       <N>'column name of variable in metdata file'</N>
       <anpp>'column name of variable in metdata file'</anpp>
       <depth>'column name of variable in metdata file'</depth>
+      <pH>'column name of variable in metdata file'</pH>
+      <BD>'column name of variable in metdata file'</BD>
     </soil_decomp>
   </env>
 </met_data_translator>

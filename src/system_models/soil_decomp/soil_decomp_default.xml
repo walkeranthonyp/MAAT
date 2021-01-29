@@ -3,48 +3,42 @@
     <soil_decomp>
       <sys>'f_sys_npools'</sys>
       <solver>'plsoda'</solver>
-      <solver_func>'f_solver_func_mimics'</solver_func>
-      <input>'f_input_mimics'</input>
+      <solver_func>'f_solver_func_millennial'</solver_func>
+      <input>'f_input'</input>
       <DotO>'f_DotO'</DotO>
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <decomp>
-        <d1>'f_decomp_rmm_wieder'</d1>
-        <d2>'f_decomp_rmm_wieder'</d2>
-        <d3>'f_decomp_lin'</d3>
+        <d1>'f_decomp_dmm'</d1>
+        <d2>'f_decomp_lin'</d2>
+        <d3>'f_zero'</d3>
         <d4>'f_decomp_lin'</d4>
-        <d5>'f_zero'</d5>
-        <d6>'f_decomp_rmm_wieder'</d6>
-        <d7>'f_decomp_rmm_wieder'</d7>
+        <d5>'f_decomp_lin'</d5>
       </decomp>
       <desorp>
         <ds1>'f_zero'</ds1>
         <ds2>'f_zero'</ds2>
         <ds3>'f_zero'</ds3>
         <ds4>'f_zero'</ds4>
-        <ds5>'f_decomp_lin'</ds5>
-        <ds6>'f_zero'</ds6>
-        <ds7>'f_zero'</ds7>
+        <ds5>'f_zero'</ds5>
       </desorp>
       <sorp>
         <s1>'f_zero'</s1>
-        <s2>'f_zero'</s2>
+        <s2>'f_decomp_lin'</s2>
         <s3>'f_zero'</s3>
-        <s4>'f_zero'</s4>
+        <s4>'f_docsorp_abramoff'</s4>
         <s5>'f_zero'</s5>
-        <s6>'f_zero'</s6>
-        <s7>'f_zero'</s7>
       </sorp>
+      <aggform>
+        <a1>'f_aggform_abramoff'</a1>
+        <a2>'f_zero'</a2>
+        <a3>'f_aggform_abramoff'</a3>
+        <a4>'f_zero'</a4>
+        <a5>'f_zero'</a5>
+      </aggform>
+      <docuptake>'f_docuptake_abramoff'</docuptake>
       <scor>'f_zero'</scor>
-      <wcor>'f_zero'</wcor>
-      <tcor>
-        <t1>'f_tcor_wieder'</t1>
-        <t2>'f_zero'</t2>
-        <t3>'f_zero'</t3>
-        <t4>'f_zero'</t4>
-        <t5>'f_zero'</t5>
-        <t6>'f_zero'</t6>
-        <t7>'f_zero'</t7>
-      </tcor>
+      <wcor>'f_wcor_abramoff'</wcor>
+      <tcor>'f_tcor_abramoff'</tcor>
       <transfer>
         <t1_to_3>'f_transfer_cue_remainder'</t1_to_3>
         <t1_to_5>'f_transfer_cue'</t1_to_5>
@@ -63,7 +57,7 @@
   </fnames>
   <pars>
     <soil_decomp>
-      <n_pools>7</n_pools>
+      <n_pools>5</n_pools>
       <beta>1.5</beta>
       <silt>0.2</silt>
       <clay>0.2</clay>
@@ -87,13 +81,11 @@
         <ea7>NA</ea7>
       </ea>
       <input_coefs>
-        <input_coef1>0.1</input_coef1>
-        <input_coef2>0.9</input_coef2>
+        <input_coef1>0.66666</input_coef1>
+        <input_coef2>0</input_coef2>
         <input_coef3>0</input_coef3>
-        <input_coef4>0</input_coef4>
+        <input_coef4>0.33334</input_coef4>
         <input_coef5>0</input_coef5>
-        <input_coef6>0</input_coef6>
-        <input_coef7>0</input_coef7>
       </input_coefs>
       <cstate0>
         <cstate01>0.1</cstate01>
@@ -101,116 +93,48 @@
         <cstate03>0.1</cstate03>
         <cstate04>0.1</cstate04>
         <cstate05>0.1</cstate05>
-        <cstate06>0.1</cstate06>
-        <cstate07>0.1</cstate07>
       </cstate0>
       <cue>
-        <cue1>
-          <mic1>0.5</mic1>
-          <mic2>0.7</mic2>
-        </cue1>
-        <cue2>
-          <mic1>0.25</mic1>
-          <mic2>0.35</mic2>
-        </cue2>
-        <cue3>
-          <mic1>0</mic1>
-          <mic2>0</mic2>
-        </cue3>
-        <cue4>
-          <mic1>0</mic1>
-          <mic2>0</mic2>
-        </cue4>
-        <cue5>
-          <mic1>0</mic1>
-          <mic2>0</mic2>
-        </cue5>
-        <cue6>
-          <mic1>0</mic1>
-          <mic2>0</mic2>
-        </cue6>
-        <cue7>
-          <mic1>0.5</mic1>
-          <mic2>0.7</mic2>
-        </cue7>
+        <cue1>0</cue1>
+        <cue2>0</cue2>
+        <cue3>0</cue3>
+        <cue4>0.6</cue4>
+        <cue5>0</cue5>
       </cue>
       <vmax>
-        <vmax1>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </vmax1>
-        <vmax2>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </vmax2>
-        <vmax3>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </vmax3>
-        <vmax4>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </vmax4>
-        <vmax5>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </vmax5>
-        <vmax6>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </vmax6>
-        <vmax7>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </vmax7>
+        <vmax1>10</vmax1>
+        <vmax2>0</vmax2>
+        <vmax3>0</vmax3>
+        <vmax4>0</vmax4>
+        <vmax5>0</vmax5>
       </vmax>
       <km>
-        <km1>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </km1>
-        <km2>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </km2>
-        <km3>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </km3>
-        <km4>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </km4>
-        <km5>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </km5>
-        <km6>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </km6>
-        <km7>
-          <cat1>0</cat1>
-          <cat2>0</cat2>
-        </km7>
+        <km1>150</km1>
+        <km2>0</km2>
+        <km3>0</km3>
+        <km4>0</km4>
+        <km5>0</km5>
       </km>
+      <rkm>
+        <rkm1>12</rkm1>
+        <rkm2>0</rkm2>
+        <rkm3>0</rkm3>
+        <rkm4>0</rkm4>
+        <rkm5>0</rkm5>
+      </rkm>
       <k>
-        <k1>0.00273972602739726</k1>
-        <k2>1.36986301369863e-07</k2>
-        <k3>0.00273972602739726</k3>
-        <k4>54.75</k4>
-        <k5>3.652968e-05</k5>
-        <k6>3.652968e-05</k6>
-        <k7>3.652968e-05</k7>
+        <k1>0</k1>
+        <k2>0.036</k2>
+        <k3>0</k3>
+        <k4>0</k4>
+        <k5>2e-04</k5>
       </k>
       <poolmax>
-        <poolmax1>2</poolmax1>
-        <poolmax2>2</poolmax2>
-        <poolmax3>26.725</poolmax3>
-        <poolmax4>1.7</poolmax4>
-        <poolmax5>26.725</poolmax5>
-        <poolmax6>26.725</poolmax6>
-        <poolmax7>26.725</poolmax7>
+        <poolmax1>0</poolmax1>
+        <poolmax2>0</poolmax2>
+        <poolmax3>0</poolmax3>
+        <poolmax4>0</poolmax4>
+        <poolmax5>500</poolmax5>
       </poolmax>
       <mimics>
         <fmet_p1>0.5</fmet_p1>
@@ -248,19 +172,35 @@
         <fi_LITm>0.005</fi_LITm>
         <fi_LITs>0.005</fi_LITs>
       </mimics>
+      <millennial>
+        <cuet>-0.012</cuet>
+        <Taeref>15</Taeref>
+        <Vpa>0.002</Vpa>
+        <Kpa>50</Kpa>
+        <c1>0.297</c1>
+        <c2>3.355</c2>
+        <Vma>0.07</Vma>
+        <Kma>200</Kma>
+        <Vdm>0.35</Vdm>
+        <Kdb>7.2</Kdb>
+        <kmm>0.025</kmm>
+        <pa>0.333</pa>
+      </millennial>
     </soil_decomp>
   </pars>
   <env>
     <soil_decomp>
-      <litter>0.00136986301369863</litter>
-      <temp>20</temp>
-      <vwc>0.25</vwc>
+      <litter>0.471232876712329</litter>
+      <temp>11.2</temp>
+      <vwc>0.24</vwc>
       <porosity>0.5</porosity>
-      <clay>0.4</clay>
+      <clay>40</clay>
       <lignin>16.6</lignin>
       <N>1.37</N>
       <anpp>500</anpp>
       <depth>20</depth>
+      <pH>7</pH>
+      <BD>1350</BD>
     </soil_decomp>
   </env>
 </default>

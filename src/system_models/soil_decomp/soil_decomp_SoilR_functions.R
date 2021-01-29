@@ -222,7 +222,7 @@ f_solver_func_millennial <- function(., t, y, parms) {
   
   # Fma = (Vma * M) / (Kma + M) * (1-A/Amax)*Sw*St
   #Aggregate formation from MAOM
-  Fma = .$aggform(t=t,C=y,i=3)* .$tcor(.) *.$wcor(.)
+  Fma = .$aggform.a3(t=t,C=y,i=3)* .$tcor(.) *.$wcor(.)
   #aggform = same as for Fpa
   
   # Fbm = kmm * B*Sw*St
@@ -231,27 +231,27 @@ f_solver_func_millennial <- function(., t, y, parms) {
   #but in the source code it depends on saturation level of MAOM (which is really weird because it implies
   #that mineral saturation limits microbial turnover)
   #Though I guess maintenance respiration would increase to compensate??? This would be worth investigating
-  Fbm = .$sorp(t=t,C=y,i=2, k_from_list = FALSE, k = .super$pars$millenial[['kmm']])* .$tcor(.) *.$wcor(.) 
+  Fbm = .$sorp.s2(t=t,C=y,i=2, k_from_list = FALSE, k = .super$pars$millennial[['kmm']])* .$tcor(.) *.$wcor(.) 
   #sorp = lin
   
   # Fmr = km * B*Sw*St
   # Maintenance respiration
-  Fmr = .$decomp(t=t,C=y,i=2)* .$tcor(.) *.$wcor(.)
+  Fmr = .$decomp.d2(t=t,C=y,i=2)* .$tcor(.) *.$wcor(.)
   #decomp = lin
   
   
   #ODE system
   # dP <- pri*i + pa* Fa - Fpa  - Fpd
-  dP <- .$input(t)[[1]] + .super$pars$pa * Fa - Fpa - Fpd
+  dP <- .$input(t)[[1]] + .super$pars$millennial[['pa']] * Fa - Fpa - Fpd
   # dB <- ae * Fdb - Fbm - Fmr
   dB <- ae * Fdb - Fbm - Fmr
   # dM <- Fdm + Fbm - Fma + (1-pa)*Fa  
-  dM <- Fdm + Fbm - Fma + (1-.super$pars$pa)*Fa
+  dM <- Fdm + Fbm - Fma + (1-.super$pars$millennial[['pa']])*Fa
   # dD <- i * (1-pri) - Fd + Fpd - Fdm - Fdb
   dD <- .$input(t)[[4]] - Fd + Fpd - Fdm - Fdb
   # dA <- Fma + Fpa - Fa
   dA <- Fma + Fpa - Fa
-
+#print(.$aggform.a1(t=t,C=y,i=1))
   list(c(dP, dB, dM, dD, dA))
 }
 

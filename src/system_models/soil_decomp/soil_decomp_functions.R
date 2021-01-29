@@ -129,10 +129,14 @@ f_micturn_sulman <- function(.,C,t,i) {
 #########
 f_aggform_abramoff <- function(.,C,t,i, agg_pool = 5){
   if(i==1){
-    ( .super$pars$millennial[['Vpa']] * C[i]) / (.super$pars$millennial[['Kpa']] + C[i])*(1 - C[agg_pool] / .super$poolmax[[5]])
+     # print(C[i])
+     # print(.super$pars$millennial[['Vpa']])
+     # print(.super$pars$millennial[['Kpa']])
+     # print(.super$pars$poolmax[[5]])
+    ( .super$pars$millennial[['Vpa']] * C[i]) / (.super$pars$millennial[['Kpa']] + C[i])*(1 - C[agg_pool] / .super$pars$poolmax[[5]])
   }
   if(i==3){
-    ( .super$pars$millennial[['Vma']] * C[i]) / (.super$pars$millennial[['Kma']] + C[i])*(1 - C[agg_pool] / .super$poolmax[[5]])  
+    ( .super$pars$millennial[['Vma']] * C[i]) / (.super$pars$millennial[['Kma']] + C[i])*(1 - C[agg_pool] / .super$pars$poolmax[[5]])  
   }
 }
 
