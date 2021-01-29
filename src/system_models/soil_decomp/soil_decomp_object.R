@@ -335,6 +335,7 @@ soil_decomp_object$pars <- list(
     Kpa = ,
     Vdm = , #max DOC turnover rate (for microbial uptake, not leaching or sorption)
     Kd = , #half-saturation constant for microbial uptake of doc
+    kmm = , #rate constant for microbial turnover (and sorption in published eq version)
   )
 )
 

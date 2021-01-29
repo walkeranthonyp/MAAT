@@ -65,7 +65,13 @@ f_wcor_abramoff <- function(.,C,t,i){
 
 # linear decomp, Oleson 1963
 #MEND O6,O7
-f_decomp_lin        <- function(.,C,t,i) C[i]*.super$pars$k[[i]]
+f_decomp_lin        <- function(.,C,t,i, k_from_list = TRUE, k = NULL) {
+  if(k_from_list == TRUE){
+    C[i]*.super$pars$k[[i]]
+  } else {
+    C[i]*k
+  }
+}
 
 #density-dependent decomp, used for density-dependent turnover as in Georgiou et al. 2017  
 f_decomp_dd_georgiou         <- function(.,C,t,i) (C[i]^.super$pars$beta) * .super$pars$k[[i]]      
@@ -125,7 +131,7 @@ f_aggform_abramoff <- function(.,C,t,i, agg_pool = 5){
   ( .super$pars$millennial[['Vpa']] * C[i]) / (.super$pars$millennial[['Kpa']] + C[i])*(1 - C[agg_pool] / .super$poolmax[[5]])
 }
 
-f_sorp_abramoff <- function(.,C,t,i){
+f_docsorp_abramoff <- function(.,C,t,i){
   Qmax = (.super$env$BD * 10^(.super$pars$millennial[['c1']]*log10(.super$env$clay) + .super$pars$millennial[['c2']]))/1000
   Kdm = 10^(-.186*.super$env$pH - .216)
   C[i] * ((Kdm*Qmax*C[i])/(1+Kdm*C[i]) - C[3]) / Qmax
@@ -135,6 +141,7 @@ f_docuptake_abramoff <- function(.,C,t,i){
   #this is a reverse michaelis-menten equation so could potentially use a f_decomp_rmm function instead
   .super$pars$millennial[['Vdm']] * C[i] * C[2]/(C[2]+.super$pars$millennial[['Kdb']])
 }
+
 
 #########
 #MIMICS-SPECIFIC FUNCTIONS
@@ -158,6 +165,9 @@ f_decomp_rmm_wieder <- function(.,C,t,i,cat = 'cat1', cat_pool = 3){
 }
 
 # transfer functions
+
+
+#transfer functions
 ###################
 
 # transfer all or nothing

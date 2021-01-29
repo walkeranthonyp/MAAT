@@ -217,7 +217,7 @@ f_solver_func_millennial <- function(., t, y, parms) {
   
   # Fdb = Vdm * D * B/(B+Kdb)*Sw*St
   #Uptake: Microbial uptake of DOC
-  Fdb = .$uptake.u4(t=t,C=y,i=4)* .$tcor(.) *.$wcor(.)
+  Fdb = .$docuptake(t=t,C=y,i=4)* .$tcor(.) *.$wcor(.)
   #uptake = Vdm * D * B/(B+Kdb) #reverse michaelis-menten
   
   # Fma = (Vma * M) / (Kma + M) * (1-A/Amax)*Sw*St
@@ -231,7 +231,7 @@ f_solver_func_millennial <- function(., t, y, parms) {
   #but in the source code it depends on saturation level of MAOM (which is really weird because it implies
   #that mineral saturation limits microbial turnover)
   #Though I guess maintenance respiration would increase to compensate??? This would be worth investigating
-  Fbm = .$sorp(t=t,C=y,i=2)* .$tcor(.) *.$wcor(.) 
+  Fbm = .$sorp(t=t,C=y,i=2, k_from_list = FALSE, k = .super$pars$millenial[['kmm']])* .$tcor(.) *.$wcor(.) 
   #sorp = lin
   #this will need a separate k value from the decomp flux...
   
