@@ -369,7 +369,7 @@ f_output_soil_decomp_full <- function(.) {
 # test functions
 #######################################################################        
 
-soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.001369863, ntimes=100 ) {
+soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=172/365, ntimes=100 ) {
 
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))

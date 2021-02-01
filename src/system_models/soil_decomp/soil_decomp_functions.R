@@ -25,13 +25,13 @@ f_tcor_wieder <- function(.,C,t,i){
   exp(.super$env$temp * .super$pars$mimics[['V_slope']] + .super$pars$mimics[['V_int']]) * .super$pars$mimics[['aV']]
 }
 
-f_tcor_abramoff <- function(.,C,t,i){
-  t1 = 15.4
-  t2 = 11.75
-  t3 = 29.7
-  t4 = 0.031
-  (t2 + (t3/pi)* atan(pi*t4*(.super$env$temp - t1))) / (t2 + (t3/pi)* atan(pi*t4*(.super$pars$reftemp - t1)))
-}
+# f_tcor_abramoff <- function(.,C,t,i){
+#   t1 = 15.4
+#   t2 = 11.75
+#   t3 = 29.7
+#   t4 = 0.031
+#   (t2 + (t3/pi)* atan(pi*t4*(.super$env$temp - t1))) / (t2 + (t3/pi)* atan(pi*t4*(.super$pars$reftemp - t1)))
+# }
 
 f_wcor_abramoff <- function(.,C,t,i){
   w1 = 30
@@ -135,7 +135,7 @@ f_aggform_abramoff <- function(.,C,t,i, agg_pool = 5){
      # print(.super$pars$poolmax[[5]])
     ( .super$pars$millennial[['Vpa']] * C[i]) / (.super$pars$millennial[['Kpa']] + C[i])*(1 - C[agg_pool] / .super$pars$poolmax[[5]])
   }
-  if(i==3){
+  else if(i==3){
     ( .super$pars$millennial[['Vma']] * C[i]) / (.super$pars$millennial[['Kma']] + C[i])*(1 - C[agg_pool] / .super$pars$poolmax[[5]])  
   }
 }

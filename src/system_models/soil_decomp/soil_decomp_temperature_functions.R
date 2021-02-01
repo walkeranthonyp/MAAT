@@ -31,6 +31,15 @@ f_tcor_daycent2 <- function(.,C,t,i){
     (0.56 + (1.46 * atan(pi * 0.0309 * (.super$pars$reftemp - 15.7)))/pi)
 }
 
+f_tcor_daycent2_abramoff <- function(.,C,t,i){
+  #daycent2 function as implemented in millennial model (i.e. different parameters)
+  t1 = 15.4
+  t2 = 11.75
+  t3 = 29.7
+  t4 = 0.031
+  (t2 + (t3/pi)* atan(pi*t4*(.super$env$temp - t1))) / (t2 + (t3/pi)* atan(pi*t4*(.super$pars$reftemp - t1)))
+}
+
 f_tcor_q10 <- function(.,C,t,i){
   #sourced from SoilR and standardized to 20C
   #SoilR::fT.Q10

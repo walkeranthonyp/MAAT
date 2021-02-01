@@ -16,7 +16,7 @@
 # input matrix, single column, rows = cpools_n
 # - this is where inputs would be divided among pools
 f_input <- function(., t ) {
-  
+  #why is .$env$litter not .super$env$litter??
   .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 )
 }
 
@@ -239,6 +239,9 @@ f_solver_func_millennial <- function(., t, y, parms) {
   Fmr = .$decomp.d2(t=t,C=y,i=2)* .$tcor(.) *.$wcor(.)
   #decomp = lin
   
+  #check inputs
+  #print(.$input(t)[[1]])
+  #print(.$input(t)[[4]])
   
   #ODE system
   # dP <- pri*i + pa* Fa - Fpa  - Fpd
