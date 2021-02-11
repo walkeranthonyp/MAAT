@@ -29,7 +29,7 @@ f_wcor_skopp <- function(.,C,t,i){
   pmin(alpha * rwc^f, beta * (1 - rwc)^g)
 }
 
-fW.Daycent2_normalized <- function(.,C,t,i){
+f_wcor_daycent2 <- function(.,C,t,i){
   #sourced from SoilR
   #SoilR::fW.Daycent2
   W = .super$env$vwc * 100    #volumetric water content (percentage)
@@ -109,6 +109,13 @@ f_wcor_century <- function(.,C,t,i){
   PPT = .super$env$precip_monthly       #monthly precipitation
   PET = .super$env$pet_monthly          #potential evapotranspiration
   1/(1+30*exp(-8.5*(PPT/PET)))
+}
+
+f_wcor_abramoff <- function(.,C,t,i){
+  w1 = 30
+  w2 = 9
+  (1 / (1+w1*exp(-w2*.super$env$vwc/.super$env$porosity)))
+  #.35 is whc I think? this should be specified in env. Perhaps porosity as in sulman.
 }
 
 #f_wcor_rothc

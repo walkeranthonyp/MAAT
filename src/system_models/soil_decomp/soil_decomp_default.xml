@@ -38,7 +38,7 @@
       <docuptake>'f_docuptake_abramoff'</docuptake>
       <scor>'f_zero'</scor>
       <wcor>'f_wcor_abramoff'</wcor>
-      <tcor>'f_tcor_abramoff'</tcor>
+      <tcor>'f_tcor_daycent2_abramoff'</tcor>
       <transfer>
         <t1_to_3>'f_transfer_cue_remainder'</t1_to_3>
         <t1_to_5>'f_transfer_cue'</t1_to_5>

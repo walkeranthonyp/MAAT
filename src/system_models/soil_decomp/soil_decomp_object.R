@@ -111,7 +111,7 @@ soil_decomp_object$fnames <- list(
   
   scor = 'f_zero',
   wcor = 'f_wcor_abramoff',
-  tcor = 'f_tcor_abramoff',
+  tcor = 'f_tcor_daycent2_abramoff',
   
   # transfer list
   transfer = list(

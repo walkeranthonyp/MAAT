@@ -13,8 +13,8 @@
       <aggform>'c( 'f_aggform_abramoff' )'</aggform>
       <docuptake>'c( 'f_docuptake_abramoff' )'</docuptake>
       <scor>'c( 'f_scor_sulman' )'</scor>
-      <wcor>'c( 'f_wcor_abramoff', 'f_wcor_sulman' )'</wcor>
-      <tcor>'c( 'f_tcor_abramoff', 'f_tcor_arrhenius', 'f_tcor_century1', 'f_tcor_century2', 'f_tcor_daycent1', 'f_tcor_daycent2', 'f_tcor_demeter', 'f_tcor_kb', 'f_tcor_landt', 'f_tcor_lin_adair', 'f_tcor_q10', 'f_tcor_rothc', 'f_tcor_standcarb', 'f_tcor_wieder' )'</tcor>
+      <wcor>'c( 'f_wcor_abramoff', 'f_wcor_candy', 'f_wcor_century', 'f_wcor_daycent1', 'f_wcor_daycent2', 'f_wcor_gompertz', 'f_wcor_moyano', 'f_wcor_skopp', 'f_wcor_standcarb', 'f_wcor_sulman', 'f_wcor_sulman_normalized' )'</wcor>
+      <tcor>'c( 'f_tcor_arrhenius', 'f_tcor_century1', 'f_tcor_century2', 'f_tcor_daycent1', 'f_tcor_daycent2', 'f_tcor_daycent2_abramoff', 'f_tcor_demeter', 'f_tcor_kb', 'f_tcor_landt', 'f_tcor_lin_adair', 'f_tcor_q10', 'f_tcor_rothc', 'f_tcor_standcarb', 'f_tcor_wieder' )'</tcor>
       <transfer>'c( 'f_transfer_all', 'f_transfer_cue', 'f_transfer_cue_remainder', 'f_transfer_cue_sat', 'f_transfer_mend21', 'f_transfer_mend25', 'f_transfer_mend26', 'f_transfer_mend27', 'f_transfer_mend52', 'f_transfer_mend54', 'f_transfer_zero', 'f_transfermatrix' )'</transfer>
     </soil_decomp>
   </fnames>

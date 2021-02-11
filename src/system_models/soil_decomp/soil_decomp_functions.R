@@ -8,7 +8,7 @@
 ################################
 
 source('soil_decomp_temperature_functions.R')
-
+source('soil_decomp_water_functions.R')
 
 ### FUNCTIONS
 ################################
@@ -16,6 +16,8 @@ source('soil_decomp_temperature_functions.R')
 #correct soil protection rates
 f_scor_sulman <- function(.,C,t,i) (.super$env$clay/.super$pars$clayref)^.super$pars$qslope_mayes
 
+#this function not incorporated into the 'water_functions' script because it is not normalized (e.g. 0-1)
+#thus it is kind of integral to the corpse model under the current parameterization and not substitutable
 f_wcor_sulman <- function(.,C,t,i){
   theta <- .super$env$vwc/.super$env$porosity
   theta^3 * (1-theta)^2.5
@@ -33,12 +35,12 @@ f_tcor_wieder <- function(.,C,t,i){
 #   (t2 + (t3/pi)* atan(pi*t4*(.super$env$temp - t1))) / (t2 + (t3/pi)* atan(pi*t4*(.super$pars$reftemp - t1)))
 # }
 
-f_wcor_abramoff <- function(.,C,t,i){
-  w1 = 30
-  w2 = 9
-  (1 / (1+w1*exp(-w2*.super$env$vwc/.35)))
-  #.35 is whc I think? this should be specified in env. Perhaps porosity as in sulman.
-}
+# f_wcor_abramoff <- function(.,C,t,i){
+#   w1 = 30
+#   w2 = 9
+#   (1 / (1+w1*exp(-w2*.super$env$vwc/.35)))
+#   #.35 is whc I think? this should be specified in env. Perhaps porosity as in sulman.
+# }
 
 # f_tcor_arrhenius <- function(.,C,t,i) {
 #   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
