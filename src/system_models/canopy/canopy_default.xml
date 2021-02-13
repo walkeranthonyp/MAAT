@@ -3,8 +3,11 @@
     <canopy>
       <sys>'f_sys_multilayer'</sys>
       <pars_init>'f_pars_init'</pars_init>
-      <par_partition>'f_par_partition_spitters'</par_partition>
+      <par_partition>'f_par_partition_spitters_hourly'</par_partition>
       <rt>'f_rt_beerslaw_goudriaan'</rt>
+      <gz>'f_gz_rossgoudriaan'</gz>
+      <albedo>'f_albedo_goudriaan'</albedo>
+      <diffalbedo>'f_diffalbedo_goudriaan'</diffalbedo>
       <vcmax0>'f_vcmax0_constant'</vcmax0>
       <k_vcmax>'f_k_vcmax_constant'</k_vcmax>
       <scale_n>'f_scale_n_CLMuniform'</scale_n>
@@ -19,13 +22,16 @@
   <pars>
     <canopy>
       <layers>10</layers>
+      <nz>9</nz>
       <can_lai_upper>2.6</can_lai_upper>
       <leaf_cores>1</leaf_cores>
       <G>0.5</G>
+      <chi_l>0</chi_l>
       <can_clump>1</can_clump>
       <k_layer>0.5</k_layer>
       <alb_soil>0.15</alb_soil>
-      <leaf_reflectance>0.075</leaf_reflectance>
+      <leaf_reflectance>0.1</leaf_reflectance>
+      <leaf_transmitance>0.05</leaf_transmitance>
       <vcmax0>35</vcmax0>
       <k_vcmax>0.2</k_vcmax>
       <k_vcmax_expa>-2.43</k_vcmax_expa>

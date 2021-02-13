@@ -5,6 +5,9 @@
       <pars_init>NA</pars_init>
       <par_partition>NA</par_partition>
       <rt>NA</rt>
+      <gz>NA</gz>
+      <albedo>NA</albedo>
+      <diffalbedo>NA</diffalbedo>
       <vcmax0>NA</vcmax0>
       <k_vcmax>NA</k_vcmax>
       <scale_n>NA</scale_n>
@@ -19,13 +22,16 @@
   <pars>
     <canopy>
       <layers>NA</layers>
+      <nz>NA</nz>
       <can_lai_upper>NA</can_lai_upper>
       <leaf_cores>NA</leaf_cores>
       <G>NA</G>
+      <chi_l>NA</chi_l>
       <can_clump>NA</can_clump>
       <k_layer>NA</k_layer>
       <alb_soil>NA</alb_soil>
       <leaf_reflectance>NA</leaf_reflectance>
+      <leaf_transmitance>NA</leaf_transmitance>
       <vcmax0>NA</vcmax0>
       <k_vcmax>NA</k_vcmax>
       <k_vcmax_expa>NA</k_vcmax_expa>

@@ -38,7 +38,6 @@ canopy_object$run <- function(.) {
   if(.$cpars$verbose) print('canopy run()')
 
   # initialise canopy
-  #.$env$lai <- .$fns$lai() # this also could point to a higher level plant object
   .$fns$pars_init()
 
   # assign canopy environment to leaf environment
@@ -52,9 +51,6 @@ canopy_object$run <- function(.) {
   # APW: shift this to a leaf init XML that configures a leaf for the canopy
   .$leaf$pars$a <- 1.0
 
-#  # calculate water status
-#  .$fns$water_status()
-#
   # calculate diffuse and direct radiation
   .$fns$par_partition()
 
@@ -62,6 +58,7 @@ canopy_object$run <- function(.) {
   .$fns$sys()
 
   # output
+  .$state$integrated$fapar <- .$state$integrated$apar / .$env$par 
   .$output()
 }
 
@@ -103,8 +100,11 @@ canopy_object$run_leaf <- function(., ii, df ) {
 canopy_object$fnames <- list(
   sys           = 'f_sys_multilayer',
   pars_init     = 'f_pars_init',
-  par_partition = 'f_par_partition_spitters',
+  par_partition = 'f_par_partition_spitters_hourly',
   rt            = 'f_rt_beerslaw_goudriaan',
+  gz            = 'f_gz_rossgoudriaan',
+  albedo        = 'f_albedo_goudriaan',
+  diffalbedo    = 'f_diffalbedo_goudriaan',
   vcmax0        = 'f_vcmax0_constant',
   k_vcmax       = 'f_k_vcmax_constant',
   scale_n       = 'f_scale_n_CLMuniform',
@@ -114,9 +114,6 @@ canopy_object$fnames <- list(
   scale_g1      = 'f_scale_two_layer',
   scale_ca      = 'f_scale_ca_uniform',
   scale_vpd     = 'f_scale_vpd_uniform'
-#  lai           = 'f_lai_constant',
-#  water_status  = 'f_water_status_none',
-#  fwdw          = 'f_fwdw_wtd_lin'
 )
 
 
@@ -132,8 +129,6 @@ canopy_object$env <- list(
   vpd       = 1,
   clearness = 1,
   zenith    = 0
-#  water_td  = numeric(1),
-#  sphag_h   = numeric(1)
 )
 
 
@@ -141,7 +136,6 @@ canopy_object$env <- list(
 ####################################
 canopy_object$state <- list(
   # External
-#  lai     = numeric(1),
   mass_a  = 10,
   C_to_N  = 40,
   totalN  = 7,
@@ -213,6 +207,7 @@ canopy_object$state <- list(
   # integrated canopy values
   integrated = list(
     apar       = numeric(1),        # canopy absorbed PAR
+    fapar      = numeric(1),        # canopy fraction incoming PAR absorbed 
     A          = numeric(1),        # canopy assimilation rate                         (umol m-2s-1)
     Acg_lim    = numeric(1),        # assimilation rate of canopy layers Ac limited    (umol m-2s-1)
     Ajg_lim    = numeric(1),        # assimilation rate of canopy layers Aj limited    (umol m-2s-1)
@@ -232,59 +227,59 @@ canopy_object$state <- list(
 # state parameters (i.e. calculated parameters)
 ####################################
 canopy_object$state_pars <- list(
-  m            = numeric(1),
-  G_dir        = numeric(1),
-  k_dir        = numeric(1),
-  k_diff       = numeric(1),
-  k_dirprime   = numeric(1),
-  k_diffprime  = numeric(1),
-  k_vcmax      = numeric(1),
-  lscattering  = numeric(1),
-  alb_dir      = numeric(1),
-  alb_diff     = numeric(1),
-  alb_dir_can  = numeric(1),
-  alb_diff_can = numeric(1)
+  lscattering  = numeric(1),        # leaf reflectance + transmitance    
+  m            = numeric(1),        # goudriaan's scattering adjustment for non-optically black leaves
+  zi           = numeric(1),        # nz zenith angles (radians) for numerical approximation 
+  delta_zi     = numeric(1),        # difference between each zi value
+  G_dir        = numeric(1),        # mean leaf projected area in direction of beam
+  k_dir        = numeric(1),        # extinction coefficient for direct beam
+  k_dir_zi     = numeric(1),        # extinction coefficient for direct beam at all zi
+  k_diff       = numeric(1),        # extinction coefficient for diffuse beam
+  k_dirprime   = numeric(1),        # extinction coefficient for direct beam adjusted for scattering
+  k_diffprime  = numeric(1),        # extinction coefficient for diffuse beam adjusted for scattering
+  k_vcmax      = numeric(1),        # extinction coefficient for vcmax  
+  alb_h        = numeric(1),        # albedo of infinite lai canopy with horizontal leaves  
+  alb_dir_can  = numeric(1),        # albedo of infinite lai canopy for direct beam and actual leaf angle distribution  
+  alb_diff_can = numeric(1),        # albedo of infinite lai canopy for diffuse beam and actual leaf angle distribution  
+  alb_dir      = numeric(1),        # albedo of finite lai canopy for direct beam and actual leaf angle distribution  
+  alb_diff     = numeric(1)         # albedo of finite lai canopy for diffuse beam and actual leaf angle distribution  
 )
 
 
 # parameters
 ####################################
 canopy_object$pars   <- list(
-  layers           = 10,
-#  lai              = 10,
-  can_lai_upper    = 2.6,     # LAI of upper canopy for two layer scaling scheme 
-#  lai_max          = 4,
-#  lai_curve        = 0.5,
-  leaf_cores       = 1,
-  G                = 0.5,     # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
-  can_clump        = 1,       # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-  k_layer          = 0.5,     # for multilayer canopy, where in the layer to calculate physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003)
-  alb_soil         = 0.15,    # soil albedo
-  leaf_reflectance = 0.075,   # leaf reflectance
-  vcmax0           = 35,      # vcmax at extreme top of canopy
-  k_vcmax          = 0.2,     # scaling exponent for vcmax through canopy
-  k_vcmax_expa     = -2.43,   # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
-  k_vcmax_expb     = 9.63e-3, # slope parameter in exponent to calculate scaling exponent for vcmax through canopy
-  vcmax = list(               # vcmax:
-    layer1 = 108.7,           #   in first canopy layer
-    layer2 = 67.9             #   in second canopy layer
+  layers            = 10,           # number of layers in multi-layer canopy calculation
+  nz                = 9,            # number of discrete solar zenith angles in numerical approximation of diffuse light parameters
+  can_lai_upper     = 2.6,          # LAI of upper canopy for two layer scaling scheme 
+  leaf_cores        = 1,
+  G                 = 0.5,          # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
+  chi_l             = 0.0,          # Ross index indicating departure from spherical leaf angle distribution 
+  can_clump         = 1,            # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
+  k_layer           = 0.5,          # for multilayer canopy, where in the layer to calculate APAR & physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003)
+  alb_soil          = 0.15,         # soil albedo
+  leaf_reflectance  = 0.10,         # leaf reflectance
+  leaf_transmitance = 0.05,         # leaf reflectance
+  vcmax0            = 35,           # vcmax at extreme top of canopy
+  k_vcmax           = 0.2,          # scaling exponent for vcmax through canopy
+  k_vcmax_expa      = -2.43,        # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
+  k_vcmax_expb      = 9.63e-3,      # slope parameter in exponent to calculate scaling exponent for vcmax through canopy
+  vcmax = list(                     # vcmax:
+    layer1 = 108.7,                 #   in first canopy layer
+    layer2 = 67.9                   #   in second canopy layer
   ),
-  jmax = list(                # jmax:
-    layer1 = 170,             #   in first canopy layer
-    layer2 = 76.3             #   in second canopy layer
+  jmax = list(                      # jmax:
+    layer1 = 170,                   #   in first canopy layer
+    layer2 = 76.3                   #   in second canopy layer
   ),
-  f = list(                   # f:
-    layer1 = 0.41,            #   in first canopy layer
-    layer2 = 0.34             #   in second canopy layer
+  f = list(                         # f:
+    layer1 = 0.41,                  #   in first canopy layer
+    layer2 = 0.34                   #   in second canopy layer
   ),
-  g1 = list(                  # g1 (medlyn):
-    layer1 = 3.41,            #   in first canopy layer
-    layer2 = 8.82             #   in second canopy layer
+  g1 = list(                        # g1 (medlyn):
+    layer1 = 3.41,                  #   in first canopy layer
+    layer2 = 8.82                   #   in second canopy layer
   )
-#  fwdw_wl_slope    = -0.022,  # delta sphagnum fwdw ratio per mm of decrease in water level      (mm-1), currently from Adkinson & Humpfries 2010, Rydin 1985 has similar intercept but slope seems closer to -0.6 
-#  fwdw_wl_sat      = 16,      # sphagnum fwdw ratio at 0 water level, currently from Adkinson & Humpfries 2010     
-#  fwdw_wl_exp_a    = -0.037,  # decrease in sphagnum fwdw ratio as an exponential f of water level (cm), currently from Strack & Price 2009
-#  fwdw_wl_exp_b    = 3.254    # decrease in sphagnum fwdw ratio as an exponential f of water level (cm)
 )
 
 
@@ -317,7 +312,6 @@ f_output_canopy_run <- function(.) {
 }
 
 f_output_canopy_mcmc <- function(.) {
-  #c(A=.$state$integrated$A)
   unlist(.$state$integrated$A)
 }
 
@@ -355,7 +349,11 @@ f_output_canopy_wtc <- function(.) {
 #######################################################################
 
 canopy_object$.test <- function(., verbose=T,
-                                canopy.par=2000, canopy.ca_conc=400, canopy.lai=6 ) {
+                                canopy.par=2000, canopy.ca_conc=400, canopy.lai=6,
+                                canopy.diffalbedo='f_diffalbedo_approx', 
+                                canopy.rt='f_rt_beerslaw_goudriaan',
+                                canopy.pars_init='f_pars_init'
+                                ) {
 
   # Build, assign fnames, configure
   .$build(switches=c(F,verbose,F))
@@ -366,6 +364,12 @@ canopy_object$.test <- function(., verbose=T,
   .$env$lai        <- canopy.lai
   .$state$mass_a   <- 175
   .$state$C_to_N   <- 40
+  
+  .$fnames$diffalbedo <- canopy.diffalbedo
+  .$fnames$rt         <- canopy.rt
+  .$fnames$pars_init  <- canopy.pars_init
+  .$configure_test() 
+  .$leaf$configure_test() 
 
   .$run()
 }
@@ -373,7 +377,7 @@ canopy_object$.test <- function(., verbose=T,
 
 canopy_object$.test_aca <- function(., verbose=F, cverbose=F,
                                     canopy.par=c(100,1000), canopy.ca_conc=seq(50,1200,50),
-                                    leaf.rs = 'f_r_zero', canopy.rt = 'f_rt_beerslaw_goudriaan' ) {
+                                    leaf.rs='f_r_zero', canopy.rt='f_rt_beerslaw_goudriaan' ) {
 
   # Build, assign fnames, configure
   .$build(switches=c(F,verbose,cverbose))

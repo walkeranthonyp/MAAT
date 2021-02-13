@@ -12,7 +12,7 @@ mod_obj <- NULL
 # parse command line arguments   
 # - any one of the above objects can be specified as a command line argument using the syntax:
 # - Rscript <nameofthisscript> "<object1> <- <value1>" 
-# - e.g. Rscript create_default_XMLs.R "mod_obj <- 'template'" 
+# - e.g. Rscript create_default_XMLs.R "mod_obj<-'template'" 
 
 if(length(commandArgs(T))>=1) {
   for( ca in 1:length(commandArgs(T)) ) {

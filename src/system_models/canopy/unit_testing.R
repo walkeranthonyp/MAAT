@@ -17,12 +17,24 @@
 # Canopy MAAT
 rm(list=ls())
 library(lattice)
-source('canopy_object.R')
+source('canopy_object.R') 
 
 # canopy
 canopy_object$.test()
 canopy_object$state$integrated$A
 canopy_object$state$vert
+canopy_object$state_pars
+
+canopy_object$.test(canopy.rt='f_rt_goudriaan')
+canopy_object$state_pars
+
+source('canopy_object.R') 
+canopy_object$.test(
+  verbose=F,
+  canopy.rt='f_rt_goudriaan',
+  canopy.diffalbedo='f_diffalbedo_goudriaan',
+  canopy.pars_init='f_pars_init_full'
+)
 canopy_object$state_pars
 
 canopy_object$.test(canopy.par=1000, canopy.ca_conc=200)
