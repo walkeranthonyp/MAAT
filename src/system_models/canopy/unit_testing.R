@@ -56,7 +56,8 @@ canopy_object$state_pars
 canopy_object$state$vert$layer$apar
 canopy_object$state$vert$sun$apar
 canopy_object$state$vert$shade$apar
-
+canopy_object$env
+  
 canopy_object$.test(canopy.par=1000, canopy.ca_conc=200)
 canopy_object$state$integrated$A
 canopy_object$pars

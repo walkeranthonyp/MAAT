@@ -61,6 +61,7 @@ f_rt_goudriaan <- function(.,l) {
 
 
 # Norman
+# - using Bonan's tridiagonal solution
 f_rt_norman <- function(.,l, 
                         leaf_reflectance=.super$pars$leaf_reflectance,
                         leaf_transmitance=.super$pars$leaf_transmitance,
@@ -68,36 +69,22 @@ f_rt_norman <- function(.,l,
                         soil_reflectance_diff=.super$pars$soil_reflectance_diff
                         ) {
   
-  ## be careful, the original code by Bonan works with the first layer being the ground and the last being the top.
-  ## so dlai has to be reverted.
-  #sumlai=c(NA,lai-cumsum(dLAI)+dLAI/2)
+  # code by Bonan has the first layer as ground and last being the top canopy layer
+  # - so l reversed
   nlayers <- length(l)
   sumlai  <- c(NA, rev(l) )
   dLAI    <- c(NA, rep(l[2]-l[1],length(l)) )
   
   .super$state$vert$sun$fraction[]   <- .super$pars$can_clump * exp(-.super$state_pars$k_dir*rev(l)) # APW is this correct? Why is clumpfrac used twice 
   .super$state$vert$shade$fraction[] <- 1 - .super$state$vert$sun$fraction
-  #fracsun <- clumpfac * exp(-Kb*sumlai*clumpfac) # APW is this correct? Why is clumpfrac used twice 
-  #fracsha <- 1 - fracsun
   #laisun  <- (1 - exp(-Kb*lai*clumpfac)) / Kb # APW: and why is clumpfrac only used once here?
   #laisha  <- lai - laisun
  
-   
   # tb (frac direct beam not intercepted in each layer)
-  #tb <- exp(-Kb * dLAI * clumpfac)
   tb <- exp(-.super$state_pars$k_dir * dLAI )
  
   # td (frac diffuse beam not intercepted in each layer)
-#  td <- 0
-#  phi1 <- 0.5 - 0.633 * .super$pars$chi_l - 0.330 * .super$pars$chi_l^2
-#  phi2 <- 0.877 * (1 - 2 * phi1)
-#  for(j in 1:9) {
-#    angle <- (5 + (j - 1) * 10) * pi / 180
-#    gdirj <- phi1 + phi2 * cos(angle)
-#    td    <- td + exp(-gdirj/cos(angle)*dLAI*.super$pars$can_clump) * sin(angle)*cos(angle)
-#  }                     
-#  td <- td * 2*(10*pi/180)
-    
+  # APW: if variable leaf angle with canopy layer needed this will want to loop over dLAI and vectorise zi  
   td <- 0
   for(zi in .super$state_pars$zi) {
     gz  <- .$gz(z=zi) 
@@ -113,47 +100,22 @@ f_rt_norman <- function(.,l,
   tbcum[iv] <- 1
   for (iv in (nlayers+1):2) {
     cumlai      <- cumlai + dLAI[iv]
-    #tbcum[iv-1] = exp(-Kb * cumlai * clumpfac)
     tbcum[iv-1] <- exp(-.super$state_pars$k_dir * cumlai )
   }
   
-  if(.super$cpars$verbose) {
-    print(''); print('')
-    print(paste('Radiation model for a total LAI of:', sumlai[length(sumlai)]))
-    print(''); print('')
-    print('dlai:')
-    print(dLAI)
-    print('sumlai:')
-    print(sumlai)
-    print(''); print('')
-    print('tb (frac direct beam not intercepted in each layer):')
-    print(tb)
-    print('td (frac diffuse beam not intercepted in each layer):')
-    print(td)
-    print('')
-    print('tbcum (frac toc direct beam incident at top of each layer):')
-    print(tbcum)
-    print('')
-    print('cumlai:')
-    print(cumlai)
-  }
-
   # initiate arrays
-  swup <- swdn <- a <- b <- c <- d <- rep(0,nlayers+1)
+  swup <- swdn <- a <- b <- c <- d <- rep(0, nlayers+1 )
+  direct <- diffuse <- sun <- shade <- rep(NA, nlayers+1 )
   
   # Soil: upward flux
   m  <- 1
   iv <- 1
   a[m] <- 0
   b[m] <- 1
-  #c[m] <- -Rho_soil_dif
-  #d[m] <- PARdir * tbcum[m] * Rho_soil_dir
   c[m] <- -soil_reflectance_diff
   d[m] <- .super$env$par_dir*tbcum[m] * soil_reflectance_dir
   
   # Soil: downward flux
-  #refld <- (1 - td[iv+1]) * Rho
-  #trand <- (1 - td[iv+1]) * Tau + td[iv+1]
   refld <- (1-td[iv+1]) * leaf_reflectance 
   trand <- (1-td[iv+1]) * leaf_transmitance + td[iv+1]
   aiv   <- refld - trand*trand/refld
@@ -169,8 +131,6 @@ f_rt_norman <- function(.,l,
   for (iv in 2:nlayers) {
     
     # Upward flux
-    #refld = (1 - td[iv]) * Rho
-    #trand = (1 - td[iv]) * Tau + td[iv]
     refld <- (1-td[iv]) * leaf_reflectance
     trand <- (1-td[iv]) * leaf_transmitance + td[iv]
     fiv  <- refld - trand*trand/refld
@@ -216,8 +176,8 @@ f_rt_norman <- function(.,l,
   d[m] <- .super$env$par_diff 
   
   # Solve tridiagonal equations for fluxes
+  # APW: solver needs adding to MAAT
   u <- f.tridiagonal.solver(a, b, c, d, m )
-  #u = as.vector(Solve.tridiag(a[-1], b, c[-nlayers], d))
   
   
   # Now copy the solution for diffuse fluxes (u) to the upward (swup) and downward (swdn) fluxes for each layer
@@ -232,15 +192,13 @@ f_rt_norman <- function(.,l,
   swdn[iv] <- u[m]
   
   # Leaf layer diffuse fluxes
-  for (iv in 2:(nlayers+1)) {
+  for(iv in 2:(nlayers+1)) {
     m <- m + 1
     swup[iv] <- u[m]
     m <- m + 1
     swdn[iv] <- u[m] 
   }
   
-  
-  direct <- diffuse <- sun <- shade <- rep(NA, nlayers+1 )
   # Absorbed direct beam and diffuse for ground (soil)
   iv <- 1
   direct[iv]  <- .super$env$par_dir*tbcum[iv] * (1-soil_reflectance_dir)
@@ -252,24 +210,18 @@ f_rt_norman <- function(.,l,
   swvegsun <- 0
   swvegsha <- 0
   swleafsun <- swleafsha <- rep(NA, nlayers+1 )
-  for (iv in 2:(nlayers+1)) {
+  for(iv in 2:(nlayers+1)) {
     
     # Per unit ground area (W/m2 ground)
-    #direct[iv]  = PARdir * tbcum[iv] * (1 - tb[iv]) * (1 - omega)
-    #diffuse[iv] = (swdn[iv] + swup[iv-1]) * (1 - td[iv]) * (1 - omega)
     direct[iv]  <- .super$env$par_dir*tbcum[iv] * (1-tb[iv]) * (1-.super$state_pars$lscattering)
     diffuse[iv] <- (swdn[iv] + swup[iv-1])      * (1-td[iv]) * (1-.super$state_pars$lscattering)
     
     # Absorbed solar radiation for shaded and sunlit portions of leaf layer
     # per unit ground area
-    #sun[iv]   <- diffuse[iv] * fracsun[iv] + direct[iv]
-    #shade[iv] <- diffuse[iv] * fracsha[iv]
     sun[iv]   <- diffuse[iv] * .super$state$vert$sun$fraction[iv-1] + direct[iv]
     shade[iv] <- diffuse[iv] * .super$state$vert$shade$fraction[iv-1] 
    
     # Convert to per unit sunlit and shaded leaf area 
-    #swleafsun[iv] <- sun[iv]   / (fracsun[iv] * dLAI[iv])
-    #swleafsha[iv] <- shade[iv] / (fracsha[iv] * dLAI[iv])
     swleafsun[iv] <- sun[iv]   / (.super$state$vert$sun$fraction[iv-1] * dLAI[iv])
     swleafsha[iv] <- shade[iv] / (.super$state$vert$shade$fraction[iv-1] * dLAI[iv])
     
@@ -310,6 +262,24 @@ f_rt_norman <- function(.,l,
   }
 
   if(.super$cpars$verbose) {
+    print(''); print('')
+    print(paste('Radiation model for a total LAI of:', sumlai[length(sumlai)]))
+    print(''); print('')
+    print('dlai:')
+    print(dLAI)
+    print('sumlai:')
+    print(sumlai)
+    print(''); print('')
+    print('tb (frac direct beam not intercepted in each layer):')
+    print(tb)
+    print('td (frac diffuse beam not intercepted in each layer):')
+    print(td)
+    print('')
+    print('tbcum (frac toc direct beam incident at top of each layer):')
+    print(tbcum)
+    print('')
+    print('cumlai:')
+    print(cumlai)
     print(''); print('')
     print('per unit ground area fluxes')
     print('Up diffuse incident at upper layer boundary (Iup, u[odd]:')
@@ -441,36 +411,44 @@ f_gz_rossgoudriaan <- function(., chi_l=.super$pars$chi_l, z=.super$env$zenith) 
 
 # albedo functions for Goudriaan's model
 f_albedo_goudriaan <- function(.) {
-  # after Wang 2003, but after rereading looks different
+  # after Wang 2003
   # informed by Bonan 2019, Climate Change and Terrestrial Ecosystem Modeling
   
   # albedo for canopies of infinite LAI
-  # with horizontal leaves
-  .super$state_pars$alb_h         <- (1-.super$state_pars$m) / (1+.super$state_pars$m)
-  # adjust direct beam albedo for leaf angle distribution
+  # - with horizontal leaves
+  .super$state_pars$alb_h        <- (1-.super$state_pars$m) / (1+.super$state_pars$m)
+  # - adjust direct beam albedo for leaf angle distribution
   .super$state_pars$alb_dir_can  <- .super$state_pars$alb_h*2*.super$state_pars$k_dir / (.super$state_pars$k_dir + .super$state_pars$k_diff)
-  # adjust diffuse beam albedo for leaf angle distribution
+  # - adjust diffuse beam albedo for leaf angle distribution
   .$diffalbedo()
 
   # adjust for finite LAI
-  .super$state_pars$alb_dir      <- .super$state_pars$alb_dir_can  + (.super$pars$soil_reflectance_dir-.super$state_pars$alb_dir_can) * 
-                                       exp(-2*.super$state_pars$k_dirprime  * .super$env$lai)
-  .super$state_pars$alb_diff     <- .super$state_pars$alb_diff_can + (.super$pars$soil_reflectance_diff-.super$state_pars$alb_diff_can) * 
-                                       exp(-2*.super$state_pars$k_diffprime * .super$env$lai)
+  .super$state_pars$alb_dir  <- .super$state_pars$alb_dir_can  + (.super$pars$soil_reflectance_dir-.super$state_pars$alb_dir_can) * 
+                                  exp(-2*.super$state_pars$k_dirprime  * .super$env$lai)
+  .super$state_pars$alb_diff <- .super$state_pars$alb_diff_can + (.super$pars$soil_reflectance_diff-.super$state_pars$alb_diff_can) * 
+                                  exp(-2*.super$state_pars$k_diffprime * .super$env$lai)
 }
 
-
+# albedo for diffuse radiation
 f_diffalbedo_goudriaan <- function(., zi=.$state_pars$zi, delta_zi=.$state_pars$delta_zi ) {
-  
+  # proper solution - assumes random azimuth distribution
+
   numint <- sin(zi)*cos(zi)*delta_zi * .super$state_pars$alb_h*.super$state_pars$k_dir_zi / (.super$state_pars$k_dir_zi + .super$state_pars$k_diff) 
   .super$state_pars$alb_diff_can  <- 2 * sum(numint) 
 } 
 
 f_diffalbedo_approx <- function(.) {
+  # assumes G(z) is 0.5 at all zenith angles - incorrect
+  
   .super$state_pars$alb_diff_can <- 4 * .super$state_pars$G_dir * .super$state_pars$alb_h * ( .super$state_pars$G_dir *
                                       (log(.super$state_pars$G_dir)-log(.super$state_pars$G_dir+.super$state_pars$k_diff)) / .super$state_pars$k_diff^2 + 
                                       1/.super$state_pars$k_diff )
 } 
+
+
+
+# partition par
+###############################
 
 # partitioned par passed as an environmental variable
 f_par_partition_env <- function(.) print('/nExpects direct and diffuse PAR passed as environment variables/n')
