@@ -54,6 +54,7 @@
       <vert.layer.Ajg_lim>'column name of variable in evaldata file'</vert.layer.Ajg_lim>
       <vert.layer.Apg_lim>'column name of variable in evaldata file'</vert.layer.Apg_lim>
       <integrated.apar>'column name of variable in evaldata file'</integrated.apar>
+      <integrated.fapar>'column name of variable in evaldata file'</integrated.fapar>
       <integrated.A>'column name of variable in evaldata file'</integrated.A>
       <integrated.Acg_lim>'column name of variable in evaldata file'</integrated.Acg_lim>
       <integrated.Ajg_lim>'column name of variable in evaldata file'</integrated.Ajg_lim>

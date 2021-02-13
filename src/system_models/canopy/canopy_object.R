@@ -258,6 +258,8 @@ canopy_object$pars   <- list(
   can_clump         = 1,            # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
   k_layer           = 0.5,          # for multilayer canopy, where in the layer to calculate APAR & physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003)
   alb_soil          = 0.15,         # soil albedo
+  soil_reflectance_dir  = 0.1,      # soil reflectance for direct radiation (visible) 
+  soil_reflectance_diff = 0.1,      # soil reflectance for diffuse radiation (visible) 
   leaf_reflectance  = 0.10,         # leaf reflectance
   leaf_transmitance = 0.05,         # leaf reflectance
   vcmax0            = 35,           # vcmax at extreme top of canopy
@@ -349,7 +351,8 @@ f_output_canopy_wtc <- function(.) {
 #######################################################################
 
 canopy_object$.test <- function(., verbose=T,
-                                canopy.par=2000, canopy.ca_conc=400, canopy.lai=6,
+                                canopy.par=2000, canopy.ca_conc=400, 
+                                canopy.lai=6, canopy.layers=10,
                                 canopy.diffalbedo='f_diffalbedo_approx', 
                                 canopy.rt='f_rt_beerslaw_goudriaan',
                                 canopy.pars_init='f_pars_init'
@@ -362,6 +365,7 @@ canopy_object$.test <- function(., verbose=T,
   .$env$par        <- canopy.par
   .$env$ca_conc    <- canopy.ca_conc
   .$env$lai        <- canopy.lai
+  .$pars$layers    <- canopy.layers
   .$state$mass_a   <- 175
   .$state$C_to_N   <- 40
   

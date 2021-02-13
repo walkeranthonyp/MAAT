@@ -4,10 +4,10 @@
       <sys>'c( 'f_sys_2bigleaf', 'f_sys_bigleaf_s1992', 'f_sys_multilayer' )'</sys>
       <pars_init>'c( 'f_pars_init', 'f_pars_init_full' )'</pars_init>
       <par_partition>'c( 'f_par_partition_env', 'f_par_partition_spitters_daily', 'f_par_partition_spitters_hourly' )'</par_partition>
-      <rt>'c( 'f_rt_beerslaw', 'f_rt_beerslaw_goudriaan', 'f_rt_goudriaan' )'</rt>
+      <rt>'c( 'f_rt_beerslaw', 'f_rt_beerslaw_goudriaan', 'f_rt_goudriaan', 'f_rt_norman' )'</rt>
       <gz>'c( 'f_gz_rossgoudriaan' )'</gz>
       <albedo>'c( 'f_albedo_goudriaan' )'</albedo>
-      <diffalbedo>'c( 'f_diffalbedo_approx', 'f_diffalbedo_full' )'</diffalbedo>
+      <diffalbedo>'c( 'f_diffalbedo_approx', 'f_diffalbedo_goudriaan' )'</diffalbedo>
       <vcmax0>'c( 'f_vcmax0_constant' )'</vcmax0>
       <k_vcmax>'c( 'f_k_vcmax_constant', 'f_k_vcmax_lloyd2012' )'</k_vcmax>
       <scale_n>'c( 'f_scale_n_beerslaw', 'f_scale_n_CLMuniform' )'</scale_n>

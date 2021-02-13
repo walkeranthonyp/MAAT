@@ -30,6 +30,8 @@
       <can_clump>NA</can_clump>
       <k_layer>NA</k_layer>
       <alb_soil>NA</alb_soil>
+      <soil_reflectance_dir>NA</soil_reflectance_dir>
+      <soil_reflectance_diff>NA</soil_reflectance_diff>
       <leaf_reflectance>NA</leaf_reflectance>
       <leaf_transmitance>NA</leaf_transmitance>
       <vcmax0>NA</vcmax0>

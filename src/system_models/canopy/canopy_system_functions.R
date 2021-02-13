@@ -110,10 +110,12 @@ f_sys_2bigleaf <- function(.) {
 f_sys_multilayer <- function(.) {
 
   # initialise layers
+  # APW: Norman scheme calculate layers + 1 to include soil 
   # k_layer determines where in the layer photosynthesis etc is calculated, a value of 0.5 calculates at the center of the layer
   linc           <- .super$env$lai / .super$pars$layers
   ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$env$lai-linc*.super$pars$k_layer), linc )
   layers         <- .super$pars$layers # this could be a function to dynamically specify the no. of layers
+  #if('norman'%in%.super$fnames$rt) layers <- layers + 1
   # consider putting this function in fns to avoid needing to use .super and .=.super
   .super$init_vert(.=.super, l=layers ) # reallocating this memory is unnecessary in cases where layers is a fixed parameter.
   #print(ca_calc_points)

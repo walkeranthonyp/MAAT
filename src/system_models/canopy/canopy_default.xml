@@ -30,6 +30,8 @@
       <can_clump>1</can_clump>
       <k_layer>0.5</k_layer>
       <alb_soil>0.15</alb_soil>
+      <soil_reflectance_dir>0.1</soil_reflectance_dir>
+      <soil_reflectance_diff>0.1</soil_reflectance_diff>
       <leaf_reflectance>0.1</leaf_reflectance>
       <leaf_transmitance>0.05</leaf_transmitance>
       <vcmax0>35</vcmax0>

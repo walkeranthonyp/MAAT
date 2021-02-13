@@ -31,11 +31,31 @@ canopy_object$state_pars
 source('canopy_object.R') 
 canopy_object$.test(
   verbose=F,
+  canopy.lai=5,
+  canopy.layers=20,
   canopy.rt='f_rt_goudriaan',
   canopy.diffalbedo='f_diffalbedo_goudriaan',
   canopy.pars_init='f_pars_init_full'
 )
+canopy_object$state$integrated$apar
 canopy_object$state_pars
+canopy_object$state$vert$layer$apar
+canopy_object$state$vert$sun$apar
+canopy_object$state$vert$shade$apar
+
+source('canopy_object.R') 
+canopy_object$.test(
+  verbose=F,
+  canopy.lai=5,
+  canopy.layers=20,
+  canopy.rt='f_rt_norman',
+  canopy.pars_init='f_pars_init_full'
+)
+canopy_object$state$integrated$apar
+canopy_object$state_pars
+canopy_object$state$vert$layer$apar
+canopy_object$state$vert$sun$apar
+canopy_object$state$vert$shade$apar
 
 canopy_object$.test(canopy.par=1000, canopy.ca_conc=200)
 canopy_object$state$integrated$A
