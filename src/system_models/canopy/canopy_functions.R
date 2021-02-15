@@ -176,8 +176,7 @@ f_rt_norman <- function(.,l,
   d[m] <- .super$env$par_diff 
   
   # Solve tridiagonal equations for fluxes
-  # APW: solver needs adding to MAAT
-  u <- f.tridiagonal.solver(a, b, c, d, m )
+  u <- .$solver_tridiagonal(a, b, c, d, m )
   
   
   # Now copy the solution for diffuse fluxes (u) to the upward (swup) and downward (swdn) fluxes for each layer

@@ -46,7 +46,7 @@ canopy_object$state$vert$shade$apar
 source('canopy_object.R') 
 canopy_object$.test(
   verbose=F,
-  canopy.lai=5,
+  canopy.lai=2,
   canopy.layers=20,
   canopy.rt='f_rt_norman',
   canopy.pars_init='f_pars_init_full'

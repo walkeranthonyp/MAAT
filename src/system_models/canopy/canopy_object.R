@@ -32,6 +32,23 @@ canopy_object$configure_child   <- configure_child
 
 
 
+# function to configure unique elements of the object
+# - adds functions to fns that are not in fnames
+# - or functions that are derivations of other functions:
+####################################
+canopy_object$configure_unique <- function(., init=F, flist=NULL ) {
+
+#  if(any(names(flist)=='rs')) {
+#   .$fns$rs_fe <- get(paste0(.$fnames$rs,'_fe'), pos=1 )
+#   .$fns$rs_r0 <- get(paste0(.$fnames$rs,'_r0'), pos=1 )
+#  }
+
+  if(any(names(flist)=='rt'))
+    if(grepl('norman',flist[['rt']])) .$fns$solver_tridiagonal <- f_solver_tridiagonal
+}
+
+
+
 # assign unique run function
 ###########################################################################
 canopy_object$run <- function(.) {

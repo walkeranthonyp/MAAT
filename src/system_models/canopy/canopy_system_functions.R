@@ -6,6 +6,8 @@
 #
 ################################
 
+source('../../functions/solver_tridiag.R') 
+
 
 
 # Big Leaf canopy scaling
