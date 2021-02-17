@@ -537,8 +537,8 @@ leaf_object$.test_tscalar <- function(., diag=F, verbose=F, cverbose=F,
   if(verbose) str(.)
   .$build(mod_out='full', switches=c(diag,verbose,cverbose) )
   
-  .$fnames$tcor_asc[['vcmax']]  <- tcor_asc
-  .$fnames$tcor_des[['vcmax']]  <- tcor_des
+  .$fnames$tcor_asc$vcmax  <- tcor_asc
+  .$fnames$tcor_des$vcmax  <- tcor_des
   .$pars$Ha$vcmax        <- Ha
   .$fnames$ri            <- 'f_r_zero'
   .$fnames$rs            <- rs
@@ -558,7 +558,7 @@ leaf_object$.test_tscalar <- function(., diag=F, verbose=F, cverbose=F,
   print(.$dataf$out_full)
   
   p1 <- xyplot(I(vcmaxlt/vcmax) ~ leaf.temp | as.factor(paste(tcor_asc,tcor_des)), .$dataf$out_full, 
-	       abline=list(h=c(0,1), v=.$pars$reftemp[['vcmax']]),
+	       abline=list(h=c(0,1), v=.$pars$reftemp$vcmax),
                ylab=expression('scalar'), xlab=expression(T*' ['^o*C*']') )
   print(p1)
 }

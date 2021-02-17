@@ -844,7 +844,7 @@ f_photorespiration_f1980 <- function(.) {
 f_gstar_constref <- function(.) {
   # this will probably not give the correct response to a change in atmospheric pressure
   
-  .super$pars$atref$gstar * .[['tcor_asc.gstar']](var='gstar') 
+  .super$pars$atref$gstar * .$tcor_asc.gstar(var='gstar') 
 }
 
 
@@ -852,7 +852,7 @@ f_gstar_constref <- function(.) {
 f_gstar_c1991 <- function(.) {
   # takes a defined ref temperature value of tau and scales to leaf temp
   
-  .super$state_pars$tau <- .super$pars$atref$tau * .[['tcor_asc.tau']](., var='tau', q10='f_q10_constant' )
+  .super$state_pars$tau <- .super$pars$atref$tau * .$tcor_asc.tau(var='tau', q10='f_q10_constant' )
   .super$state$oi/(2*.super$state_pars$tau)   
 }
 

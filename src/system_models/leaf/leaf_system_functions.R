@@ -36,14 +36,14 @@ f_sys_enzymek <- function(.) {
 
   # kinetic pars & temperature dependence
   # - if the solver involves the energy balance all of this needs to go in the solver
-  .super$state_pars$Kc        <- .super$pars$atref[['Kc']] * .[['tcor_asc.Kc']](.,'Kc')
-  .super$state_pars$Ko        <- .super$pars$atref[['Ko']] * .[['tcor_asc.Ko']](.,'Ko')
+  .super$state_pars$Kc        <- .super$pars$atref$Kc * .$tcor_asc.Kc(var='Kc')
+  .super$state_pars$Ko        <- .super$pars$atref$Ko * .$tcor_asc.Ko(var='Ko')
   .super$state_pars$Km        <- .super$state_pars$Kc * (1+(.super$state$oi/.super$state_pars$Ko))
   .super$state_pars$gstar     <- .$gstar()
-  .super$state_pars$vcmaxlt   <- .super$state_pars$vcmax  * .[['tcor_asc.vcmax']](.,'vcmax')   * .[['tcor_des.vcmax']](.,'vcmax')
-  .super$state_pars$jmaxlt    <- .super$state_pars$jmax   * .[['tcor_asc.jmax']](.,'jmax')     * .[['tcor_des.jmax']](.,'jmax')
-  .super$state_pars$tpult     <- .super$state_pars$tpu    * .[['tcor_dep.tpu']](.,'tpu')
-  .super$state_pars$k_pepc_lt <- .super$state_pars$k_pepc * .[['tcor_asc.k_pepc']](.,'k_pepc') * .[['tcor_des.k_pepc']](.,'k_pepc')
+  .super$state_pars$vcmaxlt   <- .super$state_pars$vcmax  * .$tcor_asc.vcmax(var='vcmax')   * .$tcor_des.vcmax(var='vcmax')
+  .super$state_pars$jmaxlt    <- .super$state_pars$jmax   * .$tcor_asc.jmax(var='jmax')     * .$tcor_des.jmax(var='jmax')
+  .super$state_pars$tpult     <- .super$state_pars$tpu    * .$tcor_dep.tpu(var='tpu')
+  .super$state_pars$k_pepc_lt <- .super$state_pars$k_pepc * .$tcor_asc.k_pepc(var='k_pepc') * .$tcor_des.k_pepc(var='k_pepc')
 
   # conductance/resistance terms
   # - if either of these functions become a function of co2 or assimilation they can be easily moved into the solver
@@ -59,7 +59,7 @@ f_sys_enzymek <- function(.) {
   # electron transport rate
   .super$state$J  <- .$etrans()
   # respiration
-  .super$state$rd <- .super$state_pars$rd * .[['tcor_dep.rd']](.,'rd')
+  .super$state$rd <- .super$state_pars$rd * .$tcor_dep.rd(var='rd')
 
   # if PAR > 0, run photosynthesis
   if(.super$env$par > 0) {
