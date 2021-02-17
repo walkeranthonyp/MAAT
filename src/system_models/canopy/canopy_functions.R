@@ -343,8 +343,8 @@ f_pars_init <- function(.) {
   .$albedo()
 
   # calculate Vcmax0 and extinction coefficient for Vcmax
-  .super$state$vcmax0[]           <- .$fns$vcmax0()
-  .super$state_pars$k_vcmax[]     <- .$fns$k_vcmax()
+  .super$pars$vcmax$layer0[]      <- .$fns$layer0.vcmax(var='vcmax')
+  .super$state_pars$k_vcmax[]     <- .$fns$k.vcmax(var='vcmax')
 }
 
 
@@ -374,7 +374,7 @@ f_pars_init_full <- function(.) {
   .super$state_pars$k_diffprime[] <- .super$state_pars$m * .super$state_pars$k_diff
 
   # adjustment of k_Xprime 
-  # - to account for clumping,  
+  # - to account for clumping  
   .super$state_pars$k_dirprime[]  <- .super$state_pars$k_dirprime[]  * .super$pars$can_clump
   .super$state_pars$k_diffprime[] <- .super$state_pars$k_diffprime[] * .super$pars$can_clump
 
@@ -387,8 +387,8 @@ f_pars_init_full <- function(.) {
   .super$state_pars$k_diff[]      <- .super$state_pars$k_diff[] * .super$pars$can_clump
 
   # calculate Vcmax0 and extinction coefficient for Vcmax
-  .super$state$vcmax0[]           <- .$fns$vcmax0()
-  .super$state_pars$k_vcmax[]     <- .$fns$k_vcmax()
+  .super$pars$vcmax$layer0[]      <- .$fns$layer0.vcmax(var='vcmax')
+  .super$state_pars$k_vcmax[]     <- .$fns$k.vcmax(var='vcmax')
 }
 
 # calculate G(z), Bonan 2019
@@ -493,6 +493,69 @@ f_par_partition_spitters_daily <- function(.) {
 
 
 
+# Scaling of traits/env through the canopy
+# - for use with a multilayer phototsynthesis scheme
+################################
+
+# Uniform scaling
+f_scale_uniform <- function(., layers, var, vlist='env' ) {
+  .super[[vlist]][[var]]
+}
+
+f_scale_uniform_layer0 <- function(., layers, var, vlist='pars' ) {
+  .super[[vlist]][[var]]$layer0
+}
+
+# Use Beer's Law to scale leaf traits/env through the canopy 
+# - based on canopy layer 0 value 
+f_scale_beerslaw <- function(., l, var, vlist='pars' ) {
+  # for use with a multilayer phototsynthesis scheme
+  # vcmax should probably be an env variable
+  
+  .super$state_pars$k[[var]] <- .[[paste0('k.',var)]](., var=var )
+  .super[[vlist]][[var]]$layer0 * exp(-.super$state_pars$k[[var]] * l ) 
+}
+
+# Use Beer's Law to to scale leaf traits/env through the canopy 
+# - based on total canopy value 
+f_scale_beerslaw_total <- function(., l, var, vlist='pars' ) {
+  .super$state_pars$k[var] <- .[[paste0('k.',var)]]()
+  .super[[vlist]][[var]]$total * exp(-.super$state_pars$k[[var]]*l) /  sum(exp(-.super$state_pars$k[[var]]*1:.super$env$lai))  
+}
+
+
+# two values, high & low LAI
+f_scale_two_layer <- function(., l, var, vlist='pars' ) {
+  can_vector <- l
+  can_vector[] <- .super[[vlist]][[var]]$layer2
+  can_vector[l<.super$pars$can_lai_upper] <- .super[[vlist]][[var]]$layer1
+  can_vector
+}
+
+
+# set zero layer value
+# - tell leaf object to read var value from pars list, i.e. as a constant that is assigned by the canopy object
+# APW: how to handle the leaf functions when either Vcmax or N is passed to the leaf model? 
+f_layer0_constant <- function(., var ) {
+  fnames_update        <- paste('f', var, 'constant', sep='_' )
+  names(fnames_update) <- c(paste0('leaf.',var)) 
+  .super$configure(.=.super, vlist='fnames', df=fnames_update )
+
+  .super$pars[[var]]$layer0
+}
+
+
+# set k for exponential/Beer's law scaling
+f_k_constant  <- function(., var ) .super$pars$k[[var]]
+
+f_k_kdirect   <- function(., var ) .super$state_pars$k_dir
+
+f_k_exponential_exponent_flayer0 <- function(., var ) {
+  exp( .super$pars$k_expa[[var]] + .super$pars$k_expb[[var]] * .super$state[[var]]$layer0 )
+}
+
+
+
 # Nitrogen Scaling
 ################################
 
@@ -556,14 +619,6 @@ f_scale_vcmax_beerslaw <- function(., l, var ) {
 f_scale_vcmax_uniform <- function(., layers, var ) {
   # currently var is a dummy argument for compatibility with two_layer
   rep(.super$state$vcmax0, length(layers) ) 
-}
-
-
-f_scale_two_layer <- function(., l, var ) {
-  can_vector <- l
-  can_vector[] <- .super$pars[[var]]$layer2
-  can_vector[l<.super$pars$can_lai_upper] <- .super$pars[[var]]$layer1
-  can_vector
 }
 
 

@@ -122,17 +122,32 @@ canopy_object$fnames <- list(
   gz            = 'f_gz_rossgoudriaan',
   albedo        = 'f_albedo_goudriaan',
   diffalbedo    = 'f_diffalbedo_goudriaan',
-  vcmax0        = 'f_vcmax0_constant',
-  k_vcmax       = 'f_k_vcmax_constant',
-  scale_n       = 'f_scale_n_CLMuniform',
-  scale_vcmax   = 'f_scale_vcmax_beerslaw',
-  scale_jmax    = 'f_scale_two_layer',
-  scale_f       = 'f_scale_two_layer',
-  scale_g1      = 'f_scale_two_layer',
-  scale_ca      = 'f_scale_ca_uniform',
-  scale_vpd     = 'f_scale_vpd_uniform'
+#  vcmax0        = 'f_vcmax0_constant',
+#  k_vcmax       = 'f_k_vcmax_constant',
+#  scale_n       = 'f_scale_n_CLMuniform',
+#  scale_vcmax   = 'f_scale_vcmax_beerslaw',
+#  scale_jmax    = 'f_scale_two_layer',
+#  scale_f       = 'f_scale_two_layer',
+#  scale_g1      = 'f_scale_two_layer',
+#  scale_ca      = 'f_scale_ca_uniform',
+#  scale_vpd     = 'f_scale_vpd_uniform'
+  layer0 = list(
+    vcmax = 'f_layer0_constant'
+  ),
+  k = list(
+    vcmax = 'f_k_constant',
+    n     = 'f_k_kdirect'
+  ),
+  scale = list(
+    n       = 'f_scale_uniform_layer0',
+    vcmax   = 'f_scale_beerslaw',
+    jmax    = 'f_scale_two_layer',
+    f       = 'f_scale_two_layer',
+    g1      = 'f_scale_two_layer',
+    ca_conc = 'f_scale_uniform',
+    vpd     = 'f_scale_uniform'
+  )
 )
-
 
 # environment
 ####################################
@@ -152,11 +167,11 @@ canopy_object$env <- list(
 # state
 ####################################
 canopy_object$state <- list(
-  # External
-  mass_a  = 10,
-  C_to_N  = 40,
-  totalN  = 7,
-  vcmax0  = numeric(1),
+  # Externa - moving to pars, maybe should be env for some
+#  mass_a  = 10,
+#  C_to_N  = 40,
+#  totalN  = 7,
+#  vcmax0  = numeric(1),
 
   # Calculated state
   # canopy layer vectors
@@ -279,23 +294,62 @@ canopy_object$pars   <- list(
   soil_reflectance_diff = 0.1,      # soil reflectance for diffuse radiation (visible) 
   leaf_reflectance  = 0.10,         # leaf reflectance
   leaf_transmitance = 0.05,         # leaf reflectance
-  vcmax0            = 35,           # vcmax at extreme top of canopy
-  k_vcmax           = 0.2,          # scaling exponent for vcmax through canopy
-  k_vcmax_expa      = -2.43,        # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
-  k_vcmax_expb      = 9.63e-3,      # slope parameter in exponent to calculate scaling exponent for vcmax through canopy
+#  vcmax0            = 35,           # vcmax at extreme top of canopy
+#  k_vcmax           = 0.2,          # scaling exponent for vcmax through canopy
+#  k_vcmax_expa      = -2.43,        # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
+#  k_vcmax_expb      = 9.63e-3,      # slope parameter in exponent to calculate scaling exponent for vcmax through canopy
+#  vcmax = list(                     # vcmax:
+#    layer1 = 108.7,                 #   in first canopy layer
+#    layer2 = 67.9                   #   in second canopy layer
+#  ),
+#  jmax = list(                      # jmax:
+#    layer1 = 170,                   #   in first canopy layer
+#    layer2 = 76.3                   #   in second canopy layer
+#  ),
+#  f = list(                         # f:
+#    layer1 = 0.41,                  #   in first canopy layer
+#    layer2 = 0.34                   #   in second canopy layer
+#  ),
+#  g1 = list(                        # g1 (medlyn):
+#    layer1 = 3.41,                  #   in first canopy layer
+#    layer2 = 8.82                   #   in second canopy layer
+#  )
+  
+  mass_a  = 10,
+  C_to_N  = 40,
+  
+  k = list(   # scaling exponent for vcmax through canopy
+    vcmax  = 0.2
+  ),    
+  k_expa = list(                    # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
+    vcmax = -2.43    
+  ),
+  k_expb = list(                    # slope parameter in exponent to calculate scaling exponent for vcmax through canopy
+    vcmax = 9.63e-3   
+  ),
+  n = list(                         # N area:
+    layer0 = 3,                     #   at extreme top of canopy
+    layer1 = 2,                     #   in first canopy layer
+    layer2 = 1,                     #   in second canopy layer
+    total=7                         #   canopy total sum
+  ),
   vcmax = list(                     # vcmax:
+    layer0 = 35,                    #   at extreme top of canopy
     layer1 = 108.7,                 #   in first canopy layer
     layer2 = 67.9                   #   in second canopy layer
   ),
   jmax = list(                      # jmax:
+    layer0 = 65,                    #   at extreme top of canopy
     layer1 = 170,                   #   in first canopy layer
     layer2 = 76.3                   #   in second canopy layer
   ),
   f = list(                         # f:
+    layer0 = 0.41,                  #   at extreme top of canopy
     layer1 = 0.41,                  #   in first canopy layer
     layer2 = 0.34                   #   in second canopy layer
   ),
   g1 = list(                        # g1 (medlyn):
+    layer0 = 3,                     #   at extreme top of canopy
     layer1 = 3.41,                  #   in first canopy layer
     layer2 = 8.82                   #   in second canopy layer
   )

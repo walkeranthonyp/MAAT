@@ -24,7 +24,15 @@ canopy_object$.test()
 canopy_object$state$integrated$A
 canopy_object$state$vert
 canopy_object$state_pars
+canopy_object$fns$k.vcmax
+canopy_object$fns$k.vcmax()
+canopy_object$fns$scale.ca
+canopy_object$fns$scale.ca(vlist='env', var='ca' )
 
+canopy_object$fns$scale.vcmax(1,var='vcmax')
+
+canopy_object$pars$k
+  
 canopy_object$.test(canopy.rt='f_rt_goudriaan')
 canopy_object$state_pars
 

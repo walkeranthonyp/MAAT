@@ -32,12 +32,20 @@ f_sys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
   #.super$leaf$env$temp    <- .super$env$temp
 
   # set leaf N0 or Vcmax0 - as with multi-layer model need to choose one and initialise leaf fnames correctly
-  .super$leaf$state$leafN_area[] <- .super$state$totalN * k / fpar
-  .super$leaf$pars$atref$vcmax[] <- .super$pars$vcmax0 
-  if(.super$fnames$scale_vcmax=='f_scale_two_layer') {
-    .super$leaf$pars$atref$jmax[] <- .$scale_jmax(1, var='jmax' )
-    .super$leaf$pars$f[]          <- .$scale_f(1,    var='f' )
-    .super$leaf$pars$g1_medlyn[]  <- .$scale_g1(1,   var='g1' )
+#  .super$leaf$state$leafN_area[] <- .super$state$totalN * k / fpar
+#  .super$leaf$pars$atref$vcmax[] <- .super$pars$vcmax0 
+#  if(.super$fnames$scale_vcmax=='f_scale_two_layer') {
+#    .super$leaf$pars$atref$jmax[] <- .$scale_jmax(1, var='jmax' )
+#    .super$leaf$pars$f[]          <- .$scale_f(1,    var='f' )
+#    .super$leaf$pars$g1_medlyn[]  <- .$scale_g1(1,   var='g1' )
+#  }  
+  .super$leaf$pars$atref$vcmax[] <- .super$pars$vcmax$layer0 
+  # APW: is this really necessary? Sets values for leaf, but using layer1, not layer0
+  if(.super$fnames$scale$vcmax=='f_scale_two_layer') {
+    .super$leaf$pars$atref$vcmax[] <- .$scale.vcmax(1, var='vcmax' )
+    .super$leaf$pars$atref$jmax[]  <- .$scale.jmax(1, var='jmax' )
+    .super$leaf$pars$f[]           <- .$scale.f(1, var='f' )
+    .super$leaf$pars$g1_medlyn[]   <- .$scale.g1(1, var='g1' )
   }  
 
   # calculate A0
@@ -117,27 +125,44 @@ f_sys_multilayer <- function(.) {
   linc           <- .super$env$lai / .super$pars$layers
   ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$env$lai-linc*.super$pars$k_layer), linc )
   layers         <- .super$pars$layers # this could be a function to dynamically specify the no. of layers
-  #if('norman'%in%.super$fnames$rt) layers <- layers + 1
-  # consider putting this function in fns to avoid needing to use .super and .=.super
+  # APW: consider putting this function in fns to avoid needing to use .super and .=.super
   .super$init_vert(.=.super, l=layers ) # reallocating this memory is unnecessary in cases where layers is a fixed parameter.
   #print(ca_calc_points)
 
   # canopy leaf layer parameters
-  .super$state$vert$leaf$leaf.leafN_area[]  <- .$scale_n(ca_calc_points)
-  .super$state$vert$leaf$leaf.atref.vcmax[] <- .$scale_vcmax(ca_calc_points, var='vcmax' )
+#  .super$state$vert$leaf$leaf.leafN_area[]  <- .$scale_n(ca_calc_points)
+#  .super$state$vert$leaf$leaf.atref.vcmax[] <- .$scale_vcmax(ca_calc_points, var='vcmax' )
+#  leaf_vars <- c('leaf.leafN_area', 'leaf.atref.vcmax' )
+#  if(.super$fnames$scale_vcmax=='f_scale_two_layer') {
+#    .super$state$vert$leaf$leaf.atref.jmax[] <- .$scale_jmax(ca_calc_points, var='jmax' )
+#    .super$state$vert$leaf$leaf.f[]          <- .$scale_f(ca_calc_points, var='f' )
+#    .super$state$vert$leaf$leaf.g1_medlyn[]  <- .$scale_g1(ca_calc_points, var='g1' )
+#    leaf_vars <- c(leaf_vars, 'leaf.atref.jmax', 'leaf.f', 'leaf.g1_medlyn' )
+#  }  
+#  #print(.super$state$vert$leaf)
+#
+#  # canopy leaf layer environment
+#  .super$state$vert$leaf$leaf.ca_conc[]     <- .$scale_ca(ca_calc_points)
+#  .super$state$vert$leaf$leaf.vpd[]         <- .$scale_vpd(ca_calc_points)
+#  leaf_vars <- c(leaf_vars, 'leaf.ca_conc', 'leaf.vpd', 'leaf.par' )
+  .super$state$vert$leaf$leaf.leafN_area[]   <- .$scale.n(ca_calc_points, var='n' )
+  #.super$state$vert$leaf$leaf.atref.vcmax[]  <- .[['scale.vcmax']](l=ca_calc_points, var='vcmax' )
+  .super$state$vert$leaf$leaf.atref.vcmax[]  <- .$scale.vcmax(ca_calc_points, var='vcmax' )
   leaf_vars <- c('leaf.leafN_area', 'leaf.atref.vcmax' )
-  if(.super$fnames$scale_vcmax=='f_scale_two_layer') {
-    .super$state$vert$leaf$leaf.atref.jmax[] <- .$scale_jmax(ca_calc_points, var='jmax' )
-    .super$state$vert$leaf$leaf.f[]          <- .$scale_f(ca_calc_points, var='f' )
-    .super$state$vert$leaf$leaf.g1_medlyn[]  <- .$scale_g1(ca_calc_points, var='g1' )
+  if(.super$fnames$scale$vcmax=='f_scale_two_layer') {
+    .super$state$vert$leaf$leaf.atref.jmax[] <- .$scale.jmax(ca_calc_points, var='jmax' )
+    .super$state$vert$leaf$leaf.f[]          <- .$scale.f(ca_calc_points, var='f' )
+    .super$state$vert$leaf$leaf.g1_medlyn[]  <- .$scale.g1(ca_calc_points, var='g1' )
     leaf_vars <- c(leaf_vars, 'leaf.atref.jmax', 'leaf.f', 'leaf.g1_medlyn' )
   }  
-  #print(.super$state$vert$leaf)
 
   # canopy leaf layer environment
-  .super$state$vert$leaf$leaf.ca_conc[]     <- .$scale_ca(ca_calc_points)
-  .super$state$vert$leaf$leaf.vpd[]         <- .$scale_vpd(ca_calc_points)
+  # APW: when called as a character string for some reason the proto . is not fully recognised within the function
+  #      parameters can be found, but aliased function calls fail, maybe named function calls work
+  .super$state$vert$leaf$leaf.ca_conc[]      <- .$scale.ca_conc(ca_calc_points, var='ca_conc', vlist='env' )
+  .super$state$vert$leaf$leaf.vpd[]          <- .$scale.vpd(ca_calc_points, var='vpd', vlist='env' )
   leaf_vars <- c(leaf_vars, 'leaf.ca_conc', 'leaf.vpd', 'leaf.par' )
+  #print(.super$state$vert$leaf)
 
   # Light scaling
   .$rt(ca_calc_points)
