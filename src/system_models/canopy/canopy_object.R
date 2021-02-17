@@ -425,8 +425,7 @@ canopy_object$.test <- function(., verbose=T,
                                 canopy.par=2000, canopy.ca_conc=400, 
                                 canopy.lai=6, canopy.layers=10,
                                 canopy.diffalbedo='f_diffalbedo_approx', 
-                                canopy.rt='f_rt_beerslaw_goudriaan',
-                                canopy.pars_init='f_pars_init'
+                                canopy.rt='f_rt_beerslaw_goudriaan'
                                 ) {
 
   # Build, assign fnames, configure
@@ -440,9 +439,12 @@ canopy_object$.test <- function(., verbose=T,
   .$state$mass_a   <- 175
   .$state$C_to_N   <- 40
   
+  if(grepl('norman',canopy.rt) | grepl('goudriaan',canopy.rt)) {
+    .$fnames$pars_init <- 'f_pars_init_full'
+  }
   .$fnames$diffalbedo <- canopy.diffalbedo
   .$fnames$rt         <- canopy.rt
-  .$fnames$pars_init  <- canopy.pars_init
+  
   .$configure_test() 
   .$leaf$configure_test() 
 
@@ -452,6 +454,7 @@ canopy_object$.test <- function(., verbose=T,
 
 canopy_object$.test_aca <- function(., verbose=F, cverbose=F,
                                     canopy.par=c(100,1000), canopy.ca_conc=seq(50,1200,50),
+                                    canopy.lai=6, canopy.layers=10,
                                     leaf.rs='f_r_zero', canopy.rt='f_rt_beerslaw_goudriaan' ) {
 
   # Build, assign fnames, configure
@@ -459,12 +462,17 @@ canopy_object$.test_aca <- function(., verbose=F, cverbose=F,
   if(verbose) str.proto(canopy_object)
   .$leaf$cpars$verbose  <- F
 
-  .$env$lai        <- 10 
+  .$env$lai        <- canopy.lai
+  .$pars$layers    <- canopy.layers
   .$state$mass_a   <- 175
   .$state$C_to_N   <- 40
 
+  if(grepl('norman',canopy.rt) | grepl('goudriaan',canopy.rt)) {
+    .$fnames$pars_init <- 'f_pars_init_full'
+  }
   .$fnames$rt      <- canopy.rt
   .$leaf$fnames$rs <- leaf.rs
+
   .$configure_test() 
   .$leaf$configure_test() 
   
