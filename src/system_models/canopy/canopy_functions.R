@@ -55,6 +55,8 @@ f_rt_goudriaan <- function(.,l) {
   .super$state$vert$sun$apar[]   <- (1-.super$state_pars$lscattering)*.super$state_pars$k_dir*.super$env$par_dir + .super$state$vert$shade$apar
   
   # calculate fraction sunlit vs shaded leaves
+
+  print(exp(-.super$state_pars$k_dir*l))
   .super$state$vert$sun$fraction[]   <- exp(-.super$state_pars$k_dir*l)
   .super$state$vert$shade$fraction[] <- 1 - .super$state$vert$sun$fraction
 }
@@ -74,10 +76,11 @@ f_rt_norman <- function(.,l,
   nlayers <- length(l)
   sumlai  <- c(NA, rev(l) )
   dLAI    <- c(NA, rep(l[2]-l[1],length(l)) )
-  
+
+  # APW: these initial calculations assume that leaf angle distribution is constant through the canopy    
   .super$state$vert$sun$fraction[]   <- .super$pars$can_clump * exp(-.super$state_pars$k_dir*rev(l)) # APW is this correct? Why is clumpfrac used twice 
   .super$state$vert$shade$fraction[] <- 1 - .super$state$vert$sun$fraction
-  #laisun  <- (1 - exp(-Kb*lai*clumpfac)) / Kb # APW: and why is clumpfrac only used once here?
+  #laisun  <- (1 - exp(-Kb*lai*clumpfac)) / Kb # APW: and why is clumpfrac only used once here? Id this consistent with above?
   #laisha  <- lai - laisun
  
   # tb (frac direct beam not intercepted in each layer)

@@ -25,7 +25,7 @@ f_sys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
   # set leaf environment
   # absorbed light in leaf layer 0 - F_0 * first half of B_2 in Eq 37b (Sellers 1992)
   # APW: same as beerslaw RT function when l = 0
-  .super$leaf$env$par[] <- (1-.super$state_pars$lscattering)*.super$state_pars$k_dir * .super$env$par
+  .super$leaf$env$par[] <- (1-.super$state_pars$lscattering) * .super$state_pars$k_dir * .super$env$par
   # assume no variation in CO2 concentration, VPD, and T
   #.super$leaf$env$ca_conc <- .super$env$ca_conc
   #.super$leaf$env$vpd     <- .super$env$vpd
@@ -88,29 +88,88 @@ f_sys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
 
 # Two Big Leaf canopy scaling
 ###############################
-# - accounts for direct and diffuse light separately but only calculates A once for each radiation type
+# - accounts for direct and diffuse light & sun and shaded leaves but only calculates A once for each leaf class 
 f_sys_2bigleaf <- function(.) {
-  # Thornton calculates the mean of all these canopy values, what does Dai do?
 
-  # calculate LAIsun and LAIshade - Dai 2004
-  Lsun   <- (1 - exp(-.super$state_pars$k_dir*.super$env$lai)) / .super$state_pars$k_dir
-  Lshade <- .super$env$lai - Lsun
+  # initialise layers
+  # sun/shade
+  .super$state$vert$sun$apar       <- numeric(.super$pars$layers_2bigleaf)
+  .super$state$vert$shade$apar     <- numeric(.super$pars$layers_2bigleaf)
+  .super$state$vert$sun$fraction   <- numeric(.super$pars$layers_2bigleaf)  
+  .super$state$vert$shade$fraction <- numeric(.super$pars$layers_2bigleaf)
+  # leaf traits
+  .super$state$vert$leaf$leaf.atref.vcmax <- numeric(.super$pars$layers_2bigleaf)
+
+  # calculate LAI sun and LAI shade - Dai 2004
+  lai_sun   <- (1 - exp(-.super$state_pars$k_dir*.super$env$lai)) / .super$state_pars$k_dir
+  lai_shade <- .super$env$lai - lai_sun
+#  print('lai:')
+#  print(lai_sun)
+#  print(lai_shade)
 
   # calculate APARsun and APARshade
-  # APARshade is the scattered part of the direct beam plus diffuse radiation
-  .$rt(1:.super$env$lai)
-  #take the mean of these? - need to check, is there an analytical method?
+  linc           <- .super$env$lai / .super$pars$layers_2bigleaf
+  ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$env$lai-linc*.super$pars$k_layer), linc )
+  .$rt(ca_calc_points)
+#  print(linc)
+#  print(ca_calc_points)
+#  print('')
+#  print('APAR:')
+#  print(.super$state$vert$sun$apar) 
+#  print(.super$state$vert$shade$apar) 
+#  print(.super$state$vert$sun$fraction) 
+#  print(.super$state$vert$shade$fraction) 
+  .super$state$vert$sun$apar   <- sum(.super$state$vert$sun$apar*.super$state$vert$sun$fraction*linc) / lai_sun 
+  .super$state$vert$shade$apar <- sum(.super$state$vert$shade$apar*.super$state$vert$shade$fraction*linc) / lai_shade
+#  print(.super$state$vert$sun$apar) 
+#  print(.super$state$vert$shade$apar) 
 
-  # Leaf environment
-  #.super$leaf$env$ca_conc <- .super$env$ca_conc
-  #.super$leaf$env$vpd     <- .super$env$vpd
-
-  # calculate Nsun and Nshade - this doesn't really make sense as leaf N is not able to vary on the time scales that on which sun and shade leaves vary
-  .super$leaf$state$leafN_area <- .super$state$totalN * k / fpar
+  # calculate Vcmax sun/shade, other traits yet to add
+  .super$state$vert$leaf$leaf.atref.vcmax[] <- .$scale.vcmax(ca_calc_points, var='vcmax' )
+  vcmax_sun   <- sum(.super$state$vert$leaf$leaf.atref.vcmax*.super$state$vert$sun$fraction*linc) / lai_sun
+  vcmax_shade <- sum(.super$state$vert$leaf$leaf.atref.vcmax*.super$state$vert$shade$fraction*linc) / lai_shade
 
   # calculate Asun and Ashade
+  # sun 
+  .super$leaf$env$par          <- .super$state$vert$sun$apar
+  .super$leaf$pars$atref$vcmax <- vcmax_sun
+  leaf_out                     <- .super$leaf$run()
+  # assign data to canopy object data structure
+  for(vname in names(leaf_out)) .super$state$vert$sun[[vname]][] <- leaf_out[vname]
+#  print('')
+#  print('Vcmax:')
+#  print(vcmax_sun)
+#  print(vcmax_shade)
+#  print('')
+#  print('A etc:')
+#  print(leaf_out)
+#  print(.super$state$vert$sun) 
+  
+  # shade  
+  .super$leaf$env$par          <- .super$state$vert$shade$apar
+  .super$leaf$pars$atref$vcmax <- vcmax_shade
+  leaf_out                     <- .super$leaf$run()
+  # assign data to canopy object data structure
+  for(vname in names(leaf_out)) .super$state$vert$shade[[vname]][] <- leaf_out[vname]
+#  print(leaf_out)
+#  print(.super$state$vert$shade) 
 
   # scale & combine
+  #for(vname in c('apar','A','gb','gs','gi','g','rd','cb','ci','cc') ) {
+  for(vname in c('apar','A','gb','gs','gi','g','rd','ci','cc') ) {
+    #print(vname)
+    .super$state$integrated[[vname]][] <-
+      .super$state$vert$sun[[vname]]*lai_sun + .super$state$vert$shade[[vname]]*lai_shade 
+  }
+  .super$state$integrated$Acg_lim[] <-
+    .super$state$vert$sun$A * (.super$state$vert$sun$lim==2) * lai_sun +
+    .super$state$vert$shade$A * (.super$state$vert$shade$lim==2) * lai_shade 
+  .super$state$integrated$Ajg_lim[] <-
+    .super$state$vert$sun$A * (.super$state$vert$sun$lim==3) * lai_sun +
+    .super$state$vert$shade$A * (.super$state$vert$shade$lim==3) * lai_shade 
+  .super$state$integrated$Apg_lim[] <-
+    .super$state$vert$sun$A * (.super$state$vert$sun$lim==7) * lai_sun +
+    .super$state$vert$shade$A * (.super$state$vert$shade$lim==7) * lai_shade 
 }
 
 

@@ -281,19 +281,20 @@ canopy_object$state_pars <- list(
 # parameters
 ####################################
 canopy_object$pars   <- list(
-  layers            = 10,           # number of layers in multi-layer canopy calculation
-  nz                = 9,            # number of discrete solar zenith angles in numerical approximation of diffuse light parameters
-  can_lai_upper     = 2.6,          # LAI of upper canopy for two layer scaling scheme 
-  leaf_cores        = 1,
-  G                 = 0.5,          # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
-  chi_l             = 0.0,          # Ross index indicating departure from spherical leaf angle distribution 
-  can_clump         = 1,            # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-  k_layer           = 0.5,          # for multilayer canopy, where in the layer to calculate APAR & physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003)
-  alb_soil          = 0.15,         # soil albedo
+  layers                = 10,       # number of layers in multi-layer canopy calculation
+  layers_2bigleaf       = 10,       # number of layers in two-bigleaf RT integration 
+  nz                    = 9,        # number of discrete solar zenith angles in numerical approximation of diffuse light parameters
+  can_lai_upper         = 2.6,      # LAI of upper canopy for two layer scaling scheme 
+  leaf_cores            = 1,
+  G                     = 0.5,      # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
+  chi_l                 = 0.0,      # Ross index indicating departure from spherical leaf angle distribution 
+  can_clump             = 1,        # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
+  k_layer               = 0.5,      # for multilayer canopy, where in the layer to calculate APAR & physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003)
+  alb_soil              = 0.15,     # soil albedo
   soil_reflectance_dir  = 0.1,      # soil reflectance for direct radiation (visible) 
   soil_reflectance_diff = 0.1,      # soil reflectance for diffuse radiation (visible) 
-  leaf_reflectance  = 0.10,         # leaf reflectance
-  leaf_transmitance = 0.05,         # leaf reflectance
+  leaf_reflectance      = 0.10,     # leaf reflectance
+  leaf_transmitance     = 0.05,     # leaf reflectance
 #  vcmax0            = 35,           # vcmax at extreme top of canopy
 #  k_vcmax           = 0.2,          # scaling exponent for vcmax through canopy
 #  k_vcmax_expa      = -2.43,        # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
@@ -318,7 +319,7 @@ canopy_object$pars   <- list(
   mass_a  = 10,
   C_to_N  = 40,
   
-  k = list(   # scaling exponent for vcmax through canopy
+  k = list(                         # scaling exponent for vcmax through canopy
     vcmax  = 0.2
   ),    
   k_expa = list(                    # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
@@ -331,7 +332,7 @@ canopy_object$pars   <- list(
     layer0 = 3,                     #   at extreme top of canopy
     layer1 = 2,                     #   in first canopy layer
     layer2 = 1,                     #   in second canopy layer
-    total=7                         #   canopy total sum
+    total  = 7                      #   canopy total sum
   ),
   vcmax = list(                     # vcmax:
     layer0 = 35,                    #   at extreme top of canopy
@@ -451,6 +452,33 @@ canopy_object$.test <- function(., verbose=T,
   .$run()
 }
 
+
+canopy_object$.test_2bigleaf <- function(., verbose=F,
+                                         canopy.par=2000, canopy.ca_conc=400, 
+                                         canopy.lai=6, canopy.layers_2bigleaf=100,
+                                         canopy.diffalbedo='f_diffalbedo_goudriaan', 
+                                         canopy.rt='f_rt_goudriaan'
+                                         ) {
+         
+  # Build, assign fnames, configure
+  .$build(switches=c(F,verbose,F))
+  .$leaf$cpars$verbose  <- F
+
+  .$env$par        <- canopy.par
+  .$env$ca_conc    <- canopy.ca_conc
+  .$env$lai        <- canopy.lai
+  .$pars$layers_2bigleaf <- canopy.layers_2bigleaf
+  
+  .$fnames$sys        <- 'f_sys_2bigleaf' 
+  .$fnames$pars_init  <- 'f_pars_init_full'
+  .$fnames$diffalbedo <- canopy.diffalbedo
+  .$fnames$rt         <- canopy.rt
+  
+  .$configure_test() 
+  .$leaf$configure_test() 
+
+  .$run()
+}
 
 canopy_object$.test_aca <- function(., verbose=F, cverbose=F,
                                     canopy.par=c(100,1000), canopy.ca_conc=seq(50,1200,50),

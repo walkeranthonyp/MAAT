@@ -19,9 +19,17 @@ rm(list=ls())
 library(lattice)
 source('canopy_object.R') 
 
+canopy_object$.test_2bigleaf()
+canopy_object$state$integrated
+canopy_object$env
+canopy_object$state$vert
+canopy_object$state_pars
+
+
 # canopy
 canopy_object$.test()
 canopy_object$state$integrated$A
+canopy_object$state$integrated
 canopy_object$state$vert
 canopy_object$state_pars
 canopy_object$fns$k.vcmax
