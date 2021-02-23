@@ -71,6 +71,7 @@ f_rt_norman <- function(.,l,
                         soil_reflectance_diff=.super$pars$soil_reflectance_diff
                         ) {
   
+  # Norman scheme calculates layers + 1 to include soil 
   # code by Bonan has the first layer as ground and last being the top canopy layer
   # - so l reversed
   nlayers <- length(l)

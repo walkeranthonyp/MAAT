@@ -14,31 +14,20 @@ source('../../functions/solver_tridiag.R')
 ###############################
 
 # Sellers et al 1992
-f_sys_bigleaf_s1992 <- function(., k=.super$state_pars$k_dirprime, ... ) {
+f_sys_bigleaf_s1992 <- function(., ... ) {
   # this function was described in Sellers to deal with time intergrated values of fpar and k
   # could write wrapper function or if to pass different k coefficients
-  # APW: why is k an argument? Assuming in case k_dir want to be used, but how woul§d that occur?
 
   # calculate fPAR, after Sellers 1992, see also Friend 2001
+  k    <- .super$state_pars$k_dirprime
   fpar <- 1 - exp(-k*.super$env$lai)
 
-  # set leaf environment
+  # set leaf APAR 
   # absorbed light in leaf layer 0 - F_0 * first half of B_2 in Eq 37b (Sellers 1992)
   # APW: same as beerslaw RT function when l = 0
   .super$leaf$env$par[] <- (1-.super$state_pars$lscattering) * .super$state_pars$k_dir * .super$env$par
-  # assume no variation in CO2 concentration, VPD, and T
-  #.super$leaf$env$ca_conc <- .super$env$ca_conc
-  #.super$leaf$env$vpd     <- .super$env$vpd
-  #.super$leaf$env$temp    <- .super$env$temp
 
   # set leaf N0 or Vcmax0 - as with multi-layer model need to choose one and initialise leaf fnames correctly
-#  .super$leaf$state$leafN_area[] <- .super$state$totalN * k / fpar
-#  .super$leaf$pars$atref$vcmax[] <- .super$pars$vcmax0 
-#  if(.super$fnames$scale_vcmax=='f_scale_two_layer') {
-#    .super$leaf$pars$atref$jmax[] <- .$scale_jmax(1, var='jmax' )
-#    .super$leaf$pars$f[]          <- .$scale_f(1,    var='f' )
-#    .super$leaf$pars$g1_medlyn[]  <- .$scale_g1(1,   var='g1' )
-#  }  
   .super$leaf$pars$atref$vcmax[] <- .super$pars$vcmax$layer0 
   # APW: is this really necessary? Sets values for leaf, but using layer1, not layer0
   if(.super$fnames$scale$vcmax=='f_scale_two_layer') {
@@ -100,6 +89,9 @@ f_sys_2bigleaf <- function(.) {
   # leaf traits
   .super$state$vert$leaf$leaf.atref.vcmax <- numeric(.super$pars$layers_2bigleaf)
 
+  # calculate Vcmax sun/shade, other traits yet to add
+  .super$state$vert$leaf$leaf.atref.vcmax[] <- .$scale.vcmax(ca_calc_points, var='vcmax' )
+  
   # calculate LAI sun and LAI shade - Dai 2004
   lai_sun   <- (1 - exp(-.super$state_pars$k_dir*.super$env$lai)) / .super$state_pars$k_dir
   lai_shade <- .super$env$lai - lai_sun
@@ -119,15 +111,14 @@ f_sys_2bigleaf <- function(.) {
 #  print(.super$state$vert$shade$apar) 
 #  print(.super$state$vert$sun$fraction) 
 #  print(.super$state$vert$shade$fraction) 
+  
+  # scale APAR and traits
   .super$state$vert$sun$apar   <- sum(.super$state$vert$sun$apar*.super$state$vert$sun$fraction*linc) / lai_sun 
   .super$state$vert$shade$apar <- sum(.super$state$vert$shade$apar*.super$state$vert$shade$fraction*linc) / lai_shade
 #  print(.super$state$vert$sun$apar) 
 #  print(.super$state$vert$shade$apar) 
-
-  # calculate Vcmax sun/shade, other traits yet to add
-  .super$state$vert$leaf$leaf.atref.vcmax[] <- .$scale.vcmax(ca_calc_points, var='vcmax' )
-  vcmax_sun   <- sum(.super$state$vert$leaf$leaf.atref.vcmax*.super$state$vert$sun$fraction*linc) / lai_sun
-  vcmax_shade <- sum(.super$state$vert$leaf$leaf.atref.vcmax*.super$state$vert$shade$fraction*linc) / lai_shade
+  vcmax_sun                    <- sum(.super$state$vert$leaf$leaf.atref.vcmax*.super$state$vert$sun$fraction*linc) / lai_sun
+  vcmax_shade                  <- sum(.super$state$vert$leaf$leaf.atref.vcmax*.super$state$vert$shade$fraction*linc) / lai_shade
 
   # calculate Asun and Ashade
   # sun 
@@ -179,33 +170,17 @@ f_sys_2bigleaf <- function(.) {
 f_sys_multilayer <- function(.) {
 
   # initialise layers
-  # APW: Norman scheme calculate layers + 1 to include soil 
-  # k_layer determines where in the layer photosynthesis etc is calculated, a value of 0.5 calculates at the center of the layer
   linc           <- .super$env$lai / .super$pars$layers
   ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$env$lai-linc*.super$pars$k_layer), linc )
   layers         <- .super$pars$layers # this could be a function to dynamically specify the no. of layers
   # APW: consider putting this function in fns to avoid needing to use .super and .=.super
+  # APW: could be associated with sys function with a suffix and used for this and 2bigleaf 
   .super$init_vert(.=.super, l=layers ) # reallocating this memory is unnecessary in cases where layers is a fixed parameter.
   #print(ca_calc_points)
 
   # canopy leaf layer parameters
-#  .super$state$vert$leaf$leaf.leafN_area[]  <- .$scale_n(ca_calc_points)
-#  .super$state$vert$leaf$leaf.atref.vcmax[] <- .$scale_vcmax(ca_calc_points, var='vcmax' )
-#  leaf_vars <- c('leaf.leafN_area', 'leaf.atref.vcmax' )
-#  if(.super$fnames$scale_vcmax=='f_scale_two_layer') {
-#    .super$state$vert$leaf$leaf.atref.jmax[] <- .$scale_jmax(ca_calc_points, var='jmax' )
-#    .super$state$vert$leaf$leaf.f[]          <- .$scale_f(ca_calc_points, var='f' )
-#    .super$state$vert$leaf$leaf.g1_medlyn[]  <- .$scale_g1(ca_calc_points, var='g1' )
-#    leaf_vars <- c(leaf_vars, 'leaf.atref.jmax', 'leaf.f', 'leaf.g1_medlyn' )
-#  }  
-#  #print(.super$state$vert$leaf)
-#
-#  # canopy leaf layer environment
-#  .super$state$vert$leaf$leaf.ca_conc[]     <- .$scale_ca(ca_calc_points)
-#  .super$state$vert$leaf$leaf.vpd[]         <- .$scale_vpd(ca_calc_points)
-#  leaf_vars <- c(leaf_vars, 'leaf.ca_conc', 'leaf.vpd', 'leaf.par' )
+  # APW: could be a separate function shared by multilayer and 2bigleaf
   .super$state$vert$leaf$leaf.leafN_area[]   <- .$scale.n(ca_calc_points, var='n' )
-  #.super$state$vert$leaf$leaf.atref.vcmax[]  <- .[['scale.vcmax']](l=ca_calc_points, var='vcmax' )
   .super$state$vert$leaf$leaf.atref.vcmax[]  <- .$scale.vcmax(ca_calc_points, var='vcmax' )
   leaf_vars <- c('leaf.leafN_area', 'leaf.atref.vcmax' )
   if(.super$fnames$scale$vcmax=='f_scale_two_layer') {
@@ -292,7 +267,6 @@ f_sys_multilayer <- function(.) {
   .super$state$integrated$cc[] <- sum(.super$state$vert$layer$cc) * linc / .super$env$lai
   .super$state$integrated$ci[] <- sum(.super$state$vert$layer$ci) * linc / .super$env$lai
   .super$state$integrated$cb[] <- sum(.super$state$vert$layer$cb) * linc / .super$env$lai
-
 }
 
 

@@ -122,15 +122,6 @@ canopy_object$fnames <- list(
   gz            = 'f_gz_rossgoudriaan',
   albedo        = 'f_albedo_goudriaan',
   diffalbedo    = 'f_diffalbedo_goudriaan',
-#  vcmax0        = 'f_vcmax0_constant',
-#  k_vcmax       = 'f_k_vcmax_constant',
-#  scale_n       = 'f_scale_n_CLMuniform',
-#  scale_vcmax   = 'f_scale_vcmax_beerslaw',
-#  scale_jmax    = 'f_scale_two_layer',
-#  scale_f       = 'f_scale_two_layer',
-#  scale_g1      = 'f_scale_two_layer',
-#  scale_ca      = 'f_scale_ca_uniform',
-#  scale_vpd     = 'f_scale_vpd_uniform'
   layer0 = list(
     vcmax = 'f_layer0_constant'
   ),
@@ -167,13 +158,7 @@ canopy_object$env <- list(
 # state
 ####################################
 canopy_object$state <- list(
-  # Externa - moving to pars, maybe should be env for some
-#  mass_a  = 10,
-#  C_to_N  = 40,
-#  totalN  = 7,
-#  vcmax0  = numeric(1),
 
-  # Calculated state
   # canopy layer vectors
   vert    = list(
     # variable canopy environment etc
@@ -289,33 +274,14 @@ canopy_object$pars   <- list(
   G                     = 0.5,      # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
   chi_l                 = 0.0,      # Ross index indicating departure from spherical leaf angle distribution 
   can_clump             = 1,        # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-  k_layer               = 0.5,      # for multilayer canopy, where in the layer to calculate APAR & physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003)
+  k_layer               = 0.5,      # for multilayer/ numerical 2bigleaf canopy, where in the layer to calculate APAR & physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003)
   alb_soil              = 0.15,     # soil albedo
   soil_reflectance_dir  = 0.1,      # soil reflectance for direct radiation (visible) 
   soil_reflectance_diff = 0.1,      # soil reflectance for diffuse radiation (visible) 
   leaf_reflectance      = 0.10,     # leaf reflectance
   leaf_transmitance     = 0.05,     # leaf reflectance
-#  vcmax0            = 35,           # vcmax at extreme top of canopy
-#  k_vcmax           = 0.2,          # scaling exponent for vcmax through canopy
-#  k_vcmax_expa      = -2.43,        # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
-#  k_vcmax_expb      = 9.63e-3,      # slope parameter in exponent to calculate scaling exponent for vcmax through canopy
-#  vcmax = list(                     # vcmax:
-#    layer1 = 108.7,                 #   in first canopy layer
-#    layer2 = 67.9                   #   in second canopy layer
-#  ),
-#  jmax = list(                      # jmax:
-#    layer1 = 170,                   #   in first canopy layer
-#    layer2 = 76.3                   #   in second canopy layer
-#  ),
-#  f = list(                         # f:
-#    layer1 = 0.41,                  #   in first canopy layer
-#    layer2 = 0.34                   #   in second canopy layer
-#  ),
-#  g1 = list(                        # g1 (medlyn):
-#    layer1 = 3.41,                  #   in first canopy layer
-#    layer2 = 8.82                   #   in second canopy layer
-#  )
-  
+ 
+  # could be env variables 
   mass_a  = 10,
   C_to_N  = 40,
   
