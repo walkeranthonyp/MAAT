@@ -117,6 +117,7 @@ canopy_object$run_leaf <- function(., ii, df ) {
 canopy_object$fnames <- list(
   sys           = 'f_sys_multilayer',
   pars_init     = 'f_pars_init',
+  traits_scale  = 'f_traits_scale',
   par_partition = 'f_par_partition_spitters_hourly',
   rt            = 'f_rt_beerslaw_goudriaan',
   gz            = 'f_gz_rossgoudriaan',

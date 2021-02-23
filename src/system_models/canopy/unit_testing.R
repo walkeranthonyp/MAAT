@@ -51,6 +51,13 @@ canopy_object$.test(
   canopy.rt='f_rt_goudriaan',
   canopy.diffalbedo='f_diffalbedo_goudriaan'
 )
+canopy_object$.test(
+  verbose=F,
+  canopy.lai=5,
+  canopy.layers=20,
+  canopy.rt='f_rt_norman',
+  canopy.diffalbedo='f_diffalbedo_goudriaan'
+)
 canopy_object$state$integrated$apar
 canopy_object$state_pars
 canopy_object$state$vert$layer$apar

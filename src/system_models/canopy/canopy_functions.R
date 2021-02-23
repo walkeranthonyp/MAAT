@@ -55,9 +55,8 @@ f_rt_goudriaan <- function(.,l) {
   .super$state$vert$sun$apar[]   <- (1-.super$state_pars$lscattering)*.super$state_pars$k_dir*.super$env$par_dir + .super$state$vert$shade$apar
   
   # calculate fraction sunlit vs shaded leaves
-
-  print(exp(-.super$state_pars$k_dir*l))
-  .super$state$vert$sun$fraction[]   <- exp(-.super$state_pars$k_dir*l)
+  .super$state$vert$sun$fraction[]   <- .super$pars$can_clump * exp(-.super$state_pars$k_dir*l) 
+  #.super$state$vert$sun$fraction[]   <- exp(-.super$state_pars$k_dir*l)
   .super$state$vert$shade$fraction[] <- 1 - .super$state$vert$sun$fraction
 }
 
@@ -500,6 +499,23 @@ f_par_partition_spitters_daily <- function(.) {
 # Scaling of traits/env through the canopy
 # - for use with a multilayer phototsynthesis scheme
 ################################
+
+# function to apply scaling functions to leaf traits
+f_traits_scale <- function(., ca_calc_points ) {
+
+  .super$state$vert$leaf$leaf.leafN_area[]   <- .$scale.n(ca_calc_points, var='n' )
+  .super$state$vert$leaf$leaf.atref.vcmax[]  <- .$scale.vcmax(ca_calc_points, var='vcmax' )
+  leaf_vars <- c('leaf.leafN_area', 'leaf.atref.vcmax' )
+
+  if(.super$fnames$scale$vcmax=='f_scale_two_layer') {
+    .super$state$vert$leaf$leaf.atref.jmax[] <- .$scale.jmax(ca_calc_points, var='jmax' )
+    .super$state$vert$leaf$leaf.f[]          <- .$scale.f(ca_calc_points, var='f' )
+    .super$state$vert$leaf$leaf.g1_medlyn[]  <- .$scale.g1(ca_calc_points, var='g1' )
+    leaf_vars <- c(leaf_vars, 'leaf.atref.jmax', 'leaf.f', 'leaf.g1_medlyn' )
+  }
+  leaf_vars
+}
+
 
 # Uniform scaling
 f_scale_uniform <- function(., layers, var, vlist='env' ) {
