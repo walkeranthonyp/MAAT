@@ -91,13 +91,6 @@ f_sys_2bigleaf <- function(.) {
   #.super$state$vert$leaf$leaf.atref.vcmax <- numeric(.super$pars$layers_2bigleaf)
   .super$state$vert$leaf  <- lapply(.super$state$vert$leaf, function(v,leng) numeric(leng), leng=.super$pars$layers_2bigleaf )
 
-  # calculate LAI sun and LAI shade - Dai 2004
-  lai_sun   <- (1 - exp(-.super$state_pars$k_dir*.super$env$lai)) / .super$state_pars$k_dir
-  lai_shade <- .super$env$lai - lai_sun
-#  print('lai:')
-#  print(lai_sun)
-#  print(lai_shade)
-
   # calculate APARsun and APARshade
   linc           <- .super$env$lai / .super$pars$layers_2bigleaf
   ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$env$lai-linc*.super$pars$k_layer), linc )
@@ -115,7 +108,20 @@ f_sys_2bigleaf <- function(.) {
 #  .super$state$vert$leaf$leaf.atref.vcmax[] <- .$scale.vcmax(ca_calc_points, var='vcmax' )
   leaf_vars <- .$traits_scale(ca_calc_points)
   
+  # calculate LAI sun and shade
+  # - Dai 2004
+  #lai_sun_dai   <- (1 - exp(-.super$state_pars$k_dir*.super$env$lai)) / .super$state_pars$k_dir
+  # - true multi-layer
+  lai_sun   <- sum(.super$state$vert$sun$fraction*linc)
+  lai_shade <- .super$env$lai - lai_sun
+#  print('lai:')
+#  print(lai_sun_dai)
+#  print(lai_sun)
+#  print(lai_shade)
+
   # scale APAR and traits
+  # APW: ca this be generalised for sun/shade and various traits/variables
+  #      apar, lai, vcmax, leaf N, etc 
   .super$state$vert$sun$apar   <- sum(.super$state$vert$sun$apar*.super$state$vert$sun$fraction*linc) / lai_sun 
   .super$state$vert$shade$apar <- sum(.super$state$vert$shade$apar*.super$state$vert$shade$fraction*linc) / lai_shade
   vcmax_sun                    <- sum(.super$state$vert$leaf$leaf.atref.vcmax*.super$state$vert$sun$fraction*linc) / lai_sun

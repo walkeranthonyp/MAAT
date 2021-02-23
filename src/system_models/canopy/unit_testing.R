@@ -20,6 +20,7 @@ library(lattice)
 source('canopy_object.R') 
 
 canopy_object$.test_2bigleaf()
+canopy_object$.test_2bigleaf(canopy.can_clump=0.5)
 canopy_object$state$integrated
 canopy_object$env
 canopy_object$state$vert

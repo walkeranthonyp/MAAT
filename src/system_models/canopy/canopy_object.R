@@ -423,6 +423,7 @@ canopy_object$.test <- function(., verbose=T,
 canopy_object$.test_2bigleaf <- function(., verbose=F,
                                          canopy.par=2000, canopy.ca_conc=400, 
                                          canopy.lai=6, canopy.layers_2bigleaf=100,
+                                         canopy.can_clump=1,
                                          canopy.diffalbedo='f_diffalbedo_goudriaan', 
                                          canopy.rt='f_rt_goudriaan'
                                          ) {
@@ -431,9 +432,10 @@ canopy_object$.test_2bigleaf <- function(., verbose=F,
   .$build(switches=c(F,verbose,F))
   .$leaf$cpars$verbose  <- F
 
-  .$env$par        <- canopy.par
-  .$env$ca_conc    <- canopy.ca_conc
-  .$env$lai        <- canopy.lai
+  .$env$par           <- canopy.par
+  .$env$ca_conc       <- canopy.ca_conc
+  .$env$lai           <- canopy.lai
+  .$pars$can_clump    <- canopy.can_clump
   .$pars$layers_2bigleaf <- canopy.layers_2bigleaf
   
   .$fnames$sys        <- 'f_sys_2bigleaf' 

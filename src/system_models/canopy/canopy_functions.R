@@ -78,15 +78,16 @@ f_rt_norman <- function(.,l,
   dLAI    <- c(NA, rep(l[2]-l[1],length(l)) )
 
   # APW: these initial calculations assume that leaf angle distribution is constant through the canopy    
+  # APW: k_dir assumed fixed here   
   .super$state$vert$sun$fraction[]   <- .super$pars$can_clump * exp(-.super$state_pars$k_dir*rev(l)) # APW is this correct? Why is clumpfrac used twice 
   .super$state$vert$shade$fraction[] <- 1 - .super$state$vert$sun$fraction
-  #laisun  <- (1 - exp(-Kb*lai*clumpfac)) / Kb # APW: and why is clumpfrac only used once here? Id this consistent with above?
-  #laisha  <- lai - laisun
  
   # tb (frac direct beam not intercepted in each layer)
+  # APW: k_dir assumed fixed here   
   tb <- exp(-.super$state_pars$k_dir * dLAI )
  
   # td (frac diffuse beam not intercepted in each layer)
+  # APW: k_dir assumed fixed here in gz() call  
   # APW: if variable leaf angle with canopy layer needed this will want to loop over dLAI and vectorise zi  
   td <- 0
   for(zi in .super$state_pars$zi) {
@@ -103,6 +104,7 @@ f_rt_norman <- function(.,l,
   tbcum[iv] <- 1
   for (iv in (nlayers+1):2) {
     cumlai      <- cumlai + dLAI[iv]
+    # APW: k_dir assumed fixed here   
     tbcum[iv-1] <- exp(-.super$state_pars$k_dir * cumlai )
   }
   
@@ -119,6 +121,7 @@ f_rt_norman <- function(.,l,
   d[m] <- .super$env$par_dir*tbcum[m] * soil_reflectance_dir
   
   # Soil: downward flux
+  # APW: leaf_refelctance and leaf_transmitance assumed constant here and below 
   refld <- (1-td[iv+1]) * leaf_reflectance 
   trand <- (1-td[iv+1]) * leaf_transmitance + td[iv+1]
   aiv   <- refld - trand*trand/refld
@@ -215,6 +218,7 @@ f_rt_norman <- function(.,l,
   for(iv in 2:(nlayers+1)) {
     
     # Per unit ground area (W/m2 ground)
+    # APW: leaf_scattering assumed constant here 
     direct[iv]  <- .super$env$par_dir*tbcum[iv] * (1-tb[iv]) * (1-.super$state_pars$lscattering)
     diffuse[iv] <- (swdn[iv] + swup[iv-1])      * (1-td[iv]) * (1-.super$state_pars$lscattering)
     
