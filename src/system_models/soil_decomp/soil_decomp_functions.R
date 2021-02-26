@@ -22,6 +22,9 @@ f_decomp_lin        <- function(.,C,t,i) C[i]*.super$pars$k[[i]]
 # non-linear Michaelis-Menten decomp, a function of microbial biomass
 f_decomp_MM_microbe <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[i])
 
+# reverse Michaelis-Menten decomp
+f_decomp_RMM_microbe <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[2])
+
 # density-dependent turnover as in Georgiou et al. 2017  
 f_decomp_dd         <- function(.,C,t,i) (C[i]^.super$pars$beta) * .super$pars$k[[i]]                                  
 
