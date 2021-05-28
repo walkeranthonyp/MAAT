@@ -299,12 +299,15 @@ f_tcor_jmax_lin <- function(.) {
 f_tcor_jmax_lin_thome <- function(., var, ... ) {
 
   # currently just setting home temp to also be leaf temp 
-  .super$pars$home_temp[] <- .super$state$leaf_temp 
+  #.super$pars$home_temp[] <- .super$state$leaf_temp 
+ 
+  print('')
+  print(var)
   
   # CLM limits the range of growth temps 
-  ( .super$pars$a_jvt_25[[var]] + .super$state$home_temp * .super$pars$b_jvt_25[[var]] + 
-    (.super$state$leaf_temp - .super$pars$home_temp ) * .super$pars$c_jvt_25[[var]] )  / 
-    (.super$pars$a_jvt_25[[var]] + 25*.super$pars$b_jvt_25[[var]] ) 
+  ( .super$pars$a_jvt_25 + .super$pars$home_temp * .super$pars$b_jvt_25 + 
+    (.super$state$leaf_temp - .super$pars$home_temp ) * .super$pars$c_jvt_25)  / 
+    (.super$pars$a_jvt_25 + 25*.super$pars$b_jvt_25 ) 
  
 }
 
@@ -443,11 +446,19 @@ f_rs_dewar2019 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
+  1 / ( .super$pars$g0 + .$rs_fe()*A*.super$env$atm_press*1e-6/(c-.super$state_pars$gstar) ) 
+}
+
+f_rs_dewar2019_gamma <- function(., A=.super$state$A, c=.super$state$cb ) {
+  # expects c in Pa
+  # output in m2s mol-1 h2o
+  
   1 / ( .super$pars$g0 + .$rs_fe()*A*.super$env$atm_press*1e-6/(c-.super$state_pars$gamma) ) 
 }
 
-f_rs_dewar2019_fe  <- f_rs_medlyn2011_fe
-f_rs_dewar2019_r0  <- f_rs_medlyn2011_r0
+
+f_rs_dewar2019_fe  <- f_rs_dewar2019_gamma_fe  <- f_rs_medlyn2011_fe
+f_rs_dewar2019_r0  <- f_rs_dewar2019_gamma_r0  <- f_rs_medlyn2011_r0
 
 
 # Leuning et al 1995 eq for stomatal resistance
@@ -782,6 +793,13 @@ f_deltaS <- function(., var, ... ) {
 }
 
 # calculate deltaS as a function of growth temp
+f_Ea_lin_t <- function(., var, ... ) {
+
+  # CLM limits the range of growth temps 
+  .super$pars$a_Ea_t[[var]] + .super$state$leaf_temp * .super$pars$b_Ea_t[[var]] 
+}
+
+# calculate deltaS as a function of growth temp
 f_deltaS_lin_t <- function(., var, ... ) {
 
   # CLM limits the range of growth temps 
@@ -793,10 +811,10 @@ f_deltaS_lin_t <- function(., var, ... ) {
 f_deltaS_lin_thome <- function(., var, ... ) {
 
   # currently just setting home temp to also be leaf temp 
-  .super$pars$home_temp[] <- .super$state$leaf_temp 
+  #.super$pars$home_temp[] <- .super$state$leaf_temp 
   
   # CLM limits the range of growth temps 
-  .super$pars$a_deltaS_t[[var]] + .super$state$home_temp * .super$pars$b_deltaS_t[[var]] + 
+  .super$pars$a_deltaS_t[[var]] + .super$pars$home_temp * .super$pars$b_deltaS_t[[var]] + 
     (.super$state$leaf_temp - .super$pars$home_temp ) * .super$pars$c_deltaS_t[[var]]  
 }
 
