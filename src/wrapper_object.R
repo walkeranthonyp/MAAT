@@ -9,7 +9,7 @@
 library(proto)
 source('wrapper_functions.R')
 source('functions/general_functions.R')
-source('functions/packagemod_functions.R')
+#source('functions/packagemod_functions.R')
 source('functions/calc_functions.R')
 source('wrapper_functions_mcmc.R')
 

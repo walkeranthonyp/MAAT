@@ -15,7 +15,7 @@ source('../../functions/solver_tridiag.R')
 
 # Sellers et al 1992
 f_sys_bigleaf_s1992 <- function(., ... ) {
-  # this function was described in Sellers to deal with time intergrated values of fpar and k
+  # this function was described in Sellers to deal with time integrated values of fpar and k
   # could write wrapper function or if to pass different k coefficients
 
   # calculate fPAR, after Sellers 1992, see also Friend 2001
@@ -179,16 +179,32 @@ f_sys_2bigleaf <- function(.) {
 f_sys_multilayer <- function(.) {
 
   # initialise layers
-  linc           <- .super$env$lai / .super$pars$layers
-  ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$env$lai-linc*.super$pars$k_layer), linc )
-  layers         <- .super$pars$layers # this could be a function to dynamically specify the no. of layers
+  #linc           <- .super$env$lai / .super$pars$layers
+  #ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$env$lai-linc*.super$pars$k_layer), linc )
+  #layers         <- .super$pars$layers # this could be a function to dynamically specify the no. of layers
+  .$canopy_discretisation()
+  layers <- .super$state_pars$nlayers <- length(.super$state_pars$ca_calc_points) 
   # APW: consider putting this function in fns to avoid needing to use .super and .=.super
   # APW: could be associated with sys function with a suffix and used for this and 2bigleaf 
-  .super$init_vert(.=.super, l=layers ) # reallocating this memory is unnecessary in cases where layers is a fixed parameter.
-  #print(ca_calc_points)
+  #.super$init_vert(.=.super, l=layers ) # reallocating this memory is unnecessary in cases where layers is a fixed parameter.
+  .super$init_vert(.=.super, l=length(.super$state_pars$ca_calc_points) ) 
+  if(.$cpars$verbose) {
+    print('')
+    print('can disc:')
+    print('lai:')
+    print(.super$env$lai)
+    print('ca_calc_points:')
+    print(.super$state_pars$ca_calc_points)
+    print('dlai:')
+    print(.super$state_pars$linc)
+    print('cummulative lai:')
+    print(.super$state_pars$cum_lai)
+    print('')
+  }
 
   # canopy leaf layer parameters
-  leaf_vars <- .$traits_scale(ca_calc_points)
+  #leaf_vars <- .$traits_scale(ca_calc_points)
+  leaf_vars <- .$traits_scale()
 #  # APW: could be a separate function shared by multilayer and 2bigleaf
 #  .super$state$vert$leaf$leaf.leafN_area[]   <- .$scale.n(ca_calc_points, var='n' )
 #  .super$state$vert$leaf$leaf.atref.vcmax[]  <- .$scale.vcmax(ca_calc_points, var='vcmax' )
@@ -203,13 +219,14 @@ f_sys_multilayer <- function(.) {
   # canopy leaf layer environment
   # APW: when called as a character string for some reason the proto . is not fully recognised within the function
   #      parameters can be found, but aliased function calls fail, maybe named function calls work
-  .super$state$vert$leaf$leaf.ca_conc[]      <- .$scale.ca_conc(ca_calc_points, var='ca_conc', vlist='env' )
-  .super$state$vert$leaf$leaf.vpd[]          <- .$scale.vpd(ca_calc_points, var='vpd', vlist='env' )
+  .super$state$vert$leaf$leaf.ca_conc[]      <- .$scale.ca_conc(.super$state_pars$ca_calc_points, var='ca_conc', vlist='env' )
+  .super$state$vert$leaf$leaf.vpd[]          <- .$scale.vpd(.super$state_pars$ca_calc_points, var='vpd', vlist='env' )
   leaf_vars <- c(leaf_vars, 'leaf.ca_conc', 'leaf.vpd', 'leaf.par' )
-  #print(.super$state$vert$leaf)
+  if(.$cpars$verbose) print(.super$state$vert$leaf)
 
   # Light scaling
-  .$rt(ca_calc_points)
+  #.$rt(ca_calc_points)
+  .$rt()
 
   # sunlit leaves / direct light
   .super$state$vert$leaf$leaf.par[] <- .super$state$vert$sun$apar
@@ -271,12 +288,16 @@ f_sys_multilayer <- function(.) {
   # integrate canopy layers
   # canopy sum values
   for(vname in c('apar','A','gb','gs','gi','g','rd','Acg_lim','Ajg_lim','Apg_lim') ) {
-    .super$state$integrated[[vname]][] <- sum(.super$state$vert$layer[[vname]]) * linc
+    #.super$state$integrated[[vname]][] <- sum(.super$state$vert$layer[[vname]]) * linc
+    .super$state$integrated[[vname]][] <- sum(.super$state$vert$layer[[vname]] * .super$state_pars$linc )
   }
   # canopy mean values - not sure that this is correct
-  .super$state$integrated$cc[] <- sum(.super$state$vert$layer$cc) * linc / .super$env$lai
-  .super$state$integrated$ci[] <- sum(.super$state$vert$layer$ci) * linc / .super$env$lai
-  .super$state$integrated$cb[] <- sum(.super$state$vert$layer$cb) * linc / .super$env$lai
+  #.super$state$integrated$cc[] <- sum(.super$state$vert$layer$cc) * linc / .super$env$lai
+  #.super$state$integrated$ci[] <- sum(.super$state$vert$layer$ci) * linc / .super$env$lai
+  #.super$state$integrated$cb[] <- sum(.super$state$vert$layer$cb) * linc / .super$env$lai
+  .super$state$integrated$cc[] <- sum(.super$state$vert$layer$cc * .super$state_pars$linc ) / .super$env$lai
+  .super$state$integrated$ci[] <- sum(.super$state$vert$layer$ci * .super$state_pars$linc ) / .super$env$lai
+  .super$state$integrated$cb[] <- sum(.super$state$vert$layer$cb * .super$state_pars$linc ) / .super$env$lai
 }
 
 

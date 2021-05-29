@@ -8,6 +8,64 @@
 
 
 
+# Canopy discretisation 
+################################
+
+# break canopy into <layers> equally sized bins
+f_canopy_discretisation_fixednumber_const <- function(.) {
+
+  .super$state_pars$linc <- linc <- .super$env$lai/.super$pars$layers
+  #.super$state_pars$ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$env$lai-linc*.super$pars$k_layer), linc )
+  .super$state_pars$ca_calc_points <- seq((0+linc*.super$pars$k_layer), (.super$env$lai-linc+linc*.super$pars$k_layer), linc )
+  .super$state_pars$linc <- rep(linc, length(.super$state_pars$ca_calc_points) ) 
+}
+
+# break canopy into equally sized bins, up to and including <maxlai>
+f_canopy_discretisation_fixedbins_const <- function(.) {
+
+  .super$state_pars$linc <- linc <- .super$pars$linc
+  #cum_lai <- seq(1, .super$pars$can_disc$maxlai, linc )
+  cum_lai <- seq(1, .super$env$lai, linc )
+  .super$state_pars$ca_calc_points <- c(0,cum_lai) + linc*.super$pars$k_layer
+  .super$state_pars$cum_lai <- c(cum_lai, cum_lai[length(cum_lai)] + linc )
+
+  # calculate linc etc for final layer
+  lai_diff <- .super$env$lai - .super$state_pars$cum_lai[length(subset)-1]  
+  .super$state_pars$cum_lai[length(subset)]        <- .super$env$lai
+  .super$state_pars$linc[length(subset)]           <- lai_diff 
+  #.super$state_pars$ca_calc_points[length(subset)] <- .super$state_pars$ca_calc_points[subset]
+}
+
+# break canopy into <layers> exponentially sized bins
+f_canopy_discretisation_fixednumber_exp <- function(.) {
+
+}
+
+# break canopy into exponentially increasing sized bins, up to and including <maxlai>
+f_canopy_discretisation_fixedbins_exp <- function(.) {
+
+  .super$state_pars$linc <- .super$pars$can_disc$layer1 * exp(.super$pars$k$can_disc * 0:1000 )  
+  cum_lai <- cumsum(.super$state_pars$linc)
+   if(cum_lai[length(cum_lai)]<.super$env$lai) stop('Canopy discretisation parameters result in canopy layers > max layers of 1000.') 
+  .super$state_pars$ca_calc_points <- c(0,cum_lai[-length(cum_lai)]) + .super$state_pars$linc*.super$pars$k_layer
+  
+  # reduce vectors to include maxlai and no more 
+  #subset  <- which(cum_lai<.super$pars$can_disc$maxlai)
+  subset  <- which(cum_lai<.super$env$lai)
+  subset  <- c(subset,length(subset)+1)
+  .super$state_pars$cum_lai        <- cum_lai[subset]
+  .super$state_pars$linc           <- .super$state_pars$linc[subset]
+  .super$state_pars$ca_calc_points <- .super$state_pars$ca_calc_points[subset]
+
+  # calculate linc etc for final layer
+  lai_diff <- .super$env$lai - .super$state_pars$cum_lai[length(subset)-1]  
+  .super$state_pars$cum_lai[length(subset)]        <- .super$env$lai
+  .super$state_pars$linc[length(subset)]           <- lai_diff 
+  #.super$state_pars$ca_calc_points[length(subset)] <- .super$state_pars$ca_calc_points[subset]
+}
+
+
+
 # RT schemes 
 ################################
 
@@ -16,7 +74,7 @@
 # - e.g. accounting for diffuse light, adjusting k by m or not, etc.
 
 # Beer's law - from Sellers (1992) and citing Goudriaan (1977) 
-f_rt_beerslaw_goudriaan <- function(.,l) {
+f_rt_beerslaw_goudriaan <- function(., l=.super$state_pars$ca_calc_points ) {
   # calculates direct beam light attenuation through the canopy
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
@@ -30,7 +88,7 @@ f_rt_beerslaw_goudriaan <- function(.,l) {
 # - ignores conversion of incident light per unit ground area to incident light per unit leaf area
 # - considers scattering in absorption because the leaf models does not when nested in canopy
 # - but scattering is not considered in RT, k_dir not k_dirprime is used
-f_rt_beerslaw <- function(.,l) {
+f_rt_beerslaw <- function(., l=.super$state_pars$ca_calc_points ) {
   # calculates direct beam light attenuation through the canopy
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
@@ -41,7 +99,7 @@ f_rt_beerslaw <- function(.,l) {
 
 
 # Goudriaan
-f_rt_goudriaan <- function(.,l) {
+f_rt_goudriaan <- function(., l=.super$state_pars$ca_calc_points ) {
   # as described in Walker et al. (2017) New Phyt, supplement; from Spitters 1986 and Wang 2003 Func.Plant Biol.     
   # all below values are for visible wavelengths 
 
@@ -63,7 +121,7 @@ f_rt_goudriaan <- function(.,l) {
 
 # Norman
 # - using Bonan's tridiagonal solution
-f_rt_norman <- function(.,l, 
+f_rt_norman <- function(., l=.super$state_pars$ca_calc_points, 
                         leaf_reflectance=.super$pars$leaf_reflectance,
                         leaf_transmitance=.super$pars$leaf_transmitance,
                         soil_reflectance_dir=.super$pars$soil_reflectance_dir,
@@ -75,7 +133,8 @@ f_rt_norman <- function(.,l,
   # - so l reversed
   nlayers <- length(l)
   sumlai  <- c(NA, rev(l) )
-  dLAI    <- c(NA, rep(l[2]-l[1],length(l)) )
+  #dLAI    <- c(NA, rep(l[2]-l[1],length(l)) )
+  dLAI    <- c(NA, rev(.super$state_pars$linc) ) 
 
   # APW: these initial calculations assume that leaf angle distribution is constant through the canopy    
   # APW: k_dir assumed fixed here   
@@ -99,9 +158,9 @@ f_rt_norman <- function(.,l,
   
   # tbcum (frac toc direct beam incident at top of each layer)
   tbcum     <- rep(NA,nlayers+1)
-  cumlai    <- 0
   iv        <- nlayers+1
   tbcum[iv] <- 1
+  cumlai    <- 0
   for (iv in (nlayers+1):2) {
     cumlai      <- cumlai + dLAI[iv]
     # APW: k_dir assumed fixed here   
@@ -247,8 +306,10 @@ f_rt_norman <- function(.,l,
   }
  
   # return calculated values 
- .super$state$vert$sun$apar   <- rev(swleafsun[2:(nlayers+1)])
- .super$state$vert$shade$apar <- rev(swleafsha[2:(nlayers+1)])
+ .super$state$vert$sun$apar       <- rev(swleafsun[2:(nlayers+1)])
+ .super$state$vert$shade$apar     <- rev(swleafsha[2:(nlayers+1)])
+ .super$state$vert$sun$fraction   <- rev(.super$state$vert$sun$fraction)
+ .super$state$vert$shade$fraction <- rev(.super$state$vert$shade$fraction)
   
   # Conservation check
   # Total radiation balance: absorbed <- incoming - outgoing
@@ -505,16 +566,16 @@ f_par_partition_spitters_daily <- function(.) {
 ################################
 
 # function to apply scaling functions to leaf traits
-f_traits_scale <- function(., ca_calc_points ) {
+f_traits_scale <- function(., l=.super$state_pars$ca_calc_points ) {
 
-  .super$state$vert$leaf$leaf.leafN_area[]   <- .$scale.n(ca_calc_points, var='n' )
-  .super$state$vert$leaf$leaf.atref.vcmax[]  <- .$scale.vcmax(ca_calc_points, var='vcmax' )
+  .super$state$vert$leaf$leaf.leafN_area[]   <- .$scale.n(l, var='n' )
+  .super$state$vert$leaf$leaf.atref.vcmax[]  <- .$scale.vcmax(l, var='vcmax' )
   leaf_vars <- c('leaf.leafN_area', 'leaf.atref.vcmax' )
 
   if(.super$fnames$scale$vcmax=='f_scale_two_layer') {
-    .super$state$vert$leaf$leaf.atref.jmax[] <- .$scale.jmax(ca_calc_points, var='jmax' )
-    .super$state$vert$leaf$leaf.f[]          <- .$scale.f(ca_calc_points, var='f' )
-    .super$state$vert$leaf$leaf.g1_medlyn[]  <- .$scale.g1(ca_calc_points, var='g1' )
+    .super$state$vert$leaf$leaf.atref.jmax[] <- .$scale.jmax(l, var='jmax' )
+    .super$state$vert$leaf$leaf.f[]          <- .$scale.f(l, var='f' )
+    .super$state$vert$leaf$leaf.g1_medlyn[]  <- .$scale.g1(l, var='g1' )
     leaf_vars <- c(leaf_vars, 'leaf.atref.jmax', 'leaf.f', 'leaf.g1_medlyn' )
   }
   leaf_vars
@@ -522,11 +583,11 @@ f_traits_scale <- function(., ca_calc_points ) {
 
 
 # Uniform scaling
-f_scale_uniform <- function(., layers, var, vlist='env' ) {
+f_scale_uniform <- function(., l, var, vlist='env' ) {
   .super[[vlist]][[var]]
 }
 
-f_scale_uniform_layer0 <- function(., layers, var, vlist='pars' ) {
+f_scale_uniform_layer0 <- function(., l, var, vlist='pars' ) {
   .super[[vlist]][[var]]$layer0
 }
 

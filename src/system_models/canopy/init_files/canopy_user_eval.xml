@@ -1,10 +1,6 @@
 <eval_data_translator>
   <state>
     <canopy>
-      <mass_a>'column name of variable in evaldata file'</mass_a>
-      <C_to_N>'column name of variable in evaldata file'</C_to_N>
-      <totalN>'column name of variable in evaldata file'</totalN>
-      <vcmax0>'column name of variable in evaldata file'</vcmax0>
       <vert.leaf.leaf.ca_conc>'column name of variable in evaldata file'</vert.leaf.leaf.ca_conc>
       <vert.leaf.leaf.vpd>'column name of variable in evaldata file'</vert.leaf.leaf.vpd>
       <vert.leaf.leaf.par>'column name of variable in evaldata file'</vert.leaf.leaf.par>

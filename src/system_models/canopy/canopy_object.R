@@ -115,14 +115,15 @@ canopy_object$run_leaf <- function(., ii, df ) {
 # function names
 ####################################
 canopy_object$fnames <- list(
-  sys           = 'f_sys_multilayer',
-  pars_init     = 'f_pars_init',
-  traits_scale  = 'f_traits_scale',
-  par_partition = 'f_par_partition_spitters_hourly',
-  rt            = 'f_rt_beerslaw_goudriaan',
-  gz            = 'f_gz_rossgoudriaan',
-  albedo        = 'f_albedo_goudriaan',
-  diffalbedo    = 'f_diffalbedo_goudriaan',
+  sys                   = 'f_sys_multilayer',
+  pars_init             = 'f_pars_init',
+  canopy_discretisation ='f_canopy_discretisation_fixednumber_const',
+  traits_scale          = 'f_traits_scale',
+  par_partition         = 'f_par_partition_spitters_hourly',
+  rt                    = 'f_rt_beerslaw_goudriaan',
+  gz                    = 'f_gz_rossgoudriaan',
+  albedo                = 'f_albedo_goudriaan',
+  diffalbedo            = 'f_diffalbedo_goudriaan',
   layer0 = list(
     vcmax = 'f_layer0_constant'
   ),
@@ -245,6 +246,10 @@ canopy_object$state <- list(
 # state parameters (i.e. calculated parameters)
 ####################################
 canopy_object$state_pars <- list(
+  linc           = numeric(1),        # LAI increment in each layer of canopy discretisation (scalar or vector)  
+  ca_calc_points = numeric(1),        # LAI points for calculating RT and A in canopy discretisation (vector)  
+  cum_lai        = numeric(1),        # cummualtive LAI at lower boundary in canopy discretisation (vector)  
+  nlayers        = numeric(1),        # number of layers in canopy discretisation (vector)  
   lscattering  = numeric(1),        # leaf reflectance + transmitance    
   m            = numeric(1),        # goudriaan's scattering adjustment for non-optically black leaves
   zi           = numeric(1),        # nz zenith angles (radians) for numerical approximation 
@@ -275,7 +280,7 @@ canopy_object$pars   <- list(
   G                     = 0.5,      # light extinction coefficient assuming leaves are black bodies and randomly distributed horizontally, 0.5 assumes random or spherical leaf orientation, 1.5 for Sphagnum Williams & Flannagan, 1998
   chi_l                 = 0.0,      # Ross index indicating departure from spherical leaf angle distribution 
   can_clump             = 1,        # canopy clumping coefficient, 1 - random horizontal distribution, leaves become more clumped as coefficient goes towards zero.
-  k_layer               = 0.5,      # for multilayer/ numerical 2bigleaf canopy, where in the layer to calculate APAR & physiology, 0 - bottom, 0.5 - midway, 1 - top; not the correct solution to the simplifying assumption of Beer's law (Wang 2003)
+  k_layer               = 0.5,      # for multilayer/ numerical 2bigleaf canopy, where in the layer to calculate APAR & physiology, 0 - top, 0.5 - midway, 1 - bottom; not the correct solution to the simplifying assumption of Beer's law (Wang 2003)
   alb_soil              = 0.15,     # soil albedo
   soil_reflectance_dir  = 0.1,      # soil reflectance for direct radiation (visible) 
   soil_reflectance_diff = 0.1,      # soil reflectance for diffuse radiation (visible) 
@@ -286,14 +291,19 @@ canopy_object$pars   <- list(
   mass_a  = 10,
   C_to_N  = 40,
   
-  k = list(                         # scaling exponent for vcmax through canopy
-    vcmax  = 0.2
+  k = list(                         # scaling exponent through canopy, for
+    vcmax    = 0.2,                   # vcmax
+    can_disc = 0.2                    # canopy discretisation, NOTE this is currently the opposite sign to vcmax etc
   ),    
-  k_expa = list(                    # intercept parameter in exponnent to calculate scaling exponent for vcmax through canopy
+  k_expa = list(                    # intercept parameter in exponent to calculate scaling exponent for vcmax through canopy
     vcmax = -2.43    
   ),
   k_expb = list(                    # slope parameter in exponent to calculate scaling exponent for vcmax through canopy
     vcmax = 9.63e-3   
+  ),
+  can_disc = list(                  # canopy discretisation:
+    layer1 = 0.1,                     # first canopy layer thickness
+    maxlai = 12                       # maximum LAI for canopy discretisation 
   ),
   n = list(                         # N area:
     layer0 = 3,                     #   at extreme top of canopy
@@ -349,7 +359,8 @@ f_output_canopy_full <- function(.) {
 }
 
 f_output_canopy_run <- function(.) {
-  c(A=.$state$integrated$A, gs=.$state$integrated$gs, rd=.$state$integrated$rd)
+  c(A=.$state$integrated$A, gs=.$state$integrated$gs, rd=.$state$integrated$rd, fapar=.$state$integrated$fapar,
+    nlayers=.$state_pars$nlayers )
 }
 
 f_output_canopy_mcmc <- function(.) {
@@ -391,9 +402,12 @@ f_output_canopy_wtc <- function(.) {
 
 canopy_object$.test <- function(., verbose=T,
                                 canopy.par=2000, canopy.ca_conc=400, 
-                                canopy.lai=6, canopy.layers=10,
+                                canopy.lai=6, canopy.layers=10, 
+                                canopy.can_disc.layer1=0.1, 
+                                canopy.k.can_disc=0.2, 
                                 canopy.diffalbedo='f_diffalbedo_approx', 
-                                canopy.rt='f_rt_beerslaw_goudriaan'
+                                canopy.rt='f_rt_beerslaw_goudriaan',
+                                canopy.canopy_discretisation='f_canopy_discretisation_fixednumber_const'
                                 ) {
 
   # Build, assign fnames, configure
@@ -404,14 +418,17 @@ canopy_object$.test <- function(., verbose=T,
   .$env$ca_conc    <- canopy.ca_conc
   .$env$lai        <- canopy.lai
   .$pars$layers    <- canopy.layers
-  .$state$mass_a   <- 175
-  .$state$C_to_N   <- 40
+  .$pars$k$can_disc      <- canopy.k.can_disc
+  .$pars$can_disc$layer1 <- canopy.can_disc.layer1
+  .$state$mass_a         <- 175
+  .$state$C_to_N         <- 40
   
   if(grepl('norman',canopy.rt) | grepl('goudriaan',canopy.rt)) {
     .$fnames$pars_init <- 'f_pars_init_full'
   }
   .$fnames$diffalbedo <- canopy.diffalbedo
   .$fnames$rt         <- canopy.rt
+  .$fnames$canopy_discretisation <-  canopy.canopy_discretisation
   
   .$configure_test() 
   .$leaf$configure_test() 
@@ -425,7 +442,8 @@ canopy_object$.test_2bigleaf <- function(., verbose=F,
                                          canopy.lai=6, canopy.layers_2bigleaf=100,
                                          canopy.can_clump=1,
                                          canopy.diffalbedo='f_diffalbedo_goudriaan', 
-                                         canopy.rt='f_rt_goudriaan'
+                                         canopy.rt='f_rt_goudriaan',
+                                         canopy.canopy_discretisation='f_canopy_discretisation_fixednumber_const'
                                          ) {
          
   # Build, assign fnames, configure
@@ -442,7 +460,8 @@ canopy_object$.test_2bigleaf <- function(., verbose=F,
   .$fnames$pars_init  <- 'f_pars_init_full'
   .$fnames$diffalbedo <- canopy.diffalbedo
   .$fnames$rt         <- canopy.rt
-  
+  .$fnames$canopy_discretisation <-  canopy.canopy_discretisation
+
   .$configure_test() 
   .$leaf$configure_test() 
 

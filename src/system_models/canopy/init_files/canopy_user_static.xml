@@ -3,25 +3,35 @@
     <canopy>
       <sys>NA</sys>
       <pars_init>NA</pars_init>
+      <canopy_discretisation>NA</canopy_discretisation>
+      <traits_scale>NA</traits_scale>
       <par_partition>NA</par_partition>
       <rt>NA</rt>
       <gz>NA</gz>
       <albedo>NA</albedo>
       <diffalbedo>NA</diffalbedo>
-      <vcmax0>NA</vcmax0>
-      <k_vcmax>NA</k_vcmax>
-      <scale_n>NA</scale_n>
-      <scale_vcmax>NA</scale_vcmax>
-      <scale_jmax>NA</scale_jmax>
-      <scale_f>NA</scale_f>
-      <scale_g1>NA</scale_g1>
-      <scale_ca>NA</scale_ca>
-      <scale_vpd>NA</scale_vpd>
+      <layer0>
+        <vcmax>NA</vcmax>
+      </layer0>
+      <k>
+        <vcmax>NA</vcmax>
+        <n>NA</n>
+      </k>
+      <scale>
+        <n>NA</n>
+        <vcmax>NA</vcmax>
+        <jmax>NA</jmax>
+        <f>NA</f>
+        <g1>NA</g1>
+        <ca_conc>NA</ca_conc>
+        <vpd>NA</vpd>
+      </scale>
     </canopy>
   </fnames>
   <pars>
     <canopy>
       <layers>NA</layers>
+      <layers_2bigleaf>NA</layers_2bigleaf>
       <nz>NA</nz>
       <can_lai_upper>NA</can_lai_upper>
       <leaf_cores>NA</leaf_cores>
@@ -34,23 +44,45 @@
       <soil_reflectance_diff>NA</soil_reflectance_diff>
       <leaf_reflectance>NA</leaf_reflectance>
       <leaf_transmitance>NA</leaf_transmitance>
-      <vcmax0>NA</vcmax0>
-      <k_vcmax>NA</k_vcmax>
-      <k_vcmax_expa>NA</k_vcmax_expa>
-      <k_vcmax_expb>NA</k_vcmax_expb>
+      <mass_a>NA</mass_a>
+      <C_to_N>NA</C_to_N>
+      <k>
+        <vcmax>NA</vcmax>
+        <can_disc>NA</can_disc>
+      </k>
+      <k_expa>
+        <vcmax>NA</vcmax>
+      </k_expa>
+      <k_expb>
+        <vcmax>NA</vcmax>
+      </k_expb>
+      <can_disc>
+        <layer1>NA</layer1>
+        <maxlai>NA</maxlai>
+      </can_disc>
+      <n>
+        <layer0>NA</layer0>
+        <layer1>NA</layer1>
+        <layer2>NA</layer2>
+        <total>NA</total>
+      </n>
       <vcmax>
+        <layer0>NA</layer0>
         <layer1>NA</layer1>
         <layer2>NA</layer2>
       </vcmax>
       <jmax>
+        <layer0>NA</layer0>
         <layer1>NA</layer1>
         <layer2>NA</layer2>
       </jmax>
       <f>
+        <layer0>NA</layer0>
         <layer1>NA</layer1>
         <layer2>NA</layer2>
       </f>
       <g1>
+        <layer0>NA</layer0>
         <layer1>NA</layer1>
         <layer2>NA</layer2>
       </g1>

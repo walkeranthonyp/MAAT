@@ -3,25 +3,35 @@
     <canopy>
       <sys>'f_sys_multilayer'</sys>
       <pars_init>'f_pars_init'</pars_init>
+      <canopy_discretisation>'f_canopy_discretisation_fixednumber_const'</canopy_discretisation>
+      <traits_scale>'f_traits_scale'</traits_scale>
       <par_partition>'f_par_partition_spitters_hourly'</par_partition>
       <rt>'f_rt_beerslaw_goudriaan'</rt>
       <gz>'f_gz_rossgoudriaan'</gz>
       <albedo>'f_albedo_goudriaan'</albedo>
       <diffalbedo>'f_diffalbedo_goudriaan'</diffalbedo>
-      <vcmax0>'f_vcmax0_constant'</vcmax0>
-      <k_vcmax>'f_k_vcmax_constant'</k_vcmax>
-      <scale_n>'f_scale_n_CLMuniform'</scale_n>
-      <scale_vcmax>'f_scale_vcmax_beerslaw'</scale_vcmax>
-      <scale_jmax>'f_scale_two_layer'</scale_jmax>
-      <scale_f>'f_scale_two_layer'</scale_f>
-      <scale_g1>'f_scale_two_layer'</scale_g1>
-      <scale_ca>'f_scale_ca_uniform'</scale_ca>
-      <scale_vpd>'f_scale_vpd_uniform'</scale_vpd>
+      <layer0>
+        <vcmax>'f_layer0_constant'</vcmax>
+      </layer0>
+      <k>
+        <vcmax>'f_k_constant'</vcmax>
+        <n>'f_k_kdirect'</n>
+      </k>
+      <scale>
+        <n>'f_scale_uniform_layer0'</n>
+        <vcmax>'f_scale_beerslaw'</vcmax>
+        <jmax>'f_scale_two_layer'</jmax>
+        <f>'f_scale_two_layer'</f>
+        <g1>'f_scale_two_layer'</g1>
+        <ca_conc>'f_scale_uniform'</ca_conc>
+        <vpd>'f_scale_uniform'</vpd>
+      </scale>
     </canopy>
   </fnames>
   <pars>
     <canopy>
       <layers>10</layers>
+      <layers_2bigleaf>10</layers_2bigleaf>
       <nz>9</nz>
       <can_lai_upper>2.6</can_lai_upper>
       <leaf_cores>1</leaf_cores>
@@ -34,23 +44,45 @@
       <soil_reflectance_diff>0.1</soil_reflectance_diff>
       <leaf_reflectance>0.1</leaf_reflectance>
       <leaf_transmitance>0.05</leaf_transmitance>
-      <vcmax0>35</vcmax0>
-      <k_vcmax>0.2</k_vcmax>
-      <k_vcmax_expa>-2.43</k_vcmax_expa>
-      <k_vcmax_expb>0.00963</k_vcmax_expb>
+      <mass_a>10</mass_a>
+      <C_to_N>40</C_to_N>
+      <k>
+        <vcmax>0.2</vcmax>
+        <can_disc>0.2</can_disc>
+      </k>
+      <k_expa>
+        <vcmax>-2.43</vcmax>
+      </k_expa>
+      <k_expb>
+        <vcmax>0.00963</vcmax>
+      </k_expb>
+      <can_disc>
+        <layer1>0.1</layer1>
+        <maxlai>12</maxlai>
+      </can_disc>
+      <n>
+        <layer0>3</layer0>
+        <layer1>2</layer1>
+        <layer2>1</layer2>
+        <total>7</total>
+      </n>
       <vcmax>
+        <layer0>35</layer0>
         <layer1>108.7</layer1>
         <layer2>67.9</layer2>
       </vcmax>
       <jmax>
+        <layer0>65</layer0>
         <layer1>170</layer1>
         <layer2>76.3</layer2>
       </jmax>
       <f>
+        <layer0>0.41</layer0>
         <layer1>0.41</layer1>
         <layer2>0.34</layer2>
       </f>
       <g1>
+        <layer0>3</layer0>
         <layer1>3.41</layer1>
         <layer2>8.82</layer2>
       </g1>

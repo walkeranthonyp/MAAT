@@ -3,20 +3,16 @@
     <canopy>
       <sys>'c( 'f_sys_2bigleaf', 'f_sys_bigleaf_s1992', 'f_sys_multilayer' )'</sys>
       <pars_init>'c( 'f_pars_init', 'f_pars_init_full' )'</pars_init>
+      <canopy_discretisation>'c( 'f_canopy_discretisation_fixedbins_const', 'f_canopy_discretisation_fixedbins_exp', 'f_canopy_discretisation_fixednumber_const', 'f_canopy_discretisation_fixednumber_exp' )'</canopy_discretisation>
+      <traits_scale>'c( 'f_traits_scale' )'</traits_scale>
       <par_partition>'c( 'f_par_partition_env', 'f_par_partition_spitters_daily', 'f_par_partition_spitters_hourly' )'</par_partition>
       <rt>'c( 'f_rt_beerslaw', 'f_rt_beerslaw_goudriaan', 'f_rt_goudriaan', 'f_rt_norman' )'</rt>
       <gz>'c( 'f_gz_rossgoudriaan' )'</gz>
       <albedo>'c( 'f_albedo_goudriaan' )'</albedo>
       <diffalbedo>'c( 'f_diffalbedo_approx', 'f_diffalbedo_goudriaan' )'</diffalbedo>
-      <vcmax0>'c( 'f_vcmax0_constant' )'</vcmax0>
-      <k_vcmax>'c( 'f_k_vcmax_constant', 'f_k_vcmax_lloyd2012' )'</k_vcmax>
-      <scale_n>'c( 'f_scale_n_beerslaw', 'f_scale_n_CLMuniform' )'</scale_n>
-      <scale_vcmax>'c( 'f_scale_vcmax_beerslaw', 'f_scale_vcmax_uniform' )'</scale_vcmax>
-      <scale_jmax>'c(  )'</scale_jmax>
-      <scale_f>'c(  )'</scale_f>
-      <scale_g1>'c(  )'</scale_g1>
-      <scale_ca>'c( 'f_scale_ca_uniform' )'</scale_ca>
-      <scale_vpd>'c( 'f_scale_vpd_uniform' )'</scale_vpd>
+      <layer0>'c( 'f_layer0_constant' )'</layer0>
+      <k>'c( 'f_k_constant', 'f_k_exponential_exponent_flayer0', 'f_k_kdirect', 'f_k_vcmax_constant', 'f_k_vcmax_lloyd2012' )'</k>
+      <scale>'c( 'f_scale_beerslaw', 'f_scale_beerslaw_total', 'f_scale_ca_uniform', 'f_scale_n_beerslaw', 'f_scale_n_CLMuniform', 'f_scale_two_layer', 'f_scale_uniform', 'f_scale_uniform_layer0', 'f_scale_vcmax_beerslaw', 'f_scale_vcmax_uniform', 'f_scale_vpd_uniform' )'</scale>
     </canopy>
   </fnames>
 </options>
