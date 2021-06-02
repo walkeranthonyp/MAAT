@@ -222,7 +222,7 @@ f_sys_multilayer <- function(.) {
   .super$state$vert$leaf$leaf.ca_conc[]      <- .$scale.ca_conc(.super$state_pars$ca_calc_points, var='ca_conc', vlist='env' )
   .super$state$vert$leaf$leaf.vpd[]          <- .$scale.vpd(.super$state_pars$ca_calc_points, var='vpd', vlist='env' )
   leaf_vars <- c(leaf_vars, 'leaf.ca_conc', 'leaf.vpd', 'leaf.par' )
-  if(.$cpars$verbose) print(.super$state$vert$leaf)
+  if(.$cpars$verbose&F) print(.super$state$vert$leaf)
 
   # Light scaling
   #.$rt(ca_calc_points)
@@ -236,12 +236,13 @@ f_sys_multilayer <- function(.) {
   leaf_out <- vapply(1:layers, .$run_leaf, .super$leaf$output(), df=lmatrix )
   # assign data to canopy object data structure
   for(vname in row.names(leaf_out)) .super$state$vert$sun[[vname]][] <- leaf_out[vname,]
-  if(.$cpars$verbose) {
+  if(.$cpars$verbose&F) {
     print('', quote=F )
     print('Sun leaves:', quote=F )
-    print(lmatrix)
-    print(leaf_out)
+    #print(lmatrix)
+    #print(leaf_out)
     print(.super$state$vert$sun)
+    print('')
   }
 
   # shade leaves
@@ -253,12 +254,13 @@ f_sys_multilayer <- function(.) {
     leaf_out <- vapply(1:layers, .$run_leaf, .super$leaf$output(), df=lmatrix )
     # assign data to canopy object data structure
     for(vname in row.names(leaf_out)) .super$state$vert$shade[[vname]][] <- leaf_out[vname,]
-    if(.$cpars$verbose) {
+    if(.$cpars$verbose&F) {
       print('', quote=F )
       print('Shade leaves:', quote=F )
-      print(lmatrix)
-      print(leaf_out)
+      #print(lmatrix)
+      #print(leaf_out)
       print(.super$state$vert$shade)
+      print('')
     }
   }
 
@@ -277,7 +279,7 @@ f_sys_multilayer <- function(.) {
   .super$state$vert$layer$Apg_lim[] <- 
     .super$state$vert$sun$A * (.super$state$vert$sun$lim==7) * .super$state$vert$sun$fraction + 
     .super$state$vert$shade$A * (.super$state$vert$shade$lim==7) * .super$state$vert$shade$fraction
-  if(.$cpars$verbose) {
+  if(.$cpars$verbose&F) {
     print('', quote=F )
     print('Layer:', quote=F )
     print(.super$state$vert$layer)

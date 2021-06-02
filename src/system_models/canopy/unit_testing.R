@@ -51,16 +51,16 @@ source('canopy_object.R')
 canopy_object$.test(canopy.par=1000, canopy.ca_conc=200)
 canopy_object$.test(canopy.rt='f_rt_goudriaan')
 canopy_object$.test(
-  verbose=F,
+  verbose=T,
   canopy.lai=6,
   canopy.layers=20,
   canopy.rt='f_rt_goudriaan',
   canopy.diffalbedo='f_diffalbedo_goudriaan'
 )
 canopy_object$.test(
-  verbose=F,
+  verbose=T,
   canopy.lai=6,
-  canopy.layers=6,
+  canopy.layers=20,
   canopy.rt='f_rt_norman',
   canopy.diffalbedo='f_diffalbedo_goudriaan'
 )
@@ -72,7 +72,7 @@ canopy_object$.test(
   canopy.diffalbedo='f_diffalbedo_goudriaan'
 )
 canopy_object$.test(
-  verbose=F,
+  verbose=T,
   canopy.lai=6,
   canopy.layers=200,
   canopy.rt='f_rt_norman',

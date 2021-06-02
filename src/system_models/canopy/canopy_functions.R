@@ -142,7 +142,8 @@ f_rt_norman <- function(., l=.super$state_pars$ca_calc_points,
   .super$state$vert$shade$fraction[] <- 1 - .super$state$vert$sun$fraction
  
   # tb (frac direct beam not intercepted in each layer)
-  # APW: k_dir assumed fixed here   
+  # APW: k_dir assumed fixed here  
+  # APW: why is clumping not considered here? 
   tb <- exp(-.super$state_pars$k_dir * dLAI )
  
   # td (frac diffuse beam not intercepted in each layer)
@@ -163,7 +164,7 @@ f_rt_norman <- function(., l=.super$state_pars$ca_calc_points,
   cumlai    <- 0
   for (iv in (nlayers+1):2) {
     cumlai      <- cumlai + dLAI[iv]
-    # APW: k_dir assumed fixed here   
+    # APW: k_dir assumed fixed here, can this be developed as f(tb) ?   
     tbcum[iv-1] <- exp(-.super$state_pars$k_dir * cumlai )
   }
   
@@ -361,10 +362,10 @@ f_rt_norman <- function(., l=.super$state_pars$ca_calc_points,
     print(sum(diffuse))
     print('Abs sun:')
     print(sun)
-    print(sum(sun,na.rm=T))
+    print(paste('Sum:',sum(sun,na.rm=T)))
     print('Abs shade:')
     print(shade)
-    print(sum(shade,na.rm=T))
+    print(paste('Shade:',sum(shade,na.rm=T)))
     
     print(''); print('') 
     print('Leaf PARsun:') 
@@ -372,9 +373,9 @@ f_rt_norman <- function(., l=.super$state_pars$ca_calc_points,
     print('Leaf PARsha:') 
     print(swleafsha[1:(nlayers+1)])
     print('Leaf fsun:') 
-    print(.super$state$vert$sun$fraction[1:(nlayers)])
+    print(rev(.super$state$vert$sun$fraction[1:(nlayers)]))
     print('Leaf fsha:') 
-    print(.super$state$vert$shade$fraction[1:(nlayers)])
+    print(rev(.super$state$vert$shade$fraction[1:(nlayers)]))
     
     print('')
     print('APARveg, APARsoil, reflected:') 
