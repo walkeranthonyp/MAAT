@@ -15,7 +15,6 @@
 f_canopy_discretisation_fixednumber_const <- function(.) {
 
   .super$state_pars$linc <- linc <- .super$env$lai/.super$pars$layers
-  #.super$state_pars$ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$env$lai-linc*.super$pars$k_layer), linc )
   .super$state_pars$ca_calc_points <- seq((0+linc*.super$pars$k_layer), (.super$env$lai-linc+linc*.super$pars$k_layer), linc )
   .super$state_pars$linc <- rep(linc, length(.super$state_pars$ca_calc_points) ) 
 }
@@ -86,7 +85,7 @@ f_rt_beerslaw_goudriaan <- function(., l=.super$state_pars$ca_calc_points ) {
 
 # misconstrued Beer's Law
 # - ignores conversion of incident light per unit ground area to incident light per unit leaf area
-# - considers scattering in absorption because the leaf models does not when nested in canopy
+# - considers scattering in absorption, leaf object does not when nested in canopy object
 # - but scattering is not considered in RT, k_dir not k_dirprime is used
 f_rt_beerslaw <- function(., l=.super$state_pars$ca_calc_points ) {
   # calculates direct beam light attenuation through the canopy
@@ -119,6 +118,16 @@ f_rt_goudriaan <- function(., l=.super$state_pars$ca_calc_points ) {
 }
 
 
+# calculate transmission of diffuse radiation through leaf layer dLAI thick 
+# - by calculating transmissio from all sky angles
+# - zi, dLAI, can_clump, and chi_l (used in gz) can all be vectors
+# - but only either zi or dLAI, can_clump, chi_l 
+f_td <- function(., zi, dLAI ) { 
+  gz  <- .$gz(z=zi) 
+  exp(-gz/cos(zi)*dLAI*.super$pars$can_clump) * sin(zi)*cos(zi)
+}
+
+
 # Norman
 # - using Bonan's tridiagonal solution
 f_rt_norman <- function(., l=.super$state_pars$ca_calc_points, 
@@ -133,38 +142,42 @@ f_rt_norman <- function(., l=.super$state_pars$ca_calc_points,
   # - so l reversed
   nlayers <- length(l)
   sumlai  <- c(NA, rev(l) )
-  #dLAI    <- c(NA, rep(l[2]-l[1],length(l)) )
-  dLAI    <- c(NA, rev(.super$state_pars$linc) ) 
+  dLAI    <- if(length(.super$state_pars$lin)==1) {
+               c(NA, rep(.super$state_pars$linc, nlayers )) 
+             } else {
+               c(NA, rev(.super$state_pars$linc) ) 
+             }
 
   # APW: these initial calculations assume that leaf angle distribution is constant through the canopy    
   # APW: k_dir assumed fixed here   
-  .super$state$vert$sun$fraction[]   <- .super$pars$can_clump * exp(-.super$state_pars$k_dir*rev(l)) # APW is this correct? Why is clumpfrac used twice 
+  .super$state$vert$sun$fraction[]   <- .super$pars$can_clump * exp(-.super$state_pars$k_dir*rev(l)) 
   .super$state$vert$shade$fraction[] <- 1 - .super$state$vert$sun$fraction
  
   # tb (frac direct beam not intercepted in each layer)
   # APW: k_dir assumed fixed here  
-  # APW: why is clumping not considered here? 
   tb <- exp(-.super$state_pars$k_dir * dLAI )
  
   # td (frac diffuse beam not intercepted in each layer)
   # APW: k_dir assumed fixed here in gz() call  
   # APW: if variable leaf angle with canopy layer needed this will want to loop over dLAI and vectorise zi  
-  td <- 0
-  for(zi in .super$state_pars$zi) {
-    gz  <- .$gz(z=zi) 
-    td  <- td + exp(-gz/cos(zi)*dLAI*.super$pars$can_clump) * sin(zi)*cos(zi)
-    #sin(zi)*cos(zi)*delta_zi * exp(-.super$state_pars$k_dir_zi * .super$pars$can_clump * .super$env$lai) 
-  }                     
-  td <- td*2*.super$state_pars$delta_zi
-  
+  # APW: - but maybe it can work, gz should return a vector if chi_l is a vector 
+#  td <- 0
+#  for(zi in .super$state_pars$zi) {
+#    gz  <- .$gz(z=zi) 
+#    td  <- td + exp(-gz/cos(zi)*dLAI*.super$pars$can_clump) * sin(zi)*cos(zi)
+#  }                     
+#  td <- td*2*.super$state_pars$delta_zi
+  td_mat <- sapply(.super$state_pars$zi, .$td, dLAI=dLAI )
+  td     <- 2*apply(td_mat, 1, sum ) * .super$state_pars$delta_zi
+
   # tbcum (frac toc direct beam incident at top of each layer)
   tbcum     <- rep(NA,nlayers+1)
   iv        <- nlayers+1
   tbcum[iv] <- 1
   cumlai    <- 0
-  for (iv in (nlayers+1):2) {
+  for(iv in (nlayers+1):2) {
     cumlai      <- cumlai + dLAI[iv]
-    # APW: k_dir assumed fixed here, can this be developed as f(tb) ?   
+    # APW: k_dir assumed fixed here, can this be developed as f(tb) - should be cummulative product of tb   
     tbcum[iv-1] <- exp(-.super$state_pars$k_dir * cumlai )
   }
   
@@ -331,7 +344,7 @@ f_rt_norman <- function(., l=.super$state_pars$ca_calc_points,
 
   if(.super$cpars$verbose) {
     print(''); print('')
-    print(paste('Radiation model for a total LAI of:', sumlai[length(sumlai)]))
+    print(paste('Radiation model for a total LAI of:', cumlai[length(cumlai)]))
     print(''); print('')
     print('dlai:')
     print(dLAI)
@@ -394,6 +407,7 @@ f_pars_init <- function(.) {
   
   # extinction coefficents of direct diffuse radiation, assuming leaves are optically black   
   # these account for both canopy clumping and solar zenith angle, also informed by Bodin & Franklin 2012 GMD  
+  # APW - a consistent approach would consider clumping where k_dir & k_diff are calculated 
   .super$state_pars$G_dir[]       <- .super$pars$G * .super$pars$can_clump
   .super$state_pars$k_dir[]       <- .super$state_pars$G_dir / cos(.super$env$zenith)
 
@@ -401,6 +415,7 @@ f_pars_init <- function(.) {
   .super$state_pars$k_diff[]      <- .super$state_pars$G_dir / (2/pi)
 
   # transmitance equals reflectance
+  # APW - cahange this to the sum of trans and refl 
   .super$state_pars$lscattering[] <- 2 * .super$pars$leaf_reflectance
 
   # adjustment of k to account for scattering, i.e. that leaves are not optically black
@@ -409,6 +424,10 @@ f_pars_init <- function(.) {
   .super$state_pars$k_diffprime[] <- .super$state_pars$m * .super$state_pars$k_diff
 
   # albedo
+  # APW - this is calculated with clumping applied to k, but below clumping is aplied afterwards
+  # APW - which is correct? Generally the combination of G(z) and clumping is inconsistent, needs unified 
+  # APW - Bonan includes clumping in the calculatiion of albedo, but not in every use of kb/kd: sp_14_03.m
+  # APW - maybe best to be explicit about clumping everywhere that it is used
   .$albedo()
 
   # calculate Vcmax0 and extinction coefficient for Vcmax
@@ -431,10 +450,17 @@ f_pars_init_full <- function(.) {
   .super$state_pars$k_dir[]       <- .super$state_pars$G_dir / cos(.super$env$zenith)
   # Prevent large k_dir at low sun angle
   .super$state_pars$k_dir[]       <- min(.super$state_pars$k_dir, 20)
-  .super$state_pars$k_dir_zi      <- .$gz(z=zi) / cos(zi)
+  #.super$state_pars$k_dir_zi      <- .$gz(z=zi) / cos(zi)
   # k_dir assuming light is coming from all points of the hemisphere (i.e. solar zenith angle between 0 and pi/2)
-  numint                          <- sin(zi)*cos(zi)*delta_zi * exp(-.super$state_pars$k_dir_zi * .super$pars$can_clump * .super$env$lai) 
-  .super$state_pars$k_diff[]      <- -log(2*sum(numint)) / (.super$env$lai * .super$pars$can_clump)
+  #numint                          <- sin(zi)*cos(zi)*delta_zi * exp(-.super$state_pars$k_dir_zi * .super$pars$can_clump * .super$env$lai) 
+  #.super$state_pars$k_diff[]      <- -log(2*sum(numint)) / (.super$env$lai * .super$pars$can_clump)
+  #.super$state_pars$k_dir_zi      <- .$gz(z=zi) / cos(zi)
+  # k_dir assuming light is coming from all points of the hemisphere (i.e. solar zenith angle between 0 and pi/2)
+  # APW: this will fail if chi_l is a vector -- needs a catch
+  # APW: does the simpler calculation in pars_init provide the same result?
+  .super$state_pars$k_dir_zi      <- .$gz(z=zi) / cos(zi)
+  numint                          <- .$td(.super$state_pars$zi, dLAI=.super$env$lai) 
+  .super$state_pars$k_diff[]      <- -log(2*sum(numint)*.super$state_pars$delta_zi) / (.super$env$lai*.super$pars$can_clump)
 
   # scattering transmitance + reflectance
   .super$state_pars$lscattering[] <- .super$pars$leaf_reflectance + .super$pars$leaf_transmitance
@@ -443,8 +469,9 @@ f_pars_init_full <- function(.) {
   .super$state_pars$k_diffprime[] <- .super$state_pars$m * .super$state_pars$k_diff
 
   # adjustment of k_Xprime 
-  # - to account for clumping  
+  # - to account for clumping 
   .super$state_pars$k_dirprime[]  <- .super$state_pars$k_dirprime[]  * .super$pars$can_clump
+  # APW - seems like k_diff is already calculated with clumping considered 
   .super$state_pars$k_diffprime[] <- .super$state_pars$k_diffprime[] * .super$pars$can_clump
 
   # albedo
@@ -453,6 +480,7 @@ f_pars_init_full <- function(.) {
   # adjustment of k_X 
   # - to account for clumping,  
   .super$state_pars$k_dir[]       <- .super$state_pars$k_dir[]  * .super$pars$can_clump
+  # APW - seems like k_diff is already calculated with clumping considered 
   .super$state_pars$k_diff[]      <- .super$state_pars$k_diff[] * .super$pars$can_clump
 
   # calculate Vcmax0 and extinction coefficient for Vcmax
@@ -461,7 +489,7 @@ f_pars_init_full <- function(.) {
 }
 
 # calculate G(z), Bonan 2019
-f_gz_rossgoudriaan <- function(., chi_l=.super$pars$chi_l, z=.super$env$zenith) {
+f_gz_rossgoudriaan <- function(., chi_l=.super$pars$chi_l, z=.super$env$zenith ) {
   # Ross-Goudriaan function to approxiamte G(z) from 
   # Ross index (chi_l) which indicates deviation from a spherical leaf angle distribution   
   
@@ -476,6 +504,9 @@ f_gz_rossgoudriaan <- function(., chi_l=.super$pars$chi_l, z=.super$env$zenith) 
   phi1 + phi2*cos(z)
 }
 
+f_gz_constant <- function(., ... ) {
+  .super$pars$G
+}
 
 # albedo functions for Goudriaan's model
 f_albedo_goudriaan <- function(.) {

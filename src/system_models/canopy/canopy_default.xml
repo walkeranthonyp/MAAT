@@ -8,6 +8,7 @@
       <par_partition>'f_par_partition_spitters_hourly'</par_partition>
       <rt>'f_rt_beerslaw_goudriaan'</rt>
       <gz>'f_gz_rossgoudriaan'</gz>
+      <td>'f_td'</td>
       <albedo>'f_albedo_goudriaan'</albedo>
       <diffalbedo>'f_diffalbedo_goudriaan'</diffalbedo>
       <layer0>

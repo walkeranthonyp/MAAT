@@ -51,19 +51,14 @@ source('canopy_object.R')
 canopy_object$.test(canopy.par=1000, canopy.ca_conc=200)
 canopy_object$.test(canopy.rt='f_rt_goudriaan')
 canopy_object$.test(
-  verbose=T,
+  verbose=F,
   canopy.lai=6,
   canopy.layers=20,
   canopy.rt='f_rt_goudriaan',
   canopy.diffalbedo='f_diffalbedo_goudriaan'
 )
-canopy_object$.test(
-  verbose=T,
-  canopy.lai=6,
-  canopy.layers=20,
-  canopy.rt='f_rt_norman',
-  canopy.diffalbedo='f_diffalbedo_goudriaan'
-)
+canopy_object$state_pars$k_diff
+source('canopy_object.R') 
 canopy_object$.test(
   verbose=F,
   canopy.lai=6,
@@ -71,13 +66,15 @@ canopy_object$.test(
   canopy.rt='f_rt_norman',
   canopy.diffalbedo='f_diffalbedo_goudriaan'
 )
+
 canopy_object$.test(
   verbose=T,
-  canopy.lai=6,
-  canopy.layers=200,
+  canopy.lai=1,
+  canopy.layers=100,
   canopy.rt='f_rt_norman',
   canopy.diffalbedo='f_diffalbedo_goudriaan'
 )
+
 canopy_object$state$integrated$apar
 canopy_object$state_pars
 canopy_object$state$vert$layer$apar
@@ -113,61 +110,6 @@ canopy_object$.test(
   canopy.rt='f_rt_norman',
   canopy.canopy_discretisation='f_canopy_discretisation_fixedbins_exp',
   canopy.k.can_disc=0.1, canopy.can_disc.layer1=0.02,
-  canopy.diffalbedo='f_diffalbedo_goudriaan'
-)
-canopy_object$.test(
-  verbose=F,
-  canopy.lai=6,
-  canopy.rt='f_rt_norman',
-  canopy.canopy_discretisation='f_canopy_discretisation_fixedbins_exp',
-  canopy.k.can_disc=0.5, canopy.can_disc.layer1=0.02,
-  canopy.diffalbedo='f_diffalbedo_goudriaan'
-)
-canopy_object$.test(
-  verbose=F,
-  canopy.lai=6,
-  canopy.rt='f_rt_norman',
-  canopy.canopy_discretisation='f_canopy_discretisation_fixedbins_exp',
-  canopy.k.can_disc=0.5, canopy.can_disc.layer1=0.5,
-  canopy.diffalbedo='f_diffalbedo_goudriaan'
-)
-canopy_object$.test(
-  verbose=F,
-  canopy.lai=6,
-  canopy.rt='f_rt_norman',
-  canopy.canopy_discretisation='f_canopy_discretisation_fixedbins_exp',
-  canopy.k.can_disc=0.7, canopy.can_disc.layer1=0.25,
-  canopy.diffalbedo='f_diffalbedo_goudriaan'
-)
-canopy_object$.test(
-  verbose=F,
-  canopy.lai=6,
-  canopy.rt='f_rt_norman',
-  canopy.canopy_discretisation='f_canopy_discretisation_fixedbins_exp',
-  canopy.k.can_disc=1.0, canopy.can_disc.layer1=0.2,
-  canopy.diffalbedo='f_diffalbedo_goudriaan'
-)
-canopy_object$.test(
-  verbose=F,
-  canopy.lai=6,
-  canopy.layers=4,
-  canopy.rt='f_rt_norman',
-  canopy.diffalbedo='f_diffalbedo_goudriaan'
-)
-canopy_object$.test(
-  verbose=F,
-  canopy.lai=6,
-  canopy.rt='f_rt_norman',
-  canopy.canopy_discretisation='f_canopy_discretisation_fixedbins_exp',
-  canopy.k.can_disc=0.05, canopy.can_disc.layer1=0.05,
-  canopy.diffalbedo='f_diffalbedo_goudriaan'
-)
-canopy_object$.test(
-  verbose=F,
-  canopy.lai=6,
-  canopy.rt='f_rt_norman',
-  canopy.canopy_discretisation='f_canopy_discretisation_fixedbins_exp',
-  canopy.k.can_disc=0.0, canopy.can_disc.layer1=6/1000,
   canopy.diffalbedo='f_diffalbedo_goudriaan'
 )
 

@@ -8,6 +8,7 @@
       <par_partition>'c( 'f_par_partition_env', 'f_par_partition_spitters_daily', 'f_par_partition_spitters_hourly' )'</par_partition>
       <rt>'c( 'f_rt_beerslaw', 'f_rt_beerslaw_goudriaan', 'f_rt_goudriaan', 'f_rt_norman' )'</rt>
       <gz>'c( 'f_gz_rossgoudriaan' )'</gz>
+      <td>'c( 'f_td' )'</td>
       <albedo>'c( 'f_albedo_goudriaan' )'</albedo>
       <diffalbedo>'c( 'f_diffalbedo_approx', 'f_diffalbedo_goudriaan' )'</diffalbedo>
       <layer0>'c( 'f_layer0_constant' )'</layer0>

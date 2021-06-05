@@ -122,6 +122,7 @@ canopy_object$fnames <- list(
   par_partition         = 'f_par_partition_spitters_hourly',
   rt                    = 'f_rt_beerslaw_goudriaan',
   gz                    = 'f_gz_rossgoudriaan',
+  td                    = 'f_td',
   albedo                = 'f_albedo_goudriaan',
   diffalbedo            = 'f_diffalbedo_goudriaan',
   layer0 = list(
