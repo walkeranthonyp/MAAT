@@ -2,6 +2,8 @@
   <fnames>
     <leaf>
       <sys>NA</sys>
+      <rh_or_vpd>NA</rh_or_vpd>
+      <sat_vp>NA</sat_vp>
       <solver>NA</solver>
       <residual_func>NA</residual_func>
       <assimilation>NA</assimilation>

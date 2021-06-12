@@ -415,6 +415,7 @@ f_rs_constant_r0 <- f_rs_constant <- function(., ... ) {
 
 
 # Medlyn et al 2011 eq for stomatal resistance
+# - with Medlyn 2012 correction - 1.6 in the f(e) term
 f_rs_medlyn2011 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
@@ -424,7 +425,7 @@ f_rs_medlyn2011 <- function(., A=.super$state$A, c=.super$state$cb ) {
 
 f_rs_medlyn2011_fe <- function(.) {
   # f(e) component of rs from Medlyn 2011   
-  1.6 * ( 1 + .super$pars$g1_medlyn/.$env$vpd^0.5 )
+  1.6 * ( 1 + .super$pars$g1_medlyn/(.$env$vpd^0.5) )
 }
 
 f_rs_medlyn2011_r0 <- function(.) {
@@ -432,6 +433,7 @@ f_rs_medlyn2011_r0 <- function(.) {
   1 / max(.super$pars$g0,1e-6)
 }
 
+# as Medlyn 2011 but with no g0
 f_rs_medlyn_lin2015 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o

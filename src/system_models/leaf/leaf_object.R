@@ -260,7 +260,7 @@ leaf_object$pars   <- list(
 
   # resistance parameters
   g0            = 0.01,       # Medlyn 2011 min gs                                     (molm-2s-1)
-  g1_medlyn     = 6,          # Medlyn 2011 gs slope                                   (kPa^0.5)
+  g1_medlyn     = 4.16,       # Medlyn 2011 gs slope, 4.16 from Lin et al 2015 C3      (kPa^0.5)
   g1_leuning    = 10,         # Leuning 1995 gs slope                                  (unitless - likely higher than medlyn and ball g1)
   d0            = 1,          # Leuning 1995 D0                                        (kPa)
   g1_ball       = 6,          # Ball 1987 gs slope                                     (unitless - multiplier on RH as a proportion)
@@ -444,6 +444,11 @@ f_output_leaf_full <- function(.) {
 
 f_output_leaf_all_lim <- function(.) {
   c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
+    .$state_retrive(snames=c('gstar','ri','rs','rb'), state='state_pars' ) )
+}
+
+f_output_leaf_vpd <- function(.) {
+  c(rh=.$env$rh, vpd=.$env$vpd, .$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
     .$state_retrive(snames=c('gstar','ri','rs','rb'), state='state_pars' ) )
 }
 
