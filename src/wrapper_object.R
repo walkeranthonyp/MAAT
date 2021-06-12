@@ -299,7 +299,7 @@ wrapper_object$wpars <- list(
     mcmc_type       = 'dream',
     lklihood        = 'ssquared',
     outlier         = 'iqr',
-    mcmc_converge   = 'Gelman_Rubin',
+    converge        = 'Gelman_Rubin',
     boundary_handling = 'fold',
     chains          = 7,
     prior_n         = 40,         # number of samples from prior to initialise past_states
