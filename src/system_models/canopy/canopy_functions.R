@@ -23,7 +23,6 @@ f_canopy_discretisation_fixednumber_const <- function(.) {
 f_canopy_discretisation_fixedbins_const <- function(.) {
 
   .super$state_pars$linc <- linc <- .super$pars$linc
-  #cum_lai <- seq(1, .super$pars$can_disc$maxlai, linc )
   cum_lai <- seq(1, .super$env$lai, linc )
   .super$state_pars$ca_calc_points <- c(0,cum_lai) + linc*.super$pars$k_layer
   .super$state_pars$cum_lai <- c(cum_lai, cum_lai[length(cum_lai)] + linc )
@@ -37,6 +36,14 @@ f_canopy_discretisation_fixedbins_const <- function(.) {
 
 # break canopy into <layers> exponentially sized bins
 f_canopy_discretisation_fixednumber_exp <- function(.) {
+  # fixed number of bins, exponential discretisation
+  # - fixed exponent, variable initial layer width
+
+  layer1 <-  .super$env$lai / sum(exp(.super$pars$k$can_disc * 0:.super$pars$layers))  
+  .super$state_pars$linc <- layer1 * exp(.super$pars$k$can_disc * 0:.super$pars$layers)   
+  .super$state_pars$cum_lai <- cum_lai <- cumsum(.super$state_pars$linc)
+   if(cum_lai[length(cum_lai)]!=.super$env$lai) stop('Canopy layer sum != lai') 
+  .super$state_pars$ca_calc_points <- c(0,cum_lai[-length(cum_lai)]) + .super$state_pars$linc*.super$pars$k_layer
 
 }
 
@@ -49,7 +56,6 @@ f_canopy_discretisation_fixedbins_exp <- function(.) {
   .super$state_pars$ca_calc_points <- c(0,cum_lai[-length(cum_lai)]) + .super$state_pars$linc*.super$pars$k_layer
   
   # reduce vectors to include maxlai and no more 
-  #subset  <- which(cum_lai<.super$pars$can_disc$maxlai)
   subset  <- which(cum_lai<.super$env$lai)
   subset  <- c(subset,length(subset)+1)
   .super$state_pars$cum_lai        <- cum_lai[subset]
