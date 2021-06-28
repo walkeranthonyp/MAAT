@@ -29,7 +29,7 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
 
   # read model mimic setup
   if(!is.null(mod_mimic)) {
-    if(grepl(mod_mimic,list.files('../mimic_xmls'))) {
+    if(any(grepl(mod_mimic,list.files('./mimic_xmls')))) {
       setwd('mimic_xmls')
       print(paste(.$name,'mimic:',mod_mimic), quote=F )
       init_mimic   <- readXML(paste(.$name,'_',mod_mimic,'.xml',sep=''))
@@ -48,6 +48,9 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   # assign model output function
   if(.$cpars$diag) mod_out <- 'full' ### this will assign full to all child objects too could add a child switch
   .$output <- get(paste('f', 'output', .$name, .$cpars$mod_out, sep='_' ))
+  # could add a catch here to test that requested eval variables exist.
+  # will need to be done once latest soil model development has been merged
+  # to work with soil_decomp will need to be called after structure build
 
   # build model pool structure
   if(!is.null(.$pars$n_pools)) .$build_pool_structure(init_default$pars$n_pools)
@@ -192,17 +195,14 @@ run_met1 <- function(.,l) {
 
 ## output functions
 ############################################################################
-#
-#output <- function(.){
-#
-#  if(.$cpars$output=='full') {
-#
-#    lout <- unlist(c(.$state, .$state_pars ))
-#
-#  }
-#
-#  lout
-#}
+
+f_output_eval <- function(.){
+
+  lout <- unlist(c(.$state, .$state_pars ))
+
+  # NAs in this match operation means requested eval variables have been mis-labled - needs a trap 
+  lout[match(names(.$dataf$out), names(lout) )]
+}
 
 
 # configure functions
@@ -345,6 +345,7 @@ configure_met <- function(., df ) {
 
   #print('configure met')
   #print(df)
+  #print(class(names(df)))
 
   # split variable names at .
   listnames <- vapply( strsplit(names(df),'.',fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )

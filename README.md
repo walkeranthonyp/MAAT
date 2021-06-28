@@ -2,12 +2,11 @@
 
 
 
-### MAAT Version 1.2 ###
-
 The multi-assumption architecture and testbed (MAAT) is a modelling framework designed to facilitate simple and rapid comparison of multiple modelling hypotheses and assumptions, i.e. ways in which to represent processes, in a systems context.
 MAAT is designed to easily specify and run large ensembles of simulations.
 Ensembles can vary in process representation, parameter values, and environmental conditions.
 Built in sensitivity analysis and uncertainty quantification (SA/UQ) can be used to assess variability in model caused output by multiple ways in which to represent processes. 
+Built in MCMC can be used for parameter estimation in a particular model configuration. 
 
 The MAAT framework is a model wrapper and a model coding syntax that can be used to define a model of a system.
 The wrapper and the system model are separated and the syntax allows the wrapper to pass system-model specific information to the model without any system-model specific information contained in the wrapper. 
@@ -17,21 +16,21 @@ This separation of wrapper and system model allows rapid development of new syst
 Current systems models that come packaged with the MAAT are a leaf-scale model of photosynthesis, a simple ground-water model detailed in Dai et al (2017 WRR), and a simple 'Hello World' type example and template for building new system models. 
 
 MAAT is written in R and uses the object oriented programming package 'proto' to develop the wrapper and model objects. 
-MAAT has been developed on Linux Ubuntu 16.04 and is designed to be run from the command line (and in some instances from within the R console or IDE like Rstudio).
+MAAT has been developed on Linux Ubuntu 16.04 and Mac OS Catalina.
+MAAT is designed to be run from the command line (and in some instances from within the R console or IDE like Rstudio).
 
-### version 1.2 ###
+### version 1.3 ###
 
-* Complete structural overhaul of how wrapper and model objects are built for a higher level of generalisation and minimal duplication.
-* Functions are now proper methods of the fns object which has the model object as parent.
-* init_MAAT.R and XMl files should be compatible with v1.1 files.
-* Adding new semi-analytical solver functions, work in progress.
-* Canopy struncture system model developments, work in progress.
-* MCMC DREAM algorithm added for parameter estimation, also a work in progress.
+* MCMC DREAM and DREAM-ZS algorithms (Vrugt, 2016) for parameter estimation working, including restart.
+* MCMC parameter priors now use code snippets in same way as SA/UQ.
 * A number of bug fixes.
+* Semi-analytical solver functions, still a work in progress.
+* Canopy struncture system model developments, still a work in progress.
 
-#### v1.2.1
-* mostly under-the-hood structural changes
-* small incompatibility with v1.2 for a few leaf function names (solver, electron transport, gas_diff, 1 / 2 more)  
+#### version 1.3.1 ####
+
+* Sphagnum LAI functions now in canopy_structure object.
+* Met and obs data now passed through an MCMC restart.
 
 
 ### Use guidelines ### 
@@ -67,11 +66,14 @@ This will help to maintain a central code-base and the principles of open scienc
 
 ### Related publications ###
 
+Walker, A.P., Johnson, A.L., Rogers, A., Anderson, J., Bridges, R.A., Fisher, R.A., Lu, D., Ricciuto, D.M., Serbin, S.P., Ye, M., 2021. Multi-hypothesis comparison of Farquhar and Collatz photosynthesis models reveals the unexpected influence of empirical assumptions at leaf and global scales. Global Change Biology n/a.[doi.org/10.1111/gcb.15366](https://doi.org/10.1111/gcb.15366)
+
+
 Walker, A. P., Ye, M., Lu, D., De Kauwe, M. G., Gu, L., Medlyn, B. E., Rogers, A., and Serbin, S. P.: The multi-assumption architecture and testbed (MAAT v1.0): R code for generating ensembles with dynamic model structure and analysis of epistemic uncertainty from multiple sources. Geosci. Model Dev., 11, 3159-3185, 2018, [doi.org/10.5194/gmd-11-3159-2018](https://doi.org/10.5194/gmd-11-3159-2018)
 
 Dai, H., Ye, M., Walker, A.P., Chen, X., 2017. A new process sensitivity index to identify important system processes under process model and parametric uncertainty. Water Resour. Res. 53, 3476–3490. [doi.org/10.1002/2016WR019715](https://doi.org/10.1002/2016WR019715)
 
-Walker, A.P., Carter, K.R., Gu, L., Hanson, P.J., Malhotra, A., Norby, R.J., Sebestyen, S.D., Wullschleger, S.D., Weston, D.J., 2017. Biophysical drivers of seasonal variability in Sphagnum gross primary production in a northern temperate bog. J. Geophys. Res. Biogeosci. 122, 2016JG003711. [doi.org/10.1002/2016JG003711](https://doi.org/10.1002/2016JG003711)
+Vrugt, J.A., 2016. Markov chain Monte Carlo simulation using the DREAM software package: Theory, concepts, and MATLAB implementation. Environmental Modelling & Software 75, 273–316.[doi.org/10.1016/j.envsoft.2015.08.013](https://doi.org/10.1016/j.envsoft.2015.08.013)
 
 
 ### Sponsorship ###

@@ -10,8 +10,7 @@ library(proto)
 source('soil_decomp_functions.R')
 source('soil_decomp_SoilR_functions.R')
 source('soil_decomp_system_functions.R')
-source('../../functions/packagemod_functions.R')
-
+source('../../functions/packagemod_functions_deSolve.R')
 
 
 # soil_decomp OBJECT
@@ -180,6 +179,9 @@ soil_decomp_object$cpars <- list(
 # output functions
 #######################################################################        
 
+f_output_soil_decomp_eval <- f_output_eval 
+
+
 f_output_soil_decomp_run <- function(.) {
   unlist(.$state)
 }
@@ -208,7 +210,7 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=3.2, ntimes=1
     if(length(litter)==1) litter <- rep(litter, ntimes )   
     .$dataf$metdf <- matrix(litter, nrow=1 )
     rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-    .$dataf$lm    <- length(.$dataf$metdf[1,])
+    .$dataf$lm    <- dim(.$dataf$met)[2]
     .$dataf$mout  <- .$output()
     .$run_met()
   } else {
@@ -229,7 +231,7 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
   if(length(litter)==1) litter <- rep(litter, ntimes )   
   .$dataf$metdf <- matrix(litter, nrow=1 )
   rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-  .$dataf$lm    <- length(.$dataf$metdf[1,])
+  .$dataf$lm    <- dim(.$dataf$met)[2]
   .$dataf$mout  <- .$output()
 
 
@@ -327,7 +329,77 @@ soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384
 
   olist
 }
+
+
+soil_decomp_object$.test_var_kinetics_yearly <- function(., verbose=F, litter=1.4, ntimes=200, kinetics = 'mm', 
+                                                vmax1 = 88, vmax3 = 171, km1 = 144, km3 = 936, k1 = 1, k3 = .01) {
+  
+  if(verbose) str(.)
+  .$build(switches=c(F,verbose,F))
+  .$configure_test() # if only used in test functions should begin with a .
+  
+  # initialise boundary data 
+  .$dataf       <- list()
+  if(length(litter)==1) litter <- rep(litter, ntimes )   
+  .$dataf$metdf <- matrix(litter, nrow=1 )
+  rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
+  .$dataf$lm    <- length(.$dataf$metdf[1,])
+  .$dataf$mout  <- .$output()
+  
+  
+  ### Run model
+  # change parameters to default parms
+  if(kinetics == 'rmm'){
+    .$fnames$decomp$d1        <- 'f_decomp_RMM_microbe'
+    .$fnames$decomp$d3        <- 'f_decomp_RMM_microbe'
+  } else if (kinetics == 'lin') {
+    .$fnames$decomp$d1        <- 'f_decomp_lin'
+    .$fnames$decomp$d3        <- 'f_decomp_lin'
+    .$pars$k$k1 = k1
+    .$pars$k$k3 = k3
+  } else if (kinetics == 'mm'){
+    .$fnames$decomp$d1        <- 'f_decomp_MM_microbe'
+    .$fnames$decomp$d3        <- 'f_decomp_MM_microbe'
+  }
   
 
+    .$pars$cue$cue1 = .47  #CUE from MEND (Wang et al. 2013)
+    .$pars$cue$cue2 = 1    #NA; assuming mbc turnover is entirely transferred to MAOM pool
+    .$pars$cue$cue3 = .47   #CUE from MEND (Wang et al. 2013)
+  
+  
+
+    .$pars$vmax$vmax1 = vmax1  #MIMICS average of two microbial groups assuming 15 degC (Wieder et al. 2014)   
+    .$pars$vmax$vmax3 = vmax3  #MIMICS average of two microbial groups assuming 15 degC (Wieder et al. 2014)  
+  
+  
+
+    .$pars$km$km1 = km1  #MIMICS average of two microbial groups for sturctural litter and biochemically protected SOC assuming 15 degC and 15%clay (Wieder et al. 2014)        
+    .$pars$km$km3 = km3   #MIMICS average of two microbial groups assuming 15 degC and lignin:N = 10 (Wieder et al. 2014)
+  
+  
+  .$pars$k$k2 = 2.5    #Li et al. 
+  
+  
+  .$pars$poolmax = list(       
+    pmax1 = 2,      #NA
+    pmax2 = 1.5,    #about 97.5% quantile of mbc synthesis data  
+    pmax3 = 27      #Calculated from Hassink and Whitmore 1997 assuming 20% clay
+  )
+  
+  .$pars$beta = 1.5
+  
+  
+  .$configure_test()
+  out  <- .$run_met()
+  
+  par(mfrow=c(1,1))
+  ylab <- expression('Pool C mass ['*gC*' '*m^-2*']')
+  matplot(1:dim(out)[1], out[,1:3], type='l', ylab=ylab, xlab='Years', lty=1,
+          ylim=c(0,max(out)*1.2), col=1:3 )
+  legend('topleft', c('POM','MB','MAOM'), lty=1, col=1:3, bty='n')
+  
+  print(tail(out, n=1))
+}
 
 ### END ###

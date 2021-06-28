@@ -8,6 +8,26 @@
 
 
 
+# Sphagnum
+###############################
+f_sys_sphagnum <- function(.) {
+  
+  # set correct canopy output
+  #.super$canopy$cpars$output[] <- 'sphagnum'    
+  
+  # initialise canopy_structure
+  .$water_status()
+  .super$canopy$env$lai[] <- .super$state$lai[] <- .$lai()
+
+  # run canopy
+  .super$canopy$run() 
+
+  # add data to state
+  .super$state$integrated[names(.super$state$integrated)] <- .super$canopy$state$integrated[names(.super$state$integrated)]
+}
+
+
+
 # Leaf demography  
 ###############################
 f_sys_leafdem <- function(.) {
@@ -19,8 +39,8 @@ f_sys_leafdem <- function(.) {
   .super$state$lai[] <- .$lai()
   
   # pass LAI to canopy object
-  .super$canopy$fnames$lai[] <- 'f_lai_constant' 
-  .super$canopy$pars$lai[]   <- .super$state$lai 
+  #.super$canopy$fnames$lai[] <- 'f_lai_constant' 
+  .super$canopy$env$lai[]   <- .super$state$lai 
 
   # calculate fractions of leaf cohorts in upper and lower canopy
   .super$state$upper_can_prop <- .$leafdem_upper()
@@ -89,7 +109,6 @@ f_sys_leafdem <- function(.) {
   .super$state$integrated$cb[] <- sum(.super$state$vert$layer$cb) / .super$state$lai * linc
   .super$state$integrated$cc[] <- sum(.super$state$vert$layer$cc) / .super$state$lai * linc
   .super$state$integrated$ci[] <- sum(.super$state$vert$ci)       / .super$state$lai * linc
-  
 }
 
 

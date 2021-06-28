@@ -1,7 +1,7 @@
 <dynamic>
   <fnames>
     <gwater_rt>
-      <gwatersys>NA</gwatersys>
+      <sys>NA</sys>
       <rechrg>NA</rechrg>
       <geol>NA</geol>
     </gwater_rt>

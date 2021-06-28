@@ -94,6 +94,8 @@ gwater_rt_object$cpars <- list(
 # output functions
 #######################################################################        
 
+f_output_gwater_rt_eval <- f_output_eval 
+
 f_output_gwater_rt_run <- function(.) {
   .$state$h
 }
