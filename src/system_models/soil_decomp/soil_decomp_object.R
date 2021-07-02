@@ -11,6 +11,7 @@ source('soil_decomp_functions.R')
 source('soil_decomp_SoilR_functions.R')
 source('soil_decomp_system_functions.R')
 source('../../functions/packagemod_functions_deSolve.R')
+source('../../functions/packagemod_functions_rootSolve.R')
 
 
 # soil_decomp OBJECT
@@ -55,6 +56,11 @@ soil_decomp_object$init1 <- init_state
 soil_decomp_object$init  <- function(.) {
   .$init1()
   .$state$cpools = matrix(unlist(.$pars$cstate0)[1:.$pars$n_pools], ncol=1 )
+  
+  # call steady state system model
+  # APW Matt: this is the additional function call to initialise the model at steady state
+  #           if you want to turn this off just set the fnames$steadystate value to f_steadystate_null (a dummy function that just returns NULL)
+  .$fns$steadystate()
 }
 
 
@@ -66,12 +72,14 @@ soil_decomp_object$init  <- function(.) {
 ####################################
 soil_decomp_object$fnames <- list(
 
-  sys            = 'f_sys_npools',
-  solver         = 'plsoda',
-  solver_func    = 'f_solver_func',
-  input          = 'f_input',
-  DotO           = 'f_DotO',
-  transfermatrix = 'f_transfermatrix',
+  sys                = 'f_sys_npools',
+  solver             = 'plsoda',
+  solver_func        = 'f_solver_func',
+  input              = 'f_input',
+  DotO               = 'f_DotO',
+  transfermatrix     = 'f_transfermatrix',
+  steadystate        = 'f_steadystate_npools',
+  solver_steadystate = 'pstode',
   
   # decay/decomposition functions
   decomp = list(
@@ -101,14 +109,15 @@ soil_decomp_object$env <- list(
 # state
 ####################################
 soil_decomp_object$state <- list(
-  cpools   = matrix(1:3, ncol=1 )
+  cpools = matrix(1:3, ncol=1 )
 )
 
 
 # state parameters (i.e. calculated parameters)
 ####################################
 soil_decomp_object$state_pars <- list(
-  solver_out = matrix(1)
+  solver_out             = matrix(1),
+  solver_steadystate_out = matrix(1)
 )
 
 

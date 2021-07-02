@@ -7,6 +7,8 @@
       <input>'f_input'</input>
       <DotO>'f_DotO'</DotO>
       <transfermatrix>'f_transfermatrix'</transfermatrix>
+      <steadystate>'f_steadystate_npools'</steadystate>
+      <solver_steadystate>'pstode'</solver_steadystate>
       <decomp>
         <d1>'f_decomp_MM_microbe'</d1>
         <d2>'f_decomp_lin'</d2>
