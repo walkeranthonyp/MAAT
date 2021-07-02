@@ -53,7 +53,7 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   # to work with soil_decomp will need to be called after structure build
 
   # build model pool structure
-  if(!is.null(.$pars$n_pools)) .$build_pool_structure(init_default$pars$n_pools)
+  if(!is.null(.$pars$n_pools)) .$build_pool_structure(init_default$pars[[.$name]]$n_pools)
 
   # assign default and mod mimic values to data structure
   .$configure(vlist='pars',   df=unlist(init_default$pars))
