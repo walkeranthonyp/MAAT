@@ -56,11 +56,6 @@ soil_decomp_object$init1 <- init_state
 soil_decomp_object$init  <- function(.) {
   .$init1()
   .$state$cpools = matrix(unlist(.$pars$cstate0)[1:.$pars$n_pools], ncol=1 )
-  
-  # call steady state system model
-  # APW Matt: this is the additional function call to initialise the model at steady state
-  #           if you want to turn this off just set the fnames$steadystate value to f_steadystate_null (a dummy function that just returns NULL)
-  .$fns$steadystate()
 }
 
 

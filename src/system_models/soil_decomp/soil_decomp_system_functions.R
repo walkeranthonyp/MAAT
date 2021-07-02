@@ -17,11 +17,8 @@ f_sys_npools <- function(.) {
 }
 
 f_steadystate_npools <- function(.) {
-  .super$state_pars$solver_steadystate_out <- .$solver_steadystate(.super$state$cpools, 0, .$solver_func )
-  # APW Matt: this is just copied form above so assumes the output from stode is in the same format as lsoda
-  #           obvs that could be wrong so this might need editing
-  .super$state$cpools[,1]                  <- 
-    .super$state_pars$solver_steadystate_out[dim(.super$state_pars$solver_steadystate_out)[1],2:(.super$pars$n_pools+1)]
+  .super$state_pars$solver_steadystate_out <- .$solver_steadystate(.super$state$cpools, 0, func=.$solver_func )
+  .super$state$cpools[,1]                  <- .super$state_pars$solver_steadystate_out$y
 }
 
 f_steadystate_null   <- function(.) NULL 
