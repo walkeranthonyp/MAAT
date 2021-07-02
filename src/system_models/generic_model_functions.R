@@ -161,7 +161,7 @@ init_state <- function(.) {
 
 # this currently works both when called from unit testing and from the wrapper 
 # - not 100 % sure why as when called from the wrapper .$dataf should read .super$dataf
-# - maybe a result of being called from the wrapper and maybe . represents the object within which the function is called?
+# - maybe a result of being called from the wrapper and maybe . represents the object within which the function is called rather than to which it belongs
 run_met <- function(.,l) {
 
   #print('')
