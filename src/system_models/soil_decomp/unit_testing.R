@@ -25,8 +25,12 @@ soil_decomp_object$pars
 soil_decomp_object$env
 soil_decomp_object$run
 
-tail(soil_decomp_object$.test(metdf=T, ntimes=8760), n=50)
-round(tail(soil_decomp_object$.test(metdf=T, ntimes=365 )),5)
+
+soil_decomp_object$.test(metdf=T)
+soil_decomp_object$state_pars$solver_steadystate_out
+soil_decomp_object$state_pars$solver_steadystate_out$y
+soil_decomp_object$.test(metdf=T, ntimes=10 )
+
 soil_decomp_object$.test(metdf=T, litter=6, ntimes=10 )
 soil_decomp_object$.test(metdf=T, litter=1:10 )
 

@@ -121,16 +121,16 @@ pstode <-
         else txt <- "banded jacobian, calculated internally"
         print(data.frame("implicit method", value = imp, message = txt))
     }
-    Ynames <- attr(y, "names")
-    JacFunc <- NULL
+    Ynames    <- attr(y, "names")
+    JacFunc   <- NULL
     ModelInit <- NULL
     ModelForc <- NULL
-    Forc <- NULL
-    if (is.compiled(func)) {
-        if (!is.null(initfunc)) {
-            if (inherits(initfunc, "CFunc")) 
+    Forc      <- NULL
+    if(rootSolve:::is.compiled(func)) {
+        if(!is.null(initfunc)) {
+            if(inherits(initfunc, "CFunc")) 
                 ModelInit <- body(initfunc)[[2]]
-            else if (is.loaded(initfunc, PACKAGE = dllname, type = "") || 
+            else if(is.loaded(initfunc, PACKAGE = dllname, type = "") || 
                 is.loaded(initfunc, PACKAGE = dllname, type = "Fortran")) 
                 ModelInit <- getNativeSymbolInfo(initfunc, PACKAGE = dllname)$address
         }
@@ -151,7 +151,7 @@ pstode <-
             else Forc <- forcings
         }
     }
-    if (is.compiled(func)) {
+    if(rootSolve:::is.compiled(func)) {
         funcname <- func
         if (inherits(func, "CFunc")) 
             Func <- body(func)[[2]]
@@ -161,7 +161,7 @@ pstode <-
         else stop(paste("cannot calculate steady-state: dyn function not loaded: ", 
             funcname))
         if (!is.null(jacfunc)) {
-            if (!is.compiled(jacfunc)) 
+            if (!rootSolve:::is.compiled(jacfunc)) 
                 stop("If 'func' is dynloaded, so must 'jacfunc' be")
             jacfuncname <- jacfunc
             if (inherits(jacfunc, "CFunc")) 

@@ -172,7 +172,15 @@ run_met <- function(.,l) {
   #lapply( grep('transfer\\.',names(.$fns),value=T), function(char) {print(char); print(.$fns[[char]])} )
   #print('')
 
+  # initialize: pool structure etc
   if(!is.null(.$init)) .$init()
+  
+  # call steady state system model if it exists and doesn't return a null value
+  # APW Matt: this is the additional function call to initialise the model at steady state
+  #           if you want to turn this off just set the fnames$steadystate value to f_steadystate_null (a dummy function that just returns NULL)
+  if(!is.null(.$fns$steadystate)) if(!is.null(.$fns$steadystate() )) .$fns$steadystate()  
+
+  # run over an input/meteorological dataset 
   t(vapply(1:.$dataf$lm, .$run_met1, .$dataf$mout )) 
 }
 

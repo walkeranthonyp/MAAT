@@ -7,6 +7,8 @@
       <input>NA</input>
       <DotO>NA</DotO>
       <transfermatrix>NA</transfermatrix>
+      <steadystate>NA</steadystate>
+      <solver_steadystate>NA</solver_steadystate>
       <decomp>
         <d1>NA</d1>
         <d2>NA</d2>
