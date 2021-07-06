@@ -25,7 +25,7 @@ if(is.null(mod_obj)) {
 } 
 
 # load function to create XMLs from lists
-setwd('../src/functions/')
+setwd('~/Documents/MAAT/src/functions/')
 source('general_functions.R')
 
 # open the newly created model object

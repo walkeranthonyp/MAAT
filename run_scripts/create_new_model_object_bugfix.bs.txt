@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# copy MAAT model object template to a new model object 
+# 1st argument - new model object name 
+# 2nd argument - path of MAAT source code directory 'src', can be left blank if this script is run from the top level maat source code directory
+
+MOBJ=$1
+SDIRM=${2-$PWD/src}/system_models
+
+mkdir -p $SDIRM/$MOBJ >/dev/null 2>&1
+cp       $SDIRM/template/*.R $SDIRM/$MOBJ && chmod 755 $SDIRM/$MOBJ/*
+
+mkdir -p $SDIRM/$MOBJ/init_files >/dev/null 2>&1
+cp       $SDIRM/template/init_files/*.R $SDIRM/$MOBJ/init_files && chmod 755 $SDIRM/$MOBJ/init_files*
+
+cd $SDIRM/$MOBJ
+FILES=`ls t*`
+
+# if mac else linux 
+if [[ $OSTYPE == darwin* ]]; then
+  for f in $FILES; do f1=`echo $f | sed -E "s/template/$MOBJ/"`; echo "renaming $f to $f1"; mv $f $f1;  done
+  sed -i '' "s@template@$MOBJ@g"  $SDIRM/$MOBJ/*.R
+  sed -i '' "s@Template@$MOBJ@g"  $SDIRM/$MOBJ/*.R
+  sed -i '' "s@TEMPLATE@$MOBJ@g"  $SDIRM/$MOBJ/*.R
+  sed -i '' "s@template@$MOBJ@g"  $SDIRM/$MOBJ/init_files/*.R
+else
+  for f in $FILES; do f1=`echo $f | sed    "s/template/$MOBJ/"`; echo "renaming $f to $f1"; mv $f $f1;  done
+  sed -i    "s@template@$MOBJ@g"  $SDIRM/$MOBJ/*.R
+  sed -i    "s@Template@$MOBJ@g"  $SDIRM/$MOBJ/*.R
+  sed -i    "s@TEMPLATE@$MOBJ@g"  $SDIRM/$MOBJ/*.R
+  sed -i    "s@template@$MOBJ@g"  $SDIRM/$MOBJ/init_files/*.R
+fi
+
+cd ../../
+
+
+### END ###
