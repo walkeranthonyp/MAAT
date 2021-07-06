@@ -61,7 +61,8 @@ ppSA_radar <- function(df1, alphap=100, max_si=0.6,
               # custom the grid
               cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,0.4,0.1), cglwd=0.5,
               # custom labels
-              vlcex=0.9,
+              #vlcex=0.9,
+              vlcex=1.0,
               vlabels=labs
   )
   
@@ -151,18 +152,18 @@ radar_plot <- function(df1, var1='type', var2=NULL, lnames=NULL,
   }
   
   # plot legend
-  for( l in lnames ) {
+  for( li in 1:length(lnames)) {
+    l <- lnames[[li]]
     plot(1, type="n", xlab="", ylab="", xlim=c(0, 10), ylim=c(0, 10), axes=FALSE, ann=FALSE )
 
     if(!is.null(l)) {
       n        <- length(l)
-      leg_ncol <- if(is.null(leg_ncol)) ceiling(n/12) else leg_ncol
-      print(leg_ncol)
+      if(is.null(leg_ncol))  leg_ncol <- ceiling(n/12) 
+      ncol <- if(length(leg_ncol)>1) leg_ncol[li] else leg_ncol
+      print(ncol)
       colors_border <- viridis(n[1])
-      # legend(x=0, y=9, legend = l, bty = "n", ncol=leg_ncol, 
-      #        pch=20 , col=colors_border , text.col = "grey", cex=1, pt.cex=1)
-      legend(x='top', legend = l, bty = "n", ncol=leg_ncol, 
-             pch=20 , col=colors_border , text.col = "grey", cex=acex, pt.cex=1)
+      legend(x='top', legend=l, bty="n", ncol=ncol, 
+             pch=20 , col=colors_border , text.col="grey20", cex=0.90, pt.cex=1)
     }
   }
 }

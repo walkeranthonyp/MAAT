@@ -2,8 +2,12 @@
   <fnames>
     <leaf>
       <sys>NA</sys>
+      <rh_or_vpd>NA</rh_or_vpd>
+      <sat_vp>NA</sat_vp>
       <solver>NA</solver>
       <residual_func>NA</residual_func>
+      <assimilation>NA</assimilation>
+      <photorespiration>NA</photorespiration>
       <semiana>NA</semiana>
       <Acg>NA</Acg>
       <Ajg>NA</Ajg>
@@ -15,6 +19,7 @@
       <jmax>NA</jmax>
       <tcor_jmax>NA</tcor_jmax>
       <tpu>NA</tpu>
+      <k_pepc>NA</k_pepc>
       <rd>NA</rd>
       <rl_rd>NA</rl_rd>
       <gstar>NA</gstar>
@@ -27,6 +32,7 @@
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tpu>NA</tpu>
+        <k_pepc>NA</k_pepc>
         <rd>NA</rd>
         <gstar>NA</gstar>
         <tau>NA</tau>
@@ -37,6 +43,7 @@
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tpu>NA</tpu>
+        <k_pepc>NA</k_pepc>
         <rd>NA</rd>
       </tcor_des>
       <tcor_dep>
@@ -49,11 +56,13 @@
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tpu>NA</tpu>
+        <k_pepc>NA</k_pepc>
       </deltaS>
       <q10>
         <rd>NA</rd>
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
+        <k_pepc>NA</k_pepc>
         <tau>NA</tau>
         <Kc>NA</Kc>
         <Ko>NA</Ko>
@@ -62,13 +71,13 @@
   </fnames>
   <pars>
     <leaf>
-      <diag>NA</diag>
       <d13c>NA</d13c>
       <deltaA_prop>NA</deltaA_prop>
       <solver_min>NA</solver_min>
       <solver_max>NA</solver_max>
       <a>NA</a>
       <f>NA</f>
+      <quantum_yield_to_eff>NA</quantum_yield_to_eff>
       <ko_kc_ratio>NA</ko_kc_ratio>
       <theta_j>NA</theta_j>
       <theta_col_cj>NA</theta_col_cj>
@@ -79,10 +88,13 @@
       <bjv_25>NA</bjv_25>
       <a_jvt_25>NA</a_jvt_25>
       <b_jvt_25>NA</b_jvt_25>
+      <c_jvt_25>NA</c_jvt_25>
       <e_ajv_25>NA</e_ajv_25>
       <e_bjv_25>NA</e_bjv_25>
       <atv_25>NA</atv_25>
       <btv_25>NA</btv_25>
+      <akv_25>NA</akv_25>
+      <bkv_25>NA</bkv_25>
       <flnr>NA</flnr>
       <fnr>NA</fnr>
       <Rsa>NA</Rsa>
@@ -117,11 +129,13 @@
       <rl_rd_lloyd_b>NA</rl_rd_lloyd_b>
       <a_rdv_25_t>NA</a_rdv_25_t>
       <b_rdv_25_t>NA</b_rdv_25_t>
+      <home_temp>NA</home_temp>
       <reftemp>
         <rd>NA</rd>
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tpu>NA</tpu>
+        <k_pepc>NA</k_pepc>
         <Kc>NA</Kc>
         <Ko>NA</Ko>
         <gstar>NA</gstar>
@@ -132,6 +146,7 @@
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tpu>NA</tpu>
+        <k_pepc>NA</k_pepc>
         <Kc>NA</Kc>
         <Ko>NA</Ko>
         <gstar>NA</gstar>
@@ -143,6 +158,7 @@
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tpu>NA</tpu>
+        <k_pepc>NA</k_pepc>
         <Kc>NA</Kc>
         <Ko>NA</Ko>
         <gstar>NA</gstar>
@@ -154,18 +170,21 @@
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tpu>NA</tpu>
+        <k_pepc>NA</k_pepc>
       </Hd>
       <Topt>
         <rd>NA</rd>
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tpu>NA</tpu>
+        <k_pepc>NA</k_pepc>
       </Topt>
       <deltaS>
         <rd>NA</rd>
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tpu>NA</tpu>
+        <k_pepc>NA</k_pepc>
       </deltaS>
       <a_deltaS_t>
         <rd>NA</rd>
@@ -179,11 +198,18 @@
         <jmax>NA</jmax>
         <tpu>NA</tpu>
       </b_deltaS_t>
+      <c_deltaS_t>
+        <rd>NA</rd>
+        <vcmax>NA</vcmax>
+        <jmax>NA</jmax>
+        <tpu>NA</tpu>
+      </c_deltaS_t>
       <q10>
         <rd>NA</rd>
         <vcmax>NA</vcmax>
         <jmax>NA</jmax>
         <tpu>NA</tpu>
+        <k_pepc>NA</k_pepc>
         <Kc>NA</Kc>
         <Ko>NA</Ko>
         <tau>NA</tau>

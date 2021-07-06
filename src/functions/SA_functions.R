@@ -128,7 +128,7 @@ convert_to_df_3list_proc <- function(list1) {
   pscen <- rep(1/ls,ls) 
   df1p  <- subset(df1,scenario==1) 
   df1p$scenario <- -1
-  for(p in levels(df1$variable)) {
+  for(p in unique(df1$variable)) {
     df1s <- subset(df1,variable==p)
     df1p[which(df1p$variable==p),3:7] <- apply(as.matrix(df1s[,3:7]), 2, function(v) sum(v*pscen) )
   }
@@ -136,7 +136,7 @@ convert_to_df_3list_proc <- function(list1) {
   # calculate integrated sensitvity 
   df1p$sensitivity1 <- df1p$partial_variance / df1p$variance 
 
-  rbind(df1,df1p)
+  rbind(df1p,df1)
 }
 
 

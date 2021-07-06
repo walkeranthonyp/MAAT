@@ -8,23 +8,6 @@
 
 
 
-# LAI
-################################
-
-f_lai_constant <- function(.) .super$pars$lai
-
-f_lai_sphagnum <- function(.) {
-  # calculate sphagnum 'lai' as a logistic function of water table depth
-  b <- 0.1
-    
-  .super$pars$lai_max*b / (b + exp(.super$pars$lai_curve*(.super$env$water_td-.super$env$sphag_h)/10) )
-}
-
-f_lai_sphagnum_lin <- function(.) {
-  # calculate sphagnum 'lai' as a linear function of water table depth
-  
-}
-
 # Light Scaling
 ################################
 
@@ -63,7 +46,6 @@ f_par_partition_spitters <- function(.) {
 
    .super$env$par_diff[] <- .super$env$par*diffprop
    .super$env$par_dir[]  <- .super$env$par - .super$env$par_diff
-
 }
 
 
@@ -103,18 +85,21 @@ f_rt_beerslaw_goudriaan <- function(.,l) {
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
   
-  .super$state$vert$sun$apar[]     <- (1 - .super$state_pars$lscattering) * .super$state_pars$k_dir * .super$env$par * exp(-.super$state_pars$k_dirprime*l)
+  .super$state$vert$sun$apar[]     <- (1-.super$state_pars$lscattering)*.super$state_pars$k_dir*.super$env$par * exp(-.super$state_pars$k_dirprime*l)
   .super$state$vert$sun$fraction[] <- 1.0 
 }
 
 
-# misconstrued Beer's Law - ignores conversion of incident light per unit ground area to incident light per unit leaf area
+# misconstrued Beer's Law
+# - ignores conversion of incident light per unit ground area to incident light per unit leaf area
+# - considers scattering in absorption because the leaf models does not when nested in canopy
+# - but scattering is not considered in RT, k_dir not k_dirprime is used
 f_rt_beerslaw <- function(.,l) {
   # calculates direct beam light attenuation through the canopy
   # for use with a multilayer canopy
   # returns incident radiation in canopy layer 'l', can take 'l' as a vector
   
-  .super$state$vert$sun$apar[]     <- (1 - .super$state_pars$lscattering) * .super$env$par * exp(-.super$state_pars$k_dir*l)
+  .super$state$vert$sun$apar[]     <- (1-.super$state_pars$lscattering)*.super$env$par * exp(-.super$state_pars$k_dir*l)
   .super$state$vert$sun$fraction[] <- 1.0 
 }
 
@@ -126,13 +111,14 @@ f_rt_goudriaan <- function(.,l) {
 
   # calculate albedos
   # after Wang 2003
-  alb_h                     <- (1-.super$state_pars$m)/(1+.super$state_pars$m)
+  alb_h                          <- (1-.super$state_pars$m)/(1+.super$state_pars$m)
   .super$state_pars$alb_dir_can  <- alb_h*2*.super$state_pars$k_dir / (.super$state_pars$k_dir + .super$state_pars$k_diff)
-  .super$state_pars$alb_diff_can <- 4 * .super$state_pars$G_dir * alb_h *
-    ( .super$state_pars$G_dir * (log(.super$state_pars$G_dir)-log(.super$state_pars$G_dir+.super$state_pars$k_diff)) / .super$state_pars$k_diff^2 + 1/.super$state_pars$k_diff)
+  .super$state_pars$alb_diff_can <- 4 * .super$state_pars$G_dir * alb_h * ( .super$state_pars$G_dir *
+                                      (log(.super$state_pars$G_dir)-log(.super$state_pars$G_dir+.super$state_pars$k_diff)) / .super$state_pars$k_diff^2 + 
+                                      1/.super$state_pars$k_diff )
 
-  .super$state_pars$alb_dir      <- .super$state_pars$alb_dir_can  + (.super$pars$alb_soil-.super$state_pars$alb_dir_can)  * exp(-2*.super$state_pars$k_dirprime  * .super$state$lai)
-  .super$state_pars$alb_diff     <- .super$state_pars$alb_diff_can + (.super$pars$alb_soil-.super$state_pars$alb_diff_can) * exp(-2*.super$state_pars$k_diffprime * .super$state$lai)
+  .super$state_pars$alb_dir      <- .super$state_pars$alb_dir_can  + (.super$pars$alb_soil-.super$state_pars$alb_dir_can)  * exp(-2*.super$state_pars$k_dirprime  * .super$env$lai)
+  .super$state_pars$alb_diff     <- .super$state_pars$alb_diff_can + (.super$pars$alb_soil-.super$state_pars$alb_diff_can) * exp(-2*.super$state_pars$k_diffprime * .super$env$lai)
   
   # calculate absorbed direct & diffuse radiation  
   qshade <- (1-.super$state_pars$alb_diff)    * .super$env$par_diff * .super$state_pars$k_diffprime * exp(-.super$state_pars$k_diffprime*l) + 
@@ -146,7 +132,6 @@ f_rt_goudriaan <- function(.,l) {
   # calculate fraction sunlit vs shaded leaves
   .super$state$vert$sun$fraction[]   <- exp(-.super$state_pars$k_dir*l)
   .super$state$vert$shade$fraction[] <- 1 - .super$state$vert$sun$fraction
-
 }
 
 
@@ -155,32 +140,34 @@ f_rt_goudriaan <- function(.,l) {
 ################################
 
 f_scale_n_CLMuniform <- function(.,l) {
-  rep( (.super$state$mass_a/ceiling(.super$state$lai)) / .super$state$C_to_N, length(l) ) 
+  rep( (.super$state$mass_a/ceiling(.super$env$lai)) / .super$state$C_to_N, length(l) ) 
 }
 
 # Use Beer's Law to scale leaf N through the canopy
 f_scale_n_beerslaw <- function(.,l) {
   # for use with a multilayer phototsynthesis scheme
   
-  .super$state$totalN * exp(-.super$state_pars$k_dir*l) /  sum(exp(-.super$state_pars$k_dir*1:.super$state$lai))  
+  .super$state$totalN * exp(-.super$state_pars$k_dir*l) /  sum(exp(-.super$state_pars$k_dir*1:.super$env$lai))  
 }
 
-# Use Beer's Law to scale leaf vcmax through the canopy 
-f_scale_vcmax_beerslaw <- function(.,l) {
-  # for use with a multilayer phototsynthesis scheme
-  
-  .$state$vcmax0 * exp(-.$state_pars$k_vcmax*l) 
-}
+## Use Beer's Law to scale leaf vcmax through the canopy 
+#f_scale_vcmax_beerslaw <- function(.,l) {
+#  # for use with a multilayer phototsynthesis scheme
+#  
+#  .$state$vcmax0 * exp(-.$state_pars$k_vcmax*l) 
+#}
+#
+#f_scale_vcmax_uniform <- function(., layers ) {
+#  rep(.$state$vcmax0, length(layers) ) 
+#}
+#
+#f_k_vcmax_constant  <- function(.) .$pars$k_vcmax
+#
+#f_k_vcmax_lloyd2012 <- function(.) {
+#   exp( .$pars$k_vcmax_expa + .$pars$k_vcmax_expb*.$state$vcmax0 )
+#}
 
-f_scale_vcmax_uniform <- function(., layers ) {
-  rep(.$state$vcmax0, length(layers) ) 
-}
 
-f_k_vcmax_constant  <- function(.) .$pars$k_vcmax
-
-f_k_vcmax_lloyd2012 <- function(.) {
-   exp( .$pars$k_vcmax_expa + .$pars$k_vcmax_expb*.$state$vcmax0 )
-}
 
 # Vcmax Scaling
 ################################
@@ -191,22 +178,37 @@ f_vcmax0_constant <- function(.) {
   .super$pars$vcmax0
 }
 
-# Use Beer's Law to scale leaf vcmax through the canopy 
-f_scale_vcmax_beerslaw <- function(.,l) {
-  # for use with a multilayer phototsynthesis scheme
-  
-  .super$state$vcmax0 * exp(-.super$state_pars$k_vcmax*l) 
-}
-
-f_scale_vcmax_uniform <- function(., layers ) {
-  rep(.super$state$vcmax0, length(layers) ) 
-}
 
 f_k_vcmax_constant  <- function(.) .super$pars$k_vcmax
+
 
 f_k_vcmax_lloyd2012 <- function(.) {
    exp( .super$pars$k_vcmax_expa + .super$pars$k_vcmax_expb*.super$state$vcmax0 )
 }
+
+
+# Use Beer's Law to scale leaf vcmax through the canopy 
+f_scale_vcmax_beerslaw <- function(., l, var ) {
+  # for use with a multilayer phototsynthesis scheme
+  # currently var is a dummy argument for compatibility with two_layer
+  
+  .super$state$vcmax0 * exp(-.super$state_pars$k_vcmax*l) 
+}
+
+
+f_scale_vcmax_uniform <- function(., layers, var ) {
+  # currently var is a dummy argument for compatibility with two_layer
+  rep(.super$state$vcmax0, length(layers) ) 
+}
+
+
+f_scale_two_layer <- function(., l, var ) {
+  can_vector <- l
+  can_vector[] <- .super$pars[[var]]$layer2
+  can_vector[l<.super$pars$can_lai_upper] <- .super$pars[[var]]$layer1
+  can_vector
+}
+
 
 
 # Canopy Environment 
@@ -220,36 +222,6 @@ f_scale_ca_uniform <- function(., layers ) {
 # VPD
 f_scale_vpd_uniform <- function(., layers ) {
   rep(.super$env$vpd, length(layers) ) 
-}
-
-
-# Canopy/Leaf water status  
-################################
-
-f_water_status_none <- function(.) .super$leaf$state$fwdw_ratio <- NA
-
-# set sphagnum water status
-f_water_status_sphagnum <- function(.) {
-  .super$leaf$state$fwdw_ratio <- .$fns$fwdw() 
-}
-
-
-# Sphagnum functions
-################################
-
-# Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - linear
-f_fwdw_wtd_lin <- function(.) {
-  
-  if((.super$env$water_td - .super$env$sphag_h) > 0) .super$pars$fwdw_wl_sat 
-  else .super$pars$fwdw_wl_sat + .super$pars$fwdw_wl_slope * -(.super$env$water_td - .super$env$sphag_h) 
-}
-
-# Calculates Sphagnum fresh weight : dry weight ratio as a function of water level (mm) - exponential
-f_fwdw_wtd_exp <- function(.) {
-  # Strack & Price 2009
-  
-  if((.super$env$water_td - .super$env$sphag_h) > 0) exp( .super$pars$fwdw_wl_exp_b + .super$pars$fwdw_wl_exp_a*0 )
-  else exp( .super$pars$fwdw_wl_exp_b + .super$pars$fwdw_wl_exp_a * (-(.super$env$water_td - .super$env$sphag_h)/10) ) 
 }
 
 

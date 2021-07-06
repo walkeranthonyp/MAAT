@@ -3,17 +3,17 @@
     <canopy>
       <sys>'c( 'f_sys_2bigleaf', 'f_sys_bigleaf_s1992', 'f_sys_multilayer' )'</sys>
       <pars_init>'c( 'f_pars_init' )'</pars_init>
+      <par_partition>'c( 'f_par_partition_env', 'f_par_partition_spitters' )'</par_partition>
       <rt>'c( 'f_rt_beerslaw', 'f_rt_beerslaw_goudriaan', 'f_rt_goudriaan' )'</rt>
-      <scale_n>'c( 'f_scale_n_beerslaw', 'f_scale_n_CLMuniform' )'</scale_n>
-      <scale_vcmax>'c( 'f_scale_vcmax_beerslaw', 'f_scale_vcmax_uniform' )'</scale_vcmax>
       <vcmax0>'c( 'f_vcmax0_constant' )'</vcmax0>
       <k_vcmax>'c( 'f_k_vcmax_constant', 'f_k_vcmax_lloyd2012' )'</k_vcmax>
+      <scale_n>'c( 'f_scale_n_beerslaw', 'f_scale_n_CLMuniform' )'</scale_n>
+      <scale_vcmax>'c( 'f_scale_vcmax_beerslaw', 'f_scale_vcmax_uniform' )'</scale_vcmax>
+      <scale_jmax>'c(  )'</scale_jmax>
+      <scale_f>'c(  )'</scale_f>
+      <scale_g1>'c(  )'</scale_g1>
       <scale_ca>'c( 'f_scale_ca_uniform' )'</scale_ca>
       <scale_vpd>'c( 'f_scale_vpd_uniform' )'</scale_vpd>
-      <lai>'c( 'f_lai_constant', 'f_lai_sphagnum' )'</lai>
-      <par_partition>'c( 'f_par_partition_env', 'f_par_partition_spitters' )'</par_partition>
-      <water_status>'c( 'f_water_status_none', 'f_water_status_sphagnum' )'</water_status>
-      <fwdw>'c( 'f_fwdw_wtd_exp', 'f_fwdw_wtd_lin' )'</fwdw>
     </canopy>
   </fnames>
 </options>

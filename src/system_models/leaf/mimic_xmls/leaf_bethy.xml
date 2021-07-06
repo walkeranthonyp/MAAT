@@ -29,6 +29,7 @@
       <etrans>'f_etrans_harley1992'</etrans>
       <Acg>'f_Acg_farquhar1980'</Acg>
       <Ajg>'f_Ajg_generic'</Ajg>
+      <Apg>'f_Apg_none'</Apg>
       <gas_diff>'f_gas_diff_ficks_ci'</gas_diff>
       <rd>'f_rd_lin_vcmax'</rd>
       <rl_rd>'f_rl_rd_fixed'</rl_rd_scalar>
@@ -42,7 +43,6 @@
   </fnames>
   <pars>
     <leaf>
-      <diag>F</diag>
       <a>0.88</a>
       <f>0.44</f>
       <avn_25>8.31</avn_25>

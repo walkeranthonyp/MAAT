@@ -18,9 +18,9 @@ f_none <- function(.) {
 ################################
 
 # Calculate assimilation for a given cc (.super$state$cc)
-# - code block common to all assimilation solvers
+# - code block common to all C3 assimilation solvers
 # - calculates Ag/cc, determines limiting rate, calculates and returns net A
-f_assimilation <- function(.) {
+f_assimilation_c3 <- function(.) {
  
   # calculate Ag / cc for each limiting process
   .super$state$Acg[] <- .$Acg()
@@ -32,6 +32,22 @@ f_assimilation <- function(.) {
   
   # calculate & return net A
   Amin*.super$state$cc - Amin*.super$state_pars$gstar - .super$state$rd
+}
+  
+  
+# C4 assimilation function   
+f_assimilation_c4 <- function(.) {
+ 
+  # calculate Ag for each limiting process
+  .super$state$Acg[] <- .$Acg()
+  .super$state$Ajg[] <- .$Ajg()
+  .super$state$Apg[] <- .$Apg()
+  
+  # determine rate limiting cycle - this is done based on carboxylation, not net assimilation (Gu etal 2010).
+  Amin <- .$Alim() 
+  
+  # calculate & return net A
+  Amin - .super$state$rd
 }
   
 
@@ -66,6 +82,12 @@ f_Acg_farquhar1980 <- function(., cc=.super$state$cc ) {
     (cc + .super$state_pars$Km)
 }
 
+# Carboxylation limitaion for C4 photosynthesis
+f_Acg_c4_collatz1992 <- function(., ... ) {   
+  .super$state_pars$vcmaxlt 
+}
+
+
 # electron transport limitation
 f_Ajg_generic <- function(., cc=.super$state$cc ) { 
   # generic eq to calculate light limited photosynthetic rate 
@@ -73,8 +95,14 @@ f_Ajg_generic <- function(., cc=.super$state$cc ) {
   # umol m-2 s-1
   
   # calculate gross electron transport limited carboxylation rate / cc 
-  .super$state$J / (4*(cc+2*.super$state_pars$gstar))     
+  .super$state$J / ( .super$pars$quantum_yield_to_eff * (cc+2*.super$state_pars$gstar) )     
 }
+
+# converts electron transport to gross carboxylation reactions
+f_Ajg_c4_collatz1992 <- function(., ... ) { 
+  .super$state$J / .super$pars$quantum_yield_to_eff 
+}
+
 
 # Farquhar 1980 and others
 f_etrans_farquhar1980 <- function(.){
@@ -151,8 +179,19 @@ f_Apg_foley1996 <- function(., cc=.super$state$cc ) {
 # no triose phosphate limitation
 f_Apg_none <- function(.) {
   # returns NA which is ignored in limiting rate selection functions 
-  
   NA
+}
+
+# PEPC limitation for C4 (i.e. not TPU limitation but it is the third possible limitation for C4) 
+# - also, strictly speaking Cc should be Ci but this is to work with the solver
+# - 
+f_Apg_c4_pepc_collatz1992 <- function(., cc=.super$state$cc ) {
+  cc * .super$state_pars$k_pepc_lt / .super$env$atm_press
+}
+
+# PEPC limitation for C4 - solution when rs = r0 
+f_Apg_c4_pepc_collatz1992_r0soln <- function(.,r) {
+  .super$state$ca * .super$state_pars$k_pepc_lt / (.super$env$atm_press*(1 + r*.super$state_pars$k_pepc_lt*1e-6))
 }
 
 
@@ -236,6 +275,7 @@ f_vcmax_clm <- function(.) {
   .super$state$leafN_area * .super$pars$flnr * .super$pars$fnr * .super$pars$Rsa  
 }
 
+
 # jmax
 f_jmax_constant <- function(.) {
   .super$pars$atref$jmax
@@ -249,9 +289,26 @@ f_jmax_lin <- function(.) {
   .super$pars$ajv_25 + .super$state_pars$vcmax * .super$pars$bjv_25 * .$tcor_jmax(.)    
 }
 
+# scale JV ratio by temperature, returns a scalar
 f_tcor_jmax_lin <- function(.) {
   (.super$pars$a_jvt_25 + .super$pars$b_jvt_25 * .super$state$leaf_temp ) /
     (.super$pars$a_jvt_25 + .super$pars$b_jvt_25 * 25 )
+}
+
+# Kumarathunge et al 2019 New Phytologist
+f_tcor_jmax_lin_thome <- function(., var, ... ) {
+
+  # currently just setting home temp to also be leaf temp 
+  #.super$pars$home_temp[] <- .super$state$leaf_temp 
+ 
+  print('')
+  print(var)
+  
+  # CLM limits the range of growth temps 
+  ( .super$pars$a_jvt_25 + .super$pars$home_temp * .super$pars$b_jvt_25 + 
+    (.super$state$leaf_temp - .super$pars$home_temp ) * .super$pars$c_jvt_25)  / 
+    (.super$pars$a_jvt_25 + 25*.super$pars$b_jvt_25 ) 
+ 
 }
 
 
@@ -262,6 +319,16 @@ f_tpu_constant <- function(.) {
 
 f_tpu_lin <- function(.) {
   .super$pars$atv_25 + .super$state_pars$vcmax * .super$pars$btv_25    
+}
+
+
+# k PEPC  
+f_k_pepc_constant <- function(.) {
+  .super$pars$atref$k_pepc
+}
+
+f_k_pepc_lin <- function(.) {
+  .super$pars$akv_25 + .super$state_pars$vcmax * .super$pars$bkv_25    
 }
 
 
@@ -348,16 +415,17 @@ f_rs_constant_r0 <- f_rs_constant <- function(., ... ) {
 
 
 # Medlyn et al 2011 eq for stomatal resistance
+# - with Medlyn 2012 correction - 1.6 in the f(e) term
 f_rs_medlyn2011 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / (.super$pars$g0 + .$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
+  1 / ( .super$pars$g0 + .$rs_fe()*A*.super$env$atm_press*1e-6/c ) 
 }
 
 f_rs_medlyn2011_fe <- function(.) {
   # f(e) component of rs from Medlyn 2011   
-  ( 1 + .super$pars$g1_medlyn / .$env$vpd^0.5 )
+  1.6 * ( 1 + .super$pars$g1_medlyn/(.$env$vpd^0.5) )
 }
 
 f_rs_medlyn2011_r0 <- function(.) {
@@ -365,13 +433,42 @@ f_rs_medlyn2011_r0 <- function(.) {
   1 / max(.super$pars$g0,1e-6)
 }
 
+# as Medlyn 2011 but with no g0
+f_rs_medlyn_lin2015 <- function(., A=.super$state$A, c=.super$state$cb ) {
+  # expects c in Pa
+  # output in m2s mol-1 h2o
+  
+  1 / ( .$rs_fe()*A*.super$env$atm_press*1e-6/c ) 
+}
+
+f_rs_medlyn_lin2015_fe <- f_rs_medlyn2011_fe
+f_rs_medlyn_lin2015_r0 <- f_rs_medlyn2011_r0
+
+f_rs_dewar2019 <- function(., A=.super$state$A, c=.super$state$cb ) {
+  # expects c in Pa
+  # output in m2s mol-1 h2o
+  
+  1 / ( .super$pars$g0 + .$rs_fe()*A*.super$env$atm_press*1e-6/(c-.super$state_pars$gstar) ) 
+}
+
+f_rs_dewar2019_gamma <- function(., A=.super$state$A, c=.super$state$cb ) {
+  # expects c in Pa
+  # output in m2s mol-1 h2o
+  
+  1 / ( .super$pars$g0 + .$rs_fe()*A*.super$env$atm_press*1e-6/(c-.super$state_pars$gamma) ) 
+}
+
+
+f_rs_dewar2019_fe  <- f_rs_dewar2019_gamma_fe  <- f_rs_medlyn2011_fe
+f_rs_dewar2019_r0  <- f_rs_dewar2019_gamma_r0  <- f_rs_medlyn2011_r0
+
 
 # Leuning et al 1995 eq for stomatal resistance
 f_rs_leuning1995 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1  h2o
 
-  1 / (.super$pars$g0 + .$rs_fe(c=c) * A * .super$env$atm_press*1e-6 / c)  
+  1 / (.super$pars$g0 + .$rs_fe(c=c)*A*.super$env$atm_press*1e-6/c )  
 }
 
 f_rs_leuning1995_fe <- function(., c=.super$state$cb ) {
@@ -391,7 +488,7 @@ f_rs_ball1987 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / (.super$pars$g0 + .$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
+  1 / ( .super$pars$g0 + .$rs_fe()*A*.super$env$atm_press*1e-6/c ) 
 }
 
 f_rs_ball1987_fe <- function(.) {
@@ -413,7 +510,7 @@ f_rs_constantCiCa <- function(., A=.super$state$A, c=.super$state$cb ) {
   # set Ci:Ca ratio
   .super$state_pars$cica_chi <- .$cica_ratio()
   
-  1 / (.$rs_fe() * A * .super$env$atm_press*1e-6 / c) 
+  1 / ( .$rs_fe()*A*.super$env$atm_press*1e-6/c ) 
 }
 
 f_rs_constantCiCa_fe <- function(.) {
@@ -438,7 +535,7 @@ f_rs_cox1998 <- function(., A=.super$state$A, c=.super$state$cb ) {
   # expects c in Pa
   # output in m2s mol-1 h2o
   
-  1 / (.$rs_fe(c=c) * A * .super$env$atm_press*1e-6 / c)
+  1 / ( .$rs_fe(c=c)*A*.super$env$atm_press*1e-6/c )
 }
 
 f_rs_cox1998_fe <- function(., c=.super$state$cb ) {
@@ -539,6 +636,7 @@ f_scalar_none <- function(...) {
   1
 }
 
+
 # temperature scaling is identical to that of Vcmax
  f_tcor_dep_dependent<- function(., ... ) {
   .super$state_pars$vcmaxlt / .super$state_pars$vcmax
@@ -549,6 +647,7 @@ f_tcor_dep_independent <- function(., var ) {
 
   .[[paste('tcor_asc',var,sep='.')]](., var=var ) * .[[paste('tcor_des',var,sep='.')]](., var=var )
 }
+
 
 # temperature dependence functions that cannot be separated into ascending and decending components
 f_tcor_asc_bethy <- function(., var, ... ) { 
@@ -570,6 +669,7 @@ f_tcor_asc_quadratic_bf1985 <- function(., var, ... ) {
   1 + (.super$pars$gstar_bf_b*(.super$state$leaf_temp-.super$pars$reftemp[[var]]) + .super$pars$gstar_bf_a*(.super$state$leaf_temp-.super$pars$reftemp[[var]])^2) / .super$pars$gstar_bf_c
 }
 
+
 # Ascending components of the temperature response function - can be run alone for an increasing repsonse only
 f_tcor_asc_Arrhenius <- function(., var, ... ) {
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
@@ -590,6 +690,7 @@ f_tcor_asc_Arrhenius <- function(., var, ... ) {
   exp( .super$pars$Ha[[var]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
 }
 
+
 # Q10 temperature scaling
 f_tcor_asc_Q10 <- function(., var, ... ) {
   #returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
@@ -603,6 +704,7 @@ f_tcor_asc_Q10 <- function(., var, ... ) {
   q10 ^ ((.super$state$leaf_temp - .super$pars$reftemp[[var]])/10)
   
 }
+
 
 # Descending components of the temperature response function 
 f_tcor_des_modArrhenius <- function(., var, ... ) {
@@ -636,6 +738,7 @@ f_tcor_des_modArrhenius <- function(., var, ... ) {
   
 }
 
+
 # descending component of temperature scaling from Collatz etal 1991
 f_tcor_des_collatz1991 <- function(., var, ... ) {
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
@@ -652,6 +755,15 @@ f_tcor_des_collatz1991 <- function(., var, ... ) {
   
   1 / ( 1 + exp((Tsk*deltaS-.super$pars$Hd[[var]]) / (Tsk*.super$pars$R)) )
 }
+
+
+# descending component of temperature scaling from Collatz etal 1991
+f_tcor_des_collatz1992 <- function(., var, ... ) {
+  # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
+
+  1 / (1 + exp(.super$pars$exp_cox[[var]]*(.super$state$leaf_temp-.super$pars$tupp_cox[[var]])))  
+}
+
 
 # descending component of temperature scaling from Cox etal 2001
 f_tcor_des_cox2001 <- function(., var, ... ) {
@@ -673,7 +785,7 @@ f_deltaS_constant <- function(., var, ... ) {
   .super$pars$deltaS[[var]]
 }
 
-#calculate delta S from T opt (temp where t scaling peaks) in oC
+# calculate delta S from T opt (temp where t scaling peaks) in oC
 f_deltaS <- function(., var, ... ) {
   #Medlyn 2002
   
@@ -682,12 +794,32 @@ f_deltaS <- function(., var, ... ) {
   .super$pars$Hd[[var]]/Toptk + (.super$pars$R*log(.super$pars$Ha[[var]]/(.super$pars$Hd[[var]] - .super$pars$Ha[[var]])))
 }
 
-#calculate delta S as a function of growth temp
+# calculate deltaS as a function of growth temp
+f_Ea_lin_t <- function(., var, ... ) {
+
+  # CLM limits the range of growth temps 
+  .super$pars$a_Ea_t[[var]] + .super$state$leaf_temp * .super$pars$b_Ea_t[[var]] 
+}
+
+# calculate deltaS as a function of growth temp
 f_deltaS_lin_t <- function(., var, ... ) {
 
   # CLM limits the range of growth temps 
   .super$pars$a_deltaS_t[[var]] + .super$state$leaf_temp * .super$pars$b_deltaS_t[[var]] 
 }
+
+# calculate deltaS as a function of growth temp and 'home' temp
+# Kumarathunge et al 2019 New Phytologist
+f_deltaS_lin_thome <- function(., var, ... ) {
+
+  # currently just setting home temp to also be leaf temp 
+  #.super$pars$home_temp[] <- .super$state$leaf_temp 
+  
+  # CLM limits the range of growth temps 
+  .super$pars$a_deltaS_t[[var]] + .super$pars$home_temp * .super$pars$b_deltaS_t[[var]] + 
+    (.super$state$leaf_temp - .super$pars$home_temp ) * .super$pars$c_deltaS_t[[var]]  
+}
+
 
 # Q10
 f_q10_constant <- function(., var, ... ) {
@@ -695,6 +827,7 @@ f_q10_constant <- function(., var, ... ) {
   
   .super$pars$q10[[var]]
 }
+
 
 # calculate q10 as a function of T
 f_q10_lin_t <- function(., var, ... ) {
@@ -709,6 +842,7 @@ f_gstar_constant <- function(., ... ) {
   .super$pars$atref$gstar
 }
 
+
 # calculates Gamma star as a function of Kc & Ko, and thus their combined temperature dependence
 f_gstar_f1980 <- function(., ... ) {
   # Farquhar 1980 Eq 38
@@ -717,12 +851,22 @@ f_gstar_f1980 <- function(., ... ) {
   .super$pars$ko_kc_ratio * .super$state_pars$Kc*.super$state$oi/(2*.super$state_pars$Ko)
 }
 
+# calculates Gamma star as a function of Kc & Ko, and thus their combined temperature dependence
+f_photorespiration_f1980 <- function(.) {
+
+  # based on last line of C3 assimilation function, Farquhar 1980 Eq 1
+  Amin <- .$Alim() 
+  Amin - .super$state$A - .super$state$rd
+}
+
+
 # takes a defined ref temperature value of gstar and scales to leaf temp
 f_gstar_constref <- function(.) {
   # this will probably not give the correct response to a change in atmospheric pressure
   
   .super$pars$atref$gstar * .[['tcor_asc.gstar']](var='gstar') 
 }
+
 
 # calculates gstar at leaftemp from tau
 f_gstar_c1991 <- function(.) {

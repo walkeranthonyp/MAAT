@@ -15,6 +15,7 @@
 
 # input matrix, single column, rows = cpools_n
 # - this is where inputs would be divided among pools
+# - APW I don't think this needs to be part of the solver
 f_input <- function(., t ) {
   #why is .$env$litter not .super$env$litter??
   .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 )
@@ -28,13 +29,17 @@ f_input_mimics <- function(., t ) {
 }
 
 ## decomp matrix, single column, rows = n_pools
-f_DotO <- function(., C, t ) { 
+# - APW seems a little convoluted, why can't just use 1:n_pools for the id
+f_DotO <- function(., C, t ) {
+  # search fns proto object for functions named starting with 'decomp.' and use to make dnames 
   dnames <- grep('decomp\\.', names(.), value=T )[1:.super$pars$n_pools]
+  # get integer id's of the decomp function for each pool
   id     <- sub('decomp.d', '', dnames )
-  m      <- matrix(ncol=1, nrow=.super$pars$n_pools )
   # call functions and create decomp matrix 
-  for(i in id) { m[as.numeric(i),] <- .[[paste0('decomp.d',i)]](C=C,t=t,i=as.numeric(i))
-    #print(id); print(.[[paste0('decomp.d',i)]]) 
+  m      <- matrix(ncol=1, nrow=.super$pars$n_pools )
+  for(i in id) { 
+    #print(i); print(.[[paste0('decomp.d',i)]]) 
+    m[as.numeric(i),] <- .[[paste0('decomp.d',i)]](C=C,t=t,i=as.numeric(i))
   }
   m
 }
@@ -42,10 +47,13 @@ f_DotO <- function(., C, t ) {
 
 ## transfer matrix, square, n_pools extent
 f_transfermatrix <- function(., C, t ) {
+  # search fns proto object for functions named starting with 'transfer.' and use to make tnames 
   tnames <- grep('transfer\\.', names(.), value=T )
+  # get integer id's of the transfer functions
   id     <- sub('transfer.t', '', tnames )
   # remove transfers that are not required, i.e. are 0 or from/to pools > n_pools
   id     <- id[!is.na(.super$fnames$transfer[paste0('t',id)])]
+  # get integer id's of the from and to pools of the transfers 
   idm    <- apply(as.matrix(id,nrow=1), 1, function(i) as.numeric(unlist(strsplit(i,'_to_'))) )
   idm    <- apply(idm,1,function(v) v[v<=.super$pars$n_pools] )
   # call functions and create transfer matrix 
@@ -55,16 +63,14 @@ f_transfermatrix <- function(., C, t ) {
   #print(m)
   for(i in 1:dim(idm)[1]) {
     ss <- idm[i,]
-    #print(i) 
-    #print(ss)
-    #print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]]) 
+    #print(i); print(ss); print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]]) 
     m[matrix(rev(ss),nrow=1)] <- .[[paste0('transfer.t',ss[1],'_to_',ss[2])]](C=C,t=t,from=ss[1],to=ss[2])
   }
   m
 }
   
   
-# lsoda style function to solve
+# deSolve/lsoda style function to solve
 # - parms is a dummy argument to work with lsoda
 f_solver_func <- function(., t, y, parms) {
   YD = .$transfermatrix(y,t) %*% .$DotO(y,t) + .$input(t) 

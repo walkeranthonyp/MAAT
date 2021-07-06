@@ -9,6 +9,7 @@
 source('leaf_system_functions.R')
 source('leaf_functions.R')
 source('leaf_solver_functions.R')
+source('../../functions/packagemod_functions_uniroot.R')
 
 
 
@@ -31,13 +32,13 @@ leaf_object$name <- 'leaf'
 
 # function to configure unique elements of the object
 # - adds functions to fns that are not in fnames
-# - or functions that are derivations of other functions, in this case teh rs derived fuinctions like rs_r0 and rs_fe 
+# - or functions that are derivations of other functions:
+#    -- in this case the rs derived functions like rs_r0 and rs_fe 
+#    -- or an anlytical soln for c4 PEPC limited A when rs = r0 
 ####################################
 leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
   if(init) {
-    source('../../functions/packagemod_functions.R')
     .$fns$puniroot            <- puniroot
-    .$fns$assimilation        <- f_assimilation
     .$fns$assim_no_resistance <- f_solver_analytical_leaf_no_r
     .$fns$transition_cc       <- transition_cc
     .$fns$analytical_simple   <- f_solver_analytical_leaf_simple 
@@ -53,6 +54,9 @@ leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
    .$fns$rs_fe <- get(paste0(.$fnames$rs,'_fe'), pos=1 )
    .$fns$rs_r0 <- get(paste0(.$fnames$rs,'_r0'), pos=1 )
   }
+
+  if(any(names(flist)=='Apg'))
+    if(grepl('c4',flist[['Apg']])) .$fns$Apg_r0soln <- get(paste0(.$fnames$Apg,'_r0soln'), pos=1 )
 }
 
 
@@ -63,32 +67,38 @@ leaf_object$configure_unique <- function(., init=F, flist=NULL ) {
 # function names
 ####################################
 leaf_object$fnames <- list(
-  sys            = 'f_sys_enzymek', 
-  solver         = 'f_solver_brent',
-  residual_func  = 'f_residual_func_leaf_Ar',
-  semiana        = 'f_semiana_quad',
-  Acg            = 'f_Acg_farquhar1980',
-  Ajg            = 'f_Ajg_generic',
-  Apg            = 'f_Apg_vonc2000',            
-  etrans         = 'f_etrans_harley1992',
-  gas_diff       = 'f_gas_diff_ficks_ci',
-  Alim           = 'f_Alim_farquhar1980',
-  vcmax          = 'f_vcmax_lin',
-  jmax           = 'f_jmax_power',
-  tcor_jmax      = 'f_scalar_none',
-  tpu            = 'f_tpu_lin',
-  rd             = 'f_rd_lin_vcmax',
-  rl_rd          = 'f_scalar_none',
-  gstar          = 'f_gstar_f1980',
-  ri             = 'f_r_zero',
-  rs             = 'f_rs_medlyn2011',
-  rb             = 'f_rb_leafdim',
-  cica_ratio     = 'f_cica_ratio_constant',             
-  d13c           = 'f_d13c_classical',             
+  sys              = 'f_sys_enzymek', 
+  rh_or_vpd        = 'f_vpd_from_rh',
+  sat_vp           = 'f_sat_vp_allen1998',
+  solver           = 'f_solver_brent',
+  residual_func    = 'f_residual_func_leaf_Ar',
+  assimilation     = 'f_assimilation_c3',
+  photorespiration = 'f_photorespiration_f1980',
+  semiana          = 'f_semiana_quad',
+  Acg              = 'f_Acg_farquhar1980',
+  Ajg              = 'f_Ajg_generic',
+  Apg              = 'f_Apg_vonc2000',            
+  etrans           = 'f_etrans_harley1992',
+  gas_diff         = 'f_gas_diff_ficks_ci',
+  Alim             = 'f_Alim_farquhar1980',
+  vcmax            = 'f_vcmax_lin',
+  jmax             = 'f_jmax_power',
+  tcor_jmax        = 'f_scalar_none',
+  tpu              = 'f_tpu_lin',
+  k_pepc           = 'f_k_pepc_constant',
+  rd               = 'f_rd_lin_vcmax',
+  rl_rd            = 'f_scalar_none',
+  gstar            = 'f_gstar_f1980',
+  ri               = 'f_r_zero',
+  rs               = 'f_rs_medlyn2011',
+  rb               = 'f_rb_leafdim',
+  cica_ratio       = 'f_cica_ratio_constant',             
+  d13c             = 'f_d13c_classical',             
   tcor_asc = list(
     vcmax          = 'f_tcor_asc_Arrhenius',
     jmax           = 'f_tcor_asc_Arrhenius',
     tpu            = 'f_tcor_asc_Arrhenius',
+    k_pepc         = 'f_tcor_asc_Arrhenius',
     rd             = 'f_tcor_asc_Arrhenius',
     gstar          = 'f_tcor_asc_quadratic_bf1985',
     tau            = 'f_tcor_asc_Q10',
@@ -99,6 +109,7 @@ leaf_object$fnames <- list(
     vcmax          = 'f_tcor_des_modArrhenius',
     jmax           = 'f_tcor_des_modArrhenius',
     tpu            = 'f_tcor_des_modArrhenius',
+    k_pepc         = 'f_tcor_des_modArrhenius',
     rd             = 'f_scalar_none'
   ),
   tcor_dep = list(
@@ -110,12 +121,14 @@ leaf_object$fnames <- list(
     rd             = 'f_deltaS',
     vcmax          = 'f_deltaS',
     jmax           = 'f_deltaS',
-    tpu            = 'f_deltaS'
+    tpu            = 'f_deltaS',
+    k_pepc         = 'f_deltaS'
   ),
   q10 = list(
     rd             = 'f_q10_constant',
     vcmax          = 'f_q10_constant',
     jmax           = 'f_q10_constant',
+    k_pepc         = 'f_q10_constant',
     tau            = 'f_q10_constant',
     Kc             = 'f_q10_constant',
     Ko             = 'f_q10_constant'
@@ -132,8 +145,8 @@ leaf_object$env <- list(
   water_l   = numeric(1),          # (mm) water level relative to hollow surfwce
   sphag_l   = 0,                   # (mm) Sphagnum surface relative to hollow surfwce
   temp      = 25,                  # (oC)
-  vpd       = 1,                   # (kPa)
-  rh        = numeric(1),          # (unitless - proportion)
+  vpd       = numeric(1),          # (kPa)
+  rh        = 0.8,                 # (unitless - proportion)
   atm_press = 101325,              # ( Pa)
   wind      = 1                    # (m s-1)
 )
@@ -164,18 +177,19 @@ leaf_object$state <- list(
   lim = numeric(1),                # flag indicationg limitation state of assimilation, wc = wc limited, wj = wj limited, wp = wp limited
 
   # diagnostic state
-  A_ana_rbzero   = numeric(1),     # rate of carboxylation assuming zero boundary layer resistance to CO2 diffusion (umol m-2 s-1)
-  A_ana_rbg0zero = numeric(1),     # rate of carboxylation assuming zero boundary layer resistance & zero minimum stomatal conductance to CO2 diffusion (umol m-2 s-1)
-  aguess         = numeric(4),     # value of three guesses and solution from semi-analytical solver  (umol m-2 s-1)
-  faguess        = numeric(4),     # value of solver function on three guesses and solution from semi-analytical solver  (umol m-2 s-1)
-  aguess_flag    = numeric(1),     # flag for first guess from semi-analytical solver
-  iter           = numeric(1),     # number of iterations to solve solver function in Brent uniroot
-  estimprec      = numeric(1),     # estimated precision of solve from uniroot solver function 
-  assim          = numeric(2),     # roots of fitted quadratic in semi-analytical solver
-  fA_ana_final   = numeric(2),     # value of solver function for final gusee from semi-analytical solver  (umol m-2 s-1)
-  A_noR          = numeric(1),     # rate of carboxylation assuming zero resistance to CO2 diffusion (umol m-2 s-1)
-  transition     = numeric(1),     # cc at the transition point where wc = wj                        (Pa)
-  d13c           = numeric(1)      # delta 13 C concentration of assimilated C 
+  A_ana_rbzero     = numeric(1),   # rate of carboxylation assuming zero boundary layer resistance to CO2 diffusion (umol m-2 s-1)
+  A_ana_rbg0zero   = numeric(1),   # rate of carboxylation assuming zero boundary layer resistance & zero minimum stomatal conductance to CO2 diffusion (umol m-2 s-1)
+  aguess           = numeric(4),   # value of three guesses and solution from semi-analytical solver  (umol m-2 s-1)
+  faguess          = numeric(4),   # value of solver function on three guesses and solution from semi-analytical solver  (umol m-2 s-1)
+  aguess_flag      = numeric(1),   # flag for first guess from semi-analytical solver
+  iter             = numeric(1),   # number of iterations to solve solver function in Brent uniroot
+  estimprec        = numeric(1),   # estimated precision of solve from uniroot solver function 
+  assim            = numeric(2),   # roots of fitted quadratic in semi-analytical solver
+  fA_ana_final     = numeric(2),   # value of solver function for final gusee from semi-analytical solver (umol m-2 s-1)
+  A_noR            = numeric(1),   # rate of carboxylation assuming zero resistance to CO2 diffusion      (umol m-2 s-1)
+  transition       = numeric(1),   # cc at the transition point where wc = wj                             (Pa)
+  photorespiration = numeric(1),   # photorespiration                                                     (umol CO2 m-2 s-1)
+  d13c             = numeric(1)    # delta 13 C concentration of assimilated C 
 )
 
 
@@ -187,24 +201,26 @@ leaf_object$solver_out = NULL
 # state parameters (i.e. calculated parameters)
 ####################################
 leaf_object$state_pars <- list(
-  vcmax    = numeric(1),   # umol m-2 s-1
-  vcmaxlt  = numeric(1),   # umol m-2 s-1
-  jmax     = numeric(1),   # umol m-2 s-1
-  jmaxlt   = numeric(1),   # umol m-2 s-1
-  tpu      = numeric(1),   # umol m-2 s-1
-  tpult    = numeric(1),   # umol m-2 s-1
-  rd       = numeric(1),   # umol m-2 s-1; respiration at reftemp
-  Kc       = numeric(1),   #  Pa
-  Ko       = numeric(1),   # kPa
-  Km       = numeric(1),   #  Pa
-  gstar    = numeric(1),   #  Pa
-  tau      = numeric(1),   #  -
-  gamma    = numeric(1),   #  Pa
-  rb       = numeric(1),   # m2s mol-1 H2O
-  rs       = numeric(1),   # m2s mol-1 H2O
-  ri       = numeric(1),   # m2s mol-1 CO2     
-  alpha    = numeric(1),   # mol electrons mol-1 absorbed photosynthetically active photons
-  cica_chi = numeric(1)    # Ci:Ca ratio 
+  vcmax     = numeric(1),  # umol m-2 s-1
+  vcmaxlt   = numeric(1),  # umol m-2 s-1
+  jmax      = numeric(1),  # umol m-2 s-1
+  jmaxlt    = numeric(1),  # umol m-2 s-1
+  tpu       = numeric(1),  # umol m-2 s-1
+  tpult     = numeric(1),  # umol m-2 s-1
+  k_pepc    = numeric(1),  # umol m-2 s-1
+  k_pepc_lt = numeric(1),  # umol m-2 s-1
+  rd        = numeric(1),  # umol m-2 s-1; respiration at reftemp
+  Kc        = numeric(1),  #  Pa
+  Ko        = numeric(1),  # kPa
+  Km        = numeric(1),  #  Pa
+  gstar     = numeric(1),  #  Pa
+  tau       = numeric(1),  #  -
+  gamma     = numeric(1),  #  Pa
+  rb        = numeric(1),  # m2s mol-1 H2O
+  rs        = numeric(1),  # m2s mol-1 H2O
+  ri        = numeric(1),  # m2s mol-1 CO2     
+  alpha     = numeric(1),  # mol electrons mol-1 absorbed photosynthetically active photons
+  cica_chi  = numeric(1)   # Ci:Ca ratio 
 )
 
 
@@ -217,30 +233,34 @@ leaf_object$pars   <- list(
   solver_max    = 51.8364435, # upper bracket for numerical solver  
 
   # photosynthetic parameters
-  a             = 0.80,       # fraction of PAR absorbed by leaf                       (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
-  f             = 0.23,       # fraction of absorbed PAR not collected by photosystems (unitless)
-  ko_kc_ratio   = 0.21,       # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)
-  theta_j       = 0.90,       # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
-  theta_col_cj  = 0.95,       # curvature of 1st limitation quadratic, theta, in Collatz 1991  (unitless)
-  theta_col_cjp = 0.98,       # curvature of 2nd limitation quadratic, beta, in Collatz 1991   (unitless)
-  avn_25        = 10,         # intercept of linear vcmax25 to leaf N relationship     (umolm-2s-1)
-  bvn_25        = 30,         # slope of linear vcmax25 to leaf N relationship         (umolm-2s-1g-1 N)
-  ajv_25        = 29,         # intercept of linear jmax25 to vcmax25 relationship     (umolm-2s-1)
-  bjv_25        = 1.63,       # slope of linear jmax25 to vcmax25 relationship         (unitless)
-  a_jvt_25      = 2.59,       # intercept of linear jmax25:vcmax25 relationship to temperature   (e C-1)
-  b_jvt_25      = -0.035,     # slope of linear jmax25:vcmax25 relationship to temperature       (e C-1 oC-1)
-  e_ajv_25      = 1.01,       # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
-  e_bjv_25      = 0.89,       # slope of log-log jmax25 to vcmax25 relationship        (unitless)
-  atv_25        = 0,          # intercept of linear tpu25 to vcmax25 relationship      (umolm-2s-1)
-  btv_25        = 1/6,        # slope of linear tpu25 to vcmax25 relationship          (unitless)
-  flnr          = 0.09,       # fraction of leafN in RuBisCO -- PFT specific           (unitless)
-  fnr           = 7.16,       # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
-  Rsa           = 60,         # specific activity of RuBisCO                           ()
-  Apg_alpha     = 0,          # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
+  a                    = 0.80,    # fraction of PAR absorbed by leaf                       (unitless)  --- this should equal 1 - leaf scattering coefficient, there is potential here for improper combination of models
+  f                    = 0.23,    # fraction of absorbed PAR not collected by photosystems (unitless)
+  quantum_yield_to_eff = 4.0,     # electrons required per carboxylation                   (unitless)
+  ko_kc_ratio          = 0.21,    # ratio of RuBisCO turnover numbers for oxgenation and carboxylation (unitless)
+  theta_j              = 0.90,    # curvature of J quadratic in Farqhuar & Wong 1984       (unitless)
+  theta_col_cj         = 0.95,    # curvature of 1st limitation quadratic, theta, in Collatz 1991  (unitless)
+  theta_col_cjp        = 0.98,    # curvature of 2nd limitation quadratic, beta, in Collatz 1991   (unitless)
+  avn_25               = 10,      # intercept of linear vcmax25 to leaf N relationship     (umolm-2s-1)
+  bvn_25               = 30,      # slope of linear vcmax25 to leaf N relationship         (umolm-2s-1g-1 N)
+  ajv_25               = 29,      # intercept of linear jmax25 to vcmax25 relationship     (umolm-2s-1)
+  bjv_25               = 1.63,    # slope of linear jmax25 to vcmax25 relationship         (unitless)
+  a_jvt_25             = 2.59,    # intercept of linear jmax25:vcmax25 relationship to temperature   (e C-1)
+  b_jvt_25             = -0.035,  # slope of linear jmax25:vcmax25 relationship to temperature       (e C-1 oC-1)
+  c_jvt_25             = -0.0202, # slope of linear jmax25:vcmax25 relationship to temperature*Thome (e C-1 oC-1)
+  e_ajv_25             = 1.01,    # intercept of log-log jmax25 to vcmax25 relationship    (log(umolm-2s-1))
+  e_bjv_25             = 0.89,    # slope of log-log jmax25 to vcmax25 relationship        (unitless)
+  atv_25               = 0,       # intercept of linear tpu25 to vcmax25 relationship      (umolm-2s-1)
+  btv_25               = 1/6,     # slope of linear tpu25 to vcmax25 relationship          (unitless)
+  akv_25               = 0,       # intercept of linear k_pepc25 to vcmax25 relationship   (umolm-2s-1)
+  bkv_25               = 2e4,     # slope of linear k_pepc25 to vcmax25 relationship       (unitless)
+  flnr                 = 0.09,    # fraction of leafN in RuBisCO -- PFT specific           (unitless)
+  fnr                  = 7.16,    # ratio of RuBisCO molecular mass to N in RuBisCO        (g RuBisCO g-1 N)
+  Rsa                  = 60,      # specific activity of RuBisCO                           ()
+  Apg_alpha            = 0,       # alpha in tpu limitation eq, often set to zero check Ellesworth PC&E 2014 (unitless)
 
   # resistance parameters
   g0            = 0.01,       # Medlyn 2011 min gs                                     (molm-2s-1)
-  g1_medlyn     = 6,          # Medlyn 2011 gs slope                                   (kPa^0.5)
+  g1_medlyn     = 4.16,       # Medlyn 2011 gs slope, 4.16 from Lin et al 2015 C3      (kPa^0.5)
   g1_leuning    = 10,         # Leuning 1995 gs slope                                  (unitless - likely higher than medlyn and ball g1)
   d0            = 1,          # Leuning 1995 D0                                        (kPa)
   g1_ball       = 6,          # Ball 1987 gs slope                                     (unitless - multiplier on RH as a proportion)
@@ -267,31 +287,34 @@ leaf_object$pars   <- list(
   a_rdn_25      = 0.5,        # intercept of linear rd25 to leaf N area relationship    (umolm-2s-1)
   b_rdn_25      = 0.15,       # slope of linear rd25 to leaf N area relationship        (unitless)
   rl_rd_ratio   = 1,          # ratio of non-photorespiratory respiration in the light to respiration in the dark  (unitless)
-  rl_rd_lloyd_a = 0.5,        # intercept of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from mercado 2007 (unitless) 
-  rl_rd_lloyd_b = 0.05,       # slope of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from mercado 2007 (?)
+  rl_rd_lloyd_a = 0.5,        # intercept of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from Mercado 2007 (unitless) 
+  rl_rd_lloyd_b = 0.05,       # slope of rl to rd scalar relationship to ln(PAR) Lloyd 1995 taken from Mercado 2007 (?)
   a_rdv_25_t    = 0.015,      # intercept of b_rdv_25 relationship to temperature       (umolm-2s-1)
   b_rdv_25_t    = -0.0005,    # slope of b_rdv_25 relationship to temperature           (unitless)
   
   # temperature response parameters
+  home_temp = 25,              # mean temperature under which species evolved, 'home' temp Kumarathunge 2019 (oC) 
   reftemp = list(
-    rd    = 25,               # reference temperature at which rd scalar = 1            (oC) 
-    vcmax = 25,               # reference temperature at which Vcmax scalar = 1         (oC) 
-    jmax  = 25,               # reference temperature at which Jmax scalar = 1          (oC)
-    tpu   = 25,               # reference temperature at which TPU scalar = 1           (oC)
-    Kc    = 25,               # reference temperature at which Kc scalar = 1            (oC)
-    Ko    = 25,               # reference temperature at which Ko scalar = 1            (oC)
-    gstar = 25,               # reference temperature at which gamma star scalar = 1    (oC)
-    tau   = 25                # reference temperature at which tau scalar = 1           (oC)
+    rd     = 25,               # reference temperature at which rd scalar = 1            (oC) 
+    vcmax  = 25,               # reference temperature at which Vcmax scalar = 1         (oC) 
+    jmax   = 25,               # reference temperature at which Jmax scalar = 1          (oC)
+    tpu    = 25,               # reference temperature at which TPU scalar = 1           (oC)
+    k_pepc = 25,               # reference temperature at which k_pepc scalar = 1        (oC)
+    Kc     = 25,               # reference temperature at which Kc scalar = 1            (oC)
+    Ko     = 25,               # reference temperature at which Ko scalar = 1            (oC)
+    gstar  = 25,               # reference temperature at which gamma star scalar = 1    (oC)
+    tau    = 25                # reference temperature at which tau scalar = 1           (oC)
   ),
   atref = list(
-    rd      = 2,              # rd at ref temp (usually 25oC)    - used to set rd as a parameter                        (umolm-2s-1) 
-    vcmax   = 50,             # vcmax at ref temp (usually 25oC) - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
-    jmax    = 100,            # jmax at ref temp (usually 25oC)  - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
-    tpu     = 5,              # tpu at ref temp (usually 25oC)   - used to set TPU as a parameter                       (umolm-2s-1)
+    rd      = 2,              # rd at ref temp (usually 25oC)     - used to set rd as a parameter                        (umolm-2s-1) 
+    vcmax   = 50,             # vcmax at ref temp (usually 25oC)  - used to set Vcmax as a parameter instead of an f(N)  (umolm-2s-1) 
+    jmax    = 100,            # jmax at ref temp (usually 25oC)   - used to set Jmax as a parameter instead of an f(N)   (umolm-2s-1)
+    tpu     = 5,              # tpu at ref temp (usually 25oC)    - used to set TPU as a parameter                       (umolm-2s-1)
+    k_pepc  = 7e5,            # k_pepc at ref temp (usually 25oC) - used to set k_pepc as a parameter                       (umolm-2s-1)
     Kc      = 40.49,          # Kc for RuBisCO at ref temp (usually 25oC)               ( Pa)
     Ko      = 27.84,          # Kc for RuBisCO at ref temp (usually 25oC)               (kPa)
     gstar   = 4.325,          # Gamma star at ref temp (usually 25oC), 4.325 is Farquhar & Brooks value converted to Pa (Pa)
-    tau     = 2.6,           # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (kPa Pa-1)
+    tau     = 2.6,            # CO2/O2 specificity ratio at ref temp (usually 25oC), Collatz 1991 (kPa Pa-1)
     vomax   = numeric(1) 
   ),
   Ha = list(
@@ -299,29 +322,33 @@ leaf_object$pars   <- list(
     vcmax      = 69830,       # activation energy of Vcmax                              (J mol-1)
     jmax       = 100280,      # activation energy of Jmax                               (J mol-1)
     tpu        = 69830,       # activation energy of TPU                                (J mol-1)
+    k_pepc     = 69830,       # activation energy of k_pepc                             (J mol-1)
     Kc         = 79430,       # activation energy of Kc                                 (J mol-1)
     Ko         = 36380,       # activation energy of Ko                                 (J mol-1)
     gstar      = 37830,       # activation energy of gamma star                         (J mol-1)
     tau        = -41572,      # activation energy of tau                                (J mol-1)
-    vomax      = 60110        # activation energy of Vomax                              (J mol-1)i
+    vomax      = 60110        # activation energy of Vomax                              (J mol-1)
   ),
   Hd = list(
     rd         = 200000,      # deactivation energy of rd                               (J mol-1)
     vcmax      = 200000,      # deactivation energy of Vcmax                            (J mol-1)
     jmax       = 200000,      # deactivation energy of Jmax                             (J mol-1)
-    tpu        = 200000       # deactivation energy of TPU                              (J mol-1)i
+    tpu        = 200000,      # deactivation energy of TPU                              (J mol-1)
+    k_pepc     = 200000       # deactivation energy of k_pepc                           (J mol-1)
   ),
   Topt = list(
     rd       = 27.56,         #  temperature optimum of rd                               (oC)
     vcmax    = 27.56,         #  temperature optimum of Vcmax                            (oC)
     jmax     = 19.89,         #  temperature optimum of Jmax                             (oC)
-    tpu      = 27.56          #  temperature optimum of TPU                              (oC)
+    tpu      = 27.56,         #  temperature optimum of TPU                              (oC)
+    k_pepc   = 27.56          #  temperature optimum of k_pepc                           (oC)
   ),
   deltaS = list(
     rd     = numeric(1),      # 
     vcmax  = numeric(1),      # 
     jmax   = numeric(1),      #
-    tpu    = numeric(1)       #
+    tpu    = numeric(1),      #
+    k_pepc = numeric(1)       #
   ),
   a_deltaS_t = list(
     rd     = 490,             # linear temperature response of rd deltaS   
@@ -335,11 +362,18 @@ leaf_object$pars   <- list(
     jmax   = -0.75,           # linear temperature response of jmax deltaS (Kattge & Knorr)
     tpu    = 0                # linear temperature response of tpu deltaS (Kattge & Knorr)
   ),
+  c_deltaS_t = list(
+    rd     = numeric(1),      # linear temperature response of rd deltaS
+    vcmax  = numeric(1),      # linear temperature response of vcmax deltaS 
+    jmax   = -0.52,           # linear temperature response of jmax deltaS inc Thome (Kumarathunge)
+    tpu    = numeric(1)       # linear temperature response of tpu deltaS 
+  ),
   q10 = list(
     rd        = 2,            # Q10 of Rd                                               (-)
     vcmax     = 2,            # Q10 of Vcmax                                            (-)
     jmax      = 2,            # Q10 of Jmax                                             (-)
     tpu       = 2,            # Q10 of TPU                                              (-)
+    k_pepc    = 2,            # Q10 of k_pepc                                           (-)
     Kc        = 2,            # Q10 of Kc                                               (-)
     Ko        = 2,            # Q10 of Ko                                               (-)
     tau       = 0.57          # Q10 of tau                                              (-)
@@ -374,16 +408,18 @@ leaf_object$pars   <- list(
 # run control parameters
 ####################################
 leaf_object$cpars <- list(
-  diag          = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
-  verbose       = F,          # write diagnostic output during runtime 
+  diag      = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
+  verbose   = F,          # write diagnostic output during runtime 
   cverbose  = F,          # write diagnostic output on the solver during runtime 
-  cverbose      = F,          # write configuration output during runtime 
-  output        = 'slim'      # type of output from run function
+  cverbose  = F,          # write configuration output during runtime 
+  output    = 'slim'      # type of output from run function
 )
 
 
 # output functions
 #######################################################################        
+
+f_output_leaf_eval <- f_output_eval 
 
 f_output_leaf_run <- function(.) {
   c(.$state_retrive(snames=c('A','cc','ci','rd','lim')),
@@ -408,7 +444,12 @@ f_output_leaf_full <- function(.) {
 
 f_output_leaf_all_lim <- function(.) {
   c(.$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
-    .$state_retrive(snames=c('ri','rs','rb'), state='state_pars' ) )
+    .$state_retrive(snames=c('gstar','ri','rs','rb'), state='state_pars' ) )
+}
+
+f_output_leaf_vpd <- function(.) {
+  c(rh=.$env$rh, vpd=.$env$vpd, .$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
+    .$state_retrive(snames=c('gstar','ri','rs','rb'), state='state_pars' ) )
 }
 
 f_output_leaf_canopy <- function(.) {
@@ -423,8 +464,8 @@ f_output_leaf_sphagnum <- function(.) {
 }
 
 f_output_leaf_WUE <- function(.) {
-  c(.$state_retrive(snames=c('A','cc','ci','ca','gstar')), 
-    gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb ) 
+  c(.$state_retrive(snames=c('A','cc','ci','ca')), 
+    gstar=.$state_pars$gstar, gi=1/.$state_pars$ri, gs=1/.$state_pars$rs, gb=1/.$state_pars$rb ) 
 }
 
 
@@ -454,7 +495,6 @@ leaf_object$.test <- function(., diag=F, verbose=F, cverbose=F,
 leaf_object$.test_residual_func <- function(., diag=F, verbose=T, cverbose=T,
                                             centrala=5, range=3, inc=range/20,
                                             leaf.par=200, leaf.ca_conc=300, rs='f_rs_medlyn2011' ) {
-  
   if(verbose) str(.)
   .$build(switches=c(diag,verbose,cverbose))
   
@@ -514,18 +554,24 @@ leaf_object$.test_tscalar <- function(., diag=F, verbose=F, cverbose=F,
   .$configure_test()
 
   # configure met data and run
-  .$dataf     <- list()
-  .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par','leaf.temp')))      
-  .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+  .$dataf          <- list()
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('leaf.ca_conc','leaf.par','leaf.temp')))))      
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
+  .$dataf$out      <- .$run_met() 
+  .$dataf$out_full <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  print(.$dataf$out_full)
   
-  p1 <- xyplot(I(vcmaxlt/vcmax) ~ leaf.temp | as.factor(paste(tcor_asc,tcor_des)), .$dataf$out, abline=list(h=c(0,1), v=.$pars$reftemp[['vcmax']]),
-               ylab=expression('scalar'),xlab=expression(T*' ['^o*C*']'))
+  p1 <- xyplot(I(vcmaxlt/vcmax) ~ leaf.temp | as.factor(paste(tcor_asc,tcor_des)), .$dataf$out_full, 
+	       abline=list(h=c(0,1), v=.$pars$reftemp[['vcmax']]),
+               ylab=expression('scalar'), xlab=expression(T*' ['^o*C*']') )
   print(p1)
 }
 
 
-leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,1500,50), rs='f_rs_medlyn2011', rb='f_r_zero', 
-                      verbose=F, cverbose=F, diag=F, output='all_lim' ) {
+leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,1500,50), 
+                                  rs='f_rs_medlyn2011', rb='f_r_zero', c4=F, 
+                                  verbose=F, cverbose=F, diag=F, output='all_lim' ) {
   
   if(verbose) str(.)
   .$build(mod_out=output, switches=c(diag,verbose,cverbose) )
@@ -535,31 +581,53 @@ leaf_object$.test_aci <- function(., leaf.par=c(100,1000), leaf.ca_conc=seq(0.1,
   .$fnames$ri            <- 'f_r_zero'
   .$fnames$rb            <- rb
   .$fnames$rs            <- rs
-  
+ 
+  # C4 configuration
+  if(c4) {  
+    .$fnames$assimilation  <- 'f_assimilation_c4'
+    .$fnames$etrans        <- 'f_etrans_collatz1991'
+    .$fnames$Acg           <- 'f_Acg_c4_collatz1992'
+    .$fnames$Ajg           <- 'f_Ajg_c4_collatz1992'
+    .$fnames$Apg           <- 'f_Apg_c4_pepc_collatz1992'
+    .$fnames$Alim          <- 'f_Alim_collatz1991'
+    .$pars$atref$vcmax     <- 39
+    .$pars$theta_col_cj    <- 0.83
+    .$pars$theta_col_cjp   <- 0.93
+    .$pars$f               <- 0.68
+    .$pars$f               <- 0.464
+    .$pars$g1_medlyn       <- 2.0
+    .$pars$g0              <- 0.08
+  }
+
   # configure methods
   .$configure_test()
 
   # configure met data and run
-  .$dataf     <- list()
-  .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
-  .$dataf$out <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
+  .$dataf          <- list()
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('leaf.ca_conc','leaf.par')))))      
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
+  .$dataf$out      <- .$run_met() 
+  .$dataf$out_full <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  print(.$dataf$out_full)
   
-  print(cbind(.$dataf$met,.$dataf$out))
-  p1 <- xyplot(A~cc|as.factor(.$dataf$met$leaf.par),.$dataf$out,groups=unlist(lim),abline=0,
-               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[c]*' [Pa]'),
-               panel=function(subscripts=subscripts,...) {
+  p1 <- xyplot(A ~ cc | as.factor(.$dataf$met['leaf.par',]), .$dataf$out_full, groups=lim, #abline=0,
+               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'), xlab=expression(C[c]*' [Pa]'),
+               panel=function(subscripts=subscripts, ... ) {
                  if(diag) {
-                   panel.abline(v=.$dataf$out$transition[subscripts][1])
-                   panel.points(y=.$dataf$out$A_noR[subscripts],x=.$dataf$out$cc[subscripts],col='black')                       
+                   panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                   panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                  }
-                 panel.xyplot(subscripts=subscripts,...)
+                 panel.abline(h=0)
+                 panel.xyplot(subscripts=subscripts, ... )
                })
   print(p1)
 }
 
 
-leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=seq(1,1200,50),rs='f_rs_medlyn2011',
-                                        verbose=F,cverbose=F,output=F,diag=F) {
+leaf_object$.test_aci_light <- function(., leaf.par=seq(10,2000,50), leaf.ca_conc=seq(1,1200,50),
+                                        rs='f_rs_medlyn2011', c4=F,
+                                        verbose=F, cverbose=F, output=F, diag=F ) {
   
   if(verbose) str(.)
   .$build(mod_out='all_lim', switches=c(diag,verbose,cverbose) )
@@ -569,37 +637,58 @@ leaf_object$.test_aci_light <- function(.,leaf.par=seq(10,2000,50),leaf.ca_conc=
   .$fnames$residual_func <- 'f_residual_func_leaf_Ar'
   .$fnames$solver        <- 'f_solver_brent'
   
+  # C4 configuration  
+  if(c4) {
+    .$fnames$assimilation  <- 'f_assimilation_c4'
+    .$fnames$etrans        <- 'f_etrans_collatz1991'
+    .$fnames$Acg           <- 'f_Acg_c4_collatz1992'
+    .$fnames$Ajg           <- 'f_Ajg_c4_collatz1992'
+    .$fnames$Apg           <- 'f_Apg_c4_pepc_collatz1992'
+    .$fnames$Alim          <- 'f_Alim_collatz1991'
+    .$pars$atref$vcmax     <- 39
+    .$pars$theta_col_cj    <- 0.83
+    .$pars$theta_col_cjp   <- 0.93
+    .$pars$f               <- 0.68
+    .$pars$f               <- 0.464
+    .$pars$g1_medlyn       <- 2.0
+    .$pars$g0              <- 0.08
+  }
+
   # configure methods
   .$configure_test()
 
   # configure met data and run
   .$dataf          <- list()
-  .$dataf$met      <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))
-  .$dataf$out      <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-  .$dataf$out_full <- cbind(.$dataf$met,.$dataf$out)
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('leaf.ca_conc','leaf.par')))))      
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
+  .$dataf$out      <- .$run_met() 
+  .$dataf$out_full <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  print(.$dataf$out_full)
   
-  p1 <- xyplot(A~cc,.$dataf$out_full,subset=leaf.par==1010,abline=0,groups=unlist(lim),
-               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression(C[c]*' [Pa]'),
+  p1 <- xyplot(A ~ cc, .$dataf$out_full, subset=leaf.par==1010, groups=lim,
+               abline=0, 
+	       ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'), xlab=expression(C[c]*' [Pa]'),
                panel=function(subscripts=subscripts,...) {
                  if(diag) {
                    panel.abline(v=.$dataf$out_full$transition[subscripts][1])
-                   panel.points(y=.$dataf$out_full$A_noR[subscripts],x=.$dataf$out_full$cc[subscripts],col='black')                       
+                   panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                  }
-                 panel.xyplot(subscripts=subscripts,...)
+                 panel.xyplot(subscripts=subscripts, ... )
                })
   
-  p2 <- xyplot(A~leaf.par,.$dataf$out_full,subset=leaf.ca_conc==401,abline=0,groups=unlist(lim),
-               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'),xlab=expression('PAR ['*mu*mol*' '*m^-2*s-1*']'),
-               panel=function(subscripts=subscripts,...) {
+  p2 <- xyplot(A ~ leaf.par, .$dataf$out_full, subset=leaf.ca_conc==401, groups=unlist(lim),
+	       abline=0,
+               ylab=expression('A ['*mu*mol*' '*m^-2*s-1*']'), xlab=expression('PAR ['*mu*mol*' '*m^-2*s-1*']'),
+               panel=function(subscripts=subscripts, ... ) {
                  if(diag) {
-                   #                        panel.abline(v=.$dataf$out_full$transition[subscripts][1])
-                   panel.points(y=.$dataf$out_full$A_noR[subscripts],x=.$dataf$out_full$leaf.par[subscripts],col='black')                       
+                   panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$leaf.par[subscripts], col='black' )                       
                  }
-                 panel.xyplot(subscripts=subscripts,...)
+                 panel.xyplot(subscripts=subscripts, ... )
                })
   
-  print(p1,split=c(1,1,2,1),more=T)
-  print(p2,split=c(2,1,2,1),more=F)
+  print(p1, split=c(1,1,2,1), more=T )
+  print(p2, split=c(2,1,2,1), more=F )
   if(output) .$dataf$out_full
 }
 
@@ -619,67 +708,74 @@ leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011',
   .$pars$g0   <- leaf.g0
   
   # configure met data 
-  .$dataf     <- list()
-  .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
+  .$dataf          <- list()
+  .$dataf$met      <- t(as.matrix(expand.grid(mget(c('leaf.ca_conc','leaf.par')))))      
+  .$dataf$lm       <- dim(.$dataf$met)[2]
+  .$dataf$mout     <- .$output()
   
   if(!ana_only) {
     .$fnames$solver <- 'f_solver_brent'
     .$configure_test()
-    .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
-    num_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver )
+    .$dataf$out     <- .$run_met() 
+    num_soln        <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+    num_soln$sol    <- .$fnames$solver
   }
 
   .$fnames$solver <- 'f_solver_analytical_leaf_simple'
   .$configure_test()
-  .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
-  ana_soln        <- cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver)
+  .$dataf$out     <- .$run_met() 
+  ana_soln        <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  ana_soln$sol    <- .$fnames$solver
 
   .$fnames$solver <- 'f_solver_analytical_leaf_quad'
   .$configure_test()
-  .$dataf$out     <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)) )
-  ana_soln        <- rbind(ana_soln,  cbind(.$dataf$met, .$dataf$out, sol=.$fnames$solver) )
+  .$dataf$out     <- .$run_met() 
+  ana_soln1       <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  ana_soln1$sol   <- .$fnames$solver
+  ana_soln        <- rbind(ana_soln, ana_soln1 )
 
-
-  odf <- if(ana_only) ana_soln else rbind(num_soln,ana_soln)
+  .$dataf$out_full <- if(ana_only) ana_soln else rbind(num_soln,ana_soln)
   
   if(!ana_only) {
-    p1 <- xyplot(A~cc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,
-                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[c]*' [Pa]'),
-                 panel=function(subscripts=subscripts,...) {
+    p1 <- xyplot(A ~ cc | as.factor(leaf.par), .$dataf$out_full, groups=sol,
+		 abline=0,
+                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'), xlab=expression(C[c]*' [Pa]'),
+                 panel=function(subscripts=subscripts, ... ) {
                    if(diag) {
-                     panel.abline(v=odf$transition[subscripts][1])
-                     panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                     panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                     panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                    }
-                   panel.xyplot(subscripts=subscripts,...)
+                   panel.xyplot(subscripts=subscripts, ... )
                  })
     
-    p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=sol,abline=0,
-                 main=rs,auto.key=T,
-                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
-                 panel=function(subscripts=subscripts,...) {
+    p2 <- xyplot(A ~ leaf.ca_conc | as.factor(leaf.par), .$dataf$out_full, groups=sol,
+		 abline=0,
+                 main=rs, auto.key=T,
+                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'), xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
+                 panel=function(subscripts=subscripts, ... ) {
                    if(diag) {
-                     panel.abline(v=odf$transition[subscripts][1])
-                     panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                     panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                     panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                    }
-                   panel.xyplot(subscripts=subscripts,...)
+                   panel.xyplot(subscripts=subscripts, ... )
                  })
     
-    ol <- list(odf,p2,p1)        
+    ol <- list(.$dataf$out_full,p2,p1)        
 
   } else {
     p1 <- NULL
-    p2 <- xyplot(A~leaf.ca_conc,odf,groups=as.factor(odf$leaf.par),abline=0,
-                 main=rs,
-                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
-                 panel=function(subscripts=subscripts,...) {
+    p2 <- xyplot(A ~ leaf.ca_conc, .$dataf$out_full, groups=as.factor(odf$leaf.par), 
+		 abline=0, main=rs,
+                 ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'), xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
+                 panel=function(subscripts=subscripts, ... ) {
                    if(diag) {
-                     panel.abline(v=odf$transition[subscripts][1])
-                     panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                     panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                     panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                    }
-                   panel.xyplot(subscripts=subscripts,...)
+                   panel.xyplot(subscripts=subscripts, ... )
                  })
     
-    ol <- list(odf,p2,p1)        
+    ol <- list(.$dataf$out_full,p2,p1)        
   }
 
   print(p2)
@@ -687,8 +783,11 @@ leaf_object$.test_aci_analytical <- function(., rs='f_rs_medlyn2011',
 }
 
 
-leaf_object$.test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_etrans_farquharwong1984',leaf.par=c(100,1000),leaf.ca_conc=seq(100,1500,50), 
-                                      ana_only=F,verbose=F,cverbose=F,diag=F) {
+leaf_object$.test_aci_lim <- function(.,
+				      rs='f_rs_medlyn2011',
+				      et='f_etrans_farquharwong1984',
+				      leaf.par=c(100,1000), leaf.ca_conc=seq(100,1500,50), 
+                                      ana_only=F, verbose=F, cverbose=F, diag=F ) {
   
   if(verbose) str(.)
   .$build(mod_out='all_lim', switches=c(diag,verbose,cverbose) )
@@ -698,47 +797,53 @@ leaf_object$.test_aci_lim <- function(.,rs='f_rs_medlyn2011',et='f_etrans_farquh
   .$fnames$gas_diff     <- 'f_gas_diff_ficks_ci'
   .$fnames$etrans       <- et
   
-  .$dataf     <- list()
-  .$dataf$met <- expand.grid(mget(c('leaf.ca_conc','leaf.par')))      
-  
+  .$dataf      <- list()
+  .$dataf$met  <- t(as.matrix(expand.grid(mget(c('leaf.ca_conc','leaf.par')))))      
+  .$dataf$lm   <- dim(.$dataf$met)[2]
+  .$dataf$mout <- .$output()
+   
   .$fnames$Alim <- 'f_Alim_farquhar1980'
   .$configure_test()
-  .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-  Fout          <- cbind(.$dataf$met,.$dataf$out,Alim='F1980')
+  .$dataf$out   <- .$run_met() 
+  Fout          <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  Fout$Alim     <- 'F1980' 
   
   .$fnames$Alim <- 'f_Alim_collatz1991'
   .$configure_test()
-  .$dataf$out   <- data.frame(do.call(rbind,lapply(1:length(.$dataf$met[,1]),.$run_met)))
-  Cout          <- cbind(.$dataf$met,.$dataf$out,Alim='C1991')
+  .$dataf$out   <- .$run_met() 
+  Cout          <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
+  Cout$Alim     <- 'C1991' 
   
-  odf <- rbind(Fout,Cout)
+  .$dataf$out_full <- rbind(Fout,Cout)
   
-  p1 <- xyplot(A~cc|as.factor(et),odf,groups=unlist(Alim),abline=0,
-               ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[c]*' [Pa]'),
-               type='l',auto.key=list(x=0.9,y=0.1,corner=c(1,0),points=F,lines=T),
+  p1 <- xyplot(A ~ cc | as.factor(et), .$dataf$out_full, groups=as.factor(Alim),
+	       abline=0,
+               ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'), xlab=expression(C[c]*' [Pa]'),
+               type='l', auto.key=list(x=0.9, y=0.1, corner=c(1,0), points=F, lines=T ),
                strip=strip.custom(bg='grey90'),
-               panel=function(subscripts=subscripts,...) {
+               panel=function(subscripts=subscripts, ... ) {
                  if(diag) {
-                   panel.abline(v=odf$transition[subscripts][1])
-                   panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                   panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                   panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                  }
-                 panel.xyplot(subscripts=subscripts,...)
+                 panel.xyplot(subscripts=subscripts, ... )
                })
   
-  p2 <- xyplot(A~leaf.ca_conc|as.factor(odf$leaf.par),odf,groups=unlist(Alim),abline=0,
+  p2 <- xyplot(A ~ leaf.ca_conc | as.factor(leaf.par), .$dataf$out_full, groups=Alim,
+	       abline=0,
                auto.key=T,
-               ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'),xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
+               ylab=expression('A ['*mu*mol*' '*m^-2*s^-1*']'), xlab=expression(C[a]*' ['*mu*mol*' '*mol^-1*']'),
                panel=function(subscripts=subscripts,...) {
                  if(diag) {
-                   panel.abline(v=odf$transition[subscripts][1])
-                   panel.points(y=odf$A_noR[subscripts],x=odf$cc[subscripts],col='black')                       
+                   panel.abline(v=.$dataf$out_full$transition[subscripts][1])
+                   panel.points(y=.$dataf$out_full$A_noR[subscripts], x=.$dataf$out_full$cc[subscripts], col='black' )                       
                  }
                  panel.xyplot(subscripts=subscripts,...)
                })
   
   print(p1)
   # print(p2)
-  odf
+  .$dataf$out_full
 }
 
 

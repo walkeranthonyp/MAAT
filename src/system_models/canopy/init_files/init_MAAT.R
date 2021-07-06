@@ -49,7 +49,7 @@
 
 # define lists
 leaf.fnames.static <- list(
-  rb          = 'f_r_zero'
+  rb    = 'f_r_zero'
 )
 
 leaf.pars.static <- list(
@@ -57,12 +57,10 @@ leaf.pars.static <- list(
 )
 
 leaf.env.static  <- list(
-  temp = 25
+  temp  = 25
 )
 
-canopy.fnames.static <- list(
-  lai = 'f_lai_constant'     
-)   
+canopy.fnames.static <- NULL 
 
 canopy.pars.static   <- NULL
 
@@ -90,15 +88,14 @@ leaf.env.var       <- NULL
 
 canopy.fnames.var    <- NULL
 
-canopy.pars.var      <- list(
-  lai = c(1,3,5,7)
-)
+canopy.pars.var      <- NULL 
 
 canopy.pars_proc.var <- NULL
 
 canopy.pars_eval.var <- NULL
 
 canopy.env.var       <- list(
+  lai     = c(1,3,5,7)
   ca_conc = seq(50,1500,50)
 )
 

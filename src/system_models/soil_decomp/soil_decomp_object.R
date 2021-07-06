@@ -10,8 +10,7 @@ library(proto)
 source('soil_decomp_functions.R')
 source('soil_decomp_SoilR_functions.R')
 source('soil_decomp_system_functions.R')
-source('../../functions/packagemod_functions.R')
-
+source('../../functions/packagemod_functions_deSolve.R')
 
 
 # soil_decomp OBJECT
@@ -394,6 +393,9 @@ soil_decomp_object$cpars <- list(
 # output functions
 #######################################################################        
 
+f_output_soil_decomp_eval <- f_output_eval 
+
+
 f_output_soil_decomp_run <- function(.) {
   unlist(.$state)
 }
@@ -422,7 +424,7 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=172/365, ntim
     if(length(litter)==1) litter <- rep(litter, ntimes ) 
     .$dataf$metdf <- matrix(litter, nrow=1 )
     rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-    .$dataf$lm    <- length(.$dataf$metdf[1,])
+    .$dataf$lm    <- dim(.$dataf$met)[2]
     .$dataf$mout  <- .$output()
     .$run_met()
   } else {
@@ -436,6 +438,7 @@ soil_decomp_object$.test_corpse <- function(., verbose=F, metdf=F, litter=.00136
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))
   .$configure_test() # if only used in test functions should begin with a .
+
   
   if(metdf) {
     .$dataf       <- list()
