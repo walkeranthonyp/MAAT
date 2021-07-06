@@ -81,6 +81,10 @@ f_decomp_dd_georgiou         <- function(.,C,t,i) (C[i]^.super$pars$beta) * .sup
 # non-linear Michaelis-Menten decomp, a function of microbial biomass
 f_decomp_MM_microbe <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[i])
 
+#reverse Michaelis-Menten decomp
+#C[4] is microbial biomass in CORPSE
+f_decomp_rmm <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]])
+
 # double Michaelis-Menten decomp
 f_decomp_dmm <- function(.,C,t,i){
   .super$pars$vmax[[i]] * (C[1]/(.super$pars$km[[1]] + C[1])) * (C[2]/(.super$pars$rkm[[1]]+C[2]))
@@ -127,6 +131,28 @@ f_micturn_sulman <- function(.,C,t,i) {
 }
 
 #########
+#alternative CORPSE hyps
+#########
+#michaelis-menten version of decomp function
+#would need to change km parameterization
+f_decomp_mm_sulman <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[i] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
+
+#CORPSE density dependence version of microbial turnover
+f_micturn_sulman_dd <- function(.,C,t,i) {
+  (C[i]^.super$pars$beta - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[i]] 
+}
+
+#adding a decomp function that saturates and returns excess to unprotected pool
+f_decomp_lin_sat_corpse        <- function(.,C,t,i) {
+  protected_max = 2 #arbitrary
+    C[i]*.super$pars$k[[i]]* (1-(C[5] + C[6] + C[7])/protected_max)
+}
+
+# f_desorp_lin_sat_corpse <- function(.,C,t,i) {
+#   C[i]*.super$pars$k[[i]]
+# }
+
+#########
 #MILLENNIAL-SPECIFIC FUNCTIONS
 #########
 f_aggform_abramoff <- function(.,C,t,i, agg_pool = 5){
@@ -159,21 +185,54 @@ f_docuptake_abramoff <- function(.,C,t,i){
 #########
 #environmental controls are embedded,
 #would be ideal to pull these out
-f_decomp_rmm_wieder <- function(.,C,t,i,cat = 'cat1', cat_pool = 3){
+#for now we could define all the parameters with if...then statements in the solver function
+f_decomp_rmm_wieder <- function(.,C,t,i,cat_pool = 3){
+  if(cat_pool == 3){
   if(i==7){
     pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-    Km = .super$pars$km[[7]][[cat]] * pscalar
+    Km = .super$pars$km[[7]] * pscalar
   } else if(i==6) {
     #km par same as structural litter (km2)
-    Km = .super$pars$km[[2]][[cat]] *.super$pars$mimics[['ko']][[cat]]
+    Km = .super$pars$km[[2]] *.super$pars$mimics[['ko_r']]
   }  else {
-    Km = .super$pars$km[[i]][[cat]]
+    Km = .super$pars$km[[i]]
   }
   #correcting Km for temperature
   Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-
-  C[i] * .super$pars$vmax[[i]][[cat]] * C[cat_pool] / (Km_cor + C[cat_pool])
+  ###RMM equation
+  C[i] * .super$pars$vmax[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
+  ###
+  } else {
+      if(i==7){
+        pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+        Km = .super$pars$km2[[7]] * pscalar
+      } else if(i==6) {
+        Km = .super$pars$km2[[2]] *.super$pars$mimics[['ko_k']]
+      }  else {
+        Km = .super$pars$km2[[i]]
+      }
+      Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+      ###RMM equation
+      C[i] * .super$pars$vmax2[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
+      ###
+  }
 }
+
+# f_decomp_rmm_wieder <- function(.,C,t,i,cat = 'cat1', cat_pool = 3){
+#   if(i==7){
+#     pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+#     Km = .super$pars$km[[7]][[cat]] * pscalar
+#   } else if(i==6) {
+#     #km par same as structural litter (km2)
+#     Km = .super$pars$km[[2]][[cat]] *.super$pars$mimics[['ko']][[cat]]
+#   }  else {
+#     Km = .super$pars$km[[i]][[cat]]
+#   }
+#   #correcting Km for temperature
+#   Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+# 
+#   C[i] * .super$pars$vmax[[i]][[cat]] * C[cat_pool] / (Km_cor + C[cat_pool])
+# }
 
 # transfer functions
 

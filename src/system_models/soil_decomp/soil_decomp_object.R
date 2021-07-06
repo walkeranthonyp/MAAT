@@ -69,49 +69,48 @@ soil_decomp_object$fnames <- list(
 
   sys            = 'f_sys_npools',
   solver         = 'plsoda',
-  solver_func    = 'f_solver_func_millennial',
-  input          = 'f_input',
+  solver_func    = 'f_solver_func_mimics',
+  input          = 'f_input_mimics',
   DotO           = 'f_DotO',
   transfermatrix = 'f_transfermatrix',
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_dmm', #double michaelis menten 
-    d2 = 'f_decomp_lin', #maintenance respiration
-    d3 = 'f_zero',
-    d4 = 'f_decomp_lin', #leaching
-    d5 = 'f_decomp_lin'  #aggregate breakdown
+    d1 = 'f_decomp_rmm_wieder', #reverse michaelis menten (function accounts for two potential catalyst pools)
+    d2 = 'f_decomp_rmm_wieder', 
+    d3 = 'f_decomp_lin', #linear turnover of r-selected microbial biomass 
+    d4 = 'f_decomp_lin', #linear turnover of k-selected microbial biomass
+    d5 = 'f_zero',  #no decomp, just desorption
+    d6 = 'f_decomp_rmm_wieder',
+    d7 = 'f_decomp_rmm_wieder'
   ),
   
   desorp = list(
-    ds1 = 'f_zero',
-    ds2 = 'f_zero',
-    ds3 = 'f_zero', #zero because sorption is a two-way function
-    ds4 = 'f_zero', 
-    ds5 = 'f_zero'
+    ds5 = 'f_decomp_lin',
+    ds6 = 'f_zero',
+    ds7 = 'f_zero' 
   ),
   
   sorp = list(
-    s1 = 'f_zero', 
+    s1 = 'f_decomp_lin',
     s2 = 'f_decomp_lin',
-    s3 = 'f_zero',
-    s4 = 'f_docsorp_abramoff',
-    s5 = 'f_zero'
+    s3 = 'f_decomp_lin'    
   ),
   
   aggform = list(
-    a1 = 'f_aggform_abramoff', 
-    a2 = 'f_zero',
-    a3 = 'f_aggform_abramoff',
-    a4 = 'f_zero',
-    a5 = 'f_zero'
+    NA
   ),
   
   docuptake = 'f_docuptake_abramoff',
   
   scor = 'f_zero',
   wcor = 'f_wcor_abramoff',
-  tcor = 'f_tcor_daycent2_abramoff',
+  #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
+  tcor = list(                  #this structure for corpse
+    t1 = 'f_tcor_arrhenius',
+    t2 = 'f_tcor_arrhenius',
+    t3 = 'f_tcor_arrhenius'
+  ),
   
   # transfer list
   transfer = list(
@@ -135,10 +134,10 @@ soil_decomp_object$fnames <- list(
 ####################################
 soil_decomp_object$env <- list(
   litter = 172/365,
-  temp   = 11.2,
+  temp   = 20,
   vwc    = .24,
   porosity = 0.5,
-  clay = 40, #MIMICS takes proportion, CORPSE and MILLENNIAL takes percentage
+  clay = .4, #MIMICS takes proportion, CORPSE and MILLENNIAL takes percentage
   lignin = 16.6,
   N = 1.37,
   anpp = 500,
@@ -170,7 +169,7 @@ soil_decomp_object$state_pars <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 5,          # number of pools in model  
+  n_pools = 7,          # number of pools in model  
   beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = 0.2,        # soil silt content (proportion)
   clay    = 0.2,        # soil clay content (proportion)
@@ -210,30 +209,57 @@ soil_decomp_object$pars <- list(
     cstate02 = 0.1,          
     cstate03 = 0.1,      
     cstate04 = 0.1,       
-    cstate05 = 0.1  
+    cstate05 = 0.1,
+    cstate06 = 0.1,
+    cstate07 = 0.1
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
   # - if this varies by the 'to' pool we need another function / parameters
   # MC: I've created a function cue_remainder that can allocate the remainder to another pool rather than CO2
   cue = list(
-    cue1 = 0,       
-    cue2 = 0,       
+    cue1 = .5,       
+    cue2 = .25,       
     cue3 = 0,
-    cue4 = 0.6,
-    cue5 = 0
+    cue4 = 0,
+    cue5 = 0, 
+    cue6 = 0,
+    cue7 = .5
+  ),  
+  
+  cue2 = list(
+    cue1 = .7,       
+    cue2 = .35,       
+    cue3 = 0,
+    cue4 = 0,
+    cue5 = 0, 
+    cue6 = 0,
+    cue7 = .7
   ),  
 
   # max turnover rate per unit microbial biomass for pool i
   # commented out old list (updating to allow for multiple mic groups or catalysts)
   vmax = list(
     vmax1 = 10, #Vpd or Vpl in Millennial, decomp of POM toward DOC
-    vmax2 = 0,
+    vmax2 = 2,
     vmax3 = 0,
     vmax4 = 0,
-    vmax5 = 0
+    vmax5 = 0,
+    vmax6 = 0,
+    vmax7 = 10
   ),
   
+  vmax2 = list( #vmax for second catalyst
+    vmax1 = 3, #Vpd or Vpl in Millennial, decomp of POM toward DOC
+    vmax2 = 3,
+    vmax3 = 0,
+    vmax4 = 0,
+    vmax5 = 0,
+    vmax6 = 0,
+    vmax7 = 2
+  ),
+  
+  # idea for how to handle one pool being decomposed by multiple catalysts (e.g. multiple microbial pools or multiple enzyme pools)
   # vmax = list(
   #   #vmax of pool 1
   #   vmax1 = list(
@@ -249,14 +275,27 @@ soil_decomp_object$pars <- list(
  
   # michaelis-menten half-saturation constant for microbial decomnp of pool i      
   km = list(   
-    km1 = 150, #Kpd in MILLENNIAL double michaelis-menten equation     
-    km2 = 0,     
+    km1 = 8, #Kpd in MILLENNIAL double michaelis-menten equation     
+    km2 = 2,     
     km3 = 0,
     km4 = 0,
-    km5 = 0
+    km5 = 0,
+    km6 = 0,
+    km7 = 4
   ),
   
-  # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i 
+  km2 = list(   #km for second catalyst
+    km1 = 2, #Kpd in MILLENNIAL double michaelis-menten equation     
+    km2 = 4,     
+    km3 = 0,
+    km4 = 0,
+    km5 = 0,
+    km6 = 0,
+    km7 = 6
+  ),
+  
+  # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i
+  # This is only neccesary for models that use km in reverse and forward mm decomp for the same pool (i.e. MILLENNIAL)
   rkm = list(   
     rkm1 = 12, #Kpe in MILLENNIAL double michaelis-menten equation (the reverse part i.e. the microbial limited part) 
     rkm2 = 0,     
@@ -266,12 +305,14 @@ soil_decomp_object$pars <- list(
   ),   
 
   # turnover rate for linear decomposition
-  k = list(   
+  k = list(    
     k1 = 0,       
-    k2 = 0.036,   
-    k3 = 0,
-    k4 = 0,
-    k5 = 0.0002 #aggregrate breakdown rate (kb)
+    k2 = 0,   
+    k3 = 0, #calculated by MIMICS solver function 
+    k4 = 0, #calculated by MIMICS solver function 
+    k5 = 0, 
+    k6 = 0,
+    k7 = 0  #calculated by MIMICS solver function 
   ),
 
   # maximum size for pool i 
@@ -313,7 +354,8 @@ soil_decomp_object$pars <- list(
     aV = .000000125,
     pscalar_p1 = 3,
     pscalar_p2 = -2,
-    ko = 6,
+    ko_r = 6,
+    ko_k = 6,
     K_slope = .02,
     K_int = 3.19,
     aK = .15625,
@@ -377,7 +419,7 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=172/365, ntim
 
   if(metdf) {
     .$dataf       <- list()
-    if(length(litter)==1) litter <- rep(litter, ntimes )   
+    if(length(litter)==1) litter <- rep(litter, ntimes ) 
     .$dataf$metdf <- matrix(litter, nrow=1 )
     rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
     .$dataf$lm    <- length(.$dataf$metdf[1,])
@@ -409,148 +451,148 @@ soil_decomp_object$.test_corpse <- function(., verbose=F, metdf=F, litter=.00136
   }
 }
 
-soil_decomp_object$.test_changepool <- function(., verbose=F, metdf=F, litter=.00016, ntimes=100, n_pool=3) {
-  
-  if(verbose) str(.)
-  .$build(switches=c(F,verbose,F))
-  .$pars$n_pools = n_pool #.$build_pool_structure 
-  .$fnames$transfer$t1_to_2 <- 'f_transfer_cue'
-  .$fnames$transfer$t1_to_3 <- 'f_transfer_zero'
-  .$fnames$transfer$t2_to_1 <- 'f_transfer_zero'
-  .$fnames$transfer$t2_to_3 <- 'f_transfer_all'
-  .$fnames$transfer$t3_to_1 <- 'f_transfer_zero'
-  .$fnames$transfer$t3_to_2 <- 'f_transfer_cue'
-  .$fnames$decomp$d1 <- 'f_decomp_MM_microbe'
-  .$fnames$decomp$d2 <- 'f_decomp_lin'
-  .$fnames$decomp$d3 <- 'f_decomp_MM_microbe'
-  .$configure_test() # if only used in test functions should begin with a .
-  
-  if(metdf) {
-    .$dataf       <- list()
-    if(length(litter)==1) litter <- rep(litter, ntimes )   
-    .$dataf$metdf <- matrix(litter, nrow=1 )
-    rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-    .$dataf$lm    <- length(.$dataf$metdf[1,])
-    .$dataf$mout  <- .$output()
-    .$run_met()
-  } else {
-    .$env$litter  <- litter
-    .$run()
-  }
-}
+# soil_decomp_object$.test_changepool <- function(., verbose=F, metdf=F, litter=.00016, ntimes=100, n_pool=3) {
+#   
+#   if(verbose) str(.)
+#   .$build(switches=c(F,verbose,F))
+#   .$pars$n_pools = n_pool #.$build_pool_structure 
+#   .$fnames$transfer$t1_to_2 <- 'f_transfer_cue'
+#   .$fnames$transfer$t1_to_3 <- 'f_transfer_zero'
+#   .$fnames$transfer$t2_to_1 <- 'f_transfer_zero'
+#   .$fnames$transfer$t2_to_3 <- 'f_transfer_all'
+#   .$fnames$transfer$t3_to_1 <- 'f_transfer_zero'
+#   .$fnames$transfer$t3_to_2 <- 'f_transfer_cue'
+#   .$fnames$decomp$d1 <- 'f_decomp_MM_microbe'
+#   .$fnames$decomp$d2 <- 'f_decomp_lin'
+#   .$fnames$decomp$d3 <- 'f_decomp_MM_microbe'
+#   .$configure_test() # if only used in test functions should begin with a .
+#   
+#   if(metdf) {
+#     .$dataf       <- list()
+#     if(length(litter)==1) litter <- rep(litter, ntimes )   
+#     .$dataf$metdf <- matrix(litter, nrow=1 )
+#     rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
+#     .$dataf$lm    <- length(.$dataf$metdf[1,])
+#     .$dataf$mout  <- .$output()
+#     .$run_met()
+#   } else {
+#     .$env$litter  <- litter
+#     .$run()
+#   }
+# }
 
 
-soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384, ntimes=365, time=T ) {
-
-  if(verbose) str(.)
-  .$build(switches=c(F,verbose,F))
-  soil_decomp_object$pars$n_pools = 3 
-
-  .$configure_test() # if only used in test functions should begin with a .
-
-  # initialise boundary data 
-  .$dataf       <- list()
-  if(length(litter)==1) litter <- rep(litter, ntimes )   
-  .$dataf$metdf <- matrix(litter, nrow=1 )
-  rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-  .$dataf$lm    <- length(.$dataf$metdf[1,])
-  .$dataf$mout  <- .$output()
-
-  ### Run models
-  olist <- list()
-  # run default no saturation or DD model
-  print('')
-  print('')
-  print('Config: 1')
-  print('')
-  olist$noSaturation  <- .$run_met()
-
-  # saturating MAOM
-  print('')
-  print('')
-  print('Config: 2')
-  print('')
-  .$fnames$transfer$t2_to_3 <- 'f_transfer_cue_sat'
-  .$configure_test() 
-  olist$MaomMax       <- .$run_met()
-
-  # denisty dependent microbial turnover 
-  print('')
-  print('')
-  print('Config: 3')
-  print('')
-  .$fnames$transfer$t2_to_3 <- 'f_transfer_cue'
-  .$fnames$decomp$d2        <- 'f_decomp_dd_georgiou'
-  .$configure_test() 
-  olist$DDturnover    <- .$run_met()
-
-  # denisty dependent microbial cue 
-  print('')
-  print('')
-  print('Config: 4')
-  print('')
-  .$fnames$transfer$t1_to_2 <- 'f_transfer_cue_sat'
-  .$fnames$transfer$t3_to_2 <- 'f_transfer_cue_sat'
-  .$fnames$decomp$d2        <- 'f_decomp_lin'
-  .$configure_test() 
-  olist$DDcue         <- .$run_met()
-
-  # denisty dependent microbial turnover and cue 
-  print('')
-  print('')
-  print('Config: 5')
-  print('')
-  .$fnames$decomp$d2        <- 'f_decomp_dd_georgiou'
-  .$configure_test() 
-  olist$DDturnover.DDcue <- .$run_met()
-
-  # denisty dependent microbial turnover and cue and MAOM saturation 
-  print('')
-  print('')
-  print('Config: 6')
-  print('')
-  .$fnames$transfer$t2_to_3 <- 'f_transfer_cue_sat'
-  .$configure_test() 
-  olist$DDturnover.DDcue.MaomMax <- .$run_met()
-
-
-  # plotting functions
-  thp_plot_time <- function(mod) {
-    ylab <- expression('Pool C mass ['*gC*' '*m^-2*']')
-    matplot(1:dim(mod)[1], mod[,1:3], type='l', ylab=ylab, xlab='Days', lty=1,
-            ylim=c(0,max(mod)*1.2), col=1:3,main=deparse(substitute(mod)) )
-    legend('topleft', c('POM','MB','MAOM'), lty=1, col=1:3, bty='n')
-  }
- 
-  thp_plot_MBC <- function(mod) {
-    matplot(mod[,2], mod[,c(1,3)], type='l', ylab=ylab, xlab='MB C mass', lty=1,
-            xlim=c(0,max(mod[,2])),
-            ylim=c(0,max(mod)*1.2), col=1:2, main=deparse(substitute(mod)) )
-    legend('topleft', c('POM','MAOM'), lty=1, col=1:2, bty='n')
-  }
-  
-  par(mfrow = c(2,3))
-  if(time) { 
-    ## plotting versus time
-    thp_plot_time(olist$noSaturation)
-    thp_plot_time(olist$MaomMax)
-    thp_plot_time(olist$DDturnover)
-    thp_plot_time(olist$DDcue)
-    thp_plot_time(olist$DDturnover.DDcue)
-    thp_plot_time(olist$DDturnover.DDcue.MaomMax)
-  } else {  
-    # plotting pools vs MBC
-    thp_plot_MBC(olist$noSaturation)
-    thp_plot_MBC(olist$MaomMax)
-    thp_plot_MBC(olist$DDturnover)
-    thp_plot_MBC(olist$DDcue)
-    thp_plot_MBC(olist$DDturnover.DDcue)
-    thp_plot_MBC(olist$DDturnover.DDcue.MaomMax)
-  }
-
-  olist
-}
-  
-
+# soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384, ntimes=365, time=T ) {
+# 
+#   if(verbose) str(.)
+#   .$build(switches=c(F,verbose,F))
+#   soil_decomp_object$pars$n_pools = 3 
+# 
+#   .$configure_test() # if only used in test functions should begin with a .
+# 
+#   # initialise boundary data 
+#   .$dataf       <- list()
+#   if(length(litter)==1) litter <- rep(litter, ntimes )   
+#   .$dataf$metdf <- matrix(litter, nrow=1 )
+#   rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
+#   .$dataf$lm    <- length(.$dataf$metdf[1,])
+#   .$dataf$mout  <- .$output()
+# 
+#   ### Run models
+#   olist <- list()
+#   # run default no saturation or DD model
+#   print('')
+#   print('')
+#   print('Config: 1')
+#   print('')
+#   olist$noSaturation  <- .$run_met()
+# 
+#   # saturating MAOM
+#   print('')
+#   print('')
+#   print('Config: 2')
+#   print('')
+#   .$fnames$transfer$t2_to_3 <- 'f_transfer_cue_sat'
+#   .$configure_test() 
+#   olist$MaomMax       <- .$run_met()
+# 
+#   # denisty dependent microbial turnover 
+#   print('')
+#   print('')
+#   print('Config: 3')
+#   print('')
+#   .$fnames$transfer$t2_to_3 <- 'f_transfer_cue'
+#   .$fnames$decomp$d2        <- 'f_decomp_dd_georgiou'
+#   .$configure_test() 
+#   olist$DDturnover    <- .$run_met()
+# 
+#   # denisty dependent microbial cue 
+#   print('')
+#   print('')
+#   print('Config: 4')
+#   print('')
+#   .$fnames$transfer$t1_to_2 <- 'f_transfer_cue_sat'
+#   .$fnames$transfer$t3_to_2 <- 'f_transfer_cue_sat'
+#   .$fnames$decomp$d2        <- 'f_decomp_lin'
+#   .$configure_test() 
+#   olist$DDcue         <- .$run_met()
+# 
+#   # denisty dependent microbial turnover and cue 
+#   print('')
+#   print('')
+#   print('Config: 5')
+#   print('')
+#   .$fnames$decomp$d2        <- 'f_decomp_dd_georgiou'
+#   .$configure_test() 
+#   olist$DDturnover.DDcue <- .$run_met()
+# 
+#   # denisty dependent microbial turnover and cue and MAOM saturation 
+#   print('')
+#   print('')
+#   print('Config: 6')
+#   print('')
+#   .$fnames$transfer$t2_to_3 <- 'f_transfer_cue_sat'
+#   .$configure_test() 
+#   olist$DDturnover.DDcue.MaomMax <- .$run_met()
+# 
+# 
+#   # plotting functions
+#   thp_plot_time <- function(mod) {
+#     ylab <- expression('Pool C mass ['*gC*' '*m^-2*']')
+#     matplot(1:dim(mod)[1], mod[,1:3], type='l', ylab=ylab, xlab='Days', lty=1,
+#             ylim=c(0,max(mod)*1.2), col=1:3,main=deparse(substitute(mod)) )
+#     legend('topleft', c('POM','MB','MAOM'), lty=1, col=1:3, bty='n')
+#   }
+#  
+#   thp_plot_MBC <- function(mod) {
+#     matplot(mod[,2], mod[,c(1,3)], type='l', ylab=ylab, xlab='MB C mass', lty=1,
+#             xlim=c(0,max(mod[,2])),
+#             ylim=c(0,max(mod)*1.2), col=1:2, main=deparse(substitute(mod)) )
+#     legend('topleft', c('POM','MAOM'), lty=1, col=1:2, bty='n')
+#   }
+#   
+#   par(mfrow = c(2,3))
+#   if(time) { 
+#     ## plotting versus time
+#     thp_plot_time(olist$noSaturation)
+#     thp_plot_time(olist$MaomMax)
+#     thp_plot_time(olist$DDturnover)
+#     thp_plot_time(olist$DDcue)
+#     thp_plot_time(olist$DDturnover.DDcue)
+#     thp_plot_time(olist$DDturnover.DDcue.MaomMax)
+#   } else {  
+#     # plotting pools vs MBC
+#     thp_plot_MBC(olist$noSaturation)
+#     thp_plot_MBC(olist$MaomMax)
+#     thp_plot_MBC(olist$DDturnover)
+#     thp_plot_MBC(olist$DDcue)
+#     thp_plot_MBC(olist$DDturnover.DDcue)
+#     thp_plot_MBC(olist$DDturnover.DDcue.MaomMax)
+#   }
+# 
+#   olist
+# }
+#   
+# 
 
 ### END ###

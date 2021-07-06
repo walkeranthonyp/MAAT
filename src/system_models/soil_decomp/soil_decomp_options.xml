@@ -7,7 +7,7 @@
       <input>'c( 'f_input', 'f_input_mimics' )'</input>
       <DotO>'c( 'f_DotO' )'</DotO>
       <transfermatrix>'c( 'f_transfermatrix' )'</transfermatrix>
-      <decomp>'c( 'f_decomp_dd_georgiou', 'f_decomp_dd_mend', 'f_decomp_dmm', 'f_decomp_doc_mend', 'f_decomp_lin', 'f_decomp_mbc_mend', 'f_decomp_MM_enzmaom', 'f_decomp_MM_enzpom', 'f_decomp_MM_microbe', 'f_decomp_rmm_sulman', 'f_decomp_rmm_wieder' )'</decomp>
+      <decomp>'c( 'f_decomp_dd_georgiou', 'f_decomp_dd_mend', 'f_decomp_dmm', 'f_decomp_doc_mend', 'f_decomp_lin', 'f_decomp_lin_sat_corpse', 'f_decomp_mbc_mend', 'f_decomp_MM_enzmaom', 'f_decomp_MM_enzpom', 'f_decomp_MM_microbe', 'f_decomp_mm_sulman', 'f_decomp_rmm', 'f_decomp_rmm_sulman', 'f_decomp_rmm_wieder' )'</decomp>
       <desorp>'c(  )'</desorp>
       <sorp>'c(  )'</sorp>
       <aggform>'c( 'f_aggform_abramoff' )'</aggform>

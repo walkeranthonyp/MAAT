@@ -3,42 +3,40 @@
     <soil_decomp>
       <sys>'f_sys_npools'</sys>
       <solver>'plsoda'</solver>
-      <solver_func>'f_solver_func_millennial'</solver_func>
-      <input>'f_input'</input>
+      <solver_func>'f_solver_func_mimics'</solver_func>
+      <input>'f_input_mimics'</input>
       <DotO>'f_DotO'</DotO>
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <decomp>
-        <d1>'f_decomp_dmm'</d1>
-        <d2>'f_decomp_lin'</d2>
-        <d3>'f_zero'</d3>
+        <d1>'f_decomp_rmm_wieder'</d1>
+        <d2>'f_decomp_rmm_wieder'</d2>
+        <d3>'f_decomp_lin'</d3>
         <d4>'f_decomp_lin'</d4>
-        <d5>'f_decomp_lin'</d5>
+        <d5>'f_zero'</d5>
+        <d6>'f_decomp_rmm_wieder'</d6>
+        <d7>'f_decomp_rmm_wieder'</d7>
       </decomp>
       <desorp>
-        <ds1>'f_zero'</ds1>
-        <ds2>'f_zero'</ds2>
-        <ds3>'f_zero'</ds3>
-        <ds4>'f_zero'</ds4>
-        <ds5>'f_zero'</ds5>
+        <ds5>'f_decomp_lin'</ds5>
+        <ds6>'f_zero'</ds6>
+        <ds7>'f_zero'</ds7>
       </desorp>
       <sorp>
-        <s1>'f_zero'</s1>
+        <s1>'f_decomp_lin'</s1>
         <s2>'f_decomp_lin'</s2>
-        <s3>'f_zero'</s3>
-        <s4>'f_docsorp_abramoff'</s4>
-        <s5>'f_zero'</s5>
+        <s3>'f_decomp_lin'</s3>
       </sorp>
       <aggform>
-        <a1>'f_aggform_abramoff'</a1>
-        <a2>'f_zero'</a2>
-        <a3>'f_aggform_abramoff'</a3>
-        <a4>'f_zero'</a4>
-        <a5>'f_zero'</a5>
+        <nada>NA</nada>
       </aggform>
       <docuptake>'f_docuptake_abramoff'</docuptake>
       <scor>'f_zero'</scor>
       <wcor>'f_wcor_abramoff'</wcor>
-      <tcor>'f_tcor_daycent2_abramoff'</tcor>
+      <tcor>
+        <t1>'f_tcor_arrhenius'</t1>
+        <t2>'f_tcor_arrhenius'</t2>
+        <t3>'f_tcor_arrhenius'</t3>
+      </tcor>
       <transfer>
         <t1_to_3>'f_transfer_cue_remainder'</t1_to_3>
         <t1_to_5>'f_transfer_cue'</t1_to_5>
@@ -57,7 +55,7 @@
   </fnames>
   <pars>
     <soil_decomp>
-      <n_pools>5</n_pools>
+      <n_pools>7</n_pools>
       <beta>1.5</beta>
       <silt>0.2</silt>
       <clay>0.2</clay>
@@ -93,28 +91,63 @@
         <cstate03>0.1</cstate03>
         <cstate04>0.1</cstate04>
         <cstate05>0.1</cstate05>
+        <cstate06>0.1</cstate06>
+        <cstate07>0.1</cstate07>
       </cstate0>
       <cue>
-        <cue1>0</cue1>
-        <cue2>0</cue2>
+        <cue1>0.5</cue1>
+        <cue2>0.25</cue2>
         <cue3>0</cue3>
-        <cue4>0.6</cue4>
+        <cue4>0</cue4>
         <cue5>0</cue5>
+        <cue6>0</cue6>
+        <cue7>0.5</cue7>
       </cue>
+      <cue2>
+        <cue1>0.7</cue1>
+        <cue2>0.35</cue2>
+        <cue3>0</cue3>
+        <cue4>0</cue4>
+        <cue5>0</cue5>
+        <cue6>0</cue6>
+        <cue7>0.7</cue7>
+      </cue2>
       <vmax>
         <vmax1>10</vmax1>
-        <vmax2>0</vmax2>
+        <vmax2>2</vmax2>
         <vmax3>0</vmax3>
         <vmax4>0</vmax4>
         <vmax5>0</vmax5>
+        <vmax6>0</vmax6>
+        <vmax7>10</vmax7>
       </vmax>
+      <vmax2>
+        <vmax1>3</vmax1>
+        <vmax2>3</vmax2>
+        <vmax3>0</vmax3>
+        <vmax4>0</vmax4>
+        <vmax5>0</vmax5>
+        <vmax6>0</vmax6>
+        <vmax7>2</vmax7>
+      </vmax2>
       <km>
-        <km1>150</km1>
-        <km2>0</km2>
+        <km1>8</km1>
+        <km2>2</km2>
         <km3>0</km3>
         <km4>0</km4>
         <km5>0</km5>
+        <km6>0</km6>
+        <km7>4</km7>
       </km>
+      <km2>
+        <km1>2</km1>
+        <km2>4</km2>
+        <km3>0</km3>
+        <km4>0</km4>
+        <km5>0</km5>
+        <km6>0</km6>
+        <km7>6</km7>
+      </km2>
       <rkm>
         <rkm1>12</rkm1>
         <rkm2>0</rkm2>
@@ -124,10 +157,12 @@
       </rkm>
       <k>
         <k1>0</k1>
-        <k2>0.036</k2>
+        <k2>0</k2>
         <k3>0</k3>
         <k4>0</k4>
-        <k5>2e-04</k5>
+        <k5>0</k5>
+        <k6>0</k6>
+        <k7>0</k7>
       </k>
       <poolmax>
         <poolmax1>0</poolmax1>
@@ -165,7 +200,8 @@
         <aV>1.25e-07</aV>
         <pscalar_p1>3</pscalar_p1>
         <pscalar_p2>-2</pscalar_p2>
-        <ko>6</ko>
+        <ko_r>6</ko_r>
+        <ko_k>6</ko_k>
         <K_slope>0.02</K_slope>
         <K_int>3.19</K_int>
         <aK>0.15625</aK>
@@ -191,10 +227,10 @@
   <env>
     <soil_decomp>
       <litter>0.471232876712329</litter>
-      <temp>11.2</temp>
+      <temp>20</temp>
       <vwc>0.24</vwc>
       <porosity>0.5</porosity>
-      <clay>40</clay>
+      <clay>0.4</clay>
       <lignin>16.6</lignin>
       <N>1.37</N>
       <anpp>500</anpp>
