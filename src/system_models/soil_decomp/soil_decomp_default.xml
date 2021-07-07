@@ -3,8 +3,8 @@
     <soil_decomp>
       <sys>'f_sys_npools'</sys>
       <solver>'plsoda'</solver>
-      <solver_func>'f_solver_func_mimics'</solver_func>
-      <input>'f_input_mimics'</input>
+      <solver_func>'f_solver_func'</solver_func>
+      <input>'f_input'</input>
       <DotO>'f_DotO'</DotO>
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <steadystate>'f_steadystate_npools'</steadystate>
