@@ -61,7 +61,9 @@ canopy_object$state_pars$k_diff
 source('canopy_object.R') 
 canopy_object$.test(
   verbose=F,
+  canopy.par=200,
   canopy.lai=6,
+  canopy.can_clump=0.5,
   canopy.layers=20,
   canopy.rt='f_rt_norman',
   canopy.diffalbedo='f_diffalbedo_goudriaan'

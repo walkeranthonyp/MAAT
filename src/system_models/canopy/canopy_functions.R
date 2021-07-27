@@ -148,7 +148,7 @@ f_rt_norman <- function(., l=.super$state_pars$ca_calc_points,
   # - so l reversed
   nlayers <- length(l)
   sumlai  <- c(NA, rev(l) )
-  dLAI    <- if(length(.super$state_pars$lin)==1) {
+  dLAI    <- if(length(.super$state_pars$linc)==1) {
                c(NA, rep(.super$state_pars$linc, nlayers )) 
              } else {
                c(NA, rev(.super$state_pars$linc) ) 

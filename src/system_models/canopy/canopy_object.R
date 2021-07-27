@@ -404,6 +404,7 @@ f_output_canopy_wtc <- function(.) {
 canopy_object$.test <- function(., verbose=T,
                                 canopy.par=2000, canopy.ca_conc=400, 
                                 canopy.lai=6, canopy.layers=10, 
+                                canopy.can_clump=1.0,
                                 canopy.can_disc.layer1=0.1, 
                                 canopy.k.can_disc=0.2, 
                                 canopy.diffalbedo='f_diffalbedo_approx', 
@@ -418,6 +419,7 @@ canopy_object$.test <- function(., verbose=T,
   .$env$par        <- canopy.par
   .$env$ca_conc    <- canopy.ca_conc
   .$env$lai        <- canopy.lai
+  .$pars$can_clump <- canopy.can_clump
   .$pars$layers    <- canopy.layers
   .$pars$k$can_disc      <- canopy.k.can_disc
   .$pars$can_disc$layer1 <- canopy.can_disc.layer1
