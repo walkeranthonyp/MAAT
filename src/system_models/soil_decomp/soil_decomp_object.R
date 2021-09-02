@@ -67,13 +67,13 @@ soil_decomp_object$init  <- function(.) {
 ####################################
 soil_decomp_object$fnames <- list(
 
-  sys                = 'f_sys_npools',
+  sys                = 'f_sys_npools', # does this need to change when working with steadystate?
   solver             = 'plsoda',
-  solver_func        = 'f_solver_func',
-  input              = 'f_input',
+  solver_func        = 'f_solver_func_mimics',
+  input              = 'f_input_mimics',
   DotO               = 'f_DotO',
   transfermatrix     = 'f_transfermatrix',
-  steadystate        = 'f_steadystate_npools',
+  steadystate        = 'f_steadystate_npools',#'f_steadystate_npools',
   solver_steadystate = 'pstode',
   
   # decay/decomposition functions
@@ -107,7 +107,7 @@ soil_decomp_object$fnames <- list(
   
   scor = 'f_zero',
   wcor = 'f_wcor_abramoff',
-  #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
+  # tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
   tcor = list(                  #this structure for corpse
     t1 = 'f_tcor_arrhenius',
     t2 = 'f_tcor_arrhenius',
@@ -419,6 +419,26 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=172/365, ntim
   .$build(switches=c(F,verbose,F))
   .$configure_test() # if only used in test functions should begin with a .
 
+  if(metdf) {
+    .$dataf       <- list()
+    if(length(litter)==1) litter <- rep(litter, ntimes ) 
+    .$dataf$metdf <- matrix(litter, nrow=1 )
+    rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
+    .$dataf$lm    <- dim(.$dataf$met)[2]
+    .$dataf$mout  <- .$output()
+    .$run_met()
+  } else {
+    .$env$litter  <- litter
+    .$run()
+  }
+}
+
+soil_decomp_object$.test.ss <- function(., verbose=F, metdf=F, litter=172/365, ntimes=100 ) {
+  
+  if(verbose) str(.)
+  .$build(switches=c(F,verbose,F))
+  .$configure_test() # if only used in test functions should begin with a .
+  
   if(metdf) {
     .$dataf       <- list()
     if(length(litter)==1) litter <- rep(litter, ntimes ) 

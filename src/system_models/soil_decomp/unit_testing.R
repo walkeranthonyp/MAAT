@@ -32,7 +32,7 @@ soil_decomp_object$state_pars$solver_steadystate_out$y
 soil_decomp_object$.test(metdf=T, ntimes=10 )
 
 soil_decomp_object$.test(metdf=T, litter=6, ntimes=10 )
-soil_decomp_object$.test(metdf=T, litter=1:10 )
+soil_decomp_object$.test(metdf=T, ntimes = 1 )
 
 soil_decomp_object$fnames
 soil_decomp_object$fns$transfer.t1_to_3

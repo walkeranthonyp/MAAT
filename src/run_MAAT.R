@@ -542,13 +542,13 @@ if(!mcmc_restart & !is.null(metdata)) {
   if(file.exists(metdata)&!kill) {
     print(metdata, quote=F )
     metdffull <- read.csv(metdata,strip.white=T)
-
+    print(head(metdffull), quote=F )
     # ALJ: if doing a Sphagnum simulation
     #      screen out night-time values from met data file
     #      subset it to remove 0's and negative values
     # APW: thinking of a flexible way to do this, it's not that easy. Long term might need to do this in the met data itself
-    sub_idx   <- which(metdffull$EM_PAR_8100_x > 0)
-    metdffull <- metdffull[sub_idx, ]
+    # sub_idx   <- which(metdffull$EM_PAR_8100_x > 0)
+    # metdffull <- metdffull[sub_idx, ]
     #print(head(metdffull), quote=F )
 
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
@@ -557,7 +557,7 @@ if(!mcmc_restart & !is.null(metdata)) {
     metdf     <- metdffull[,cols, drop=F ]
     print('', quote=F )
     print(met_trans, quote=F )
-
+    print(head(metdf), quote=F )
     # if time variable specified put it first and don't rename it
     if('time'%in%names(met_trans)) {
       tcol  <- which(names(met_trans)=='time')
@@ -576,7 +576,7 @@ if(!mcmc_restart & !is.null(metdata)) {
     }
 
     # add to MAAT object
-    #print(head(metdf), quote=F )
+    print(head(metdf), quote=F )
     maat$dataf$met <- t(as.matrix(metdf))
 
     # remove met data file
