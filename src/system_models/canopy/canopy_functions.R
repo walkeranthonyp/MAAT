@@ -39,10 +39,26 @@ f_canopy_discretisation_fixednumber_exp <- function(.) {
   # fixed number of bins, exponential discretisation
   # - fixed exponent, variable initial layer width
 
-  layer1 <-  .super$env$lai / sum(exp(.super$pars$k$can_disc * 0:.super$pars$layers))  
-  .super$state_pars$linc <- layer1 * exp(.super$pars$k$can_disc * 0:.super$pars$layers)   
+  layer1 <-  .super$env$lai / sum(exp(.super$pars$k$can_disc * 1:.super$pars$layers))  
+  .super$state_pars$linc <- layer1 * exp(.super$pars$k$can_disc * 1:.super$pars$layers)   
   .super$state_pars$cum_lai <- cum_lai <- cumsum(.super$state_pars$linc)
-   if(cum_lai[length(cum_lai)]!=.super$env$lai) stop('Canopy layer sum != lai') 
+   if(abs(cum_lai[length(cum_lai)]-.super$env$lai)>1e-5)  
+     stop(paste('Canopy layer sum (',cum_lai[length(cum_lai)],') != lai (',.super$env$lai,')')) 
+  .super$state_pars$ca_calc_points <- c(0,cum_lai[-length(cum_lai)]) + .super$state_pars$linc*.super$pars$k_layer
+
+}
+
+# break canopy into <layers> exponentially sized bins variable exponent with LAI
+f_canopy_discretisation_fixednumber_expvarlai <- function(.) {
+  # fixed number of bins, exponential discretisation
+  # - exponent varies as a power law of LAI, variable initial layer width
+
+  k_can_disc <- .super$env$lai^0.095 - 1  
+  layer1     <- .super$env$lai / sum(exp(k_can_disc * 1:.super$pars$layers))  
+  .super$state_pars$linc <- layer1 * exp(k_can_disc * 1:.super$pars$layers)   
+  .super$state_pars$cum_lai <- cum_lai <- cumsum(.super$state_pars$linc)
+   if(abs(cum_lai[length(cum_lai)]-.super$env$lai)>1e-5)  
+     stop(paste('Canopy layer sum (',cum_lai[length(cum_lai)],') != lai (',.super$env$lai,')')) 
   .super$state_pars$ca_calc_points <- c(0,cum_lai[-length(cum_lai)]) + .super$state_pars$linc*.super$pars$k_layer
 
 }
