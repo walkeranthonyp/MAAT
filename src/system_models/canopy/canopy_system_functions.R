@@ -94,11 +94,13 @@ f_sys_2bigleaf <- function(.) {
   # calculate APARsun and APARshade
   linc           <- .super$env$lai / .super$pars$layers_2bigleaf
   ca_calc_points <- seq((linc-linc*.super$pars$k_layer), (.super$env$lai-linc*.super$pars$k_layer), linc )
+  print(.super$fnames$rt)
   .$rt(ca_calc_points)
 #  print(linc)
 #  print(ca_calc_points)
 #  print('')
 #  print('APAR:')
+#  print(.super$env)
 #  print(.super$state$vert$sun$apar) 
 #  print(.super$state$vert$shade$apar) 
 #  print(.super$state$vert$sun$fraction) 
@@ -120,19 +122,35 @@ f_sys_2bigleaf <- function(.) {
 #  print(lai_shade)
 
   # scale APAR and traits
-  # APW: ca this be generalised for sun/shade and various traits/variables
+  # APW: can this be generalised for sun/shade and various traits/variables
   #      apar, lai, vcmax, leaf N, etc 
+  # APW: maybe a sun/shade trait matrix can be used with configure() to make trait assignments more efficient
   .super$state$vert$sun$apar   <- sum(.super$state$vert$sun$apar*.super$state$vert$sun$fraction*linc) / lai_sun 
   .super$state$vert$shade$apar <- sum(.super$state$vert$shade$apar*.super$state$vert$shade$fraction*linc) / lai_shade
   vcmax_sun                    <- sum(.super$state$vert$leaf$leaf.atref.vcmax*.super$state$vert$sun$fraction*linc) / lai_sun
   vcmax_shade                  <- sum(.super$state$vert$leaf$leaf.atref.vcmax*.super$state$vert$shade$fraction*linc) / lai_shade
 #  print(.super$state$vert$sun$apar) 
 #  print(.super$state$vert$shade$apar) 
+  if(.super$fnames$scale$vcmax=='f_scale_two_layer') {
+    jmax_sun                  <- sum(.super$state$vert$leaf$leaf.atref.jmax*.super$state$vert$sun$fraction*linc) / lai_sun
+    jmax_shade                <- sum(.super$state$vert$leaf$leaf.atref.jmax*.super$state$vert$shade$fraction*linc) / lai_shade
+    f_sun                     <- sum(.super$state$vert$leaf$leaf.f*.super$state$vert$sun$fraction*linc) / lai_sun
+    f_shade                   <- sum(.super$state$vert$leaf$leaf.f*.super$state$vert$shade$fraction*linc) / lai_shade
+    g1_sun                    <- sum(.super$state$vert$leaf$leaf.g1_medlyn*.super$state$vert$sun$fraction*linc) / lai_sun
+    g1_shade                  <- sum(.super$state$vert$leaf$leaf.g1_medlyn*.super$state$vert$shade$fraction*linc) / lai_shade
+    
+    #leaf_vars <- c(leaf_vars, 'leaf.atref.jmax', 'leaf.f', 'leaf.g1_medlyn' )
+  }
 
   # calculate Asun and Ashade
   # sun 
   .super$leaf$env$par          <- .super$state$vert$sun$apar
   .super$leaf$pars$atref$vcmax <- vcmax_sun
+  if(.super$fnames$scale$vcmax=='f_scale_two_layer') {
+    .super$state$vert$leaf$leaf.atref.jmax <- jmax_sun
+    .super$state$vert$leaf$leaf.f          <- f_sun
+    .super$state$vert$leaf$leaf.g1_medlyn  <- g1_sun
+  }  
   leaf_out                     <- .super$leaf$run()
   # assign data to canopy object data structure
   for(vname in names(leaf_out)) .super$state$vert$sun[[vname]][] <- leaf_out[vname]
@@ -148,6 +166,11 @@ f_sys_2bigleaf <- function(.) {
   # shade  
   .super$leaf$env$par          <- .super$state$vert$shade$apar
   .super$leaf$pars$atref$vcmax <- vcmax_shade
+  if(.super$fnames$scale$vcmax=='f_scale_two_layer') {
+    .super$state$vert$leaf$leaf.atref.jmax <- jmax_shade
+    .super$state$vert$leaf$leaf.f          <- f_shade
+    .super$state$vert$leaf$leaf.g1_medlyn  <- g1_shade
+  }  
   leaf_out                     <- .super$leaf$run()
   # assign data to canopy object data structure
   for(vname in names(leaf_out)) .super$state$vert$shade[[vname]][] <- leaf_out[vname]

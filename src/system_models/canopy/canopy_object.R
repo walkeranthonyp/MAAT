@@ -391,7 +391,8 @@ f_output_canopy_wtc <- function(.) {
     gi=.$state$integrated$gi, gs=.$state$integrated$gs, rd=.$state$integrated$rd,
     Acg_lim=.$state$integrated$Acg_lim, 
     Ajg_lim=.$state$integrated$Ajg_lim, 
-    Apg_lim=.$state$integrated$Apg_lim#,
+    Apg_lim=.$state$integrated$Apg_lim,
+    fapar=.$state$integrated$fapar#,
     #Alayer=.$state$vert$layer$A 
     )
 }

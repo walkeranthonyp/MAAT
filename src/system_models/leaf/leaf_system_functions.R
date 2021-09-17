@@ -62,6 +62,7 @@ f_sys_enzymek <- function(.) {
   .super$state$rd <- .super$state_pars$rd * .$tcor_dep.rd(var='rd')
 
   # if PAR > 0, run photosynthesis
+  print(.super$env$par)
   if(.super$env$par > 0) {
 
     # account for decreased respiration in the light

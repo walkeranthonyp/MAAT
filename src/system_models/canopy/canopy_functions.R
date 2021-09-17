@@ -626,6 +626,7 @@ f_traits_scale <- function(., l=.super$state_pars$ca_calc_points ) {
   .super$state$vert$leaf$leaf.atref.vcmax[]  <- .$scale.vcmax(l, var='vcmax' )
   leaf_vars <- c('leaf.leafN_area', 'leaf.atref.vcmax' )
 
+  # APW: if scale-jmax etc are not two-layer this will be inconsistent
   if(.super$fnames$scale$vcmax=='f_scale_two_layer') {
     .super$state$vert$leaf$leaf.atref.jmax[] <- .$scale.jmax(l, var='jmax' )
     .super$state$vert$leaf$leaf.f[]          <- .$scale.f(l, var='f' )
