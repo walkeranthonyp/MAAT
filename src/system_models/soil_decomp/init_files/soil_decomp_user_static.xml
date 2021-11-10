@@ -29,16 +29,13 @@
         <s3>NA</s3>
       </sorp>
       <aggform>
-        <nada>NA</nada>
+        <a1>NA</a1>
+        <a3>NA</a3>
       </aggform>
       <docuptake>NA</docuptake>
       <scor>NA</scor>
       <wcor>NA</wcor>
-      <tcor>
-        <t1>NA</t1>
-        <t2>NA</t2>
-        <t3>NA</t3>
-      </tcor>
+      <tcor>NA</tcor>
       <transfer>
         <t1_to_3>NA</t1_to_3>
         <t1_to_5>NA</t1_to_5>

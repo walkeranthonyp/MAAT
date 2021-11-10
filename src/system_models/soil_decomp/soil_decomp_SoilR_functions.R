@@ -97,6 +97,9 @@ f_solver_func_corpse <- function(., t, y, parms) {
 # - parms is a dummy argument to work with lsoda
 f_solver_func_mimics <- function(., t, y, parms){
   
+  .super$pars$vmax[[6]] = .super$pars$vmax[[2]]
+  .super$pars$vmax2[[6]] = .super$pars$vmax2[[2]]
+  
   #dynamic parameters
   fmet = .super$pars$mimics[['fmet_p1']] * (.super$pars$mimics[['fmet_p2']] - .super$pars$mimics[['fmet_p3']]*(.super$env$lignin/.super$env$N))
   
@@ -131,10 +134,10 @@ f_solver_func_mimics <- function(., t, y, parms){
   t1_to_4 = (.$decomp.d1(t=t,C=y,i=1, cat_pool = 4)/d1)*.super$pars$cue2[[1]]
   t2_to_3 = (.$decomp.d2(t=t,C=y,i=2)/d2)*.super$pars$cue[[2]]
   t2_to_4 = (.$decomp.d2(t=t,C=y,i=2, cat_pool = 4)/d2)*.super$pars$cue2[[2]]
-  t3_to_5 = .super$pars$mimics[['fSOMp_r_p1']] * exp(.super$pars$mimics[['fSOMp_r_p2']]*.super$pars$clay) * 0.1 #0.1 manual calibration from Will's script #fSOMp_r
+  t3_to_5 = .super$pars$mimics[['fSOMp_r_p1']] * exp(.super$pars$mimics[['fSOMp_r_p2']]*.super$env$clay) * 0.1 #0.1 manual calibration from Will's script #fSOMp_r
   t3_to_6 = .super$pars$mimics[['fSOMc_r_p1']] * exp(.super$pars$mimics[['fSOMc_r_p2']]*fmet)*.super$pars$mimics[['fSOMc_r_p3']]  #fSOMc_r
   t3_to_7 = 1 - (t3_to_5 + t3_to_6) #fSOMa_r
-  t4_to_5 = .super$pars$mimics[['fSOMp_k_p1']] * exp(.super$pars$mimics[['fSOMp_k_p2']]*.super$pars$clay) * 0.1 #fSOMp_k
+  t4_to_5 = .super$pars$mimics[['fSOMp_k_p1']] * exp(.super$pars$mimics[['fSOMp_k_p2']]*.super$env$clay) * 0.1 #fSOMp_k
   t4_to_6 = .super$pars$mimics[['fSOMc_k_p1']] * exp(.super$pars$mimics[['fSOMc_k_p2']]*fmet)*.super$pars$mimics[['fSOMc_k_p3']]  #fSOMc_k
   t4_to_7 = 1 - (t4_to_5 + t4_to_6)  #fSOMa_k
   t7_to_3 = (.$decomp.d7(t=t,C=y,i=7)/d7)*.super$pars$cue[[7]]
@@ -152,7 +155,7 @@ f_solver_func_mimics <- function(., t, y, parms){
   dMICr = d1*.$tcor(.) *t1_to_3 + d2*.$tcor(.) *t2_to_3 + d7*.$tcor(.) *t7_to_3 - .$decomp.d3(t=t,C=y,i=3)
   dMICk = d1*.$tcor(.) *t1_to_4 + d2*.$tcor(.) *t2_to_4 + d7*.$tcor(.) *t7_to_4 - .$decomp.d4(t=t,C=y,i=4)
   dSOMp = i_SOMp + .$decomp.d3(t=t,C=y,i=3)*t3_to_5 + .$decomp.d4(t=t,C=y,i=4)*t4_to_5 - .$desorp.ds5(t=t, C=y,i=5)
-  dSOMc = i_SOMc + .$decomp.d3(t=t,C=y,i=3)*t3_to_6 + .$decomp.d4(t=t,C=y,i=4)*t4_to_5 - d6*.$tcor(.)
+  dSOMc = i_SOMc + .$decomp.d3(t=t,C=y,i=3)*t3_to_6 + .$decomp.d4(t=t,C=y,i=4)*t4_to_6 - d6*.$tcor(.)
   dSOMa = .$decomp.d3(t=t,C=y,i=3)*t3_to_7 + .$decomp.d4(t=t,C=y,i=4)*t4_to_7 + .$desorp.ds5(t=t,C=y,i=5) + d6*.$tcor(.) - d7*.$tcor(.)
   list(c(dLITm, dLITs, dMICr, dMICk, dSOMp, dSOMc, dSOMa))
 }
@@ -270,6 +273,189 @@ f_solver_func_millennial <- function(., t, y, parms) {
   dA <- Fma + Fpa - Fa
 #print(.$aggform.a1(t=t,C=y,i=1))
   list(c(dP, dB, dM, dD, dA))
+}
+
+
+
+f_solver_func_mimics_eq <- function(., t, y, parms){
+  
+  .super$pars$vmax[[6]] = .super$pars$vmax[[2]]
+  .super$pars$vmax2[[6]] = .super$pars$vmax2[[2]]
+  
+  #   #State parameters (i.e. calculated parameters)
+  #   fmet = fmet_p1 * (fmet_p2 - fmet_p3*(lignin/N))
+  fmet = .super$pars$mimics[['fmet_p1']] * (.super$pars$mimics[['fmet_p2']] - .super$pars$mimics[['fmet_p3']]*(.super$env$lignin/.super$env$N))
+  #   fSOMp_r = fSOMp_r_p1 * exp(fSOMp_r_p2*clay) * 0.1 #0.1 manual calibration from Will's script
+  fSOMp_r = .super$pars$mimics[['fSOMp_r_p1']] * exp(.super$pars$mimics[['fSOMp_r_p2']]*.super$pars$clay) * 0.1
+  #   fSOMp_k = fSOMp_k_p1 * exp(fSOMp_k_p2*clay) * 0.1
+  fSOMp_k = .super$pars$mimics[['fSOMp_k_p1']] * exp(.super$pars$mimics[['fSOMp_k_p2']]*.super$pars$clay) * 0.1 #fSOMp_k
+  #   fSOMc_r = fSOMc_r_p1 * exp(fSOMc_r_p2*fmet)*fSOMc_r_p3
+  fSOMc_r = .super$pars$mimics[['fSOMc_r_p1']] * exp(.super$pars$mimics[['fSOMc_r_p2']]*fmet)*.super$pars$mimics[['fSOMc_r_p3']]  #fSOMc_r
+  #   fSOMc_k = fSOMc_k_p1 * exp(fSOMc_k_p2*fmet)*fSOMc_k_p3
+  fSOMc_k = .super$pars$mimics[['fSOMc_k_p1']] * exp(.super$pars$mimics[['fSOMc_k_p2']]*fmet)*.super$pars$mimics[['fSOMc_k_p3']]  #fSOMc_k
+  #   fSOMa_r = 1 - (fSOMp_r + fSOMc_r)
+  fSOMa_r = 1 - (fSOMp_r + fSOMc_r)
+  #   fSOMa_k = 1 - (fSOMp_k + fSOMc_k)
+  fSOMa_k = 1 - (fSOMp_k + fSOMc_k)
+  
+  #These are all baked into the temperature function and the Vmods are selected in the decomp function
+  #   Vmax_r_LITm = exp(temp * V_slope + V_int) * aV * Vmod_r_LITm
+  #   Vmax_r_LITs = exp(temp * V_slope + V_int) * aV * Vmod_r_LITs
+  #   Vmax_r_SOMa = exp(temp * V_slope + V_int) * aV * Vmod_r_SOMa
+  #   Vmax_k_LITm = exp(temp * V_slope + V_int) * aV * Vmod_k_LITm
+  #   Vmax_k_LITs = exp(temp * V_slope + V_int) * aV * Vmod_k_LITs
+  #   Vmax_k_SOMa = exp(temp * V_slope + V_int) * aV * Vmod_k_SOMa
+  
+  #pscalar and Kms are calculated in decomp function
+  #   pscalar = pscalar_p1 * exp(pscalar_p2*sqrt(clay))
+  #   Kmod_r_SOMa = Kmod_r_SOMa_p1 * pscalar
+  #   Kmod_k_SOMa = Kmod_k_SOMa_p1 * pscalar
+  #   Km_r_LITm = exp(temp * K_slope + K_int) * aK /Kmod_r_LITm
+  #   Km_r_LITs = exp(temp * K_slope + K_int) * aK /Kmod_r_LITs
+  #   Km_r_SOMa = exp(temp * K_slope + K_int) * aK /Kmod_r_SOMa
+  #   Km_k_LITm = exp(temp * K_slope + K_int) * aK /Kmod_k_LITm
+  #   Km_k_LITs = exp(temp * K_slope + K_int) * aK /Kmod_k_LITs
+  #   Km_k_SOMa = exp(temp * K_slope + K_int) * aK /Kmod_k_SOMa
+  
+  
+  #   # ensures that tau_mod1 is between two values
+  #   # in Will's script, anpp is multipled by 0 in the manipulation scirpt... which would imply that 
+  #   # tau_mod1 might always be set to 0.6 in the simulations in Ben's paper
+  #   tau_mod1 = min(max(sqrt(anpp/tau_mod1_p1),tau_mod1_p2),tau_mod1_p3) 
+  #   tau_r = tau_r_p1 * exp(tau_r_p2 * fmet) *tau_mod1 * tau_mod2
+  #   tau_k = tau_k_p1 * exp(tau_k_p2 * fmet) *tau_mod1 * tau_mod2
+  tau_mod1 = min(max(sqrt(.super$env$anpp/.super$pars$mimics[['tau_mod1_p1']]),.super$pars$mimics[['tau_mod1_p2']]),.super$pars$mimics[['tau_mod1_p3']]) 
+  tau_r = .super$pars$mimics[['tau_r_p1']] * exp(.super$pars$mimics[['tau_r_p2']] * fmet) *tau_mod1 * .super$pars$mimics[['tau_mod2']]
+  tau_k = .super$pars$mimics[['tau_k_p1']] * exp(.super$pars$mimics[['tau_k_p2']] * fmet) *tau_mod1 * .super$pars$mimics[['tau_mod2']]
+  
+  #   desorb = desorb_p1 * exp(desorb_p2 * clay) * 0.1
+  desorb = .super$pars$mimics[['desorb_p1']] * exp(.super$pars$mimics[['desorb_p2']] * .super$env$clay) * 0.1
+  
+  .super$pars$k[[5]] = desorb
+  #   
+  #   #Fluxes
+  #   F1 = LITm * Vmax_r_LITm * MICr / (Km_r_LITm + MICr)
+  F1 = .$decomp.d1(t=t,C=y,i=1)*.$tcor(.) 
+  #   F2 = LITs * Vmax_r_LITs * MICr / (Km_r_LITs + MICr)
+  F2 = .$decomp.d2(t=t,C=y,i=2)*.$tcor(.)
+  #   F3 = SOMa * Vmax_r_SOMa * MICr / (Km_r_SOMa + MICr)
+  F3 = .$decomp.d7(t=t,C=y,i=7)*.$tcor(.)
+  #   F4 = MICr * tau_r
+  F4 = .$decomp.d3(t=t,C=y,i=3)
+  #   F5 = LITm * Vmax_k_LITm * MICk / (Km_k_LITm + MICk)
+  F5 = .$decomp.d1(t=t,C=y,i=1, cat_pool = 4)*.$tcor(.)
+  #   F6 = LITs * Vmax_k_LITs * MICk / (Km_k_LITs + MICk)
+  F6 = .$decomp.d2(t=t,C=y,i=2, cat_pool = 4)*.$tcor(.)
+  #   F7 = SOMa * Vmax_k_SOMa * MICk / (Km_k_SOMa + MICk)
+  F7 = .$decomp.d7(t=t,C=y,i=7, cat_pool = 4)*.$tcor(.)
+  #   F8 = MICk * tau_k
+  F8 = .$decomp.d4(t=t,C=y,i=4)
+  #   F9 = SOMp * desorb
+  F9 = .$desorp.ds5(t=t, C=y,i=5)*.$tcor(.)
+  #   F10 = SOMc * ((Vmax_r_LITs * MICr)/(ko_r*Km_r_LITs+MICr) + (Vmax_k_LITs*MICk)/(ko_k*Km_k_LITs+MICk))    #uses same parameters as LITs
+  F10 = .$decomp.d6(t=t,C=y,i=6)*.$tcor(.) + .$decomp.d6(t=t,C=y,i=6, cat_pool = 4)*.$tcor(.)
+  
+  # 
+  
+  EST_LIT_in = .super$env$anpp / (365*24) # gC/m2/h (from gC/m2/y)
+  EST_LIT    = EST_LIT_in  * 1e3 / 1e4    #mgC/cm2/h(from gC/m2/h)
+  i = EST_LIT/.super$env$depth 
+  
+  
+  #   #partitioning inputs
+  #   i_LITm = i * fmet * (1-fi_LITm)
+  #   i_LITs = i * (1-fmet) * (1-fi_LITs)
+  #   i_SOMp = i * fmet * fi_LITm
+  #   i_SOMc = i * (1-fmet) * fi_LITs
+  i_LITm = i * fmet * (1-.super$pars$mimics[['fi_LITm']])
+  i_LITs = i * (1-fmet) * (1-.super$pars$mimics[['fi_LITs']])
+  i_SOMp = i * fmet * .super$pars$mimics[['fi_LITm']]
+  i_SOMc = i * (1-fmet) * .super$pars$mimics[['fi_LITs']]
+  #   
+  #   #ODE system
+  #   dLITm = i_LITm - F1 - F5
+  dLITm <- i_LITm - F1 - F5
+  #   dLITs = i_LITs - F2 - F6
+  dLITs <- i_LITs - F2 - F6
+  #   dMICr = CUE1*F1 + CUE2*F2 + CUE1*F3 - F4
+  dMICr <- .super$pars$cue[[1]]*F1 + .super$pars$cue[[2]]*F2 + .super$pars$cue[[7]]*F3 - F4
+  #   dMICk = CUE3*F5 + CUE4*F6 + CUE3*F7 - F8
+  dMICk <- .super$pars$cue2[[1]]*F5 + .super$pars$cue2[[2]]*F6 + .super$pars$cue2[[7]]*F7 - F8
+  #   dSOMp = i_SOMp + fSOMp_r*F4 + fSOMp_k*F8 - F9
+  dSOMp <- i_SOMp + fSOMp_r*F4 + fSOMp_k*F8 - F9
+  #   dSOMc = i_SOMc + fSOMc_r*F4 + fSOMc_k*F8 - F10
+  dSOMc <- i_SOMc + fSOMc_r*F4 + fSOMc_k*F8 - F10
+  #   dSOMa = fSOMa_r*F4 + fSOMa_k*F8 + F9 + F10 - F3 - F7
+  dSOMa <- fSOMa_r*F4 + fSOMa_k*F8 + F9 + F10 - F3 - F7
+  #   
+  #   list(c(dLITm, dLITs, dMICr, dMICk, dSOMp, dSOMc, dSOMa))
+  #   #print(c(fSOMc_r, fSOMc_k))
+  # })
+  # }
+  
+  
+  
+  
+  
+  
+  # #dynamic parameters
+  # fmet = .super$pars$mimics[['fmet_p1']] * (.super$pars$mimics[['fmet_p2']] - .super$pars$mimics[['fmet_p3']]*(.super$env$lignin/.super$env$N))
+  # 
+  # 
+  # # ensures that tau_mod1 is between two values
+  # # in Will's script, anpp is multipled by 0 in the manipulation scirpt... which would imply that 
+  # # tau_mod1 might always be set to 0.6 in the simulations in Ben's paper
+  # tau_mod1 = min(max(sqrt(.super$env$anpp/.super$pars$mimics[['tau_mod1_p1']]),.super$pars$mimics[['tau_mod1_p2']]),.super$pars$mimics[['tau_mod1_p3']]) 
+  # tau_r = .super$pars$mimics[['tau_r_p1']] * exp(.super$pars$mimics[['tau_r_p2']] * fmet) *tau_mod1 * .super$pars$mimics[['tau_mod2']]
+  # tau_k = .super$pars$mimics[['tau_k_p1']] * exp(.super$pars$mimics[['tau_k_p2']] * fmet) *tau_mod1 * .super$pars$mimics[['tau_mod2']]
+  # 
+  # .super$pars$k[[3]] = tau_r
+  # .super$pars$k[[4]] = tau_k
+  # 
+  # #this could be added to decomp functions
+  # desorb = .super$pars$mimics[['desorb_p1']] * exp(.super$pars$mimics[['desorb_p2']] * .super$env$clay) * 0.1
+  # 
+  # .super$pars$k[[5]] = desorb
+  # 
+  # #total decomp fluxes (for pools with more than one decomp output)
+  # # d1 = .$decomp.d1(t=t,C=y,i=1) + .decomp.d1(t=t,C=y,i=1, cat = 'cat2', cat_pool = 4)
+  # d1 = .$decomp.d1(t=t,C=y,i=1) + .$decomp.d1(t=t,C=y,i=1, cat_pool = 4)
+  # # d2 = .$decomp.d2(t=t,C=y,i=2) + .decomp.d2(t=t,C=y,i=2, cat = 'cat2', cat_pool = 4)
+  # d2 = .$decomp.d2(t=t,C=y,i=2) + .$decomp.d2(t=t,C=y,i=2, cat_pool = 4)
+  # # d6 = .$decomp.d6(t=t,C=y,i=6) + .decomp.d6(t=t,C=y,i=6, cat = 'cat2', cat_pool = 4)
+  # d6 = .$decomp.d6(t=t,C=y,i=6) + .$decomp.d6(t=t,C=y,i=6, cat_pool = 4)
+  # # d7 = .$decomp.d7(t=t,C=y,i=7) + .decomp.d7(t=t,C=y,i=7, cat = 'cat2', cat_pool = 4)
+  # d7 = .$decomp.d7(t=t,C=y,i=7) + .$decomp.d7(t=t,C=y,i=7, cat_pool = 4)
+  # 
+  # #transfers
+  # t1_to_3 = (.$decomp.d1(t=t,C=y,i=1)/d1)*.super$pars$cue[[1]]
+  # t1_to_4 = (.$decomp.d1(t=t,C=y,i=1, cat_pool = 4)/d1)*.super$pars$cue2[[1]]
+  # t2_to_3 = (.$decomp.d2(t=t,C=y,i=2)/d2)*.super$pars$cue[[2]]
+  # t2_to_4 = (.$decomp.d2(t=t,C=y,i=2, cat_pool = 4)/d2)*.super$pars$cue2[[2]]
+  # t3_to_5 = .super$pars$mimics[['fSOMp_r_p1']] * exp(.super$pars$mimics[['fSOMp_r_p2']]*.super$pars$clay) * 0.1 #0.1 manual calibration from Will's script #fSOMp_r
+  # t3_to_6 = .super$pars$mimics[['fSOMc_r_p1']] * exp(.super$pars$mimics[['fSOMc_r_p2']]*fmet)*.super$pars$mimics[['fSOMc_r_p3']]  #fSOMc_r
+  # t3_to_7 = 1 - (t3_to_5 + t3_to_6) #fSOMa_r
+  # t4_to_5 = .super$pars$mimics[['fSOMp_k_p1']] * exp(.super$pars$mimics[['fSOMp_k_p2']]*.super$pars$clay) * 0.1 #fSOMp_k
+  # t4_to_6 = .super$pars$mimics[['fSOMc_k_p1']] * exp(.super$pars$mimics[['fSOMc_k_p2']]*fmet)*.super$pars$mimics[['fSOMc_k_p3']]  #fSOMc_k
+  # t4_to_7 = 1 - (t4_to_5 + t4_to_6)  #fSOMa_k
+  # t7_to_3 = (.$decomp.d7(t=t,C=y,i=7)/d7)*.super$pars$cue[[7]]
+  # t7_to_4 = (.$decomp.d7(t=t,C=y,i=7, cat_pool = 4)/d7)*.super$pars$cue2[[7]]
+  # 
+  # #partitioning inputs
+  # i_LITm = .$input(t) * fmet * (1-.super$pars$mimics[['fi_LITm']])
+  # i_LITs = .$input(t) * (1-fmet) * (1-.super$pars$mimics[['fi_LITs']])
+  # i_SOMp = .$input(t) * fmet * .super$pars$mimics[['fi_LITm']]
+  # i_SOMc = .$input(t) * (1-fmet) * .super$pars$mimics[['fi_LITs']]
+  # 
+  # #ODE system
+  # dLITm = i_LITm - d1*.$tcor(.)
+  # dLITs = i_LITs - d2*.$tcor(.)
+  # dMICr = d1*.$tcor(.) *t1_to_3 + d2*.$tcor(.) *t2_to_3 + d7*.$tcor(.) *t7_to_3 - .$decomp.d3(t=t,C=y,i=3)
+  # dMICk = d1*.$tcor(.) *t1_to_4 + d2*.$tcor(.) *t2_to_4 + d7*.$tcor(.) *t7_to_4 - .$decomp.d4(t=t,C=y,i=4)
+  # dSOMp = i_SOMp + .$decomp.d3(t=t,C=y,i=3)*t3_to_5 + .$decomp.d4(t=t,C=y,i=4)*t4_to_5 - .$desorp.ds5(t=t, C=y,i=5)
+  # dSOMc = i_SOMc + .$decomp.d3(t=t,C=y,i=3)*t3_to_6 + .$decomp.d4(t=t,C=y,i=4)*t4_to_5 - d6*.$tcor(.)
+  # dSOMa = .$decomp.d3(t=t,C=y,i=3)*t3_to_7 + .$decomp.d4(t=t,C=y,i=4)*t4_to_7 + .$desorp.ds5(t=t,C=y,i=5) + d6*.$tcor(.) - d7*.$tcor(.)
+  list(c(dLITm, dLITs, dMICr, dMICk, dSOMp, dSOMc, dSOMa))
 }
 
 ### END ###

@@ -29,16 +29,13 @@
         <s3>'f_decomp_lin'</s3>
       </sorp>
       <aggform>
-        <nada>NA</nada>
+        <a1>'f_aggform_abramoff'</a1>
+        <a3>'f_aggform_abramoff'</a3>
       </aggform>
       <docuptake>'f_docuptake_abramoff'</docuptake>
       <scor>'f_zero'</scor>
       <wcor>'f_wcor_abramoff'</wcor>
-      <tcor>
-        <t1>'f_tcor_arrhenius'</t1>
-        <t2>'f_tcor_arrhenius'</t2>
-        <t3>'f_tcor_arrhenius'</t3>
-      </tcor>
+      <tcor>'f_tcor_wieder'</tcor>
       <transfer>
         <t1_to_3>'f_transfer_cue_remainder'</t1_to_3>
         <t1_to_5>'f_transfer_cue'</t1_to_5>

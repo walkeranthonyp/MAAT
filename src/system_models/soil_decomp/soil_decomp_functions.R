@@ -186,37 +186,40 @@ f_docuptake_abramoff <- function(.,C,t,i){
 #environmental controls are embedded,
 #would be ideal to pull these out
 #for now we could define all the parameters with if...then statements in the solver function
+
 f_decomp_rmm_wieder <- function(.,C,t,i,cat_pool = 3){
   if(cat_pool == 3){
-  if(i==7){
-    pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-    Km = .super$pars$km[[7]] * pscalar
-  } else if(i==6) {
-    #km par same as structural litter (km2)
-    Km = .super$pars$km[[2]] *.super$pars$mimics[['ko_r']]
-  }  else {
-    Km = .super$pars$km[[i]]
-  }
-  #correcting Km for temperature
-  Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-  ###RMM equation
-  C[i] * .super$pars$vmax[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
-  ###
+    if(i==7){
+      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+      Km = .super$pars$km[[7]] * pscalar
+    } else if(i==6) {
+      #km par same as structural litter (km2)
+      Km = .super$pars$km[[2]] *(1/.super$pars$mimics[['ko_r']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
+    }  else {
+      Km = .super$pars$km[[i]]
+    }
+    #correcting Km for temperature
+    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+    ###RMM equation
+    C[i] * .super$pars$vmax[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
+    ###
   } else {
-      if(i==7){
-        pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-        Km = .super$pars$km2[[7]] * pscalar
-      } else if(i==6) {
-        Km = .super$pars$km2[[2]] *.super$pars$mimics[['ko_k']]
-      }  else {
-        Km = .super$pars$km2[[i]]
-      }
-      Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-      ###RMM equation
-      C[i] * .super$pars$vmax2[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
-      ###
+    if(i==7){
+      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+      Km = .super$pars$km2[[7]] * pscalar
+    } else if(i==6) {
+      Km = .super$pars$km2[[2]] *(1/.super$pars$mimics[['ko_k']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
+    }  else {
+      Km = .super$pars$km2[[i]]
+    }
+    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+    ###RMM equation
+    C[i] * .super$pars$vmax2[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
+    ###
   }
 }
+
+
 
 # f_decomp_rmm_wieder <- function(.,C,t,i,cat = 'cat1', cat_pool = 3){
 #   if(i==7){

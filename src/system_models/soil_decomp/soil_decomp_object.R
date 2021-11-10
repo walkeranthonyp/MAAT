@@ -96,23 +96,25 @@ soil_decomp_object$fnames <- list(
   sorp = list(
     s1 = 'f_decomp_lin',
     s2 = 'f_decomp_lin',
-    s3 = 'f_decomp_lin'    
+    s3 = 'f_decomp_lin',
+    s4 = NULL
   ),
   
   aggform = list(
-    NA
+    a1 = 'f_aggform_abramoff', #aggregrate formation from POM fraction; assumes saturation point of aggretate fraction
+    a3 = 'f_aggform_abramoff'  #aggregrate formation from MAOM fraction; assumes saturation point of aggretate fraction
   ),
   
   docuptake = 'f_docuptake_abramoff',
   
   scor = 'f_zero',
   wcor = 'f_wcor_abramoff',
-  # tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
-  tcor = list(                  #this structure for corpse
-    t1 = 'f_tcor_arrhenius',
-    t2 = 'f_tcor_arrhenius',
-    t3 = 'f_tcor_arrhenius'
-  ),
+  tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
+  # tcor = list(                  #this structure for corpse
+  #   t1 = 'f_tcor_arrhenius',
+  #   t2 = 'f_tcor_arrhenius',
+  #   t3 = 'f_tcor_arrhenius'
+  # ),
   
   # transfer list
   transfer = list(
@@ -433,25 +435,184 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=172/365, ntim
   }
 }
 
-soil_decomp_object$.test.ss <- function(., verbose=F, metdf=F, litter=172/365, ntimes=100 ) {
+
+
+soil_decomp_object$.test.mimics.ss <- function(., verbose=F, metdf=F, litter=172/365, ntimes=100 ) {
   
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))
   .$configure_test() # if only used in test functions should begin with a .
   
-  if(metdf) {
-    .$dataf       <- list()
-    if(length(litter)==1) litter <- rep(litter, ntimes ) 
-    .$dataf$metdf <- matrix(litter, nrow=1 )
-    rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-    .$dataf$lm    <- dim(.$dataf$met)[2]
-    .$dataf$mout  <- .$output()
-    .$run_met()
-  } else {
-    .$env$litter  <- litter
+    .$fnames <- list(
+        sys            = 'f_sys_npools',
+        solver         = 'plsoda',
+        solver_func    = 'f_solver_func_mimics',
+        input          = 'f_input_mimics',
+        steadystate        = 'f_steadystate_npools',
+        solver_steadystate = 'pstode',
+        decomp = list(
+          d1 = 'f_decomp_rmm_wieder', #reverse michaelis menten (function accounts for two potential catalyst pools)
+          d2 = 'f_decomp_rmm_wieder', 
+          d3 = 'f_decomp_lin', #linear turnover of r-selected microbial biomass 
+          d4 = 'f_decomp_lin', #linear turnover of k-selected microbial biomass
+          d6 = 'f_decomp_rmm_wieder',
+          d7 = 'f_decomp_rmm_wieder'
+        ),
+        desorp = list(
+          ds5 = 'f_decomp_lin'
+        ),
+        tcor = 'f_tcor_wieder'
+      )
+    .$pars <- list(
+      n_pools = 7,          # number of pools in model  
+      
+      # initial pool mass for each pool
+      # values are equilibrium calculated with stode function in DeSolve script
+      cstate0 = list(
+        cstate01 = 0.7, 
+        cstate02 = 4,          
+        cstate03 = .09,      
+        cstate04 = .2,       
+        cstate05 = 2.54,
+        cstate06 = 2.32,
+        cstate07 = 1.5
+      ),
+      
+      # Carbon use efficiency from pool i r-microbes (cue) or k-microbes (cue2)
+      cue = list(
+        cue1 = .5,       
+        cue2 = .25,  
+        cue3 = 0,
+        cue4 = 0,
+        cue5 = 0,
+        cue6 = 0,
+        cue7 = .5
+      ),  
+      
+      cue2 = list(
+        cue1 = .7,       
+        cue2 = .35, 
+        cue3 = 0,
+        cue4 = 0,
+        cue5 = 0,
+        cue6 = 0,
+        cue7 = .7
+      ),  
+      
+      # max turnover rate per unit r-(vmax) or k-(vmax) microbial biomass for pool i
+      vmax = list(
+        vmax1 = 10, 
+        vmax2 = 2,
+        vmax3 = 0,
+        vmax4 = 0,
+        vmax5 = 0,
+        vmax6 = 0,
+        vmax7 = 10
+      ),
+      
+      vmax2 = list( #vmax for second catalyst (i.e. k-selected microbes)
+        vmax1 = 3, 
+        vmax2 = 3,
+        vmax3 = 0,
+        vmax4 = 0,
+        vmax5 = 0,
+        vmax6 = 0,
+        vmax7 = 2
+      ),
+      
+      # michaelis-menten half-saturation constant for microbial decomp of pool i for r-(km) and
+      # k-(km2) selected microbes
+      km = list(   
+        km1 = 8,   
+        km2 = 2,
+        km3 = 0,
+        km4 = 0,
+        km5 = 0,
+        km6 = 0,
+        km7 = 4
+      ),
+      
+      km2 = list(   #km for second catalyst (i.e. k-selected microbes)
+        km1 = 2,   
+        km2 = 4,
+        km3 = 0,
+        km4 = 0,
+        km5 = 0,
+        km5 = 0,
+        km7 = 6
+      ),
+      
+      # turnover rate for linear decomposition
+      k = list(
+        k1 = 0,
+        k2 = 0,
+        k3 = NULL, #calculated by MIMICS solver function 
+        k4 = NULL, #calculated by MIMICS solver function 
+        k5 = NULL,  #calculated by MIMICS solver function 
+        k6 = 0,
+        k7 = 0
+      ),
+      
+      #mimics-specific parameters
+      mimics = list(
+        fmet_p1 = .5,       # These three parameters used to calculate fmet 
+        fmet_p2 = .85,      # fmet partitions litter between structural and metabolic pools
+        fmet_p3 = .013,     # These parameters relate lignin/N of litter to fmet
+        tau_mod1_p1 = 100,  # "tau_" parameters used to calculate turnover of microbial biomass pools
+        tau_mod1_p2 = .6,   #
+        tau_mod1_p3 = 1.3,  #
+        tau_r_p1 = .00052,  #
+        tau_r_p2 = .3,      #
+        tau_mod2 = 2*24,       #
+        tau_k_p1 = .00024,  #
+        tau_k_p2 = .1,      #
+        desorb_p1 = .00002*24, # "desorb_" parmeters caluclate desorption of SOMp pool based on clay content 
+        desorb_p2 = -4.5,   #
+        fSOMp_r_p1 = .15,   # "fSOM..." parameters control transfers of microbial necromass to the three SOM pools
+        fSOMp_r_p2 = 1.3,   # based on clay or fmet parameter
+        fSOMc_r_p1 = .1,    #
+        fSOMc_r_p2 = -3,    #
+        fSOMc_r_p3 = 1,     #
+        fSOMp_k_p1 = .1,    #
+        fSOMp_k_p2 = .8,    #
+        fSOMc_k_p1 = .3,    #
+        fSOMc_k_p2 = -3,    #
+        fSOMc_k_p3 = 1,     #
+        V_slope = .063,     # Vmax temp sensitivity--slope of relationship between temp and ln(Vmax)
+        V_int = 5.47,       # Vmax temp sensitivity--intercept of relationship between temp and ln(Vmax)
+        aV = .000000125*24,    # Tuning coefficient for Vmax 
+        pscalar_p1 = 3,     # "pscalar" determines effect of clay on Km for decomp of SOMa pool
+        pscalar_p2 = -2,    #
+        ko_r = 6,           # tunes Km for decomp of SOMc pool
+        ko_k = 6,           #
+        K_slope = .02,      # temp sensitivity of Km parameter (slope)
+        K_int = 3.19,       # temp sensitivity of Km parameter (intercept)
+        aK = .15625,        # temp sensitivity of Km parameter (tuning coefficient)
+        fi_LITm = .005,     # fraction of metabolic litter input transferred to SOMp
+        fi_LITs = .005      # fraction of structural litter input transferred to SOMc
+      )
+    )
+    .$env <- list(
+      temp   = 20,          # soil temperature
+      clay = .05,            # proportion clay (i.e. .4 = 40%) #default = .4, changed to .05 to match CORPSE
+      lignin = 16.6,        # Lignin concentration of litter inputs (units must be same as N (%))
+      N = 1.37,             # N concentration of litter inputs (units must be same as lignin (%))
+      anpp = 500*24,           # ANPP (gC / m^2 / y) 
+      depth = 20           # depth (cm)
+    )
+    
     .$run()
-  }
 }
+
+
+
+
+
+
+
+
+
+
 
 soil_decomp_object$.test_corpse <- function(., verbose=F, metdf=F, litter=.001369863, ntimes=100 ) {
   
