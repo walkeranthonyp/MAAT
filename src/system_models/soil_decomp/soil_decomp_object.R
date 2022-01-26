@@ -67,54 +67,59 @@ soil_decomp_object$init  <- function(.) {
 ####################################
 soil_decomp_object$fnames <- list(
 
-  sys                = 'f_sys_npools', # does this need to change when working with steadystate?
+  sys                = 'f_sys_npools', 
   solver             = 'plsoda',
-  solver_func        = 'f_solver_func_mimics',
-  input              = 'f_input_mimics',
+  solver_func        = 'f_solver_func_mend2013',
+  input              = 'f_input',
   DotO               = 'f_DotO',
   transfermatrix     = 'f_transfermatrix',
-  steadystate        = 'f_steadystate_npools',#'f_steadystate_npools',
+  steadystate        = 'f_steadystate_null',#'f_steadystate_npools',
   solver_steadystate = 'pstode',
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_rmm_wieder', #reverse michaelis menten (function accounts for two potential catalyst pools)
-    d2 = 'f_decomp_rmm_wieder', 
-    d3 = 'f_decomp_lin', #linear turnover of r-selected microbial biomass 
-    d4 = 'f_decomp_lin', #linear turnover of k-selected microbial biomass
-    d5 = 'f_zero',  #no decomp, just desorption
-    d6 = 'f_decomp_rmm_wieder',
-    d7 = 'f_decomp_rmm_wieder'
+    d1 = 'f_decomp_mm', #michaelis mentent decay of POM
+    d2 = 'f_decomp_mm',  #michaelis menten decay of MAOM
+    d3 = 'f_zero', #Q pool affected by desorption
+    d4 = 'f_decomp_lin', #mirobial mortality (plus losses for enzyme production)
+    d5 = 'f_zero',  #DOC pool affected by sorption and microbial uptake
+    d6 = 'f_decomp_lin', #linear decay of POC enzymes
+    d7 = 'f_decomp_lin' #linear decay of MAOC enzymes
   ),
   
   desorp = list(
-    ds5 = 'f_decomp_lin',
-    ds6 = 'f_zero',
-    ds7 = 'f_zero' 
+    ds1 = NA,
+    ds2 = NA,
+    ds3 = 'f_desorp_mend'
   ),
   
   sorp = list(
-    s1 = 'f_decomp_lin',
-    s2 = 'f_decomp_lin',
-    s3 = 'f_decomp_lin',
-    s4 = NULL
+    s1 = NA,
+    s2 = NA,
+    s3 = NA,
+    s4 = NA,
+    s5 = 'f_sorp_sat'
   ),
   
-  aggform = list(
-    a1 = 'f_aggform_abramoff', #aggregrate formation from POM fraction; assumes saturation point of aggretate fraction
-    a3 = 'f_aggform_abramoff'  #aggregrate formation from MAOM fraction; assumes saturation point of aggretate fraction
+  aggform = list( 
+    a1 = NULL, #No aggregation in MEND
+    a3 = NULL 
   ),
   
-  docuptake = 'f_docuptake_abramoff',
+  docuptake = 'f_docuptake_mend',
+  
+  growthresp = 'f_growthresp_mend',
+  
+  maintresp = 'f_maintresp_mend',
   
   scor = 'f_zero',
   wcor = 'f_wcor_abramoff',
-  tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
-  # tcor = list(                  #this structure for corpse
-  #   t1 = 'f_tcor_arrhenius',
-  #   t2 = 'f_tcor_arrhenius',
-  #   t3 = 'f_tcor_arrhenius'
-  # ),
+  #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
+  tcor = list(                  #this structure for corpse
+    t1 = 'f_tcor_arrhenius',
+    t2 = 'f_tcor_arrhenius',
+    t3 = 'f_tcor_arrhenius'
+  ),
   
   # transfer list
   transfer = list(
@@ -137,7 +142,7 @@ soil_decomp_object$fnames <- list(
 # environment
 ####################################
 soil_decomp_object$env <- list(
-  litter = 172/365,
+  litter = 0.00016,
   temp   = 20,
   vwc    = .24,
   porosity = 0.5,
@@ -170,7 +175,7 @@ soil_decomp_object$state_pars <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 7,          # number of pools in model  
+  n_pools = 7,          # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
   beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = 0.2,        # soil silt content (proportion)
   clay    = 0.2,        # soil clay content (proportion)
@@ -185,10 +190,10 @@ soil_decomp_object$pars <- list(
   minmic = 1e-3,
   q10 = 2,
   
-  ea = list(
-    ea1 = 37e3,
-    ea2 = 54e3,
-    ea3 = 50e3,
+  ea = list( #not used in MEND2013
+    ea1 = NA,
+    ea2 = NA,
+    ea3 = NA,
     ea4 = NA,
     ea5 = NA,
     ea6 = NA,
@@ -197,15 +202,17 @@ soil_decomp_object$pars <- list(
  
   #input coefficients (allocaties proportions of inputs into different pools)
   input_coefs = list(
-    input_coef1 = .66666,
+    input_coef1 = 1-.0625,
     input_coef2 = 0,
     input_coef3 = 0,
-    input_coef4 = .33334,
-    input_coef5 = 0
+    input_coef4 = 0,
+    input_coef5 = .0625, #fid
+    input_coef6 = 0,
+    input_coef7 = 0
   ),
   
   # initial pool mass for each pool
-  cstate0 = list(
+  cstate0 = list( #not used in MEND2013
     cstate01 = 0.1, 
     cstate02 = 0.1,          
     cstate03 = 0.1,      
@@ -219,45 +226,45 @@ soil_decomp_object$pars <- list(
   # - if this varies by the 'to' pool we need another function / parameters
   # MC: I've created a function cue_remainder that can allocate the remainder to another pool rather than CO2
   cue = list(
-    cue1 = .5,       
-    cue2 = .25,       
+    cue1 = 0,       
+    cue2 = 0,       
     cue3 = 0,
     cue4 = 0,
-    cue5 = 0, 
+    cue5 = .47, #Ec
     cue6 = 0,
-    cue7 = .5
+    cue7 = 0
   ),  
   
-  cue2 = list(
-    cue1 = .7,       
-    cue2 = .35,       
-    cue3 = 0,
-    cue4 = 0,
-    cue5 = 0, 
-    cue6 = 0,
-    cue7 = .7
+  cue2 = list( #not used in MEND2013
+    cue1 = NA,       
+    cue2 = NA,       
+    cue3 = NA,
+    cue4 = NA,
+    cue5 = NA,
+    cue6 = NA,
+    cue7 = NA
   ),  
 
   # max turnover rate per unit microbial biomass for pool i
   # commented out old list (updating to allow for multiple mic groups or catalysts)
   vmax = list(
-    vmax1 = 10, #Vpd or Vpl in Millennial, decomp of POM toward DOC
-    vmax2 = 2,
-    vmax3 = 0,
-    vmax4 = 0,
-    vmax5 = 0,
-    vmax6 = 0,
-    vmax7 = 10
+    vmax1 = 2.5, #Vp
+    vmax2 = 1,   #Vm
+    vmax3 = NA,
+    vmax4 = NA,
+    vmax5 = .0005, #Vd
+    vmax6 = NA,
+    vmax7 = NA
   ),
   
-  vmax2 = list( #vmax for second catalyst
-    vmax1 = 3, #Vpd or Vpl in Millennial, decomp of POM toward DOC
-    vmax2 = 3,
-    vmax3 = 0,
-    vmax4 = 0,
-    vmax5 = 0,
-    vmax6 = 0,
-    vmax7 = 2
+  vmax2 = list( #Not used in MEND
+    vmax1 = NA, 
+    vmax2 = NA,
+    vmax3 = NA,
+    vmax4 = NA,
+    vmax5 = NA,
+    vmax6 = NA,
+    vmax7 = NA
   ),
   
   # idea for how to handle one pool being decomposed by multiple catalysts (e.g. multiple microbial pools or multiple enzyme pools)
@@ -276,53 +283,53 @@ soil_decomp_object$pars <- list(
  
   # michaelis-menten half-saturation constant for microbial decomnp of pool i      
   km = list(   
-    km1 = 8, #Kpd in MILLENNIAL double michaelis-menten equation     
-    km2 = 2,     
-    km3 = 0,
-    km4 = 0,
-    km5 = 0,
-    km6 = 0,
-    km7 = 4
+    km1 = 50, #Kp 
+    km2 = 250, #Km     
+    km3 = NA,
+    km4 = NA,
+    km5 = .26, #Kd
+    km6 = NA,
+    km7 = NA
   ),
   
-  km2 = list(   #km for second catalyst
-    km1 = 2, #Kpd in MILLENNIAL double michaelis-menten equation     
-    km2 = 4,     
-    km3 = 0,
-    km4 = 0,
-    km5 = 0,
-    km6 = 0,
-    km7 = 6
+  km2 = list(   #not used for MEND
+    km1 = NA, 
+    km2 = NA,     
+    km3 = NA,
+    km4 = NA,
+    km5 = NA,
+    km6 = NA,
+    km7 = NA
   ),
   
   # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i
   # This is only neccesary for models that use km in reverse and forward mm decomp for the same pool (i.e. MILLENNIAL)
-  rkm = list(   
-    rkm1 = 12, #Kpe in MILLENNIAL double michaelis-menten equation (the reverse part i.e. the microbial limited part) 
-    rkm2 = 0,     
-    rkm3 = 0,
-    rkm4 = 0,
-    rkm5 = 0
+  rkm = list( #not used for MEND  
+    rkm1 = NA, 
+    rkm2 = NA,     
+    rkm3 = NA,
+    rkm4 = NA,
+    rkm5 = NA
   ),   
 
   # turnover rate for linear decomposition
   k = list(    
     k1 = 0,       
     k2 = 0,   
-    k3 = 0, #calculated by MIMICS solver function 
-    k4 = 0, #calculated by MIMICS solver function 
-    k5 = 0, 
-    k6 = 0,
-    k7 = 0  #calculated by MIMICS solver function 
+    k3 = .001, #kdes
+    k4 = .00028, #Mr 
+    k5 = .006, #kads for mend
+    k6 = .001, #Rep
+    k7 = .001  #Rem
   ),
 
   # maximum size for pool i 
   poolmax = list(       
-    poolmax1 = 0,       # POM value
-    poolmax2 = 0,       # microbial biomass max value
-    poolmax3 = 0,   # max maom capacity (calculated using Hassink formula assuming 15% clay)
-    poolmax4 = 0,
-    poolmax5 = 500
+    poolmax1 = NA,      
+    poolmax2 = NA,       
+    poolmax3 = 1.7, #Qmax   
+    poolmax4 = NA,
+    poolmax5 = NA
   ),
   
   #mimics-specific parameters
@@ -378,6 +385,15 @@ soil_decomp_object$pars <- list(
     Kdb = 7.2,     #half-saturation constant for microbial uptake of doc
     kmm = 0.025,   #rate constant for microbial turnover (and sorption in published eq version)
     pa = 0.333
+  ),
+  
+  #mend-specific parameters
+  mend = list(
+    Mr =  .00028,
+    Pep = .01,
+    Pem = .01,
+    Gd =  .5,
+    Fd =  .5
   )
 )
 
@@ -415,7 +431,7 @@ f_output_soil_decomp_full <- function(.) {
 # test functions
 #######################################################################        
 
-soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=172/365, ntimes=100 ) {
+soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.00016, ntimes=100 ) {
 
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))

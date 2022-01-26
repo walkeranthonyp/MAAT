@@ -2,18 +2,20 @@
   <fnames>
     <soil_decomp>
       <sys>'c( 'f_sys_npools' )'</sys>
-      <solver>'c( 'f_solver_func', 'f_solver_func_corpse', 'f_solver_func_millennial', 'f_solver_func_mimics', 'f_solver_func_mimics_eq' )'</solver>
-      <solver_func>'c( 'f_solver_func', 'f_solver_func_corpse', 'f_solver_func_millennial', 'f_solver_func_mimics', 'f_solver_func_mimics_eq' )'</solver_func>
+      <solver>'c( 'f_solver_func', 'f_solver_func_corpse', 'f_solver_func_mend2013', 'f_solver_func_millennial', 'f_solver_func_mimics' )'</solver>
+      <solver_func>'c( 'f_solver_func', 'f_solver_func_corpse', 'f_solver_func_mend2013', 'f_solver_func_millennial', 'f_solver_func_mimics' )'</solver_func>
       <input>'c( 'f_input', 'f_input_mimics' )'</input>
       <DotO>'c( 'f_DotO' )'</DotO>
       <transfermatrix>'c( 'f_transfermatrix' )'</transfermatrix>
       <steadystate>'c( 'f_steadystate_npools', 'f_steadystate_null' )'</steadystate>
       <solver_steadystate>'c(  )'</solver_steadystate>
-      <decomp>'c( 'f_decomp_dd_georgiou', 'f_decomp_dd_mend', 'f_decomp_dmm', 'f_decomp_doc_mend', 'f_decomp_lin', 'f_decomp_lin_sat_corpse', 'f_decomp_mbc_mend', 'f_decomp_MM_enzmaom', 'f_decomp_MM_enzpom', 'f_decomp_MM_microbe', 'f_decomp_mm_sulman', 'f_decomp_rmm', 'f_decomp_rmm_sulman', 'f_decomp_rmm_wieder' )'</decomp>
-      <desorp>'c(  )'</desorp>
-      <sorp>'c(  )'</sorp>
+      <decomp>'c( 'f_decomp_dd_georgiou', 'f_decomp_dd_mend', 'f_decomp_dmm', 'f_decomp_doc_mend', 'f_decomp_lin', 'f_decomp_lin_sat_corpse', 'f_decomp_mbc_mend', 'f_decomp_mm', 'f_decomp_MM_enzmaom', 'f_decomp_MM_enzpom', 'f_decomp_MM_microbe', 'f_decomp_mm_sulman', 'f_decomp_rmm', 'f_decomp_rmm_sulman', 'f_decomp_rmm_wieder' )'</decomp>
+      <desorp>'c( 'f_desorp_mend' )'</desorp>
+      <sorp>'c( 'f_sorp_sat' )'</sorp>
       <aggform>'c( 'f_aggform_abramoff' )'</aggform>
-      <docuptake>'c( 'f_docuptake_abramoff' )'</docuptake>
+      <docuptake>'c( 'f_docuptake_abramoff', 'f_docuptake_mend' )'</docuptake>
+      <growthresp>'c( 'f_growthresp_mend' )'</growthresp>
+      <maintresp>'c( 'f_maintresp_mend' )'</maintresp>
       <scor>'c( 'f_scor_sulman' )'</scor>
       <wcor>'c( 'f_wcor_abramoff', 'f_wcor_candy', 'f_wcor_century', 'f_wcor_daycent1', 'f_wcor_daycent2', 'f_wcor_gompertz', 'f_wcor_moyano', 'f_wcor_skopp', 'f_wcor_standcarb', 'f_wcor_sulman', 'f_wcor_sulman_normalized' )'</wcor>
       <tcor>'c( 'f_tcor_arrhenius', 'f_tcor_century1', 'f_tcor_century2', 'f_tcor_daycent1', 'f_tcor_daycent2', 'f_tcor_daycent2_abramoff', 'f_tcor_demeter', 'f_tcor_kb', 'f_tcor_landt', 'f_tcor_lin_adair', 'f_tcor_q10', 'f_tcor_rothc', 'f_tcor_standcarb', 'f_tcor_wieder' )'</tcor>

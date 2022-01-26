@@ -19,23 +19,27 @@
         <d7>NA</d7>
       </decomp>
       <desorp>
-        <ds5>NA</ds5>
-        <ds6>NA</ds6>
-        <ds7>NA</ds7>
+        <ds1>NA</ds1>
+        <ds2>NA</ds2>
+        <ds3>NA</ds3>
       </desorp>
       <sorp>
         <s1>NA</s1>
         <s2>NA</s2>
         <s3>NA</s3>
+        <s4>NA</s4>
+        <s5>NA</s5>
       </sorp>
-      <aggform>
-        <a1>NA</a1>
-        <a3>NA</a3>
-      </aggform>
       <docuptake>NA</docuptake>
+      <growthresp>NA</growthresp>
+      <maintresp>NA</maintresp>
       <scor>NA</scor>
       <wcor>NA</wcor>
-      <tcor>NA</tcor>
+      <tcor>
+        <t1>NA</t1>
+        <t2>NA</t2>
+        <t3>NA</t3>
+      </tcor>
       <transfer>
         <t1_to_3>NA</t1_to_3>
         <t1_to_5>NA</t1_to_5>
@@ -83,6 +87,8 @@
         <input_coef3>NA</input_coef3>
         <input_coef4>NA</input_coef4>
         <input_coef5>NA</input_coef5>
+        <input_coef6>NA</input_coef6>
+        <input_coef7>NA</input_coef7>
       </input_coefs>
       <cstate0>
         <cstate01>NA</cstate01>
@@ -221,6 +227,13 @@
         <kmm>NA</kmm>
         <pa>NA</pa>
       </millennial>
+      <mend>
+        <Mr>NA</Mr>
+        <Pep>NA</Pep>
+        <Pem>NA</Pem>
+        <Gd>NA</Gd>
+        <Fd>NA</Fd>
+      </mend>
     </soil_decomp>
   </pars>
   <env>

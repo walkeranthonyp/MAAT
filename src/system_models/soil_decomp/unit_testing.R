@@ -14,7 +14,7 @@
 # soil_decomp
 source('soil_decomp_object.R')
 
-soil_decomp_object$.test.mimics.ss()
+#soil_decomp_object$.test.mimics.ss()
 
 soil_decomp_object$.test()
 soil_decomp_object$.test(litter=1.4)

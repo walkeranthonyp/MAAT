@@ -90,6 +90,18 @@ f_decomp_dmm <- function(.,C,t,i){
   .super$pars$vmax[[i]] * (C[1]/(.super$pars$km[[1]] + C[1])) * (C[2]/(.super$pars$rkm[[1]]+C[2]))
 }
 
+f_decomp_mm <- function(.,C,t,i,cat){
+  (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[i] + .super$pars$km[[i]])
+}
+
+f_sorp_sat  <- function(.,C,t,i, k_from_list = TRUE, k = NULL, sat_pool) {
+  if(k_from_list == TRUE){
+    C[i]*.super$pars$k[[i]]*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]])
+  } else {
+    C[i]*k*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]])
+  }
+}
+
 f_zero <- function(.,C,t,i) 0
 
 #########
@@ -219,7 +231,25 @@ f_decomp_rmm_wieder <- function(.,C,t,i,cat_pool = 3){
   }
 }
 
+#########
+#MEND-SPECIFIC FUNCTIONS
+#########
 
+f_desorp_mend <- function(.,C,t,i) {
+  .super$pars$k[[i]]*(C[i]/.super$pars$poolmax[[i]])
+}
+
+f_docuptake_mend <- function(.,C,t,i){
+  (.super$pars$vmax[[i]]+.super$pars$mend[['Mr']])*C[i]*C[4]/(C[i]+.super$pars$km[[i]])
+}
+
+f_growthresp_mend <- function(.,C,t,i){
+  .super$pars$vmax[[5]]*C[i]*C[5]/(C[5]+.super$pars$km[[5]])
+}
+
+f_maintresp_mend <- function(.,C,t,i){
+  .super$pars$k[[4]]*C[i]*C[5]/(C[5]+.super$pars$km[[5]])
+}
 
 # f_decomp_rmm_wieder <- function(.,C,t,i,cat = 'cat1', cat_pool = 3){
 #   if(i==7){
