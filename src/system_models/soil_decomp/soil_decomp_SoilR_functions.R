@@ -344,4 +344,161 @@ f_solver_func_mend2013 <- function(., t, y, parms) {
 #   )
 # }
 }
+
+f_solver_func_millennialV2 <- function(., t, y, parms) {
+  #State parameters (i.e. calculated parameters)
+  #Equation 4
+  ##scalar_wd = (swc / porosity)^0.5
+  ##this is now .$wcor(.)
+  
+  #Equation 15
+  #scalar_wb = exp(lambda * -matpot) * (kamin + (1 - kamin) * ((porosity - swc) / porosity)^0.5) * scalar_wd
+  ##this is now .$wcor2(.)
+  
+  #Equation 11
+  #Q max; maximum MAOM capacity
+  #not sure if this will work?
+  .super$pars$poolmax[[3]] = .super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']]
+  # param_qmax = .super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']]
+  
+  #Equation 10
+  #Binding affinity parameter
+  kaff_lm = exp(-.super$pars$millennialV2[['sorp_p1']] * .super$env$pH - .super$pars$millennialV2[['sorp_p2']]) * .super$pars$millennialV2[['kld']]
+  
+  #Equation 3
+  #arrhenius modification of vmax for pom decay
+  #vmax_pl = .super$pars$millennialV2[['alpha_pl']] * .$tcor.t1(i=1)
+  
+  #Equation 14
+  #arrhenius modification of vmax for mic uptake
+  #vmax_lb = .super$pars$millennialV2[['alpha_lb']] * .$tcor.t4(i=4)
+  #          
+  #          #Fluxes
+  
+  #Equation 6
+  #agg breakdown
+  # AGG -> MAOM + POM
+  if(AGG>0){
+    f_AG_break = .$decomp.d5(t = t, C=y, i=5) * .$wcor(.)
+  }else{
+    f_AG_break=0
+  }
+  
+  #Equation 5
+  #agg formation
+  # POM -> AGG
+  # no saturation of agg fraction in v2 I guess
+  if(POM>0){
+    f_PO_AG = .$aggform.a1(t = t, C=y, i=1) * .$wcor(.)
+  }else{
+    f_PO_AG=0
+  }
+  
+  #Equation 2
+  #RMM decay of POM
+  # POM -> LMWC
+  if(POM>0 && MIC>0){
+    f_PO_LM = .$tcor.t1(i=1) * .$decomp.d1(t=t,C=y,i=1,cat=2) *.$wcor(.)
+    #f_PO_LM = vmax_pl * .$wcor(.) * POM * MIC / (km1 + MIC)
+  }else{
+    f_PO_LM=0
+  }
+  
+  #Equation 8
+  #leaching
+  # LMWC -> out of system leaching
+  if(LMWC>0){
+    f_LM_leach = .$decomp.d4(t = t, C=y, i=4) * .$wcor(.)
+    #f_LM_leach = k4 * .$wcor(.) * LMWC
+  }else{
+    f_LM_leach=0
+  }
+  
+  #Equation 9
+  #sorption
+  # LMWC -> MAOM #this is no longer a double-sided equation, seperate funcs for sorp and desorp
+  if(LMWC>0 && MAOM>0){
+    f_LM_MA = .$wcor(.) * .$sorp.s4(t = t, C=y, i=4, k_from_list = FALSE, k = kaff_lm, sat_pool = 3)
+    #f_LM_MA = .$wcor(.) * kaff_lm * LMWC * (1 - MAOM / param_qmax)
+  }else{
+    f_LM_MA=0
+  }
+  
+  
+  #Equation 12
+  #desorption
+  # MAOM -> LMWC
+  if(MAOM>0){
+    f_MA_LM = .$desorp.ds3(t = t, C=y, i=4, k = .super$pars$millennialV2[['kld']])
+    #f_MA_LM = kld * MAOM / param_qmax
+  }else{
+    f_MA_LM=0
+  }
+  
+  #Equation 13
+  #microbial uptake via michaelis menten equation
+  # LMWC -> MIC
+  if(LMWC>0 && MIC>0){
+    f_LM_MB = .$wcor2(.) * .$tcor.t4(i=4) * .$docuptake(t=t,C=y,i=4,cat=2)
+    #f_LM_MB = vmax_lb * .$wcor2(.) * MIC * LMWC / (km4 + LMWC)
+  }else{
+    f_LM_MB=0
+  }
+  
+  #Equation 18
+  #agg formation from maom
+  # MAOM -> AGG
+  if(MAOM>0){  
+    f_MA_AG = .$aggform.a3(t = t, C=y, i=3) * .$wcor(.)
+    #f_MA_AG = k3 * .$wcor(.) * MAOM
+  }else{
+    f_MA_AG=0
+  }
+  
+  #Equation 16
+  #microbial turnover
+  # MIC -> MAOM/LMWC
+  if(MIC>0){
+    f_MB_turn = .$decomp.d4(t = t, C=y, i=2)
+    #f_MB_turn = k2 * MIC^2.0
+  }else{
+    f_MB_turn=0
+  }
+  
+  #Equation 22
+  # microbial growth flux, but is not used in mass balance
+  
+  #Equation 21
+  #mic respiration
+  # MIC -> atmosphere
+  if(MIC>0 && LMWC>0){ 
+    f_MB_atm = f_LM_MB * (1 - (.super$pars$cue[[4]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - super$pars$millennialV2[['Taeref']]) ) )
+  }else{
+    f_MB_atm=0
+  }
+  #          
+  #          #ODE system
+  
+  #Equation 1
+  dPOM = .$input(t)[[1]] + f_AG_break * .super$pars$millennialV2[['pa']] - f_PO_AG - f_PO_LM
+  #dPOM = forc_npp * pri + f_AG_break * pa - f_PO_AG - f_PO_LM
+  
+  #Equation 20
+  dMIC = f_LM_MB - f_MB_turn - f_MB_atm
+  #dMIC = f_LM_MB - f_MB_turn - f_MB_atm
+  
+  #Equation 19
+  f_LM_MA - f_MA_LM + f_MB_turn * .super$pars$millennialV2[['param_pb']] - f_MA_AG + f_AG_break * (1. - .super$pars$millennialV2[['pa']])
+  #dMAOM = f_LM_MA - f_MA_LM + f_MB_turn * param_pb - f_MA_AG + f_AG_break * (1. - pa)
+  
+  #Equation 7
+  dLMWC = .$input(t)[[4]] - f_LM_leach + f_PO_LM - f_LM_MA - f_LM_MB + f_MB_turn * (1. - .super$pars$millennialV2[['param_pb']]) + f_MA_LM
+  #dLMWC = forc_npp * (1. - pri) - f_LM_leach + f_PO_LM - f_LM_MA - f_LM_MB + f_MB_turn * (1. - param_pb) + f_MA_LM
+  
+  #Equation 17
+  dAGG = f_MA_AG + f_PO_AG - f_AG_break
+  #dAGG = f_MA_AG + f_PO_AG - f_AG_break
+  
+  list(c(dPOM, dMIC, dMAOM, dLMWC, dAGG))
+}
 ### END ###

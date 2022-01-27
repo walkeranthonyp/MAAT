@@ -83,7 +83,7 @@ f_decomp_MM_microbe <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[2]*C[i]) / (.s
 
 #reverse Michaelis-Menten decomp
 #C[4] is microbial biomass in CORPSE
-f_decomp_rmm <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]])
+f_decomp_rmm <- function(.,C,t,i, cat = 4) (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[cat] + .super$pars$km[[i]])
 
 # double Michaelis-Menten decomp
 f_decomp_dmm <- function(.,C,t,i){
@@ -249,6 +249,13 @@ f_growthresp_mend <- function(.,C,t,i){
 
 f_maintresp_mend <- function(.,C,t,i){
   .super$pars$k[[4]]*C[i]*C[5]/(C[5]+.super$pars$km[[5]])
+}
+
+#########
+#MILLENNIALV2-SPECIFIC FUNCTIONS
+#########
+f_desorp_millennialv2 <- function(.,C,t,i, k = 1) {
+  k*(C[i]/.super$pars$poolmax[[i]])
 }
 
 # f_decomp_rmm_wieder <- function(.,C,t,i,cat = 'cat1', cat_pool = 3){

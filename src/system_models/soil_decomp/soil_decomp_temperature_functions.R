@@ -113,3 +113,7 @@ f_tcor_arrhenius <- function(.,C,t,i) {
   exp( .super$pars$ea[[i]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
 }
 
+f_tcor_arrhenius_millennialv2 <- function(.,C,t,i) {
+  exp(-.super$pars$ea[[i]] / (.super$pars$R * (.super$env$temp + 273.15)))
+}
+

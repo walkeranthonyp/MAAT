@@ -78,47 +78,49 @@ soil_decomp_object$fnames <- list(
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_mm', #michaelis mentent decay of POM
-    d2 = 'f_decomp_mm',  #michaelis menten decay of MAOM
-    d3 = 'f_zero', #Q pool affected by desorption
-    d4 = 'f_decomp_lin', #mirobial mortality (plus losses for enzyme production)
-    d5 = 'f_zero',  #DOC pool affected by sorption and microbial uptake
-    d6 = 'f_decomp_lin', #linear decay of POC enzymes
-    d7 = 'f_decomp_lin' #linear decay of MAOC enzymes
+    d1 = 'f_decomp_rmm',
+    d2 = 'f_decomp_dd_georgiou',  
+    d3 = 'f_zero', 
+    d4 = 'f_zero', 
+    d5 = 'f_decomp_lin'
   ),
   
   desorp = list(
     ds1 = NA,
     ds2 = NA,
-    ds3 = 'f_desorp_mend'
+    ds3 = 'f_desorp_millennialv2'
   ),
   
   sorp = list(
     s1 = NA,
     s2 = NA,
     s3 = NA,
-    s4 = NA,
-    s5 = 'f_sorp_sat'
+    s4 = 'f_sorp_sat',
+    s5 = NA
   ),
   
   aggform = list( 
-    a1 = NULL, #No aggregation in MEND
-    a3 = NULL 
+    a1 = 'f_decomp_lin', #Aggregate formation from POM
+    a3 = 'f_decomp_lin'  #Aggregate formation from MAOM
   ),
   
-  docuptake = 'f_docuptake_mend',
+  docuptake = 'f_decomp_mm', #MM uptake of DOC
   
-  growthresp = 'f_growthresp_mend',
+  growthresp = NA,
   
-  maintresp = 'f_maintresp_mend',
+  maintresp = NA,
   
-  scor = 'f_zero',
-  wcor = 'f_wcor_abramoff',
+  scor = NA,
+  wcor = 'f_wcor_ghezzehei_diffusion',
+  wcor2 = 'f_wcor_ghezzehei_biological',
+
   #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
   tcor = list(                  #this structure for corpse
-    t1 = 'f_tcor_arrhenius',
-    t2 = 'f_tcor_arrhenius',
-    t3 = 'f_tcor_arrhenius'
+    t1 = 'f_tcor_arrhenius_millennialv2',
+    t2 = NULL,
+    t3 = NULL,
+    t4 = 'f_tcor_arrhenius_millennialv2',
+    t5 = NULL
   ),
   
   # transfer list
@@ -142,17 +144,21 @@ soil_decomp_object$fnames <- list(
 # environment
 ####################################
 soil_decomp_object$env <- list(
-  litter = 0.00016,
-  temp   = 20,
-  vwc    = .24,
-  porosity = 0.5,
-  clay = .4, #MIMICS takes proportion, CORPSE and MILLENNIAL takes percentage
+  litter = 172.8978/365, #forc_npp in MILLENNIALv2
+  temp   = 11.21961, #default for MILLENNIALv2 (sum across mean year)
+  vwc    = .2422044, #default for MILLENNIALv2 (average across mean year)
+  porosity = 0.6, #default for MILLENNIALv2
+  clay = .4, 
   lignin = 16.6,
   N = 1.37,
   anpp = 500,
   depth = 20,
-  pH = 7,
-  BD = 1350  #Bulk density 
+  pH = 7, #default for MILLENNIALv2
+  BD = 1000,  #default for MILLENNIALv2 #Bulk density 
+  matpot = 15, #default for MILLENNIALv2
+  lambda = 2.1000e-04, #default for MILLENNIALv2
+  kamin = .2, #default for MILLENNIALv2
+  claysilt = 80  #default for MILLENNIALv2 #MILLENNIAL uses clay+silt% to calculate Qmax
 )
 
 
@@ -176,7 +182,7 @@ soil_decomp_object$state_pars <- list(
 soil_decomp_object$pars <- list(
 
   n_pools = 7,          # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
-  beta    = 1.5,        # density dependent turnover, biomass exponent (can range between 1 and 2)
+  beta    = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = 0.2,        # soil silt content (proportion)
   clay    = 0.2,        # soil clay content (proportion)
   clayref = 5,
@@ -190,25 +196,21 @@ soil_decomp_object$pars <- list(
   minmic = 1e-3,
   q10 = 2,
   
-  ea = list( #not used in MEND2013
-    ea1 = NA,
+  ea = list(
+    ea1 = 6.3909e+04, #MILLENNIALv2 #activiation energy for temp sensitivity of POM decay
     ea2 = NA,
     ea3 = NA,
-    ea4 = NA,
-    ea5 = NA,
-    ea6 = NA,
-    ea7 = NA
+    ea4 = 5.7865e+04, #MILLENNIALv2 #activiation energy for temp sensitivity of DOC uptake
+    ea5 = NA
   ),
  
   #input coefficients (allocaties proportions of inputs into different pools)
   input_coefs = list(
-    input_coef1 = 1-.0625,
+    input_coef1 = .66,
     input_coef2 = 0,
     input_coef3 = 0,
-    input_coef4 = 0,
-    input_coef5 = .0625, #fid
-    input_coef6 = 0,
-    input_coef7 = 0
+    input_coef4 = 1-.66,
+    input_coef5 = 0
   ),
   
   # initial pool mass for each pool
@@ -217,9 +219,7 @@ soil_decomp_object$pars <- list(
     cstate02 = 0.1,          
     cstate03 = 0.1,      
     cstate04 = 0.1,       
-    cstate05 = 0.1,
-    cstate06 = 0.1,
-    cstate07 = 0.1
+    cstate05 = 0.1
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
@@ -229,10 +229,8 @@ soil_decomp_object$pars <- list(
     cue1 = 0,       
     cue2 = 0,       
     cue3 = 0,
-    cue4 = 0,
-    cue5 = .47, #Ec
-    cue6 = 0,
-    cue7 = 0
+    cue4 = .19,
+    cue5 = 0
   ),  
   
   cue2 = list( #not used in MEND2013
@@ -240,21 +238,17 @@ soil_decomp_object$pars <- list(
     cue2 = NA,       
     cue3 = NA,
     cue4 = NA,
-    cue5 = NA,
-    cue6 = NA,
-    cue7 = NA
+    cue5 = NA
   ),  
 
   # max turnover rate per unit microbial biomass for pool i
   # commented out old list (updating to allow for multiple mic groups or catalysts)
   vmax = list(
-    vmax1 = 2.5, #Vp
-    vmax2 = 1,   #Vm
+    vmax1 = 1.8000e+12,#alpha_pl; pre-exponential constant for temp sensitivity of POM decay
+    vmax2 = NA,   #Vm
     vmax3 = NA,
-    vmax4 = NA,
-    vmax5 = .0005, #Vd
-    vmax6 = NA,
-    vmax7 = NA
+    vmax4 = 2.3000e+12, #alpha_lb #pre-exponential constant for temp sensitivity of DOC uptake
+    vmax5 = NA
   ),
   
   vmax2 = list( #Not used in MEND
@@ -262,9 +256,7 @@ soil_decomp_object$pars <- list(
     vmax2 = NA,
     vmax3 = NA,
     vmax4 = NA,
-    vmax5 = NA,
-    vmax6 = NA,
-    vmax7 = NA
+    vmax5 = NA
   ),
   
   # idea for how to handle one pool being decomposed by multiple catalysts (e.g. multiple microbial pools or multiple enzyme pools)
@@ -283,13 +275,11 @@ soil_decomp_object$pars <- list(
  
   # michaelis-menten half-saturation constant for microbial decomnp of pool i      
   km = list(   
-    km1 = 50, #Kp 
-    km2 = 250, #Km     
+    km1 = 6443, #MillennialV2 #half sat const for POM breakdown 
+    km2 = NA,
     km3 = NA,
     km4 = NA,
-    km5 = .26, #Kd
-    km6 = NA,
-    km7 = NA
+    km5 = NA
   ),
   
   km2 = list(   #not used for MEND
@@ -297,9 +287,7 @@ soil_decomp_object$pars <- list(
     km2 = NA,     
     km3 = NA,
     km4 = NA,
-    km5 = NA,
-    km6 = NA,
-    km7 = NA
+    km5 = NA
   ),
   
   # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i
@@ -314,20 +302,18 @@ soil_decomp_object$pars <- list(
 
   # turnover rate for linear decomposition
   k = list(    
-    k1 = 0,       
-    k2 = 0,   
-    k3 = .001, #kdes
-    k4 = .00028, #Mr 
-    k5 = .006, #kads for mend
-    k6 = .001, #Rep
-    k7 = .001  #Rem
+    k1 = .018, #aggregate formation from POM       
+    k2 = 4.5000e-03, #microbial turnover rate   
+    k3 = 4.8000e-03, #aggregate formation from maom 
+    k4 = .0015, #leaching rate (kd)
+    k5 = .02 #aggregrate breakdown rate (kb)
   ),
 
   # maximum size for pool i 
   poolmax = list(       
     poolmax1 = NA,      
     poolmax2 = NA,       
-    poolmax3 = 1.7, #Qmax   
+    poolmax3 = NA, #this is calculated in solver function 
     poolmax4 = NA,
     poolmax5 = NA
   ),
@@ -394,6 +380,21 @@ soil_decomp_object$pars <- list(
     Pem = .01,
     Gd =  .5,
     Fd =  .5
+  ),
+  
+  millennialV2 = list(
+    param_pc = .86, ##slope of mineral C - clay relationship from Georgiou et al. in review
+    kld = 1, #desorption coefficient
+    sorp_p1 = .12, #sorption affinity parameter
+    sorp_p2 = .216, #sorption affinity parameter
+    kld = 1, #desorption coefficient
+    cue_t = 0.012, #slope of CUE temp sensitivity
+    Taeref = 15,   #ref temp for CUE temp-dependence equation
+    pa = 0.33,      #proportion agg breakdown into pom
+    param_pb = .5, #fraction of mb turnover to maom vs doc
+    #alpha_pl = 1.8000e+12,#pre-exponential constant for temp sensitivity of POM decay, moving to vmax pars
+    #alpha_lb = 2.3000e+12, #pre-exponential constant for temp sensitivity of DOC uptake, moving to vmax pars
+    
   )
 )
 

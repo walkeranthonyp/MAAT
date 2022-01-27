@@ -118,6 +118,16 @@ f_wcor_abramoff <- function(.,C,t,i){
   #.35 is whc I think? this should be specified in env. Perhaps porosity as in sulman.
 }
 
+#used in MillennialV2
+f_wcor_ghezzehei_diffusion <- function(.,C,t,i){
+  (.super$env$vwc/.super$env$porosity)^0.5
+}
+
+#used in MillennialV2
+f_wcor_ghezzehei_biological <- function(.,C,t,i){
+  exp(.super$env$lambda * -.super$env$matpot) * (.super$env$kamin + (1 - .super$env$kamin) * ((.super$env$porosity - .super$env$vwc) / .super$env$porosity)^0.5) * (.super$env$vwc/.super$env$porosity)^0.5
+}
+
 #f_wcor_rothc
 #need to add this one which is also in soilR
 #tricky think about this function is that monthly moisture limitation
