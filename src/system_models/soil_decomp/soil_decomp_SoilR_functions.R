@@ -375,6 +375,13 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #          
   #          #Fluxes
   
+  #define states so that if/then statements work here
+  POM = .super$state$cpools[[1]]
+  MIC = .super$state$cpools[[2]]
+  MAOM = .super$state$cpools[[3]]
+  LMWC = .super$state$cpools[[4]]
+  AGG = .super$state$cpools[[5]]
+  
   #Equation 6
   #agg breakdown
   # AGG -> MAOM + POM
@@ -429,7 +436,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #desorption
   # MAOM -> LMWC
   if(MAOM>0){
-    f_MA_LM = .$desorp.ds3(t = t, C=y, i=4, k = .super$pars$millennialV2[['kld']])
+    f_MA_LM = .$desorp.ds3(t = t, C=y, i=3, k = .super$pars$millennialV2[['kld']])
     #f_MA_LM = kld * MAOM / param_qmax
   }else{
     f_MA_LM=0
@@ -459,7 +466,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #microbial turnover
   # MIC -> MAOM/LMWC
   if(MIC>0){
-    f_MB_turn = .$decomp.d4(t = t, C=y, i=2)
+    f_MB_turn = .$decomp.d2(t = t, C=y, i=2)
     #f_MB_turn = k2 * MIC^2.0
   }else{
     f_MB_turn=0
@@ -472,7 +479,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #mic respiration
   # MIC -> atmosphere
   if(MIC>0 && LMWC>0){ 
-    f_MB_atm = f_LM_MB * (1 - (.super$pars$cue[[4]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - super$pars$millennialV2[['Taeref']]) ) )
+    f_MB_atm = f_LM_MB * (1 - (.super$pars$cue[[4]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']]) ) )
   }else{
     f_MB_atm=0
   }
@@ -488,7 +495,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #dMIC = f_LM_MB - f_MB_turn - f_MB_atm
   
   #Equation 19
-  f_LM_MA - f_MA_LM + f_MB_turn * .super$pars$millennialV2[['param_pb']] - f_MA_AG + f_AG_break * (1. - .super$pars$millennialV2[['pa']])
+  dMAOM = f_LM_MA - f_MA_LM + f_MB_turn * .super$pars$millennialV2[['param_pb']] - f_MA_AG + f_AG_break * (1. - .super$pars$millennialV2[['pa']])
   #dMAOM = f_LM_MA - f_MA_LM + f_MB_turn * param_pb - f_MA_AG + f_AG_break * (1. - pa)
   
   #Equation 7
@@ -498,6 +505,9 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #Equation 17
   dAGG = f_MA_AG + f_PO_AG - f_AG_break
   #dAGG = f_MA_AG + f_PO_AG - f_AG_break
+  
+  #print(.$sorp.s4(t = t, C=y, i=4, k_from_list = FALSE, k = kaff_lm, sat_pool = 3))
+  #print(f_MA_LM)
   
   list(c(dPOM, dMIC, dMAOM, dLMWC, dAGG))
 }

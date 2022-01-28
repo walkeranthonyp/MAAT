@@ -69,11 +69,11 @@ soil_decomp_object$fnames <- list(
 
   sys                = 'f_sys_npools', 
   solver             = 'plsoda',
-  solver_func        = 'f_solver_func_mend2013',
+  solver_func        = 'f_solver_func_millennialV2',
   input              = 'f_input',
   DotO               = 'f_DotO',
   transfermatrix     = 'f_transfermatrix',
-  steadystate        = 'f_steadystate_null',#'f_steadystate_npools',
+  steadystate        ='f_steadystate_npools', # options: 'f_steadystate_null','f_steadystate_npools',
   solver_steadystate = 'pstode',
   
   # decay/decomposition functions
@@ -81,7 +81,7 @@ soil_decomp_object$fnames <- list(
     d1 = 'f_decomp_rmm',
     d2 = 'f_decomp_dd_georgiou',  
     d3 = 'f_zero', 
-    d4 = 'f_zero', 
+    d4 = 'f_decomp_lin', 
     d5 = 'f_decomp_lin'
   ),
   
@@ -148,11 +148,11 @@ soil_decomp_object$env <- list(
   temp   = 11.21961, #default for MILLENNIALv2 (sum across mean year)
   vwc    = .2422044, #default for MILLENNIALv2 (average across mean year)
   porosity = 0.6, #default for MILLENNIALv2
-  clay = .4, 
-  lignin = 16.6,
-  N = 1.37,
-  anpp = 500,
-  depth = 20,
+  clay = .0, 
+  lignin = 0,
+  N = 0,
+  anpp = 0,
+  depth = 0,
   pH = 7, #default for MILLENNIALv2
   BD = 1000,  #default for MILLENNIALv2 #Bulk density 
   matpot = 15, #default for MILLENNIALv2
@@ -181,20 +181,20 @@ soil_decomp_object$state_pars <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 7,          # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
+  n_pools = 5,          # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
   beta    = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
-  silt    = 0.2,        # soil silt content (proportion)
-  clay    = 0.2,        # soil clay content (proportion)
-  clayref = 5,
-  mr      = 0.00028,     # specific maintenance factor (MEND)
-  pep     = 0.01,        #Fraction of mr allocated for production of EP
-  pem     = 0.01,        #Fraction of mr allocated for production of EM
-  Kads    = 0.006,       #Specific adsorption rate (could make this k for the DOC pool)
-  qslope_mayes = 0.4833,
-  reftemp = 20,
-  R = 8.314472,
-  minmic = 1e-3,
-  q10 = 2,
+  silt    = NA,      
+  clay    = NA,        
+  clayref = NA,
+  mr      = NA,     
+  pep     = NA,        
+  pem     = NA,        
+  Kads    = NA,       
+  qslope_mayes = NA,
+  reftemp = NA,
+  R = 8.31446,#72,        #used in MILLENNIALv2
+  minmic = NA,
+  q10 = NA,
   
   ea = list(
     ea1 = 6.3909e+04, #MILLENNIALv2 #activiation energy for temp sensitivity of POM decay
@@ -209,31 +209,31 @@ soil_decomp_object$pars <- list(
     input_coef1 = .66,
     input_coef2 = 0,
     input_coef3 = 0,
-    input_coef4 = 1-.66,
+    input_coef4 = .34,
     input_coef5 = 0
   ),
   
   # initial pool mass for each pool
-  cstate0 = list( #not used in MEND2013
-    cstate01 = 0.1, 
-    cstate02 = 0.1,          
-    cstate03 = 0.1,      
-    cstate04 = 0.1,       
-    cstate05 = 0.1
+  cstate0 = list( 
+    cstate01 = 1, 
+    cstate02 = 1,          
+    cstate03 = 1,      
+    cstate04 = 1,       
+    cstate05 = 1
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
   # - if this varies by the 'to' pool we need another function / parameters
   # MC: I've created a function cue_remainder that can allocate the remainder to another pool rather than CO2
   cue = list(
-    cue1 = 0,       
-    cue2 = 0,       
-    cue3 = 0,
+    cue1 = NA,       
+    cue2 = NA,       
+    cue3 = NA,
     cue4 = .19,
-    cue5 = 0
+    cue5 = NA
   ),  
   
-  cue2 = list( #not used in MEND2013
+  cue2 = list( 
     cue1 = NA,       
     cue2 = NA,       
     cue3 = NA,
@@ -251,7 +251,7 @@ soil_decomp_object$pars <- list(
     vmax5 = NA
   ),
   
-  vmax2 = list( #Not used in MEND
+  vmax2 = list(
     vmax1 = NA, 
     vmax2 = NA,
     vmax3 = NA,
@@ -278,11 +278,11 @@ soil_decomp_object$pars <- list(
     km1 = 6443, #MillennialV2 #half sat const for POM breakdown 
     km2 = NA,
     km3 = NA,
-    km4 = NA,
+    km4 = 774.6, #DOC uptake half sat constant,
     km5 = NA
   ),
   
-  km2 = list(   #not used for MEND
+  km2 = list( 
     km1 = NA, 
     km2 = NA,     
     km3 = NA,
@@ -291,8 +291,8 @@ soil_decomp_object$pars <- list(
   ),
   
   # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i
-  # This is only neccesary for models that use km in reverse and forward mm decomp for the same pool (i.e. MILLENNIAL)
-  rkm = list( #not used for MEND  
+  # This is only neccesary for models that use km in reverse and forward mm decomp for the same pool (i.e. MILLENNIALv1)
+  rkm = list(  
     rkm1 = NA, 
     rkm2 = NA,     
     rkm3 = NA,
@@ -391,10 +391,7 @@ soil_decomp_object$pars <- list(
     cue_t = 0.012, #slope of CUE temp sensitivity
     Taeref = 15,   #ref temp for CUE temp-dependence equation
     pa = 0.33,      #proportion agg breakdown into pom
-    param_pb = .5, #fraction of mb turnover to maom vs doc
-    #alpha_pl = 1.8000e+12,#pre-exponential constant for temp sensitivity of POM decay, moving to vmax pars
-    #alpha_lb = 2.3000e+12, #pre-exponential constant for temp sensitivity of DOC uptake, moving to vmax pars
-    
+    param_pb = .5 #fraction of mb turnover to maom vs doc
   )
 )
 

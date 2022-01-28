@@ -125,7 +125,7 @@ f_wcor_ghezzehei_diffusion <- function(.,C,t,i){
 
 #used in MillennialV2
 f_wcor_ghezzehei_biological <- function(.,C,t,i){
-  exp(.super$env$lambda * -.super$env$matpot) * (.super$env$kamin + (1 - .super$env$kamin) * ((.super$env$porosity - .super$env$vwc) / .super$env$porosity)^0.5) * (.super$env$vwc/.super$env$porosity)^0.5
+  exp(.super$env$lambda * -.super$env$matpot) * (.super$env$kamin + (1 - .super$env$kamin) * ((.super$env$porosity - .super$env$vwc) / .super$env$porosity)^0.5) * (.super$env$vwc/.super$env$porosity)^0.5    
 }
 
 #f_wcor_rothc

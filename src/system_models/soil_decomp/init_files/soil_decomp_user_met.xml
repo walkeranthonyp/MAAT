@@ -12,6 +12,10 @@
       <depth>'column name of variable in metdata file'</depth>
       <pH>'column name of variable in metdata file'</pH>
       <BD>'column name of variable in metdata file'</BD>
+      <matpot>'column name of variable in metdata file'</matpot>
+      <lambda>'column name of variable in metdata file'</lambda>
+      <kamin>'column name of variable in metdata file'</kamin>
+      <claysilt>'column name of variable in metdata file'</claysilt>
     </soil_decomp>
   </env>
 </met_data_translator>
