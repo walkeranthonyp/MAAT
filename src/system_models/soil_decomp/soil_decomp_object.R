@@ -9,6 +9,7 @@
 library(proto)
 source('soil_decomp_functions.R')
 source('soil_decomp_SoilR_functions.R')
+source('soil_decomp_solver_functions.R')
 source('soil_decomp_system_functions.R')
 source('../../functions/packagemod_functions_deSolve.R')
 source('../../functions/packagemod_functions_rootSolve.R')

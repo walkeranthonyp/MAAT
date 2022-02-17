@@ -357,7 +357,7 @@ run3_factorial <- function(.,k) {
   #print(.$static)
   #print(.$model$pars)
   #print(.$model$state)
-  print(.$model$fnames)
+  #print(.$model$fnames)
   #print(.$init_dynamic)
   #print(.$model$env)
   #print(.$model$fns$input())
