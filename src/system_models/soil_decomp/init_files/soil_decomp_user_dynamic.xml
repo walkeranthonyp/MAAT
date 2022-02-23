@@ -7,15 +7,54 @@
       <input>NA</input>
       <DotO>NA</DotO>
       <transfermatrix>NA</transfermatrix>
+      <steadystate>NA</steadystate>
+      <solver_steadystate>NA</solver_steadystate>
       <decomp>
         <d1>NA</d1>
         <d2>NA</d2>
         <d3>NA</d3>
+        <d4>NA</d4>
+        <d5>NA</d5>
       </decomp>
+      <desorp>
+        <ds1>NA</ds1>
+        <ds2>NA</ds2>
+        <ds3>NA</ds3>
+      </desorp>
+      <sorp>
+        <s1>NA</s1>
+        <s2>NA</s2>
+        <s3>NA</s3>
+        <s4>NA</s4>
+        <s5>NA</s5>
+      </sorp>
+      <aggform>
+        <a1>NA</a1>
+        <a3>NA</a3>
+      </aggform>
+      <docuptake>NA</docuptake>
+      <growthresp>NA</growthresp>
+      <maintresp>NA</maintresp>
+      <scor>NA</scor>
+      <wcor>NA</wcor>
+      <wcor2>NA</wcor2>
+      <tcor>
+        <t1>NA</t1>
+        <t4>NA</t4>
+      </tcor>
       <transfer>
-        <t1_to_2>NA</t1_to_2>
-        <t2_to_3>NA</t2_to_3>
-        <t3_to_2>NA</t3_to_2>
+        <t1_to_3>NA</t1_to_3>
+        <t1_to_5>NA</t1_to_5>
+        <t2_to_1>NA</t2_to_1>
+        <t2_to_5>NA</t2_to_5>
+        <t2_to_6>NA</t2_to_6>
+        <t2_to_7>NA</t2_to_7>
+        <t3_to_5>NA</t3_to_5>
+        <t4_to_5>NA</t4_to_5>
+        <t5_to_2>NA</t5_to_2>
+        <t5_to_4>NA</t5_to_4>
+        <t6_to_5>NA</t6_to_5>
+        <t7_to_5>NA</t7_to_5>
       </transfer>
     </soil_decomp>
   </fnames>
@@ -25,43 +64,188 @@
       <beta>NA</beta>
       <silt>NA</silt>
       <clay>NA</clay>
+      <clayref>NA</clayref>
+      <mr>NA</mr>
+      <pep>NA</pep>
+      <pem>NA</pem>
+      <Kads>NA</Kads>
+      <qslope_mayes>NA</qslope_mayes>
+      <reftemp>NA</reftemp>
+      <R>NA</R>
+      <minmic>NA</minmic>
+      <q10>NA</q10>
+      <ea>
+        <ea1>NA</ea1>
+        <ea2>NA</ea2>
+        <ea3>NA</ea3>
+        <ea4>NA</ea4>
+        <ea5>NA</ea5>
+      </ea>
+      <input_coefs>
+        <input_coef1>NA</input_coef1>
+        <input_coef2>NA</input_coef2>
+        <input_coef3>NA</input_coef3>
+        <input_coef4>NA</input_coef4>
+        <input_coef5>NA</input_coef5>
+      </input_coefs>
       <cstate0>
         <cstate01>NA</cstate01>
         <cstate02>NA</cstate02>
         <cstate03>NA</cstate03>
+        <cstate04>NA</cstate04>
+        <cstate05>NA</cstate05>
       </cstate0>
       <cue>
         <cue1>NA</cue1>
         <cue2>NA</cue2>
         <cue3>NA</cue3>
+        <cue4>NA</cue4>
+        <cue5>NA</cue5>
       </cue>
+      <cue2>
+        <cue1>NA</cue1>
+        <cue2>NA</cue2>
+        <cue3>NA</cue3>
+        <cue4>NA</cue4>
+        <cue5>NA</cue5>
+      </cue2>
       <vmax>
         <vmax1>NA</vmax1>
         <vmax2>NA</vmax2>
         <vmax3>NA</vmax3>
+        <vmax4>NA</vmax4>
+        <vmax5>NA</vmax5>
       </vmax>
+      <vmax2>
+        <vmax1>NA</vmax1>
+        <vmax2>NA</vmax2>
+        <vmax3>NA</vmax3>
+        <vmax4>NA</vmax4>
+        <vmax5>NA</vmax5>
+      </vmax2>
       <km>
         <km1>NA</km1>
         <km2>NA</km2>
         <km3>NA</km3>
+        <km4>NA</km4>
+        <km5>NA</km5>
       </km>
+      <km2>
+        <km1>NA</km1>
+        <km2>NA</km2>
+        <km3>NA</km3>
+        <km4>NA</km4>
+        <km5>NA</km5>
+      </km2>
+      <rkm>
+        <rkm1>NA</rkm1>
+        <rkm2>NA</rkm2>
+        <rkm3>NA</rkm3>
+        <rkm4>NA</rkm4>
+        <rkm5>NA</rkm5>
+      </rkm>
       <k>
         <k1>NA</k1>
         <k2>NA</k2>
         <k3>NA</k3>
+        <k4>NA</k4>
+        <k5>NA</k5>
       </k>
       <poolmax>
         <poolmax1>NA</poolmax1>
         <poolmax2>NA</poolmax2>
         <poolmax3>NA</poolmax3>
+        <poolmax4>NA</poolmax4>
+        <poolmax5>NA</poolmax5>
       </poolmax>
+      <mimics>
+        <fmet_p1>NA</fmet_p1>
+        <fmet_p2>NA</fmet_p2>
+        <fmet_p3>NA</fmet_p3>
+        <tau_mod1_p1>NA</tau_mod1_p1>
+        <tau_mod1_p2>NA</tau_mod1_p2>
+        <tau_mod1_p3>NA</tau_mod1_p3>
+        <tau_r_p1>NA</tau_r_p1>
+        <tau_r_p2>NA</tau_r_p2>
+        <tau_mod2>NA</tau_mod2>
+        <tau_k_p1>NA</tau_k_p1>
+        <tau_k_p2>NA</tau_k_p2>
+        <desorb_p1>NA</desorb_p1>
+        <desorb_p2>NA</desorb_p2>
+        <fSOMp_r_p1>NA</fSOMp_r_p1>
+        <fSOMp_r_p2>NA</fSOMp_r_p2>
+        <fSOMc_r_p1>NA</fSOMc_r_p1>
+        <fSOMc_r_p2>NA</fSOMc_r_p2>
+        <fSOMc_r_p3>NA</fSOMc_r_p3>
+        <fSOMp_k_p1>NA</fSOMp_k_p1>
+        <fSOMp_k_p2>NA</fSOMp_k_p2>
+        <fSOMc_k_p1>NA</fSOMc_k_p1>
+        <fSOMc_k_p2>NA</fSOMc_k_p2>
+        <fSOMc_k_p3>NA</fSOMc_k_p3>
+        <V_slope>NA</V_slope>
+        <V_int>NA</V_int>
+        <aV>NA</aV>
+        <pscalar_p1>NA</pscalar_p1>
+        <pscalar_p2>NA</pscalar_p2>
+        <ko_r>NA</ko_r>
+        <ko_k>NA</ko_k>
+        <K_slope>NA</K_slope>
+        <K_int>NA</K_int>
+        <aK>NA</aK>
+        <fi_LITm>NA</fi_LITm>
+        <fi_LITs>NA</fi_LITs>
+      </mimics>
+      <millennial>
+        <cuet>NA</cuet>
+        <Taeref>NA</Taeref>
+        <Vpa>NA</Vpa>
+        <Kpa>NA</Kpa>
+        <c1>NA</c1>
+        <c2>NA</c2>
+        <Vma>NA</Vma>
+        <Kma>NA</Kma>
+        <Vdm>NA</Vdm>
+        <Kdb>NA</Kdb>
+        <kmm>NA</kmm>
+        <pa>NA</pa>
+      </millennial>
+      <mend>
+        <Mr>NA</Mr>
+        <Pep>NA</Pep>
+        <Pem>NA</Pem>
+        <Gd>NA</Gd>
+        <Fd>NA</Fd>
+      </mend>
+      <millennialV2>
+        <param_pc>NA</param_pc>
+        <kld>NA</kld>
+        <sorp_p1>NA</sorp_p1>
+        <sorp_p2>NA</sorp_p2>
+        <kld>NA</kld>
+        <cue_t>NA</cue_t>
+        <Taeref>NA</Taeref>
+        <pa>NA</pa>
+        <param_pb>NA</param_pb>
+      </millennialV2>
     </soil_decomp>
   </pars>
   <env>
     <soil_decomp>
       <litter>NA</litter>
       <temp>NA</temp>
-      <swc>NA</swc>
+      <vwc>NA</vwc>
+      <porosity>NA</porosity>
+      <clay>NA</clay>
+      <lignin>NA</lignin>
+      <N>NA</N>
+      <anpp>NA</anpp>
+      <depth>NA</depth>
+      <pH>NA</pH>
+      <BD>NA</BD>
+      <matpot>NA</matpot>
+      <lambda>NA</lambda>
+      <kamin>NA</kamin>
+      <claysilt>NA</claysilt>
     </soil_decomp>
   </env>
 </dynamic>
