@@ -99,7 +99,6 @@
         <kld>1</kld>
         <sorp_p1>0.12</sorp_p1>
         <sorp_p2>0.216</sorp_p2>
-        <kld>1</kld>
         <cue_t>0.012</cue_t>
         <Taeref>15</Taeref>
         <pa>0.33</pa>
