@@ -388,7 +388,6 @@ soil_decomp_object$pars <- list(
     kld = 1, #desorption coefficient
     sorp_p1 = .12, #sorption affinity parameter
     sorp_p2 = .216, #sorption affinity parameter
-    kld = 1, #desorption coefficient
     cue_t = 0.012, #slope of CUE temp sensitivity
     Taeref = 15,   #ref temp for CUE temp-dependence equation
     pa = 0.33,      #proportion agg breakdown into pom
