@@ -17,10 +17,8 @@
 # - this is where inputs would be divided among pools
 # - APW I don't think this needs to be part of the solver
 f_input <- function(., t ) {
-  # this needs developed to multiply a single column matrix of a pars list of coefficients multiplied by litter
-  # something like:
-  # .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 ) 
-  matrix(ncol = 1, c(.$env$litter, rep(0,.super$pars$n_pools-1)) )
+  #why is .$env$litter not .super$env$litter??
+  .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 )
 }
 
 
@@ -54,7 +52,9 @@ f_transfermatrix <- function(., C, t ) {
   idm    <- apply(idm,1,function(v) v[v<=.super$pars$n_pools] )
   # call functions and create transfer matrix 
   m      <- -1 * diag(nrow=.super$pars$n_pools)
-  #print(idm) 
+  #print(idm)
+  #print(dim(idm)[1])
+  #print(m)
   for(i in 1:dim(idm)[1]) {
     ss <- idm[i,]
     #print(i); print(ss); print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]]) 
@@ -70,7 +70,6 @@ f_solver_func <- function(., t, y, parms) {
   YD = .$transfermatrix(y,t) %*% .$DotO(y,t) + .$input(t) 
   list(as.vector(YD))
 }
-
 
 
 ### END ###

@@ -53,6 +53,7 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   # to work with soil_decomp will need to be called after structure build
 
   # build model pool structure
+
   if(!is.null(.$pars$n_pools)) .$build_pool_structure(init_default$pars[[.$name]]$n_pools)
 
   # assign default and mod mimic values to data structure
@@ -171,7 +172,15 @@ run_met <- function(.,l) {
   #lapply( grep('transfer\\.',names(.$fns),value=T), function(char) {print(char); print(.$fns[[char]])} )
   #print('')
 
+  # initialize: pool structure etc
   if(!is.null(.$init)) .$init()
+  
+  # call steady state system model if it exists and doesn't return a null value
+  # APW Matt: this is the additional function call to initialise the model at steady state
+  #           if you want to turn this off just set the fnames$steadystate value to f_steadystate_null (a dummy function that just returns NULL)
+  if(!is.null(.$fns$steadystate)) if(!is.null(.$fns$steadystate() )) .$fns$steadystate()  
+
+  # run over an input/meteorological dataset 
   t(vapply(1:.$dataf$lm, .$run_met1, .$dataf$mout )) 
 }
 
