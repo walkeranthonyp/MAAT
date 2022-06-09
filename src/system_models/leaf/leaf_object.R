@@ -447,6 +447,11 @@ f_output_leaf_all_lim <- function(.) {
     .$state_retrive(snames=c('gstar','ri','rs','rb'), state='state_pars' ) )
 }
 
+f_output_leaf_run_traits <- function(.) {
+  c(.$state_retrive(snames=c('A','cc','ci','rd','lim')),
+            .$state_retrive(snames=c('ri','rs','rb','vcmaxlt','jmaxlt','gstar'), state='state_pars') )
+}
+
 f_output_leaf_vpd <- function(.) {
   c(rh=.$env$rh, vpd=.$env$vpd, .$state_retrive(snames=c('A','Acg','Ajg','Apg','cc','ci','ca','rd','lim')), 
     .$state_retrive(snames=c('gstar','ri','rs','rb'), state='state_pars' ) )
