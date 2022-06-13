@@ -90,7 +90,13 @@ listtoXML <- function(fname,name,...) {
           rec(child, sublist[[i]])
         }
         else {
-          xmlValue(child) <- if(class(sublist[[i]])=='character') paste0("'",sublist[[i]],"'") else sublist[[i]]
+          print_value <- 
+            if(class(sublist[[i]])=='character') paste0("'",sublist[[i]],"'") else sublist[[i]]
+            
+          if(length(print_value)>1) 
+            print_value <- paste0("c(", paste(print_value, collapse=","), ")" )
+          
+          xmlValue(child) <- print_value
         }
       }
     }
@@ -121,7 +127,7 @@ listtoXML <- function(fname,name,...) {
 # by overwriting any named entries in mainlist with the same names as those in the sublist
 # the overwriting occurs within the equivalent hierarchy of each list
 # i.e. a named element in the mainlist will not be overwritten by the same named element in the sublist if the elements are in different levels of the lists
-fuselists <- function(mainlist,sublist) {
+fuselists <- function(mainlist, sublist ) {
   # length of sublist
   l <- length(sublist)
   n <- 0

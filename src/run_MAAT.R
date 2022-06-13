@@ -480,9 +480,9 @@ if(!is.null(parsinit_mcmc)) {
 # output static variables used in simulation
 # APW: this will not report pars that have been read by the above if statement
 print('',quote=F); print('',quote=F)
-print('Write record of static run variables:',quote=F)
+print('Write record of dynamic run variables:',quote=F)
 setwd(odir)
-listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=init_static)
+#listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=init_static)
 listtoXML(paste(ofname,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
 
 

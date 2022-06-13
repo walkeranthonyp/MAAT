@@ -81,6 +81,42 @@ build_child <- function(., child_obj, mod_mimic=NULL, ... ) {
 }
 
 
+# function that reads object and all child objects configuration
+read_config <- function(.) {
+
+  # create config list
+  co1 <- as.list(.)[c('fnames', 'pars', 'env' )]
+  l1  <- list()
+  
+  # invert first two layers of list 
+  co2 <- lapply(co1, 
+                function(l) {
+                  l2 <- list( l )
+                  names(l2) <- .$name
+                  l1 <- c(l1, l2 )
+                })
+
+  # call child objects
+  if(!is.null(.$child_list)) {
+    
+    # co3 is a list of co2 type lists
+    co3 <- lapply(.$child_list, 
+                  function(c) {
+                    .[[c]]$read_config()
+                  })
+
+    # fuse individually with co2
+    for(i in 1:length(co3))  {
+      for(n in names(co2)) co2[[n]] <- c(co2[[n]], co3[[i]][[n]] )
+    rm(co3)
+  }}
+
+  co2
+}
+
+
+
+
 # main run functions
 ###########################################################################
 

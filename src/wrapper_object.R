@@ -115,10 +115,16 @@ wrapper_object$run   <- function(.,verbose=T) {
   # print summary of maat setup
   .$print_data()
   .$print_data(otype='run')
+  print('',quote=F); print('Write record of static run variables:', quote=F )
+  print(paste(ofname,'setup_static.xml',sep='_'), quote=F )
+  config_list <- .$model$read_config()
+  setwd(odir)
+  listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=config_list ) 
+  rm(config_list)
 
   # store model output template (currently must be a vector)
   # - code will fail when output is a vector of variable length depending on parameter values
-  print('',quote=F); print('Model output variables:', quote=F )
+  print('',quote=F); print('',quote=F); print('Model output variables:', quote=F )
   print(names(.$model$output()))
   .$dataf$mout <- .$model$output()
 
@@ -357,7 +363,7 @@ wrapper_object$mcmc <- list(
 # function to combine factorial ensemble with met data
 # - for each ensemble member all columns of met matirx are run
 # - this is called from an lapply to expand each each ensemble member values of fnames, pars, and env with every column of the met matrix
-wrapper_object$combine <- function(.,i,df) suppressWarnings(data.frame(t(.$dataf$met),df[i,]))
+wrapper_object$combine <- function(., i, df ) suppressWarnings(data.frame(t(.$dataf$met),df[i,]))
 
 
 # function to write ensemble output data to file
@@ -374,7 +380,7 @@ wrapper_object$write_to_file <- function(., df=.$output(), app=F ) {
 
 # Print functions
 ###########################################################################
-wrapper_object$print_data <- function(.,otype='data') {
+wrapper_object$print_data <- function(., otype='data' ) {
 
   ens_n <-
     if(.$wpars$UQ) {
@@ -434,6 +440,7 @@ wrapper_object$print_data <- function(.,otype='data') {
   }
 }
 
+
 wrapper_object$print_output <- function(.) {
   print("output ::",quote=F)
   print(paste('length ::', length(.$dataf$out[,1])), quote=F)
@@ -447,6 +454,7 @@ wrapper_object$print_output <- function(.) {
   print(Sys.time(), quote=F)
   print('', quote=F)
 }
+
 
 wrapper_object$print_saltelli <- function(.) {
   print('Saltelli matrix AB completed', quote=F)

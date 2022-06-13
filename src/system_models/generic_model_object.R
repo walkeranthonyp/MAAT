@@ -30,7 +30,10 @@ system_model_object <-
     
     # build function 
     build_child <- NULL 
-    
+
+    # read/compile configuration list
+    read_config <- read_config
+
     
     ###########################################################################
     # main run functions

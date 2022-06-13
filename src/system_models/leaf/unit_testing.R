@@ -25,6 +25,23 @@ leaf_object$env
 leaf_object$.test(verbose=F, leaf.par=1000, leaf.ca_conc=1100 )
 leaf_object$.test(verbose=F, leaf.par=1000, leaf.ca_conc=1 )
 
+lo1 <- as.list(leaf_object)
+class(lo1)
+names(lo1)
+lo2 <- lo1[c('fnames', 'pars', 'env' )]
+name <- 'leaf' 
+l1   <- list()
+names(l1)
+lo3  <- lapply(lo2, 
+               function(l) {
+                 l2 <- list( l )
+                 names(l2) <- name
+                 l1 <- c(l1, l2 )
+               })
+
+lo3
+
+
 source('leaf_object.R')
 leaf_object$.test_aci(leaf.ca_conc=seq(0.1,2000,50), verbose=F )
 leaf_object$.test_aci(leaf.ca_conc=seq(0.1,2000,50), c4=T, verbose=F )
