@@ -27,7 +27,7 @@ generate_ensemble <- function(.) {
   # remove potentially large data from pars list
   if(.$wpars$runtype!='factorial') .$dynamic$pars <- lapply(.$dynamic$pars, function(e) numeric(1) )
 
-  # check names of ensemble matrices are character vectors
+  # check names of met matrix all match env list names 
   if(!is.null(.$dataf$met)) .$model$configure_check(vlist='env', df=.$dataf$met[,1] )
 
   # calculate input matrix lengths
@@ -42,10 +42,33 @@ generate_ensemble <- function(.) {
     .$dataf$lp <- if(is.null(.$dataf$pars))   1 else dim(.$dataf$pars)[2]
   }
 
-  # enviroment matrix and met matrix
+  # environment matrix and met matrix
   .$dataf$le <- if(is.null(.$dataf$env)) 1 else dim(.$dataf$env)[2]
   .$dataf$lm <- if(is.null(.$dataf$met)) 1 else dim(.$dataf$met)[2]
 }
+
+
+# row-bind (rbind) the fnames, env, and pars input lists into equal column number matrices
+# - each column is passed to the model sequentially by a single run function in the run function cascade
+# - all vectors in the dynamic input must be of the same length
+generate_ensemble_rbind <- function(.) {
+
+  # bind vectors in dynamic input lists
+  .$dataf$fnames <- if(!is.null(.$dynamic$fnames)) do.call('rbind', .$dynamic$fnames ) else NULL
+  .$dataf$pars   <- if(!is.null(.$dynamic$pars))   do.call('rbind', .$dynamic$pars )   else NULL
+  .$dataf$env    <- if(!is.null(.$dynamic$env))    do.call('rbind', .$dynamic$env )    else NULL
+
+  # check names of met matrix all match env list names 
+  if(!is.null(.$dataf$met)) .$model$configure_check(vlist='env', df=.$dataf$met[,1] )
+
+  # calculate input dataframe length
+  .$dataf$lf <- if(!is.null(.$dataf$fnames)) dim(.$dataf$fnames)[2]
+  .$dataf$lm <- if(is.null(.$dataf$met)) 1 else dim(.$dataf$met)[2]
+}
+
+
+# parameter matrix for rbind run done in main rbind generate function
+generate_ensemble_pars_rbind <- NULL 
 
 
 # parameter matrix for factorial run
@@ -186,6 +209,12 @@ init_output_matrix_factorial <- function(.) {
 init_output_matrix_SApar_saltelli <- init_output_matrix_factorial
 
 
+init_output_matrix_rbind <- function(.) {
+  .$dataf$out <- matrix(0, .$dataf$lm*.$dataf$lf, length(.$dataf$mout) )
+  colnames(.$dataf$out) <- names(.$dataf$mout)
+}
+
+
 init_output_matrix_SApar_saltelli_ABi <- function(.) {
   # - dim 1 (rows)      output variable
   # - dim 2 (columns)   sample
@@ -277,6 +306,7 @@ init_output_matrix_mcmc <- function(.) {
 
 ################################
 # for factorial runs or matrix A and B of Saltelli method for parametric sensitivity analysis (SA)
+
 # run0
 run0_factorial <- function(.) {
 
@@ -371,6 +401,35 @@ run5_factorial <- run4_factorial
 run6_factorial <- run4_factorial
 run7_factorial <- run4_factorial
 run8_factorial <- run4_factorial
+
+
+# rbind run cascade
+run0_rbind <- run0_factorial
+
+run1_rbind <- function(.,i) {
+  # This wrapper function is called from an lapply or mclappy function to pass every column of the dataf$fnames, dataf$pars, and dataf$env matrices to the model
+  # assumes that each column of the matrices are independent and non-sequential
+  # call .$model$run or .$model$run_met if met data are provided
+
+  # configure the model object
+  if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[,i], F )
+  if(!is.null(.$dataf$pars))   .$model$configure(vlist='pars', df=.$dataf$pars[,i], F )
+  if(!is.null(.$dataf$env))    .$model$configure(vlist='env', df=.$dataf$env[,i], F )
+  if(.$wpars$cverbose) .$printc('fnames', .$dataf$fnames[,i] )
+  if(.$wpars$cverbose) .$printc('pars', .$dataf$pars[,i] )
+  if(.$wpars$cverbose) .$printc('env', .$dataf$env[,i] )
+
+  #print(.$init_dynamic)
+  #print(.$model$fnames)
+  #print(.$model$pars)
+  #print(.$model$env)
+  #print(.$model$fns$input())
+  
+  # call next run function
+  if(is.null(.$dataf$met)) .$model$run() else .$model$run_met()
+}
+
+run2_rbind <-  run3_rbind <-  run4_rbind <-  run5_rbind <-  run6_rbind <- run7_rbind <- run8_rbind <- NULL
 
 
 
@@ -865,6 +924,8 @@ write_output_factorial <- function(.) {
   .$write_to_file()
 }
 
+write_output_rbind <- write_output_factorial 
+
 
 # write AB output array
 write_output_SApar_saltelli <- function(.) {
@@ -931,15 +992,24 @@ write_output_mcmc <- function(.,i) {
 
 # function that combines the "vars", "met", and "out" dataframes correctly for output in a factorial simulation
 # - not sure how much this is actually used, seems to be just for a factorial run these days
-output_factorial  <- function(.){
+output_factorial  <- function(.) {
+
   return(
     # if at least one of fnames, pars, and env are varied
     if(is.null(.$dataf$env)+is.null(.$dataf$pars)+is.null(.$dataf$fnames) < 3) {
 
-      vpars   <- if(is.null(.$dataf$pars))    NULL else .$dynamic$pars
-      venv    <- if(is.null(.$dataf$env))     NULL else .$dynamic$env
-      vfnames <- if(is.null(.$dataf$fnames))  NULL else .$dynamic$fnames
-      vardf   <- expand.grid(c(venv,vpars,vfnames), stringsAsFactors=F )
+      if(.$runtype=='factorial') {
+        vfnames <- if(is.null(.$dataf$fnames))  NULL else .$dynamic$fnames
+        vpars   <- if(is.null(.$dataf$pars))    NULL else .$dynamic$pars
+        venv    <- if(is.null(.$dataf$env))     NULL else .$dynamic$env
+        vardf   <- expand.grid(c(venv,vpars,vfnames), stringsAsFactors=F )
+
+      } else if(.$runtype=='rbind') {
+        vfnames <- if(is.null(.$dataf$fnames))  NULL else as.data.frame(t(.$dataf$fnames))
+        vpars   <- if(is.null(.$dataf$pars))    NULL else as.data.frame(t(.$dataf$pars))
+        venv    <- if(is.null(.$dataf$env))     NULL else as.data.frame(t(.$dataf$env))
+        vardf   <- data.frame(c(vfnames,vpars,venv), stringsAsFactors=F )
+      }
 
       #print('')
       #print('output processing')
@@ -975,6 +1045,8 @@ output_factorial  <- function(.){
     }
   )
 }
+
+output_rbind <- output_factorial 
 
 
 # creates output for a saltelli Sobol sensitivity analysis

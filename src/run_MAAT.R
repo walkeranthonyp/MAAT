@@ -60,32 +60,35 @@ multic  <- F
 procs   <- 4
 
 # run an emsemble that combines variables in factorial
+# - or combine vectors in dynamic lists in rows, all vectors must be of same length (unless overridden with rbind_identical = F)  
 # - if set to TRUE this will over-ride a UQ analysis
-factorial  <- T
+factorial       <- T
+rbind           <- F
+rbind_identical <- F
 
 # run an SA/UQ style ensemble, or if -uq- is false a fully factorial ensemble
-uq         <- F
+uq              <- F
 
 # types of SA/UQ run
 # process SA
-procSA     <- T
+procSA          <- T
 # Saltelli Sobol SA
-salt       <- F
+salt            <- F
 # MCMC parameter estimation
-mcmc       <- F
+mcmc            <- F
 # type of MCMC
-mcmc_type  <- 'dream'
+mcmc_type       <- 'dream'
 
 # initialise pars with output from an MCMC run
 # - used either to 'restart' an MCMC run or run a predictive 'ensemble' by sampling posterior distributions
 # - if 'ensemble' factorial must be TRUE
-parsinit_mcmc <- NULL
+parsinit_mcmc   <- NULL
 # directory with MCMC data - relative to pdir
-mcmcdir       <- NULL
+mcmcdir         <- NULL
 # output filename for MCMC data
-mcmcout       <- NULL
+mcmcout         <- NULL
 # number of samples from MCMC posterior
-parsinit_n    <- NULL
+parsinit_n      <- NULL
 
 
 # run options
@@ -243,6 +246,7 @@ if(factorial&(uq|mcmc)) {
 # select run/ensemble type and output
 runtype <-
   if(factorial) 'factorial'      else
+  if(rbind)     'rbind'          else
   if(procSA)    'SAprocess_ye'   else
   if(salt)      'SApar_saltelli' else
   if(mcmc)      'mcmc'
@@ -337,8 +341,8 @@ setwd(pdir)
 if(xml) {
 
   # read user defined XMLs of static variables
-  staticxml   <- paste(mod_obj,'user','static.xml',sep='_')
-  init_static <- if(file.exists(staticxml)) readXML(staticxml) else list(NULL)
+  staticxml    <- paste(mod_obj,'user','static.xml',sep='_')
+  init_static  <- if(file.exists(staticxml)) readXML(staticxml) else list(NULL)
 
   # read user defined XMLs of dynamic variables
   dynamicxml   <- paste(mod_obj,'user','dynamic.xml',sep='_')
@@ -371,6 +375,12 @@ if(!is.null(unlist(init_dynamic$fnames))) {
 }
 print('  all dynamic fnames requested exist.', quote=F )
 
+
+# test dynamic var lengths identical for rbind ensemble
+if(runtype=='rbind' & !rbind_identical) {
+  dl <- rapply(init_dynamic, length )
+  if(length(unique(dl))!=1) stop("FATAL ERROR: rbind ensemble specified but dynamic vars unequal lengths, set rbind_identical to F to override")
+}
 
 # add init lists to wrapper
 maat$init_static  <- init_static

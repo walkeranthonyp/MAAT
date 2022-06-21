@@ -29,8 +29,9 @@ wrapper_object$model <- NULL
 wrapper_object$build <- function(., ... ) {
 
   # build wrapper
-  # - a set of if/else statements to initialise the wrapper functions with specific functions
-  # - could be built around get paste type setup based on runtype argument
+  .$generate_ensemble      <- generate_ensemble
+  if(.$wpars$runtype=='rbind') 
+    .$generate_ensemble    <- generate_ensemble_rbind
   .$generate_ensemble_pars <- get(paste0('generate_ensemble_pars_',.$wpars$runtype))
   .$init_output_matrix     <- get(paste0('init_output_matrix_',.$wpars$runtype))
   .$write_output           <- get(paste0('write_output_',.$wpars$runtype))
