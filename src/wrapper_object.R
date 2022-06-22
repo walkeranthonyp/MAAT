@@ -386,8 +386,12 @@ wrapper_object$print_data <- function(., otype='data' ) {
   ens_n <-
     if(.$wpars$UQ) {
       if(.$wpars$runtype=='SAprocess_ye') .$dataf$lf * prod(unlist(lapply(.$dynamic$fnames,length))) * .$wpars$n^2 * .$dataf$le
+      else if(.$wpars$runtype=='mcmc')    .$dataf$lf * .$wpars$mcmc$chains * .$wpars$mcmc$maxiter * .$dataf$lm 
       else                                .$dataf$lf * .$wpars$n * (2+dim(.$dataf$pars)[2]) * .$dataf$le
-    } else                                .$dataf$lf * .$dataf$lp *.$dataf$le
+    } else {      
+      if(.$wpars$runtype=='factorial')    .$dataf$lf * .$dataf$lp *.$dataf$le
+      else                                .$dataf$lf
+    }
 
   if(otype=='data') {
 
