@@ -433,6 +433,9 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   }else{
     f_MB_atm=0
   }
+
+  .super$state_pars$respiration = f_MB_atm
+
   #          
   #          #ODE system
   
