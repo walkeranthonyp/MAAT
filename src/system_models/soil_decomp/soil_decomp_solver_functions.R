@@ -200,6 +200,11 @@ f_solver_func_millennial <- function(., t, y, parms) {
   # Maintenance respiration
   Fmr = .$decomp.d2(t=t,C=y,i=2)* .$tcor(.) *.$wcor(.)
   #decomp = lin
+
+  # Fgr = Vlm*St*Sw*L * B/(B+Klb) * (1-(CUEref - CUEt(T - Taeref)))
+  Fgr = Fdb * (1-ae)
+
+  .super$state_pars$respiration = Fmr + Fgr
   
   #check inputs
   #print(.$input(t)[[1]])
