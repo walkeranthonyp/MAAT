@@ -75,13 +75,13 @@ f_decomp_lin        <- function(.,C,t,i, k_from_list = TRUE, k = NULL) {
   }
 }
 
-#density-dependent decomp, used for density-dependent turnover as in Georgiou et al. 2017  
+# density-dependent decomp, used for density-dependent turnover as in Georgiou et al. 2017  
 f_decomp_dd_georgiou         <- function(.,C,t,i) (C[i]^.super$pars$beta) * .super$pars$k[[i]]      
 
 # non-linear Michaelis-Menten decomp, a function of microbial biomass
 f_decomp_MM_microbe <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[i])
 
-#reverse Michaelis-Menten decomp
+# reverse Michaelis-Menten decomp
 #C[4] is microbial biomass in CORPSE
 f_decomp_rmm <- function(.,C,t,i, cat = 4) (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[cat] + .super$pars$km[[i]])
 
@@ -277,7 +277,7 @@ f_desorp_millennialv2 <- function(.,C,t,i, k = 1) {
 # transfer functions
 
 
-#transfer functions
+# transfer functions
 ###################
 
 # transfer all or nothing
@@ -292,11 +292,11 @@ f_transfer_cue  <- function(.,C,t,from,to) .super$pars$cue[[from]]
 # - can be used both for saturating MAOM pool and density dependent microbial growth efficiency
 f_transfer_cue_sat <- function(.,C,t,from,to) .super$pars$cue[[from]] * (1-C[to]/.super$pars$poolmax[[to]])
 
-#transfers remainder of cue function to another pool instead of CO2
+# transfers remainder of cue function to another pool instead of CO2
 #MEND13
 f_transfer_cue_remainder <- function(.,C,t,from,to) (1-.super$pars$cue[[from]])
 
-#transfer from mbc to pom in mend: (1-gd)(1-pe)(fe/f_decomp_mbc_mend)
+# transfer from mbc to pom in mend: (1-gd)(1-pe)(fe/f_decomp_mbc_mend)
 f_transfer_mend21 <- function(.,C,t,from,to){
   (1-.super$pars$cue[[from]])*
   (1-(.super$pars$pep+.super$pars$pem))*
