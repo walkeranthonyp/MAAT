@@ -70,7 +70,7 @@ soil_decomp_object$fnames <- list(
 
   sys                = 'f_sys_npools', 
   solver             = 'plsoda',
-  solver_func        = 'f_solver_func_millennialV2',
+  solver_func        = 'f_solver_func_century',
   input              = 'f_input',
   DotO               = 'f_DotO',
   transfermatrix     = 'f_transfermatrix',
@@ -79,17 +79,23 @@ soil_decomp_object$fnames <- list(
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_rmm',
-    d2 = 'f_decomp_dd_georgiou',  
-    d3 = 'f_zero', 
-    d4 = 'f_decomp_lin', 
-    d5 = 'f_decomp_lin'
+    d1 = 'f_decomp_lin', #century
+    d2 = 'f_decomp_lin', #century 
+    d3 = 'f_decomp_lin', #century
+    d4 = 'f_decomp_lin', #century
+    d5 = 'f_decomp_lin',#century
+    d6 = 'f_zero',
+    d7 = 'f_zero'
   ),
   
   desorp = list(
     ds1 = NA,
     ds2 = NA,
-    ds3 = 'f_desorp_millennialv2'
+    ds3 = 'f_desorp_millennialv2',
+    ds4 = NA,
+    ds5 = NA,
+    ds6 = NA,
+    ds7 = NA
   ),
   
   sorp = list(
@@ -112,10 +118,10 @@ soil_decomp_object$fnames <- list(
   maintresp = NA,
   
   scor = NA,
-  wcor = 'f_wcor_ghezzehei_diffusion',
+  wcor = 'f_wcor_abramoff', #century
   wcor2 = 'f_wcor_ghezzehei_biological',
 
-  #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
+  # tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
   tcor = list(                  #this structure for corpse
     t1 = 'f_tcor_arrhenius_millennialv2',
     t2 = NULL,
@@ -123,7 +129,7 @@ soil_decomp_object$fnames <- list(
     t4 = 'f_tcor_arrhenius_millennialv2',
     t5 = NULL
   ),
-  
+
   # transfer list
   transfer = list(
     t1_to_3 = 'f_transfer_cue_remainder',
@@ -145,12 +151,12 @@ soil_decomp_object$fnames <- list(
 # environment
 ####################################
 soil_decomp_object$env <- list(
-  litter = 172.8978/365, #forc_npp in MILLENNIALv2
-  temp   = 11.21961, #default for MILLENNIALv2 (sum across mean year)
-  vwc    = .2422044, #default for MILLENNIALv2 (average across mean year)
-  porosity = 0.6, #default for MILLENNIALv2
+  litter = 172.8978/365, #forc_npp in #century (sum across mean year)
+  temp   = 11.21961, #default for #century (avg across mean year)
+  vwc    = .2422044, #default for #century (average across mean year)
+  porosity = 0.39, # default for century
   clay = .0, 
-  lignin = 0,
+  lignin = 0.2,#for CENTURY, this is LigFrac, not Lig Percent
   N = 0,
   anpp = 0,
   depth = 0,
@@ -159,7 +165,7 @@ soil_decomp_object$env <- list(
   matpot = 15, #default for MILLENNIALv2
   lambda = 2.1000e-04, #default for MILLENNIALv2
   kamin = .2, #default for MILLENNIALv2
-  claysilt = 80  #default for MILLENNIALv2 #MILLENNIAL uses clay+silt% to calculate Qmax
+  claysilt = 80  #default for century #MILLENNIAL uses clay+silt% to calculate Qmax
 )
 
 
@@ -192,7 +198,7 @@ soil_decomp_object$pars <- list(
   pem     = NA,        
   Kads    = NA,       
   qslope_mayes = NA,
-  reftemp = NA,
+  reftemp = 30,        #CENTURY
   R = 8.31446,#72,        #used in MILLENNIALv2
   minmic = NA,
   q10 = NA,
@@ -207,10 +213,10 @@ soil_decomp_object$pars <- list(
  
   #input coefficients (allocaties proportions of inputs into different pools)
   input_coefs = list(
-    input_coef1 = .66,
-    input_coef2 = 0,
+    input_coef1 = .66, #CENTURY input_to_strLitter
+    input_coef2 = .34, #Century input to MetLitter
     input_coef3 = 0,
-    input_coef4 = .34,
+    input_coef4 = 0,
     input_coef5 = 0
   ),
   
@@ -231,7 +237,9 @@ soil_decomp_object$pars <- list(
     cue2 = NA,       
     cue3 = NA,
     cue4 = .19,
-    cue5 = NA
+    cue5 = NA,
+    cue6 = NA,
+    cue7 = NA
   ),  
   
   cue2 = list( 
@@ -239,7 +247,9 @@ soil_decomp_object$pars <- list(
     cue2 = NA,       
     cue3 = NA,
     cue4 = NA,
-    cue5 = NA
+    cue5 = NA,
+    cue6 = NA,
+    cue7 = NA
   ),  
 
   # max turnover rate per unit microbial biomass for pool i
@@ -249,7 +259,9 @@ soil_decomp_object$pars <- list(
     vmax2 = NA,   #Vm
     vmax3 = NA,
     vmax4 = 2.3000e+12, #alpha_lb #pre-exponential constant for temp sensitivity of DOC uptake
-    vmax5 = NA
+    vmax5 = NA,
+    vmax6 = NA,
+    vmax7 = NA
   ),
   
   vmax2 = list(
@@ -257,7 +269,9 @@ soil_decomp_object$pars <- list(
     vmax2 = NA,
     vmax3 = NA,
     vmax4 = NA,
-    vmax5 = NA
+    vmax5 = NA,
+    vmax6 = NA,
+    vmax7 = NA
   ),
   
   # idea for how to handle one pool being decomposed by multiple catalysts (e.g. multiple microbial pools or multiple enzyme pools)
@@ -280,7 +294,9 @@ soil_decomp_object$pars <- list(
     km2 = NA,
     km3 = NA,
     km4 = 774.6, #DOC uptake half sat constant,
-    km5 = NA
+    km5 = NA,
+    km6 = NA,
+    km7 = NA
   ),
   
   km2 = list( 
@@ -288,7 +304,9 @@ soil_decomp_object$pars <- list(
     km2 = NA,     
     km3 = NA,
     km4 = NA,
-    km5 = NA
+    km5 = NA,
+    km6 = NA,
+    km7 = NA
   ),
   
   # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i
@@ -303,11 +321,13 @@ soil_decomp_object$pars <- list(
 
   # turnover rate for linear decomposition
   k = list(    
-    k1 = .018, #aggregate formation from POM       
-    k2 = 4.5000e-03, #microbial turnover rate   
-    k3 = 4.8000e-03, #aggregate formation from maom 
-    k4 = .0015, #leaching rate (kd)
-    k5 = .02 #aggregrate breakdown rate (kb)
+    k1 = .1, #CENTURY k_strlitter    
+    k2 = .045, #CENTURY k_metlitter 
+    k3 = .02, #CENTURY k_active
+    k4 = .0005, #CENTURY k_slow
+    k5 = .00002, #CENTURY k_passive 
+    k6 = NA,
+    k7 = NA
   ),
 
   # maximum size for pool i 
@@ -392,6 +412,18 @@ soil_decomp_object$pars <- list(
     Taeref = 15,   #ref temp for CUE temp-dependence equation
     pa = 0.33,      #proportion agg breakdown into pom
     param_pb = .5 #fraction of mb turnover to maom vs doc
+  ),
+  
+  century = list(
+    c1= 0.85, #century constant in texture function
+    c2= 0.68, #century constant in texture function
+    slow_to_active= 0.42, #century transfer coefficient
+    slow_to_passive= 0.03,#century transfer coefficient
+    passive_to_active= 0.45,#century transfer coefficient
+    active_to_passive= 0.004,#century transfer coefficient
+    metlitter_to_active= 0.45,#century transfer coefficient
+    strlitter_to_active= 0.5,#century transfer coefficient
+    strlitter_to_slow= 0.7#century transfer coefficient
   )
 )
 

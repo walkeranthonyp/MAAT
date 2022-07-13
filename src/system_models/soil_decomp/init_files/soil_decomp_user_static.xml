@@ -15,11 +15,17 @@
         <d3>NA</d3>
         <d4>NA</d4>
         <d5>NA</d5>
+        <d6>NA</d6>
+        <d7>NA</d7>
       </decomp>
       <desorp>
         <ds1>NA</ds1>
         <ds2>NA</ds2>
         <ds3>NA</ds3>
+        <ds4>NA</ds4>
+        <ds5>NA</ds5>
+        <ds6>NA</ds6>
+        <ds7>NA</ds7>
       </desorp>
       <sorp>
         <s1>NA</s1>
@@ -101,6 +107,8 @@
         <cue3>NA</cue3>
         <cue4>NA</cue4>
         <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
       </cue>
       <cue2>
         <cue1>NA</cue1>
@@ -108,6 +116,8 @@
         <cue3>NA</cue3>
         <cue4>NA</cue4>
         <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
       </cue2>
       <vmax>
         <vmax1>NA</vmax1>
@@ -115,6 +125,8 @@
         <vmax3>NA</vmax3>
         <vmax4>NA</vmax4>
         <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
       </vmax>
       <vmax2>
         <vmax1>NA</vmax1>
@@ -122,6 +134,8 @@
         <vmax3>NA</vmax3>
         <vmax4>NA</vmax4>
         <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
       </vmax2>
       <km>
         <km1>NA</km1>
@@ -129,6 +143,8 @@
         <km3>NA</km3>
         <km4>NA</km4>
         <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
       </km>
       <km2>
         <km1>NA</km1>
@@ -136,6 +152,8 @@
         <km3>NA</km3>
         <km4>NA</km4>
         <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
       </km2>
       <rkm>
         <rkm1>NA</rkm1>
@@ -150,6 +168,8 @@
         <k3>NA</k3>
         <k4>NA</k4>
         <k5>NA</k5>
+        <k6>NA</k6>
+        <k7>NA</k7>
       </k>
       <poolmax>
         <poolmax1>NA</poolmax1>
@@ -221,12 +241,22 @@
         <kld>NA</kld>
         <sorp_p1>NA</sorp_p1>
         <sorp_p2>NA</sorp_p2>
-        <kld>NA</kld>
         <cue_t>NA</cue_t>
         <Taeref>NA</Taeref>
         <pa>NA</pa>
         <param_pb>NA</param_pb>
       </millennialV2>
+      <century>
+        <c1>NA</c1>
+        <c2>NA</c2>
+        <slow_to_active>NA</slow_to_active>
+        <slow_to_passive>NA</slow_to_passive>
+        <passive_to_active>NA</passive_to_active>
+        <active_to_passive>NA</active_to_passive>
+        <metlitter_to_active>NA</metlitter_to_active>
+        <strlitter_to_active>NA</strlitter_to_active>
+        <strlitter_to_slow>NA</strlitter_to_slow>
+      </century>
     </soil_decomp>
   </pars>
   <env>

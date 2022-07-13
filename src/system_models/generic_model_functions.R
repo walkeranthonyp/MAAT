@@ -138,6 +138,10 @@ build_child <- function(., child_obj, mod_mimic=NULL, ... ) {
 
 run <- function(.) {
 
+  print('')
+  print(.$env) 
+  print(.$state) 
+
   # call system model
   .$fns$sys()
 

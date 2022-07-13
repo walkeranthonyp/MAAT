@@ -3,23 +3,29 @@
     <soil_decomp>
       <sys>'f_sys_npools'</sys>
       <solver>'plsoda'</solver>
-      <solver_func>'f_solver_func_millennialV2'</solver_func>
+      <solver_func>'f_solver_func_century'</solver_func>
       <input>'f_input'</input>
       <DotO>'f_DotO'</DotO>
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <steadystate>'f_steadystate_npools'</steadystate>
       <solver_steadystate>'pstode'</solver_steadystate>
       <decomp>
-        <d1>'f_decomp_rmm'</d1>
-        <d2>'f_decomp_dd_georgiou'</d2>
-        <d3>'f_zero'</d3>
+        <d1>'f_decomp_lin'</d1>
+        <d2>'f_decomp_lin'</d2>
+        <d3>'f_decomp_lin'</d3>
         <d4>'f_decomp_lin'</d4>
         <d5>'f_decomp_lin'</d5>
+        <d6>'f_zero'</d6>
+        <d7>'f_zero'</d7>
       </decomp>
       <desorp>
         <ds1>NA</ds1>
         <ds2>NA</ds2>
         <ds3>'f_desorp_millennialv2'</ds3>
+        <ds4>NA</ds4>
+        <ds5>NA</ds5>
+        <ds6>NA</ds6>
+        <ds7>NA</ds7>
       </desorp>
       <sorp>
         <s1>NA</s1>
@@ -36,7 +42,7 @@
       <growthresp>NA</growthresp>
       <maintresp>NA</maintresp>
       <scor>NA</scor>
-      <wcor>'f_wcor_ghezzehei_diffusion'</wcor>
+      <wcor>'f_wcor_abramoff'</wcor>
       <wcor2>'f_wcor_ghezzehei_biological'</wcor2>
       <tcor>
         <t1>'f_tcor_arrhenius_millennialv2'</t1>
@@ -70,7 +76,7 @@
       <pem>NA</pem>
       <Kads>NA</Kads>
       <qslope_mayes>NA</qslope_mayes>
-      <reftemp>NA</reftemp>
+      <reftemp>30</reftemp>
       <R>8.31446</R>
       <minmic>NA</minmic>
       <q10>NA</q10>
@@ -83,9 +89,9 @@
       </ea>
       <input_coefs>
         <input_coef1>0.66</input_coef1>
-        <input_coef2>0</input_coef2>
+        <input_coef2>0.34</input_coef2>
         <input_coef3>0</input_coef3>
-        <input_coef4>0.34</input_coef4>
+        <input_coef4>0</input_coef4>
         <input_coef5>0</input_coef5>
       </input_coefs>
       <cstate0>
@@ -101,6 +107,8 @@
         <cue3>NA</cue3>
         <cue4>0.19</cue4>
         <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
       </cue>
       <cue2>
         <cue1>NA</cue1>
@@ -108,6 +116,8 @@
         <cue3>NA</cue3>
         <cue4>NA</cue4>
         <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
       </cue2>
       <vmax>
         <vmax1>1.8e+12</vmax1>
@@ -115,6 +125,8 @@
         <vmax3>NA</vmax3>
         <vmax4>2.3e+12</vmax4>
         <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
       </vmax>
       <vmax2>
         <vmax1>NA</vmax1>
@@ -122,6 +134,8 @@
         <vmax3>NA</vmax3>
         <vmax4>NA</vmax4>
         <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
       </vmax2>
       <km>
         <km1>6443</km1>
@@ -129,6 +143,8 @@
         <km3>NA</km3>
         <km4>774.6</km4>
         <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
       </km>
       <km2>
         <km1>NA</km1>
@@ -136,6 +152,8 @@
         <km3>NA</km3>
         <km4>NA</km4>
         <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
       </km2>
       <rkm>
         <rkm1>NA</rkm1>
@@ -145,11 +163,13 @@
         <rkm5>NA</rkm5>
       </rkm>
       <k>
-        <k1>0.018</k1>
-        <k2>0.0045</k2>
-        <k3>0.0048</k3>
-        <k4>0.0015</k4>
-        <k5>0.02</k5>
+        <k1>0.1</k1>
+        <k2>0.045</k2>
+        <k3>0.02</k3>
+        <k4>5e-04</k4>
+        <k5>2e-05</k5>
+        <k6>NA</k6>
+        <k7>NA</k7>
       </k>
       <poolmax>
         <poolmax1>NA</poolmax1>
@@ -226,6 +246,17 @@
         <pa>0.33</pa>
         <param_pb>0.5</param_pb>
       </millennialV2>
+      <century>
+        <c1>0.85</c1>
+        <c2>0.68</c2>
+        <slow_to_active>0.42</slow_to_active>
+        <slow_to_passive>0.03</slow_to_passive>
+        <passive_to_active>0.45</passive_to_active>
+        <active_to_passive>0.004</active_to_passive>
+        <metlitter_to_active>0.45</metlitter_to_active>
+        <strlitter_to_active>0.5</strlitter_to_active>
+        <strlitter_to_slow>0.7</strlitter_to_slow>
+      </century>
     </soil_decomp>
   </pars>
   <env>
@@ -233,9 +264,9 @@
       <litter>0.473692602739726</litter>
       <temp>11.21961</temp>
       <vwc>0.2422044</vwc>
-      <porosity>0.6</porosity>
+      <porosity>0.39</porosity>
       <clay>0</clay>
-      <lignin>0</lignin>
+      <lignin>0.2</lignin>
       <N>0</N>
       <anpp>0</anpp>
       <depth>0</depth>

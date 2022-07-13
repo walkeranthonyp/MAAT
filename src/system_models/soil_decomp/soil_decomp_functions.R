@@ -67,7 +67,7 @@ f_tcor_wieder <- function(.,C,t,i){
 
 # linear decomp, Oleson 1963
 #MEND O6,O7
-f_decomp_lin        <- function(.,C,t,i, k_from_list = TRUE, k = NULL) {
+f_decomp_lin        <- function(.,C,t,i, k_from_list = TRUE, k = NULL, cat = NULL) { #cat is dummy argument to allow switching from other functions
   if(k_from_list == TRUE){
     C[i]*.super$pars$k[[i]]
   } else {
@@ -142,6 +142,10 @@ f_micturn_sulman <- function(.,C,t,i) {
   (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[i]] 
 }
 
+f_micturn_sulman_mdd <- function(.,C,t,i) {
+  (C[i]^.super$pars$beta - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[i]] 
+}
+
 #########
 #alternative CORPSE hyps
 #########
@@ -156,7 +160,7 @@ f_micturn_sulman_dd <- function(.,C,t,i) {
 
 #adding a decomp function that saturates and returns excess to unprotected pool
 f_decomp_lin_sat_corpse        <- function(.,C,t,i) {
-  protected_max = 2 #arbitrary
+  protected_max = 3 #arbitrary
     C[i]*.super$pars$k[[i]]* (1-(C[5] + C[6] + C[7])/protected_max)
 }
 
@@ -191,6 +195,9 @@ f_docuptake_abramoff <- function(.,C,t,i){
   .super$pars$millennial[['Vdm']] * C[i] * C[2]/(C[2]+.super$pars$millennial[['Kdb']])
 }
 
+f_uptake_lin <- function(.,C,t,i,cat){
+  (.super$pars$vmax[[i]]*C[i])
+}
 
 #########
 #MIMICS-SPECIFIC FUNCTIONS
@@ -231,6 +238,10 @@ f_decomp_rmm_wieder <- function(.,C,t,i,cat_pool = 3){
   }
 }
 
+#alt mimics function
+
+f_decomp_rmm_twocat <- function(.,C,t,i, cat1 = 3, cat2 = 4) (.super$pars$vmax[[i]]*(C[cat1]+C[cat2])*C[i]) / ((C[cat1]+C[cat2]) + .super$pars$km[[i]])
+
 #########
 #MEND-SPECIFIC FUNCTIONS
 #########
@@ -257,6 +268,12 @@ f_maintresp_mend <- function(.,C,t,i){
 f_desorp_millennialv2 <- function(.,C,t,i, k = 1) {
   k*(C[i]/.super$pars$poolmax[[i]])
 }
+
+f_desorp_millennialv2_nosat <- function(.,C,t,i, k = 1) {
+  .super$pars$millennialV2[['kld']]*C[i]
+}
+#alt millennialv2 funcs
+
 
 # f_decomp_rmm_wieder <- function(.,C,t,i,cat = 'cat1', cat_pool = 3){
 #   if(i==7){

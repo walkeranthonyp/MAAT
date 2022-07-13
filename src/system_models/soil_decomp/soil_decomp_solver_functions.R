@@ -101,6 +101,74 @@ f_solver_func_mimics <- function(., t, y, parms){
   #print(fmet)
 }
 
+f_solver_func_mimics_sat <- function(., t, y, parms){
+  
+  .super$pars$vmax[[6]] = .super$pars$vmax[[2]]
+  .super$pars$vmax2[[6]] = .super$pars$vmax2[[2]]
+  
+  #dynamic parameters
+  fmet = .super$pars$mimics[['fmet_p1']] * (.super$pars$mimics[['fmet_p2']] - .super$pars$mimics[['fmet_p3']]*(.super$env$lignin/.super$env$N))
+  
+  
+  # ensures that tau_mod1 is between two values
+  # in Will's script, anpp is multipled by 0 in the manipulation scirpt... which would imply that 
+  # tau_mod1 might always be set to 0.6 in the simulations in Ben's paper
+  tau_mod1 = min(max(sqrt(.super$env$anpp/.super$pars$mimics[['tau_mod1_p1']]),.super$pars$mimics[['tau_mod1_p2']]),.super$pars$mimics[['tau_mod1_p3']]) 
+  tau_r = .super$pars$mimics[['tau_r_p1']] * exp(.super$pars$mimics[['tau_r_p2']] * fmet) *tau_mod1 * .super$pars$mimics[['tau_mod2']]
+  tau_k = .super$pars$mimics[['tau_k_p1']] * exp(.super$pars$mimics[['tau_k_p2']] * fmet) *tau_mod1 * .super$pars$mimics[['tau_mod2']]
+  
+  .super$pars$k[[3]] = tau_r
+  .super$pars$k[[4]] = tau_k
+  
+  #this could be added to decomp functions
+  desorb = .super$pars$mimics[['desorb_p1']] * exp(.super$pars$mimics[['desorb_p2']] * .super$env$clay) * 0.1
+  
+  .super$pars$k[[5]] = desorb
+  
+  #total decomp fluxes (for pools with more than one decomp output)
+  # d1 = .$decomp.d1(t=t,C=y,i=1) + .decomp.d1(t=t,C=y,i=1, cat = 'cat2', cat_pool = 4)
+  d1 = .$decomp.d1(t=t,C=y,i=1) + .$decomp.d1(t=t,C=y,i=1, cat_pool = 4)
+  # d2 = .$decomp.d2(t=t,C=y,i=2) + .decomp.d2(t=t,C=y,i=2, cat = 'cat2', cat_pool = 4)
+  d2 = .$decomp.d2(t=t,C=y,i=2) + .$decomp.d2(t=t,C=y,i=2, cat_pool = 4)
+  # d6 = .$decomp.d6(t=t,C=y,i=6) + .decomp.d6(t=t,C=y,i=6, cat = 'cat2', cat_pool = 4)
+  d6 = .$decomp.d6(t=t,C=y,i=6) + .$decomp.d6(t=t,C=y,i=6, cat_pool = 4)
+  # d7 = .$decomp.d7(t=t,C=y,i=7) + .decomp.d7(t=t,C=y,i=7, cat = 'cat2', cat_pool = 4)
+  d7 = .$decomp.d7(t=t,C=y,i=7) + .$decomp.d7(t=t,C=y,i=7, cat_pool = 4)
+  
+  #transfers
+  t1_to_3 = (.$decomp.d1(t=t,C=y,i=1)/d1)*.super$pars$cue[[1]]
+  t1_to_4 = (.$decomp.d1(t=t,C=y,i=1, cat_pool = 4)/d1)*.super$pars$cue2[[1]]
+  t2_to_3 = (.$decomp.d2(t=t,C=y,i=2)/d2)*.super$pars$cue[[2]]
+  t2_to_4 = (.$decomp.d2(t=t,C=y,i=2, cat_pool = 4)/d2)*.super$pars$cue2[[2]]
+  t3_to_5 = .super$pars$mimics[['fSOMp_r_p1']] * exp(.super$pars$mimics[['fSOMp_r_p2']]*.super$env$clay) * 0.1 #0.1 manual calibration from Will's script #fSOMp_r
+  t3_to_6 = .super$pars$mimics[['fSOMc_r_p1']] * exp(.super$pars$mimics[['fSOMc_r_p2']]*fmet)*.super$pars$mimics[['fSOMc_r_p3']]  #fSOMc_r
+  t3_to_7 = 1 - (t3_to_5 + t3_to_6) #fSOMa_r
+  t4_to_5 = .super$pars$mimics[['fSOMp_k_p1']] * exp(.super$pars$mimics[['fSOMp_k_p2']]*.super$env$clay) * 0.1 #fSOMp_k
+  t4_to_6 = .super$pars$mimics[['fSOMc_k_p1']] * exp(.super$pars$mimics[['fSOMc_k_p2']]*fmet)*.super$pars$mimics[['fSOMc_k_p3']]  #fSOMc_k
+  t4_to_7 = 1 - (t4_to_5 + t4_to_6)  #fSOMa_k
+  t7_to_3 = (.$decomp.d7(t=t,C=y,i=7)/d7)*.super$pars$cue[[7]]
+  t7_to_4 = (.$decomp.d7(t=t,C=y,i=7, cat_pool = 4)/d7)*.super$pars$cue2[[7]]
+  
+  #partitioning inputs
+  i_LITm = .$input(t) * fmet * (1-.super$pars$mimics[['fi_LITm']])
+  i_LITs = .$input(t) * (1-fmet) * (1-.super$pars$mimics[['fi_LITs']])
+  i_SOMp = .$input(t) * fmet * .super$pars$mimics[['fi_LITm']]
+  i_SOMc = .$input(t) * (1-fmet) * .super$pars$mimics[['fi_LITs']]
+  
+  sat_frac = (1-.super$state$cpools[[5]]/.super$pars$poolmax[[5]])
+  SOMp_input = (i_SOMp + .$decomp.d3(t=t,C=y,i=3)*t3_to_5 + .$decomp.d4(t=t,C=y,i=4)*t4_to_5)
+  
+  #ODE system
+  dLITm = i_LITm - d1*.$tcor(.)
+  dLITs = i_LITs - d2*.$tcor(.)
+  dMICr = d1*.$tcor(.) *t1_to_3 + d2*.$tcor(.) *t2_to_3 + d7*.$tcor(.) *t7_to_3 - .$decomp.d3(t=t,C=y,i=3)
+  dMICk = d1*.$tcor(.) *t1_to_4 + d2*.$tcor(.) *t2_to_4 + d7*.$tcor(.) *t7_to_4 - .$decomp.d4(t=t,C=y,i=4)
+  dSOMp = SOMp_input*sat_frac - .$desorp.ds5(t=t, C=y,i=5) #this now saturates
+  dSOMc = i_SOMc + .$decomp.d3(t=t,C=y,i=3)*t3_to_6 + .$decomp.d4(t=t,C=y,i=4)*t4_to_6 - d6*.$tcor(.) + SOMp_input*(1-sat_frac) #routs somp excess to somc (maybe this should go to soma or co2?)
+  dSOMa = .$decomp.d3(t=t,C=y,i=3)*t3_to_7 + .$decomp.d4(t=t,C=y,i=4)*t4_to_7 + .$desorp.ds5(t=t,C=y,i=5) + d6*.$tcor(.) - d7*.$tcor(.)
+  list(c(dLITm, dLITs, dMICr, dMICk, dSOMp, dSOMc, dSOMa))
+  #print(fmet)
+}
 
 ############## MILLENNIALv1 #################
 # lsoda style function to solve MILLENNIALv1
@@ -292,6 +360,32 @@ f_solver_func_mend2013 <- function(., t, y, parms) {
   # }
 }
 
+#version of MEND where MAOM saturates (ideally would be able to do this with just a different process function in the previous solver function)
+f_solver_func_mend2013_sat <- function(., t, y, parms) {
+  IP = .$input(t)[[1]] #*(1-fid) done within input function
+  ID = .$input(t)[[5]] #*fid done within input function
+  F1 = .$decomp.d1(t=t,C=y,i=1, cat=6) #!!MM decomp
+  F3 = .$decomp.d2(t=t,C=y,i=2, cat=7) #!! MM decomp 
+  F4 = .$sorp.s5(t=t,C=y,i=5, sat_pool = 3) #!!add function to functions.R # sat function
+  F5 = .$desorp.ds3(t=t,C=y,i=3) #!!add function to functions.R
+  F6 = 1/.super$pars$cue[[5]]*.$docuptake(t=t,C=y,i=5) #!!add function to functions.R
+  F9 = (1/.super$pars$cue[[5]]-1)*.$growthresp(t=t,C=y,i=4) #!!add function to functions.R
+  F10 = (1/.super$pars$cue[[5]]-1)*.$maintresp(t=t,C=y,i=4) #!!add function to functions.R
+  F12 = (1-.super$pars$mend[['Pep']]-.super$pars$mend[['Pem']])*.$decomp.d4(t=t,C=y,i=4) #!!linear decomp
+  F13EP = .super$pars$mend[['Pep']]*.$decomp.d4(t=t,C=y,i=4)
+  F13EM = .super$pars$mend[['Pem']]*.$decomp.d4(t=t,C=y,i=4)
+  F14EP = .$decomp.d6(t=t,C=y,i=6)
+  F14EM = .$decomp.d7(t=t,C=y,i=7)
+  dP <- IP + (1-.super$pars$mend[['Gd']]) * F12 - F1 +(1-.super$pars$mend[['Fd']]) * F1 * (.super$state$cpools[[2]]/.super$pars$poolmax[[2]]) #returns un-sorbed to unprotected
+  dM <- (1-.super$pars$mend[['Fd']]) * F1 * (1-.super$state$cpools[[2]]/.super$pars$poolmax[[2]]) - F3 #transfer into MAOM limited to poolmax par
+  dQ <- F4 - F5
+  dB <- F6 - (F9 + F10) - F12 - (F13EP + F13EM)
+  dD <- ID + .super$pars$mend[['Fd']] * F1 + .super$pars$mend[['Gd']] * F12 + F3 + (F14EP + F14EM) - F6 - (F4 - F5)
+  dEP <- F13EP - F14EP
+  dEM <- F13EM - F14EM
+  list(c(dP, dM, dQ, dB, dD, dEP, dEM))
+}
+
 ############## MILLENNIALv2 #################
 # lsoda style function to solve MILLENNIALv2
 #############################################
@@ -460,6 +554,62 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #print(f_MA_LM)
   
   list(c(dPOM, dMIC, dMAOM, dLMWC, dAGG))
+}
+
+############## CENTURY #################
+# lsoda style function to solve CENTURY
+#######################################
+# - parms is a dummy argument to work with lsoda
+# Equations from Abramoff et al. 2021 Millennial v2 paper
+f_solver_func_century <- function(., t, y, parms) {
+  #Equation B1 
+  #just use .$tcor(.) instead of t_scalar
+  # t_scalar <- (t2 + (t3 / pi) * atan(pi * t4 * (forc_st - t1))) /
+  #   (t2 + (t3 / pi) * atan(pi * t4 *(30.0 - t1)))
+  
+  #Equation B2
+  #just use .$wcor(.) instead of w_scalar (porosity would need to be set to .39 to match Abramoff et al. 2021)
+  # w_scalar <- 1.0 / (1.0 + w1 * exp(-w2 * forc_sw/0.39))
+  
+  #Equation B3
+  f_TEX = .super$pars$century[['c1']] - .super$pars$century[['c2']]*.super$env$claysilt*.01
+  
+  #Equation B4
+  # f_StrLitter = StrLitter * k_strlitter * t_scalar * w_scalar * exp(-3*LigFrac)
+  f_StrLitter = .$decomp.d1(t = t, C=y, i=1) * .$tcor(.) * .$wcor(.) * exp(-3*.super$env$lignin)
+  
+  #Equation B5
+  # f_MetLitter = MetLitter * k_metlitter * t_scalar * w_scalar  
+  f_MetLitter = .$decomp.d2(t = t, C=y, i=2) * .$tcor(.) * .$wcor(.)
+  
+  #Equation B6
+  # f_ACTIVE <- ACTIVE * k_active * t_scalar * w_scalar * f_TEX
+  f_ACTIVE = .$decomp.d3(t = t, C=y, i=3) * .$tcor(.) * .$wcor(.) *f_TEX
+  
+  #Equation B7 
+  # f_SLOW <- SLOW * k_slow * t_scalar * w_scalar
+  f_SLOW = .$decomp.d4(t = t, C=y, i=4) * .$tcor(.) * .$wcor(.)
+  
+  #Equation B8
+  # f_PASSIVE <- PASSIVE * k_passive * t_scalar * w_scalar
+  f_PASSIVE = .$decomp.d5(t = t, C=y, i=5) * .$tcor(.) * .$wcor(.)
+  
+  #Equation B9
+  dStrLitter = .super$pars$input_coefs[[1]] * .super$env$litter - f_StrLitter
+  
+  #Equation B10
+  dMetLitter = .super$pars$input_coefs[[2]] * .super$env$litter - f_MetLitter
+  
+  #Equation B11
+  dACTIVE <- (1-.super$env$lignin) * .super$pars$century[['strlitter_to_active']] * f_StrLitter + .super$pars$century[['metlitter_to_active']] * f_MetLitter  + f_SLOW * .super$pars$century[['slow_to_active']] + f_PASSIVE * .super$pars$century[['passive_to_active']] - f_ACTIVE
+  
+  #Equation B12
+  dSLOW <-  .super$env$lignin * .super$pars$century[['strlitter_to_slow']] * f_StrLitter + f_ACTIVE * (1-f_TEX-.super$pars$century[['active_to_passive']]) - f_SLOW
+  
+  #Equation B13
+  dPASSIVE <- f_ACTIVE * .super$pars$century[['active_to_passive']] + f_SLOW * .super$pars$century[['slow_to_passive']] - f_PASSIVE
+  
+  list(c(dStrLitter, dMetLitter, dACTIVE, dSLOW, dPASSIVE))
 }
 
 
