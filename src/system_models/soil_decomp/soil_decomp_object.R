@@ -83,13 +83,19 @@ soil_decomp_object$fnames <- list(
     d2 = 'f_decomp_dd_georgiou',  
     d3 = 'f_zero', 
     d4 = 'f_decomp_lin', 
-    d5 = 'f_decomp_lin'
+    d5 = 'f_decomp_lin',
+    d6 = NA,
+    d7 = NA
   ),
   
   desorp = list(
     ds1 = NA,
     ds2 = NA,
-    ds3 = 'f_desorp_millennialv2'
+    ds3 = 'f_desorp_millennialv2',
+    ds4 = NA,
+    ds5 = NA,
+    ds6 = NA,
+    ds7 = NA
   ),
   
   sorp = list(
@@ -97,7 +103,9 @@ soil_decomp_object$fnames <- list(
     s2 = NA,
     s3 = NA,
     s4 = 'f_sorp_sat',
-    s5 = NA
+    s5 = NA,
+    s6 = NA,
+    s7 = NA
   ),
   
   aggform = list( 
@@ -183,7 +191,7 @@ soil_decomp_object$state_pars <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 5,          # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
+  n_pools = 7,          # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
   beta    = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = NA,      
   clay    = NA,        
@@ -212,7 +220,9 @@ soil_decomp_object$pars <- list(
     input_coef2 = 0,
     input_coef3 = 0,
     input_coef4 = .34,
-    input_coef5 = 0
+    input_coef5 = 0,
+    input_coef6 = NA,
+    input_coef7 = NA
   ),
   
   # initial pool mass for each pool
@@ -221,7 +231,9 @@ soil_decomp_object$pars <- list(
     cstate02 = 1,          
     cstate03 = 1,      
     cstate04 = 1,       
-    cstate05 = 1
+    cstate05 = 1,
+    cstate06 = 1,
+    cstate07 = 1
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
@@ -232,7 +244,9 @@ soil_decomp_object$pars <- list(
     cue2 = NA,       
     cue3 = NA,
     cue4 = .19,
-    cue5 = NA
+    cue5 = NA,
+    cue6 = NA,
+    cue7 = NA
   ),  
   
   cue2 = list( 
@@ -240,7 +254,9 @@ soil_decomp_object$pars <- list(
     cue2 = NA,       
     cue3 = NA,
     cue4 = NA,
-    cue5 = NA
+    cue5 = NA,
+    cue6 = NA,
+    cue7 = NA
   ),  
 
   # max turnover rate per unit microbial biomass for pool i
@@ -250,7 +266,9 @@ soil_decomp_object$pars <- list(
     vmax2 = NA,   #Vm
     vmax3 = NA,
     vmax4 = 2.3000e+12, #alpha_lb #pre-exponential constant for temp sensitivity of DOC uptake
-    vmax5 = NA
+    vmax5 = NA,
+    vmax6 = NA,
+    vmax7 = NA
   ),
   
   vmax2 = list(
@@ -258,7 +276,9 @@ soil_decomp_object$pars <- list(
     vmax2 = NA,
     vmax3 = NA,
     vmax4 = NA,
-    vmax5 = NA
+    vmax5 = NA,
+    vmax6 = NA,
+    vmax7 = NA
   ),
   
   # idea for how to handle one pool being decomposed by multiple catalysts (e.g. multiple microbial pools or multiple enzyme pools)
@@ -281,7 +301,9 @@ soil_decomp_object$pars <- list(
     km2 = NA,
     km3 = NA,
     km4 = 774.6, #DOC uptake half sat constant,
-    km5 = NA
+    km5 = NA,
+    km6 = NA,
+    km7 = NA
   ),
   
   km2 = list( 
@@ -289,7 +311,9 @@ soil_decomp_object$pars <- list(
     km2 = NA,     
     km3 = NA,
     km4 = NA,
-    km5 = NA
+    km5 = NA,
+    km6 = NA,
+    km7 = NA
   ),
   
   # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i
@@ -299,7 +323,9 @@ soil_decomp_object$pars <- list(
     rkm2 = NA,     
     rkm3 = NA,
     rkm4 = NA,
-    rkm5 = NA
+    rkm5 = NA,
+    rkm6 = NA,
+    rkm7 = NA
   ),   
 
   # turnover rate for linear decomposition
@@ -308,7 +334,9 @@ soil_decomp_object$pars <- list(
     k2 = 4.5000e-03, #microbial turnover rate   
     k3 = 4.8000e-03, #aggregate formation from maom 
     k4 = .0015, #leaching rate (kd)
-    k5 = .02 #aggregrate breakdown rate (kb)
+    k5 = .02, #aggregrate breakdown rate (kb)
+    k6 = NA,
+    k7 = NA
   ),
 
   # maximum size for pool i 
@@ -317,7 +345,9 @@ soil_decomp_object$pars <- list(
     poolmax2 = NA,       
     poolmax3 = NA, #this is calculated in solver function 
     poolmax4 = NA,
-    poolmax5 = NA
+    poolmax5 = NA,
+    poolmax6 = NA,
+    poolmax7 = NA
   ),
   
   #mimics-specific parameters
