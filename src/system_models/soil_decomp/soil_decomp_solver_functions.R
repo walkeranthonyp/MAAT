@@ -27,9 +27,12 @@ f_solver_func_corpse <- function(., t, y, parms) {
   dPs <- .$sorp.s1(t=t,C=y,i=1)*.$scor(.) - .$desorp.ds5(t=t,C=y,i=5)
   dPr <- .$sorp.s2(t=t,C=y,i=2)*.$scor(.) - .$desorp.ds6(t=t,C=y,i=6)
   dPn <- .$sorp.s3(t=t,C=y,i=3)*.$scor(.) - .$desorp.ds7(t=t,C=y,i=7)
+  .super$state_pars$respiration = .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)*(1-.super$pars$cue[[1]]) + 
+  .$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)*(1-.super$pars$cue[[2]]) + 
+  .$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)*(1-.super$pars$cue[[3]]) +
+  .$decomp.d4(t = t, C=y, i=4)*(1-.super$pars$cue[[4]]  )
   list(c(dCs, dCr, dCn, dM, dPs, dPr, dPn))
 }
-
 
 ############## MIMICS #################
 # lsoda style function to solve MIMICS
@@ -68,7 +71,7 @@ f_solver_func_mimics <- function(., t, y, parms){
   d6 = .$decomp.d6(t=t,C=y,i=6) + .$decomp.d6(t=t,C=y,i=6, cat_pool = 4)
   # d7 = .$decomp.d7(t=t,C=y,i=7) + .decomp.d7(t=t,C=y,i=7, cat = 'cat2', cat_pool = 4)
   d7 = .$decomp.d7(t=t,C=y,i=7) + .$decomp.d7(t=t,C=y,i=7, cat_pool = 4)
-  
+
   #transfers
   t1_to_3 = (.$decomp.d1(t=t,C=y,i=1)/d1)*.super$pars$cue[[1]]
   t1_to_4 = (.$decomp.d1(t=t,C=y,i=1, cat_pool = 4)/d1)*.super$pars$cue2[[1]]
@@ -88,6 +91,9 @@ f_solver_func_mimics <- function(., t, y, parms){
   i_LITs = .$input(t) * (1-fmet) * (1-.super$pars$mimics[['fi_LITs']])
   i_SOMp = .$input(t) * fmet * .super$pars$mimics[['fi_LITm']]
   i_SOMc = .$input(t) * (1-fmet) * .super$pars$mimics[['fi_LITs']]
+
+  .super$state_pars$respiration = d1*.$tcor(.) *(1-t1_to_3) + d7*.$tcor(.) *(1-t7_to_3) +
+  d2*.$tcor(.) *(1-t2_to_3) + d1*.$tcor(.) *(1-t1_to_4) + d7*.$tcor(.) *(1-t7_to_4) + d2*.$tcor(.) *(1-t2_to_4)
   
   #ODE system
   dLITm = i_LITm - d1*.$tcor(.)
@@ -268,6 +274,8 @@ f_solver_func_mend2013 <- function(., t, y, parms) {
   F13EP = .super$pars$mend[['Pep']]*.$decomp.d4(t=t,C=y,i=4)
   #          F13EM = Pem*Mr*B
   F13EM = .super$pars$mend[['Pem']]*.$decomp.d4(t=t,C=y,i=4)
+
+  .super$state_pars$respiration = F9 + F10
   
   #Enzyme turnover
   #          F14EP = Rep*EP
