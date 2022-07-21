@@ -48,6 +48,8 @@
       <wcor2>'f_wcor_ghezzehei_biological'</wcor2>
       <tcor>
         <t1>'f_tcor_arrhenius_millennialv2'</t1>
+        <t2>NA</t2>  
+        <t3>NA</t3> 
         <t4>'f_tcor_arrhenius_millennialv2'</t4>
       </tcor>
       <transfer>
