@@ -37,8 +37,6 @@
         <input_coef3>0</input_coef3>
         <input_coef4>0.334</input_coef4>
         <input_coef5>0</input_coef5>
-        <input_coef6>0</input_coef6>
-        <input_coef7>0</input_coef7>
       </input_coefs>
       <cstate0>
         <cstate01>27.86511</cstate01>
@@ -46,62 +44,48 @@
         <cstate03>2075.608</cstate03>
         <cstate04>6.992247</cstate04>
         <cstate05>196.166</cstate05>
-        <cstate06>NA</cstate06>
-        <cstate07>NA</cstate07>
       </cstate0>
       <cue>
-        <cue1>NA</cue1>
-        <cue2>NA</cue2>
-        <cue3>NA</cue3>
+        <cue1></cue1>
+        <cue2></cue2>
+        <cue3>0</cue3>
         <cue4>0.6</cue4>
-        <cue5>NA</cue5>
-        <cue6>NA</cue6>
-        <cue7>NA</cue7>
+        <cue5>0</cue5>
       </cue>
       <vmax>
         <vmax1>10.0</vmax1>
-        <vmax2>NA</vmax2>
-        <vmax3>NA</vmax3>
-        <vmax4>NA</vmax4>
-        <vmax5>NA</vmax5>
-        <vmax6>NA</vmax6>
-        <vmax7>NA</vmax7>
+        <vmax2>0</vmax2>
+        <vmax3>0</vmax3>
+        <vmax4>0</vmax4>
+        <vmax5>0</vmax5>
       </vmax>
       <km>
         <km1>150.0</km1>
-        <km2>NA</km2>
-        <km3>NA</km3>
-        <km4>NA</km4>
-        <km5>NA</km5>
-        <km6>NA</km6>
-        <km7>NA</km7>
+        <km2>0</km2>
+        <km3>0</km3>
+        <km4>0</km4>
+        <km5>0</km5>
       </km>
       <rkm>
         <rkm1>12.0</rkm1>
-        <rkm2>NA</rkm2>
-        <rkm3>NA</rkm3>
-        <rkm4>NA</rkm4>
-        <rkm5>NA</rkm5>
-        <rkm6>NA</rkm6>
-        <rkm7>NA</rkm7>
+        <rkm2>0</rkm2>
+        <rkm3>0</rkm3>
+        <rkm4>0</rkm4>
+        <rkm5>0</rkm5>
       </rkm>
       <k>
-        <k1>NA</k1>
+        <k1>0</k1>
         <k2>0.036</k2>
-        <k3>NA</k3>
-        <k4>NA</k4>
+        <k3>0</k3>
+        <k4>0</k4>
         <k5>0.0002</k5>
-        <k6>NA</k6>
-        <k7>NA</k7>
       </k>
       <poolmax>
-        <poolmax1>NA</poolmax1>
-        <poolmax2>NA</poolmax2>
-        <poolmax3>NA</poolmax3>
-        <poolmax4>NA</poolmax4>
+        <poolmax1>0</poolmax1>
+        <poolmax2>0</poolmax2>
+        <poolmax3>0</poolmax3>
+        <poolmax4>0</poolmax4>
         <poolmax5>500.0</poolmax5>
-        <poolmax6>NA</poolmax6>
-        <poolmax7>NA</poolmax7>
       </poolmax>
       <millennial>
         <cuet>-0.012</cuet>
