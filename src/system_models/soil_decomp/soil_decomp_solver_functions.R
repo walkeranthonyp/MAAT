@@ -27,7 +27,7 @@ f_solver_func_corpse <- function(., t, y, parms) {
   dPs <- .$sorp.s1(t=t,C=y,i=1)*.$scor(.) - .$desorp.ds5(t=t,C=y,i=5)
   dPr <- .$sorp.s2(t=t,C=y,i=2)*.$scor(.) - .$desorp.ds6(t=t,C=y,i=6)
   dPn <- .$sorp.s3(t=t,C=y,i=3)*.$scor(.) - .$desorp.ds7(t=t,C=y,i=7)
-  .super$state_pars$respiration = .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)*(1-.super$pars$cue[[1]]) + 
+  .super$state$respiration = .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)*(1-.super$pars$cue[[1]]) + 
   .$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)*(1-.super$pars$cue[[2]]) + 
   .$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)*(1-.super$pars$cue[[3]]) +
   .$decomp.d4(t = t, C=y, i=4)*(1-.super$pars$cue[[4]]  )
@@ -92,7 +92,7 @@ f_solver_func_mimics <- function(., t, y, parms){
   i_SOMp = .$input(t) * fmet * .super$pars$mimics[['fi_LITm']]
   i_SOMc = .$input(t) * (1-fmet) * .super$pars$mimics[['fi_LITs']]
 
-  .super$state_pars$respiration = d1*.$tcor(.) *(1-t1_to_3) + d7*.$tcor(.) *(1-t7_to_3) +
+  .super$state$respiration = d1*.$tcor(.) *(1-t1_to_3) + d7*.$tcor(.) *(1-t7_to_3) +
   d2*.$tcor(.) *(1-t2_to_3) + d1*.$tcor(.) *(1-t1_to_4) + d7*.$tcor(.) *(1-t7_to_4) + d2*.$tcor(.) *(1-t2_to_4)
   
   #ODE system
@@ -210,7 +210,7 @@ f_solver_func_millennial <- function(., t, y, parms) {
   # Fgr = Vlm*St*Sw*L * B/(B+Klb) * (1-(CUEref - CUEt(T - Taeref)))
   Fgr = Fdb * (1-ae)
 
-  .super$state_pars$respiration = Fmr + Fgr
+  .super$state$respiration = Fmr + Fgr
   
   #check inputs
   #print(.$input(t)[[1]])
@@ -275,7 +275,7 @@ f_solver_func_mend2013 <- function(., t, y, parms) {
   #          F13EM = Pem*Mr*B
   F13EM = .super$pars$mend[['Pem']]*.$decomp.d4(t=t,C=y,i=4)
 
-  .super$state_pars$respiration = F9 + F10
+  .super$state$respiration = F9 + F10
   
   #Enzyme turnover
   #          F14EP = Rep*EP
@@ -447,7 +447,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
     f_MB_atm=0
   }
 
-  .super$state_pars$respiration = f_MB_atm
+  .super$state$respiration = f_MB_atm
 
   #          
   #          #ODE system

@@ -174,7 +174,8 @@ soil_decomp_object$env <- list(
 # state
 ####################################
 soil_decomp_object$state <- list(
-  cpools = matrix(1:3, ncol=1 )
+  cpools = matrix(1:3, ncol=1 ),
+  respiration = vector("double",1)
 )
 
 
@@ -182,8 +183,7 @@ soil_decomp_object$state <- list(
 ####################################
 soil_decomp_object$state_pars <- list(
   solver_out             = matrix(1),
-  solver_steadystate_out = matrix(1),
-  respiration            = vector("double",1)
+  solver_steadystate_out = matrix(1)
 )
 
 
@@ -444,7 +444,7 @@ f_output_soil_decomp_eval <- f_output_eval
 
 
 f_output_soil_decomp_run <- function(.) {
-  c(unlist(.$state), unlist(.$state_pars['respiration']) )
+  unlist(.$state)
 }
 
 f_output_soil_decomp_state <- function(.) {
