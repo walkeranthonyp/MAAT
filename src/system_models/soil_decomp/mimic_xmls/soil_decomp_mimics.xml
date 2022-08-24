@@ -17,7 +17,9 @@
       <desorp>
         <ds5>'f_decomp_lin'</ds5>
       </desorp>
-      <tcor>'f_tcor_wieder'</tcor>
+      <tcor>
+        <t1>'f_tcor_wieder'</t1>
+      </tcor>
     </soil_decomp>
   </fnames>
   <pars>

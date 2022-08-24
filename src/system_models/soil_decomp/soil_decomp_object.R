@@ -506,7 +506,9 @@ soil_decomp_object$.test.mimics.ss <- function(., verbose=F, metdf=F, litter=172
         desorp = list(
           ds5 = 'f_decomp_lin'
         ),
-        tcor = 'f_tcor_wieder'
+        tcor = list(
+          t1 = 'f_tcor_wieder'
+        )
       )
     .$pars <- list(
       n_pools = 7,          # number of pools in model  

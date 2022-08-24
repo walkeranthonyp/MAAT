@@ -24,7 +24,9 @@
       </aggform>
       <docuptake>'f_docuptake_abramoff'</docuptake>
       <wcor>'f_wcor_abramoff'</wcor>
-      <tcor>'f_tcor_daycent2_abramoff'</tcor>
+      <tcor>
+        <t1>'f_tcor_daycent2_abramoff'</t1>
+      </tcor>
     </soil_decomp>
   </fnames>
   <pars>
