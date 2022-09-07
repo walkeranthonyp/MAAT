@@ -28,7 +28,7 @@ f_sys_npools <- function(.) {
 f_steadystate_npools <- function(.) {
 
   .super$state_pars$solver_steadystate_out <- tryCatch(
-    .$solver_steadystate(.super$state$cpools, 0, func=.$solver_func )
+    .$solver_steadystate(.super$state$cpools, 0, func=.$solver_func ),
     error = function(c) {
       print(c)
       list(y=rep(NA,.super$pars$n_pools))

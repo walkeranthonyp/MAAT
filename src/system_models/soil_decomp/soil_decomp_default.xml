@@ -15,11 +15,17 @@
         <d3>'f_zero'</d3>
         <d4>'f_decomp_lin'</d4>
         <d5>'f_decomp_lin'</d5>
+        <d6>NA</d6>
+        <d7>NA</d7>
       </decomp>
       <desorp>
         <ds1>NA</ds1>
         <ds2>NA</ds2>
         <ds3>'f_desorp_millennialv2'</ds3>
+        <ds4>NA</ds4>
+        <ds5>NA</ds5>
+        <ds6>NA</ds6>
+        <ds7>NA</ds7>
       </desorp>
       <sorp>
         <s1>NA</s1>
@@ -27,6 +33,8 @@
         <s3>NA</s3>
         <s4>'f_sorp_sat'</s4>
         <s5>NA</s5>
+        <s6>NA</s6>
+        <s7>NA</s7>
       </sorp>
       <aggform>
         <a1>'f_decomp_lin'</a1>
@@ -40,6 +48,8 @@
       <wcor2>'f_wcor_ghezzehei_biological'</wcor2>
       <tcor>
         <t1>'f_tcor_arrhenius_millennialv2'</t1>
+        <t2>NA</t2>  
+        <t3>NA</t3> 
         <t4>'f_tcor_arrhenius_millennialv2'</t4>
       </tcor>
       <transfer>
@@ -60,7 +70,7 @@
   </fnames>
   <pars>
     <soil_decomp>
-      <n_pools>5</n_pools>
+      <n_pools>7</n_pools>
       <beta>2</beta>
       <silt>NA</silt>
       <clay>NA</clay>
@@ -87,6 +97,8 @@
         <input_coef3>0</input_coef3>
         <input_coef4>0.34</input_coef4>
         <input_coef5>0</input_coef5>
+        <input_coef6>NA</input_coef6>
+        <input_coef7>NA</input_coef7>
       </input_coefs>
       <cstate0>
         <cstate01>1</cstate01>
@@ -94,6 +106,8 @@
         <cstate03>1</cstate03>
         <cstate04>1</cstate04>
         <cstate05>1</cstate05>
+        <cstate06>1</cstate06>
+        <cstate07>1</cstate07>
       </cstate0>
       <cue>
         <cue1>NA</cue1>
@@ -101,6 +115,8 @@
         <cue3>NA</cue3>
         <cue4>0.19</cue4>
         <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
       </cue>
       <cue2>
         <cue1>NA</cue1>
@@ -108,6 +124,8 @@
         <cue3>NA</cue3>
         <cue4>NA</cue4>
         <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
       </cue2>
       <vmax>
         <vmax1>1.8e+12</vmax1>
@@ -115,6 +133,8 @@
         <vmax3>NA</vmax3>
         <vmax4>2.3e+12</vmax4>
         <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
       </vmax>
       <vmax2>
         <vmax1>NA</vmax1>
@@ -122,6 +142,8 @@
         <vmax3>NA</vmax3>
         <vmax4>NA</vmax4>
         <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
       </vmax2>
       <km>
         <km1>6443</km1>
@@ -129,6 +151,8 @@
         <km3>NA</km3>
         <km4>774.6</km4>
         <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
       </km>
       <km2>
         <km1>NA</km1>
@@ -136,6 +160,8 @@
         <km3>NA</km3>
         <km4>NA</km4>
         <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
       </km2>
       <rkm>
         <rkm1>NA</rkm1>
@@ -143,6 +169,8 @@
         <rkm3>NA</rkm3>
         <rkm4>NA</rkm4>
         <rkm5>NA</rkm5>
+        <rkm6>NA</rkm6>
+        <rkm7>NA</rkm7>
       </rkm>
       <k>
         <k1>0.018</k1>
@@ -150,6 +178,8 @@
         <k3>0.0048</k3>
         <k4>0.0015</k4>
         <k5>0.02</k5>
+        <k6>NA</k6>
+        <k7>NA</k7>
       </k>
       <poolmax>
         <poolmax1>NA</poolmax1>
@@ -157,6 +187,8 @@
         <poolmax3>NA</poolmax3>
         <poolmax4>NA</poolmax4>
         <poolmax5>NA</poolmax5>
+        <poolmax6>NA</poolmax6>
+        <poolmax7>NA</poolmax7>
       </poolmax>
       <mimics>
         <fmet_p1>0.5</fmet_p1>

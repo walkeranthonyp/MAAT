@@ -27,9 +27,12 @@ f_solver_func_corpse <- function(., t, y, parms) {
   dPs <- .$sorp.s1(t=t,C=y,i=1)*.$scor(.) - .$desorp.ds5(t=t,C=y,i=5)
   dPr <- .$sorp.s2(t=t,C=y,i=2)*.$scor(.) - .$desorp.ds6(t=t,C=y,i=6)
   dPn <- .$sorp.s3(t=t,C=y,i=3)*.$scor(.) - .$desorp.ds7(t=t,C=y,i=7)
+  .super$state$respiration = .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)*(1-.super$pars$cue[[1]]) + 
+  .$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)*(1-.super$pars$cue[[2]]) + 
+  .$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)*(1-.super$pars$cue[[3]]) +
+  .$decomp.d4(t = t, C=y, i=4)*(1-.super$pars$cue[[4]]  )
   list(c(dCs, dCr, dCn, dM, dPs, dPr, dPn))
 }
-
 
 ############## MIMICS #################
 # lsoda style function to solve MIMICS
@@ -68,7 +71,7 @@ f_solver_func_mimics <- function(., t, y, parms){
   d6 = .$decomp.d6(t=t,C=y,i=6) + .$decomp.d6(t=t,C=y,i=6, cat_pool = 4)
   # d7 = .$decomp.d7(t=t,C=y,i=7) + .decomp.d7(t=t,C=y,i=7, cat = 'cat2', cat_pool = 4)
   d7 = .$decomp.d7(t=t,C=y,i=7) + .$decomp.d7(t=t,C=y,i=7, cat_pool = 4)
-  
+
   #transfers
   t1_to_3 = (.$decomp.d1(t=t,C=y,i=1)/d1)*.super$pars$cue[[1]]
   t1_to_4 = (.$decomp.d1(t=t,C=y,i=1, cat_pool = 4)/d1)*.super$pars$cue2[[1]]
@@ -88,15 +91,18 @@ f_solver_func_mimics <- function(., t, y, parms){
   i_LITs = .$input(t) * (1-fmet) * (1-.super$pars$mimics[['fi_LITs']])
   i_SOMp = .$input(t) * fmet * .super$pars$mimics[['fi_LITm']]
   i_SOMc = .$input(t) * (1-fmet) * .super$pars$mimics[['fi_LITs']]
+
+  .super$state$respiration = d1*.$tcor.t1(.) *(1-t1_to_3) + d7*.$tcor.t1(.) *(1-t7_to_3) +
+  d2*.$tcor.t1(.) *(1-t2_to_3) + d1*.$tcor.t1(.) *(1-t1_to_4) + d7*.$tcor.t1(.) *(1-t7_to_4) + d2*.$tcor.t1(.) *(1-t2_to_4)
   
   #ODE system
-  dLITm = i_LITm - d1*.$tcor(.)
-  dLITs = i_LITs - d2*.$tcor(.)
-  dMICr = d1*.$tcor(.) *t1_to_3 + d2*.$tcor(.) *t2_to_3 + d7*.$tcor(.) *t7_to_3 - .$decomp.d3(t=t,C=y,i=3)
-  dMICk = d1*.$tcor(.) *t1_to_4 + d2*.$tcor(.) *t2_to_4 + d7*.$tcor(.) *t7_to_4 - .$decomp.d4(t=t,C=y,i=4)
+  dLITm = i_LITm - d1*.$tcor.t1(.)
+  dLITs = i_LITs - d2*.$tcor.t1(.)
+  dMICr = d1*.$tcor.t1(.) *t1_to_3 + d2*.$tcor.t1(.) *t2_to_3 + d7*.$tcor.t1(.) *t7_to_3 - .$decomp.d3(t=t,C=y,i=3)
+  dMICk = d1*.$tcor.t1(.) *t1_to_4 + d2*.$tcor.t1(.) *t2_to_4 + d7*.$tcor.t1(.) *t7_to_4 - .$decomp.d4(t=t,C=y,i=4)
   dSOMp = i_SOMp + .$decomp.d3(t=t,C=y,i=3)*t3_to_5 + .$decomp.d4(t=t,C=y,i=4)*t4_to_5 - .$desorp.ds5(t=t, C=y,i=5)
-  dSOMc = i_SOMc + .$decomp.d3(t=t,C=y,i=3)*t3_to_6 + .$decomp.d4(t=t,C=y,i=4)*t4_to_6 - d6*.$tcor(.)
-  dSOMa = .$decomp.d3(t=t,C=y,i=3)*t3_to_7 + .$decomp.d4(t=t,C=y,i=4)*t4_to_7 + .$desorp.ds5(t=t,C=y,i=5) + d6*.$tcor(.) - d7*.$tcor(.)
+  dSOMc = i_SOMc + .$decomp.d3(t=t,C=y,i=3)*t3_to_6 + .$decomp.d4(t=t,C=y,i=4)*t4_to_6 - d6*.$tcor.t1(.)
+  dSOMa = .$decomp.d3(t=t,C=y,i=3)*t3_to_7 + .$decomp.d4(t=t,C=y,i=4)*t4_to_7 + .$desorp.ds5(t=t,C=y,i=5) + d6*.$tcor.t1(.) - d7*.$tcor.t1(.)
   list(c(dLITm, dLITs, dMICr, dMICk, dSOMp, dSOMc, dSOMa))
   #print(fmet)
 }
@@ -146,7 +152,7 @@ f_solver_func_millennial <- function(., t, y, parms) {
   
   # Fa = kb * A*Sw*St
   #Aggregate breakdown
-  Fa = .$decomp.d5(t=t,C=y,i=5) * .$tcor(.) *.$wcor(.)
+  Fa = .$decomp.d5(t=t,C=y,i=5) * .$tcor.t1(.) *.$wcor(.)
   #decomp = lin
   
   # Fpa = ( Vpa * P) / (Kpa + P)*(1 - A / Amax)*Sw*St
@@ -155,36 +161,36 @@ f_solver_func_millennial <- function(., t, y, parms) {
   # saturation constant of aggregate formation, and Amax is the maximum capacity
   # of C in soil aggregates.
   # NOT A FUNCTION OF MICROBIAL BIOMASS
-  Fpa = .$aggform.a1(t=t,C=y,i=1) * .$tcor(.) *.$wcor(.)
+  Fpa = .$aggform.a1(t=t,C=y,i=1) * .$tcor.t1(.) *.$wcor(.)
   #aggform = ( Vpa * P) / (Kpa + P)*(1 - A / Amax) where...
   #Amax = 500 in the paper or is caculated based on a separate equation in the source code
   
   # Fpd = Vpd * (P/(Kpd + P)) * (B/(Kpe+B))*Sw*St
   #decomposition of POM governed by double Michaelis-Menten equation
-  Fpd = .$decomp.d1(t=t,C=y,i=1) * .$tcor(.) *.$wcor(.)
+  Fpd = .$decomp.d1(t=t,C=y,i=1) * .$tcor.t1(.) *.$wcor(.)
   #decomp = Vpd * (P/(Kpd + P)) * (B/(Kpe+B))
   
   # Fd = kd * D*St*Sw
   #DOC loss via leaching #think we are missing a k for this...
-  Fd = .$decomp.d4(t=t,C=y,i=4) * .$tcor(.) *.$wcor(.)
+  Fd = .$decomp.d4(t=t,C=y,i=4) * .$tcor.t1(.) *.$wcor(.)
   #decomp = lin; this is technically leaching and not decomposition though...
   
   # Fdm = Sw*St*D * ((Kdm*Qmax*D)/(1+Kdm*D) - M) / Qmax
   #Sorption
   #This is a two-way equation reflecting the instantaneous net balance between sorption and desorption
-  Fdm = .$sorp.s4(t=t,C=y,i=4) * .$tcor(.) *.$wcor(.)
+  Fdm = .$sorp.s4(t=t,C=y,i=4) * .$tcor.t1(.) *.$wcor(.)
   #sorp = D * ((Kdm*Qmax*D)/(1+Kdm*D) - M) / Qmax
   #Kdm and Qmax state parameters
   #Kdm may need to be calculated dynamically in function (based on pH which could be f(time))
   
   # Fdb = Vdm * D * B/(B+Kdb)*Sw*St
   #Uptake: Microbial uptake of DOC
-  Fdb = .$docuptake(t=t,C=y,i=4)* .$tcor(.) *.$wcor(.)
+  Fdb = .$docuptake(t=t,C=y,i=4)* .$tcor.t1(.) *.$wcor(.)
   #uptake = Vdm * D * B/(B+Kdb) #reverse michaelis-menten
   
   # Fma = (Vma * M) / (Kma + M) * (1-A/Amax)*Sw*St
   #Aggregate formation from MAOM
-  Fma = .$aggform.a3(t=t,C=y,i=3)* .$tcor(.) *.$wcor(.)
+  Fma = .$aggform.a3(t=t,C=y,i=3)* .$tcor.t1(.) *.$wcor(.)
   #aggform = same as for Fpa
   
   # Fbm = kmm * B*Sw*St
@@ -193,13 +199,18 @@ f_solver_func_millennial <- function(., t, y, parms) {
   #but in the source code it depends on saturation level of MAOM (which is really weird because it implies
   #that mineral saturation limits microbial turnover)
   #Though I guess maintenance respiration would increase to compensate??? This would be worth investigating
-  Fbm = .$sorp.s2(t=t,C=y,i=2, k_from_list = FALSE, k = .super$pars$millennial[['kmm']])* .$tcor(.) *.$wcor(.) 
+  Fbm = .$sorp.s2(t=t,C=y,i=2, k_from_list = FALSE, k = .super$pars$millennial[['kmm']])* .$tcor.t1(.) *.$wcor(.) 
   #sorp = lin
   
   # Fmr = km * B*Sw*St
   # Maintenance respiration
-  Fmr = .$decomp.d2(t=t,C=y,i=2)* .$tcor(.) *.$wcor(.)
+  Fmr = .$decomp.d2(t=t,C=y,i=2)* .$tcor.t1(.) *.$wcor(.)
   #decomp = lin
+
+  # Fgr = Vlm*St*Sw*L * B/(B+Klb) * (1-(CUEref - CUEt(T - Taeref)))
+  Fgr = Fdb * (1-ae)
+
+  .super$state$respiration = Fmr + Fgr
   
   #check inputs
   #print(.$input(t)[[1]])
@@ -263,6 +274,8 @@ f_solver_func_mend2013 <- function(., t, y, parms) {
   F13EP = .super$pars$mend[['Pep']]*.$decomp.d4(t=t,C=y,i=4)
   #          F13EM = Pem*Mr*B
   F13EM = .super$pars$mend[['Pem']]*.$decomp.d4(t=t,C=y,i=4)
+
+  .super$state$respiration = F9 + F10
   
   #Enzyme turnover
   #          F14EP = Rep*EP
@@ -433,6 +446,9 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   }else{
     f_MB_atm=0
   }
+
+  .super$state$respiration = f_MB_atm
+
   #          
   #          #ODE system
   
