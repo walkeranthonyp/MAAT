@@ -103,7 +103,9 @@ soil_decomp_object$fnames <- list(
     s2 = NA,
     s3 = NA,
     s4 = 'f_sorp_sat',
-    s5 = NA
+    s5 = NA, 
+    s6 = NA,
+    s7 = NA
   ),
   
   aggform = list( 
@@ -121,14 +123,16 @@ soil_decomp_object$fnames <- list(
   wcor = 'f_wcor_abramoff', #century
   wcor2 = 'f_wcor_ghezzehei_biological',
 
-  # tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
-  tcor = list(                  #this structure for corpse
-    t1 = 'f_tcor_arrhenius_millennialv2',
-    t2 = NULL,
-    t3 = NULL,
-    t4 = 'f_tcor_arrhenius_millennialv2',
-    t5 = NULL
-  ),
+  tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
+  # tcor = list(                  #this structure for corpse
+  #   t1 = 'f_tcor_arrhenius_millennialv2',
+  #   t2 = NA,
+  #   t3 = NA,
+  #   t4 = 'f_tcor_arrhenius_millennialv2',
+  #   t5 = NA,
+  #   t6 = NA,
+  #   t7 = NA
+  # ),
 
   # transfer list
   transfer = list(
@@ -188,7 +192,7 @@ soil_decomp_object$state_pars <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 5,          # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
+  n_pools = 7,          # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
   beta    = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = NA,      
   clay    = NA,        
@@ -208,7 +212,9 @@ soil_decomp_object$pars <- list(
     ea2 = NA,
     ea3 = NA,
     ea4 = 5.7865e+04, #MILLENNIALv2 #activiation energy for temp sensitivity of DOC uptake
-    ea5 = NA
+    ea5 = NA,
+    ea6 = NA,
+    ea7 = NA
   ),
  
   #input coefficients (allocaties proportions of inputs into different pools)
@@ -217,7 +223,9 @@ soil_decomp_object$pars <- list(
     input_coef2 = .34, #Century input to MetLitter
     input_coef3 = 0,
     input_coef4 = 0,
-    input_coef5 = 0
+    input_coef5 = 0,
+    input_coef6 = 0,
+    input_coef7 = 0
   ),
   
   # initial pool mass for each pool
@@ -226,7 +234,9 @@ soil_decomp_object$pars <- list(
     cstate02 = 1,          
     cstate03 = 1,      
     cstate04 = 1,       
-    cstate05 = 1
+    cstate05 = 1,
+    cstate06 = 1,
+    cstate07 = 1
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
@@ -336,7 +346,9 @@ soil_decomp_object$pars <- list(
     poolmax2 = NA,       
     poolmax3 = NA, #this is calculated in solver function 
     poolmax4 = NA,
-    poolmax5 = NA
+    poolmax5 = NA,
+    poolmax6 = NA,
+    poolmax7 = NA
   ),
   
   #mimics-specific parameters

@@ -480,7 +480,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #desorption
   # MAOM -> LMWC
   if(MAOM>0){
-    f_MA_LM = .$desorp.ds3(t = t, C=y, i=3, k = .super$pars$millennialV2[['kld']])
+    f_MA_LM = .$desorp.ds3(t = t, C=y, i=3, k = .super$pars$millennialV2[['kld']], cat = 2)
     #f_MA_LM = kld * MAOM / param_qmax
   }else{
     f_MA_LM=0

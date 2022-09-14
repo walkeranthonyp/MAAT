@@ -9,7 +9,7 @@
       <transfermatrix>'c( 'f_transfermatrix' )'</transfermatrix>
       <steadystate>'c( 'f_steadystate_npools', 'f_steadystate_null' )'</steadystate>
       <solver_steadystate>'c(  )'</solver_steadystate>
-      <decomp>'c( 'f_decomp_dd_georgiou', 'f_decomp_dd_mend', 'f_decomp_dmm', 'f_decomp_doc_mend', 'f_decomp_lin', 'f_decomp_lin_sat_corpse', 'f_decomp_mbc_mend', 'f_decomp_mm', 'f_decomp_MM_enzmaom', 'f_decomp_MM_enzpom', 'f_decomp_MM_microbe', 'f_decomp_mm_sulman', 'f_decomp_rmm', 'f_decomp_rmm_sulman', 'f_decomp_rmm_twocat', 'f_decomp_rmm_wieder' )'</decomp>
+      <decomp>'c( 'f_decomp_dd_georgiou', 'f_decomp_dd_mend', 'f_decomp_dmm', 'f_decomp_doc_mend', 'f_decomp_lin', 'f_decomp_lin_sat_corpse', 'f_decomp_mbc_mend', 'f_decomp_mm', 'f_decomp_MM_enzmaom', 'f_decomp_MM_enzpom', 'f_decomp_MM_microbe', 'f_decomp_mm_sulman', 'f_decomp_mm_wieder', 'f_decomp_rmm', 'f_decomp_rmm_sulman', 'f_decomp_rmm_sulman_moore', 'f_decomp_rmm_sulman_protected', 'f_decomp_rmm_twocat', 'f_decomp_rmm_wieder' )'</decomp>
       <desorp>'c( 'f_desorp_mend', 'f_desorp_millennialv2', 'f_desorp_millennialv2_nosat' )'</desorp>
       <sorp>'c( 'f_sorp_sat' )'</sorp>
       <aggform>'c( 'f_aggform_abramoff' )'</aggform>

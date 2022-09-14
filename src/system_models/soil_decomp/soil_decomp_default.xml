@@ -33,6 +33,8 @@
         <s3>NA</s3>
         <s4>'f_sorp_sat'</s4>
         <s5>NA</s5>
+        <s6>NA</s6>
+        <s7>NA</s7>
       </sorp>
       <aggform>
         <a1>'f_decomp_lin'</a1>
@@ -44,10 +46,7 @@
       <scor>NA</scor>
       <wcor>'f_wcor_abramoff'</wcor>
       <wcor2>'f_wcor_ghezzehei_biological'</wcor2>
-      <tcor>
-        <t1>'f_tcor_arrhenius_millennialv2'</t1>
-        <t4>'f_tcor_arrhenius_millennialv2'</t4>
-      </tcor>
+      <tcor>'f_tcor_daycent2_abramoff'</tcor>
       <transfer>
         <t1_to_3>'f_transfer_cue_remainder'</t1_to_3>
         <t1_to_5>'f_transfer_cue'</t1_to_5>
@@ -66,7 +65,7 @@
   </fnames>
   <pars>
     <soil_decomp>
-      <n_pools>5</n_pools>
+      <n_pools>7</n_pools>
       <beta>2</beta>
       <silt>NA</silt>
       <clay>NA</clay>
@@ -86,6 +85,8 @@
         <ea3>NA</ea3>
         <ea4>57865</ea4>
         <ea5>NA</ea5>
+        <ea6>NA</ea6>
+        <ea7>NA</ea7>
       </ea>
       <input_coefs>
         <input_coef1>0.66</input_coef1>
@@ -93,6 +94,8 @@
         <input_coef3>0</input_coef3>
         <input_coef4>0</input_coef4>
         <input_coef5>0</input_coef5>
+        <input_coef6>0</input_coef6>
+        <input_coef7>0</input_coef7>
       </input_coefs>
       <cstate0>
         <cstate01>1</cstate01>
@@ -100,6 +103,8 @@
         <cstate03>1</cstate03>
         <cstate04>1</cstate04>
         <cstate05>1</cstate05>
+        <cstate06>1</cstate06>
+        <cstate07>1</cstate07>
       </cstate0>
       <cue>
         <cue1>NA</cue1>
@@ -177,6 +182,8 @@
         <poolmax3>NA</poolmax3>
         <poolmax4>NA</poolmax4>
         <poolmax5>NA</poolmax5>
+        <poolmax6>NA</poolmax6>
+        <poolmax7>NA</poolmax7>
       </poolmax>
       <mimics>
         <fmet_p1>0.5</fmet_p1>

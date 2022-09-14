@@ -67,7 +67,7 @@ f_tcor_wieder <- function(.,C,t,i){
 
 # linear decomp, Oleson 1963
 #MEND O6,O7
-f_decomp_lin        <- function(.,C,t,i, k_from_list = TRUE, k = NULL, cat = NULL) { #cat is dummy argument to allow switching from other functions
+f_decomp_lin        <- function(.,C,t,i, k_from_list = TRUE, k = NULL, cat = NULL, sat_pool = NULL) { #cat and sat_pool ars dummy arguments to allow switching from other functions
   if(k_from_list == TRUE){
     C[i]*.super$pars$k[[i]]
   } else {
@@ -83,14 +83,15 @@ f_decomp_MM_microbe <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[2]*C[i]) / (.s
 
 #reverse Michaelis-Menten decomp
 #C[4] is microbial biomass in CORPSE
-f_decomp_rmm <- function(.,C,t,i, cat = 4) (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[cat] + .super$pars$km[[i]])
-
+f_decomp_rmm <- function(.,C,t,i, cat = 4, k = NULL) { #k is dummy argument to get MILLENNIAL to work for mic decay of maom 
+  (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[cat] + .super$pars$km[[i]])
+}
 # double Michaelis-Menten decomp
 f_decomp_dmm <- function(.,C,t,i){
   .super$pars$vmax[[i]] * (C[1]/(.super$pars$km[[1]] + C[1])) * (C[2]/(.super$pars$rkm[[1]]+C[2]))
 }
 
-f_decomp_mm <- function(.,C,t,i,cat){
+f_decomp_mm <- function(.,C,t,i,cat = 4){
   (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[i] + .super$pars$km[[i]])
 }
 
@@ -103,6 +104,8 @@ f_sorp_sat  <- function(.,C,t,i, k_from_list = TRUE, k = NULL, sat_pool) {
 }
 
 f_zero <- function(.,C,t,i) 0
+
+f_identity <- function(.,C,t,i) 1
 
 #########
 #MEND-SPECIFIC FUNCTIONS
@@ -156,17 +159,30 @@ f_decomp_mm_sulman <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[i
 #CORPSE density dependence version of microbial turnover
 f_micturn_sulman_dd <- function(.,C,t,i) {
   (C[i]^.super$pars$beta - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[i]] 
+  # ((C[i] - .super$pars$minmic * (C[1]+C[2]+C[3])))^.super$pars$beta/.super$pars$k[[i]]
+  # C[i]^.super$pars$beta/.super$pars$k[[i]] 
 }
 
 #adding a decomp function that saturates and returns excess to unprotected pool
 f_decomp_lin_sat_corpse        <- function(.,C,t,i) {
-  protected_max = 3 #arbitrary
+  #match millennialv2 for ESA2022 sims
+  if(.super$env$clay == 27){ 
+    protected_max = 6.837
+  } else protected_max = 10.32
+  # protected_max = .super$pars$poolmax[[5]] + .super$pars$poolmax[[6]] + .super$pars$poolmax[[7]] #this is how to set it generally
     C[i]*.super$pars$k[[i]]* (1-(C[5] + C[6] + C[7])/protected_max)
 }
+
+#Improvement to CORPSE described in Moore et al. 2019, scales microbial biomass to each specific substrate type
+#This type of function would be more general to protected pools. 
+f_decomp_rmm_sulman_moore <- function(.,C,t,i) .super$pars$vmax[[i]]*C[i] * C[4] / (C[i] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
 
 # f_desorp_lin_sat_corpse <- function(.,C,t,i) {
 #   C[i]*.super$pars$k[[i]]
 # }
+
+#decay of protected pool
+f_decomp_rmm_sulman_protected <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]]*(C[5]+C[6]+C[7]))
 
 #########
 #MILLENNIAL-SPECIFIC FUNCTIONS
@@ -238,6 +254,38 @@ f_decomp_rmm_wieder <- function(.,C,t,i,cat_pool = 3){
   }
 }
 
+f_decomp_mm_wieder <- function(.,C,t,i,cat_pool = 3){
+  if(cat_pool == 3){
+    if(i==7){
+      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+      Km = .super$pars$km[[7]] * pscalar
+    } else if(i==6) {
+      #km par same as structural litter (km2)
+      Km = .super$pars$km[[2]] *(1/.super$pars$mimics[['ko_r']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
+    }  else {
+      Km = .super$pars$km[[i]]
+    }
+    #correcting Km for temperature
+    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+    ###MM equation
+    C[i] * .super$pars$vmax[[i]]*10 * C[cat_pool] / (Km_cor*10 + C[i])
+    ###
+  } else {
+    if(i==7){
+      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+      Km = .super$pars$km2[[7]] * pscalar
+    } else if(i==6) {
+      Km = .super$pars$km2[[2]] *(1/.super$pars$mimics[['ko_k']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
+    }  else {
+      Km = .super$pars$km2[[i]]
+    }
+    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+    ###MM equation
+    C[i] * .super$pars$vmax2[[i]]*10 * C[cat_pool] / (Km_cor*10 + C[i])
+    ###
+  }
+}
+
 #alt mimics function
 
 f_decomp_rmm_twocat <- function(.,C,t,i, cat1 = 3, cat2 = 4) (.super$pars$vmax[[i]]*(C[cat1]+C[cat2])*C[i]) / ((C[cat1]+C[cat2]) + .super$pars$km[[i]])
@@ -265,15 +313,13 @@ f_maintresp_mend <- function(.,C,t,i){
 #########
 #MILLENNIALV2-SPECIFIC FUNCTIONS
 #########
-f_desorp_millennialv2 <- function(.,C,t,i, k = 1) {
+f_desorp_millennialv2 <- function(.,C,t,i, k = 1, cat = NULL) { #cat is dummy
   k*(C[i]/.super$pars$poolmax[[i]])
 }
 
-f_desorp_millennialv2_nosat <- function(.,C,t,i, k = 1) {
+f_desorp_millennialv2_nosat <- function(.,C,t,i, k = 1, cat = NULL) { #cat is dummy
   .super$pars$millennialV2[['kld']]*C[i]
 }
-#alt millennialv2 funcs
-
 
 # f_decomp_rmm_wieder <- function(.,C,t,i,cat = 'cat1', cat_pool = 3){
 #   if(i==7){
