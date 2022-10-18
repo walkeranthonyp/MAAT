@@ -139,7 +139,7 @@ generate_ensemble_pars_mcmc <- function(.) {
       } else if(.$wpars$mcmc$mcmc_type=='dreamzs') {
         n <- .$wpars$mcmc$prior_n 
       }
-      .$dynamic$pars <- lapply(.$dynamic$pars_eval,function(cs) eval(parse(text=cs)))
+      .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
       .$dataf$pars   <- t(do.call(cbind, .$dynamic$pars ))
 
       # boundary handling in case of bounded normal (or other bounded) distributions as prior 
@@ -152,8 +152,12 @@ generate_ensemble_pars_mcmc <- function(.) {
                   pm2) 
            ))
 
+      # where only single par estimated make matrix 
+      if(is.vector(.$dataf$pars)) .$dataf$pars <- matrix(.$dataf$pars, ncol=1 )
+
     } else  stop('wrapper: pars (or pars_eval) list in dynamic list is empty')
   }}
+
 
   # for DREAM-ZS reconfigure pars array 
   # - initialise past state array
