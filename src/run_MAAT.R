@@ -540,13 +540,13 @@ if(!mcmc_restart & !is.null(metdata)) {
     print(metdata, quote=F )
     metdffull <- read.csv(metdata,strip.white=T)
 
-    # ALJ: if doing a Sphagnum simulation
-    #      screen out night-time values from met data file
-    #      subset it to remove 0's and negative values
-    # APW: thinking of a flexible way to do this, it's not that easy. Long term might need to do this in the met data itself
-    sub_idx   <- which(metdffull$EM_PAR_8100_x > 0)
-    metdffull <- metdffull[sub_idx, ]
-    #print(head(metdffull), quote=F )
+#    # ALJ: if doing a Sphagnum simulation
+#    #      screen out night-time values from met data file
+#    #      subset it to remove 0's and negative values
+#    # APW: thinking of a flexible way to do this, it's not that easy. Long term might need to do this in the met data itself
+#    sub_idx   <- which(metdffull$EM_PAR_8100_x > 0)
+#    metdffull <- metdffull[sub_idx, ]
+#    #print(head(metdffull), quote=F )
 
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
     # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML

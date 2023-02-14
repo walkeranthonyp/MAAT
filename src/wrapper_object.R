@@ -110,7 +110,7 @@ wrapper_object$run   <- function(.,verbose=T) {
   if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=.$static$env    )
   if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=.$static$fnames )
 
-  # create matrices of runtime variables
+  # create matrices of dynamic runtime variables
   .$generate_ensemble()
 
   # print summary of maat setup

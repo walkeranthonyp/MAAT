@@ -1035,7 +1035,7 @@ output_factorial  <- function(.) {
       # if met data
       # - so far will only work for factorial simulations
       } else {
-        odf <- cbind(do.call(rbind, lapply(1:length(vardf[,1]), .$combine, df=vardf )), .$dataf$out )
+        odf <- cbind(do.call('rbind', lapply(1:length(vardf[,1]), .$combine, df=vardf )), .$dataf$out )
         if(dim(vardf)[2]==1) names(odf)[which(names(odf)=='df.i...')] <- names(vardf)
         rm(vardf)
         return(odf)
