@@ -1,1 +1,0 @@
-/Users/fs8/Desktop/Project/model_objs_desc.md
