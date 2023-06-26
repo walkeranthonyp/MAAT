@@ -1,0 +1,28 @@
+<default>
+  <fnames>
+    <gwater_rt>
+      <sys>'f_sys_daiye'</sys>
+      <rechrg>'f_rechrg_lin'</rechrg>
+      <geol>'f_geol_single'</geol>
+    </gwater_rt>
+  </fnames>
+  <pars>
+    <gwater_rt>
+      <nx>21</nx>
+      <K>15</K>
+      <K1>20</K1>
+      <K2>10</K2>
+      <a>3.35</a>
+      <b>0.15</b>
+      <L>10000</L>
+      <out_hsub>13</out_hsub>
+    </gwater_rt>
+  </pars>
+  <env>
+    <gwater_rt>
+      <h1>180</h1>
+      <h2>100</h2>
+      <precip>1524</precip>
+    </gwater_rt>
+  </env>
+</default>

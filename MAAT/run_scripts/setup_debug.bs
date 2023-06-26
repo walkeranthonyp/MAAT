@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# bash script to copy MAAT runfiles to a project directory
+# 1st argument - name of the model object 
+# 2nd argument - full path of the project directory, the lowest level directory will be created if it does not exist
+# 3rd argument - runid of run to debug 
+# 4th argument - path of MAAT source code directory 'run_scripts', can be left blank if this script is run from the top level maat source code directory
+# 5th argument - path of MAAT source code directory 'src'        , can be left blank if this script is run from the top level maat source code directory
+
+MOBJ=$1
+PDIR=$2
+RNID=$3
+RSDIR=${4-$PWD/run_scripts}
+SDIR=${5-$PWD/src}
+SDIRM=${SDIR}/system_models
+
+DBGFILE=debug_run_MAAT_call.R
+
+mkdir -p $PDIR 
+cp $RSDIR/$DBGFILE $PDIR && chmod 755 $PDIR/$DBGFILE
+
+# if else
+if [[ $OSTYPE == darwin* ]]; then
+   sed -i '' "s@##SDIR##@$SDIR@"  $PDIR/$DBGFILE
+   sed -i '' "s@##PDIR##@$PDIR@"  $PDIR/$DBGFILE
+   sed -i '' "s@##MOBJ##@$MOBJ@"  $PDIR/$DBGFILE
+   sed -i '' "s@##RNID##@$RNID@"  $PDIR/$DBGFILE
+else
+   sed -i    "s@##SDIR##@$SDIR@"  $PDIR/$DBGFILE
+   sed -i    "s@##PDIR##@$PDIR@"  $PDIR/$DBGFILE
+   sed -i    "s@##MOBJ##@$MOBJ@"  $PDIR/$DBGFILE
+   sed -i    "s@##RNID##@$RNID@"  $PDIR/$DBGFILE
+fi
+
+
+
+### END ###

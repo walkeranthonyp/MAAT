@@ -1,0 +1,23 @@
+<default>
+  <fnames>
+    <template>
+      <sys>'f_sys_1'</sys>
+      <text>'f_text_combine'</text>
+      <calcval>'f_calcval_product'</calcval>
+      <print_out>'f_print_textonly'</print_out>
+    </template>
+  </fnames>
+  <pars>
+    <template>
+      <val1>6</val1>
+      <val2>7</val2>
+    </template>
+  </pars>
+  <env>
+    <template>
+      <text1>'hello'</text1>
+      <text2>'world'</text2>
+      <text3>'The answer is:'</text3>
+    </template>
+  </env>
+</default>

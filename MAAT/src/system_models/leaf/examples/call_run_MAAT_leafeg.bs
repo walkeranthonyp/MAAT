@@ -1,0 +1,20 @@
+#!/bin/bash
+
+SDIR="##SDIR##"
+PDIR="##PDIR##"
+MOBJ="##MOBJ##"
+
+YMD=`date +%Y-%m-%d`
+
+ARGS1="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' runid<-'AnvNum'  mod_out<-'full' multic<-T uq<-F factorial<-T" 
+LOGF1="${PDIR}/logs/${YMD}_AnvNum_runlog.txt"
+ARGS2="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' runid<-'Tcurves' mod_out<-'full' multic<-T uq<-F factorial<-T" 
+LOGF2="${PDIR}/logs/${YMD}_Tcurves_runlog.txt" 
+
+cd $SDIR
+Rscript run_MAAT.R ${ARGS1} > $LOGF1 
+Rscript run_MAAT.R ${ARGS2} > $LOGF2 
+
+
+
+### ENd ###

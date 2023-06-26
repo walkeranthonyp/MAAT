@@ -1,0 +1,42 @@
+<eval_data_translator>
+  <state>
+    <leaf>
+      <oi>'column name of variable in evaldata file'</oi>
+      <ca>'column name of variable in evaldata file'</ca>
+      <cb>'column name of variable in evaldata file'</cb>
+      <ci>'column name of variable in evaldata file'</ci>
+      <cc>'column name of variable in evaldata file'</cc>
+      <leaf_temp>'column name of variable in evaldata file'</leaf_temp>
+      <leafN_area>'column name of variable in evaldata file'</leafN_area>
+      <fwdw_ratio>'column name of variable in evaldata file'</fwdw_ratio>
+      <J>'column name of variable in evaldata file'</J>
+      <Acg>'column name of variable in evaldata file'</Acg>
+      <Ajg>'column name of variable in evaldata file'</Ajg>
+      <Apg>'column name of variable in evaldata file'</Apg>
+      <A>'column name of variable in evaldata file'</A>
+      <rd>'column name of variable in evaldata file'</rd>
+      <lim>'column name of variable in evaldata file'</lim>
+      <A_ana_rbzero>'column name of variable in evaldata file'</A_ana_rbzero>
+      <A_ana_rbg0zero>'column name of variable in evaldata file'</A_ana_rbg0zero>
+      <aguess1>'column name of variable in evaldata file'</aguess1>
+      <aguess2>'column name of variable in evaldata file'</aguess2>
+      <aguess3>'column name of variable in evaldata file'</aguess3>
+      <aguess4>'column name of variable in evaldata file'</aguess4>
+      <faguess1>'column name of variable in evaldata file'</faguess1>
+      <faguess2>'column name of variable in evaldata file'</faguess2>
+      <faguess3>'column name of variable in evaldata file'</faguess3>
+      <faguess4>'column name of variable in evaldata file'</faguess4>
+      <aguess_flag>'column name of variable in evaldata file'</aguess_flag>
+      <iter>'column name of variable in evaldata file'</iter>
+      <estimprec>'column name of variable in evaldata file'</estimprec>
+      <assim1>'column name of variable in evaldata file'</assim1>
+      <assim2>'column name of variable in evaldata file'</assim2>
+      <fA_ana_final1>'column name of variable in evaldata file'</fA_ana_final1>
+      <fA_ana_final2>'column name of variable in evaldata file'</fA_ana_final2>
+      <A_noR>'column name of variable in evaldata file'</A_noR>
+      <transition>'column name of variable in evaldata file'</transition>
+      <photorespiration>'column name of variable in evaldata file'</photorespiration>
+      <d13c>'column name of variable in evaldata file'</d13c>
+    </leaf>
+  </state>
+</eval_data_translator>

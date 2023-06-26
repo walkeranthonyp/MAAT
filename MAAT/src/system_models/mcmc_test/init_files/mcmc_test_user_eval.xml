@@ -1,0 +1,8 @@
+<eval_data_translator>
+  <state>
+    <mcmc_test>
+      <mixture_p>'column name of variable in evaldata file'</mixture_p>
+      <linreg_y>'column name of variable in evaldata file'</linreg_y>
+    </mcmc_test>
+  </state>
+</eval_data_translator>

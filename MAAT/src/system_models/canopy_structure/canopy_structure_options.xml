@@ -1,0 +1,13 @@
+<options>
+  <fnames>
+    <canopy_structure>
+      <sys>'c( 'f_sys_leafdem' )'</sys>
+      <lai>'c( 'f_lai_constant', 'f_lai_env', 'f_lai_leafdem_env', 'f_lai_sphagnum' )'</lai>
+      <leafdem_upper>'c( 'f_leafdem_upper_wu2017' )'</leafdem_upper>
+      <leafdem_lower>'c( 'f_leafdem_lower_wu2017' )'</leafdem_lower>
+      <leafdem_vcmax0>'c( 'f_leafdem_vcmax0_constant' )'</leafdem_vcmax0>
+      <water_status>'c( 'f_water_status_none', 'f_water_status_sphagnum' )'</water_status>
+      <fwdw>'c( 'f_fwdw_wtd_exp', 'f_fwdw_wtd_lin' )'</fwdw>
+    </canopy_structure>
+  </fnames>
+</options>

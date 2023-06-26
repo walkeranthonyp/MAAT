@@ -1,0 +1,20 @@
+#!/bin/bash
+
+RUNID="gwGMDms"
+
+SDIR="##SDIR##"
+PDIR="##PDIR##"
+MOBJ="##MOBJ##"
+NP=32
+
+YMD=`date +%Y-%m-%d`
+
+ARGS="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' runid<-'${RUNID}' multic<-T procs<-${NP} factorial<-F uq<-T mod_out<-'slim' procSA<-T salt<-F psa_n<-1000 eval_strings<-T" 
+LOGF="${PDIR}/logs/${YMD}_MAAT_${RUNID}_PSArunlog.txt"
+
+cd $SDIR
+Rscript run_MAAT.R ${ARGS} > $LOGF
+
+
+
+### END ###

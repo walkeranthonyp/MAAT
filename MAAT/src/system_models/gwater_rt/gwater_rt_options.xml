@@ -1,0 +1,9 @@
+<options>
+  <fnames>
+    <gwater_rt>
+      <sys>'c( 'f_sys_daiye' )'</sys>
+      <rechrg>'c( 'f_rechrg_lin', 'f_rechrg_power' )'</rechrg>
+      <geol>'c( 'f_geol_double', 'f_geol_single' )'</geol>
+    </gwater_rt>
+  </fnames>
+</options>

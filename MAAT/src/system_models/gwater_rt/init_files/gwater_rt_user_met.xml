@@ -1,0 +1,9 @@
+<met_data_translator>
+  <env>
+    <gwater_rt>
+      <h1>'column name of variable in metdata file'</h1>
+      <h2>'column name of variable in metdata file'</h2>
+      <precip>'column name of variable in metdata file'</precip>
+    </gwater_rt>
+  </env>
+</met_data_translator>

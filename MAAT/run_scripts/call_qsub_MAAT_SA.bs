@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# bash script to excute MAAT on a cluster using pbs and pbs script
+# this script excutes both a process sensitivty analysis (SA) and a parameter SA 
+# this script is copied to $PDIR and can be edited there to customise the runs 
+
+# 1st argument - the MAAT runid
+RUNID=$1
+
+SDIR="##SDIR##"
+PDIR="##PDIR##"
+MOBJ="##MOBJ##"
+NP=32
+
+YMD=`date +%Y-%m-%d`
+
+cd $PDIR
+qsub qsubmit_MAAT_ORNLCADES.pbs -v ARGS="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' runid<-'${RUNID}' multic<-T procs<-${NP} factorial<-F uq<-T mod_out<-'slim' procSA<-T salt<-F psa_n<-1000 eval_strings<-T" -N "${YMD}_MAAT_${RUNID}_PSA"
+
+qsub qsubmit_MAAT_ORNLCADES.pbs -v ARGS="srcdir<-'${SDIR}' pdir<-'${PDIR}' mod_obj<-'${MOBJ}' runid<-'${RUNID}' multic<-T procs<-${NP} factorial<-F uq<-T mod_out<-'slim' procSA<-F salt<-T psa_n<-1000 sobol_nmult<-1000 eval_strings<-T" -N "${YMD}_MAAT_${RUNID}_SSA"
+
+
+
+### END ###

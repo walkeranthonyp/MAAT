@@ -1,0 +1,9 @@
+<met_data_translator>
+  <env>
+    <template>
+      <text1>'column name of variable in metdata file'</text1>
+      <text2>'column name of variable in metdata file'</text2>
+      <text3>'column name of variable in metdata file'</text3>
+    </template>
+  </env>
+</met_data_translator>
