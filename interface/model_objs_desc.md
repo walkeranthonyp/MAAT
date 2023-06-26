@@ -1,1 +1,13 @@
-/Users/fs8/Desktop/Project/model_objs_desc.md
+# Below is a description for each of the models
+
+## Leaf:
+
+Leaf is ...
+
+## Canopy:
+
+Canopy is ...
+
+## Canopy Structure:
+
+Canopy Structure is ...
