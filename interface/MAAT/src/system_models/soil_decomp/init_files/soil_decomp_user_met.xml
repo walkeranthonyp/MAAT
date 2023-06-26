@@ -1,9 +1,0 @@
-<met_data_translator>
-  <env>
-    <soil_decomp>
-      <litter>'column name of variable in metdata file'</litter>
-      <temp>'column name of variable in metdata file'</temp>
-      <swc>'column name of variable in metdata file'</swc>
-    </soil_decomp>
-  </env>
-</met_data_translator>

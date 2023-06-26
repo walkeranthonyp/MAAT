@@ -1,8 +1,0 @@
-<met_data_translator>
-  <env>
-    <mcmc_test>
-      <dummy>'column name of variable in metdata file'</dummy>
-      <linreg_x>'column name of variable in metdata file'</linreg_x>
-    </mcmc_test>
-  </env>
-</met_data_translator>
