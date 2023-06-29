@@ -5,34 +5,16 @@ library(magrittr)
 library(shinyBS)
 library(XML)
 
-# Read the XML file and extract the options
 xml_file <- "/Users/fs8/Desktop/Project/MAAT/src/system_models/leaf/leaf_default.xml"
 xml_data <- read_xml(xml_file)
 
-# Read the leaf_options XML file and extract the options 
-leaf_options <- "/Users/fs8/Desktop/Project/MAAT/src/system_models/leaf/leaf_options.xml"
-leaf_xml_options <- read_xml(leaf_options)
-# xml_structure(leaf_xml_options)
+leaf_static <- read_xml("/Users/fs8/Desktop/Project/MAAT/src/system_models/leaf/init_files/leaf_user_static.xml")
 
-# Find parent nodes
-top_parent <- xml_data %>% xml_find_first(".")
-parent_nodes <- xml_data %>% xml_children() %>% xml_name() 
+leaf_pars <- xml_data %>% xml_find_first(".//pars/leaf")
+leaf_pars_name <- xml_children(leaf_pars) %>% xml_name()
+leaf_pars_value <- xml_children(leaf_pars) %>% xml_text()
 
-# Find grandchild node names for each parent node
-fnames_leaf_node <- xml_data %>% xml_find_first(".//fnames/leaf")
-fnames_grandchild_node_names <- xml_children(fnames_leaf_node) %>% xml_name()
-fnames_grandchild_node_values <- xml_children(fnames_leaf_node)  %>% xml_text()
-
-pars_leaf_node <- xml_data %>% xml_find_first(".//pars/leaf")
-pars_grandchild_node_names <- xml_children(pars_leaf_node) %>% xml_name()
-pars_grandchild_node_values <- xml_children(pars_leaf_node) %>% xml_text()
-
-pars_ggc_names <- xml_find_all(pars_leaf_node, ".//*[count(*) > 1]") %>% xml_name()
-
-env_leaf_node <- xml_data %>% xml_find_first(".//env/leaf")
-env_grandchild_node_names <- xml_children(env_leaf_node) %>% xml_name()
-env_grandchild_node_values <- xml_children(env_leaf_node) %>% xml_text()
-
+leaf_pars_ggc <- xml_find_all(leaf_pars, ".//*[count(*) > 1]") %>% xml_name()
 
 ui <- fluidPage(
   titlePanel(""),
@@ -51,86 +33,111 @@ ui <- fluidPage(
     column(10, 
            bsCollapse(id = "collapse_ex", open = "Parameters", multiple = TRUE,
                       bsCollapsePanel("Parameters w/Sub-Script", 
-                                      selectInput("grandchild_params", "Select Parameter", choices = pars_ggc_names),
+                                      selectInput("gc_pars", "Select Parameter", choices = leaf_pars_ggc),
                                       uiOutput("grandchild_textboxes"),
-                                      style = "success"),
-                      bsCollapsePanel("Parameters", uiOutput("ui"), style = "info")
+                                      style = "success", 
+                                      fluidRow(
+                                        column(12, align = "right",
+                                               actionButton("update_button", "Update")
+                                        )
+                                      )
+                      ),
+                      bsCollapsePanel("Parameters", 
+                                      uiOutput("ui"), 
+                                      style = "info"
+                      )
            )
     )
   )
 )
 
 server <- function(input, output, session) {
+  pars_gc_names <- reactiveValues(names = NULL)
+  
   observeEvent(input$parts, {
-    pars_leaf_node <- pars_grandchild_node_names
+    leaf_pars <- leaf_pars_name
     
     output$ui <- renderUI({
       fluidRow(
-        lapply(pars_leaf_node, function(node_name) {
-          if (node_name %in% pars_ggc_names) {
+        lapply(leaf_pars, function(node_name) {
+          if (node_name %in% leaf_pars_ggc) {
             return(NULL)
           }
-          if (node_name %in% pars_grandchild_node_names) {
-            node_index <- match(node_name, pars_grandchild_node_names)
-            default_value <- pars_grandchild_node_values[node_index]
+          if (node_name %in% leaf_pars_name) {
+            node_index <- match(node_name, leaf_pars_name)
+            default_value <- leaf_pars_value[node_index]
             
             column(6, textInput(node_name, label = node_name, value = default_value))
-          }  
+          } 
         }) 
       )
     })
     
     output$grandchild_textboxes <- renderUI({
-      grandchild_param <- input$grandchild_params # grandchild_param gets the selected parameter from the dropdown menu
+      pars_gc_options <- input$gc_pars # grandchild_options gets the selected parameter from the dropdown menu
       
-      reftemp <- xml_data %>% xml_find_first(paste0(".//pars/leaf/", grandchild_param))
-      reftemp_names <- xml_children(reftemp) %>% xml_name()
-      reftemp_values <- xml_children(reftemp) %>% xml_text()
+      pars_grandchilds <- xml_data %>% xml_find_first(paste0(".//pars/leaf/", pars_gc_options))
+      pars_gc_names$names <- xml_children(pars_grandchilds) %>% xml_name() # Update the reactive value
+      pars_gc_values <- xml_children(pars_grandchilds) %>% xml_text()
       
-      # grandchild_node_values <- get_grandchild_node_values(grandchild_param)  # Function to get the values based on the selected parameter
-      
-      pars_ggc <- reftemp_names
-      
-      lapply(pars_ggc, function(pars_node_name) {
-        if (pars_node_name %in% reftemp_names) {
-          pars_node_index <- match(pars_node_name, reftemp_names)
-          pars_def_value <- reftemp_values[pars_node_index]
-          
-          column(6, textInput(pars_node_name, label = pars_node_name, value = pars_def_value))
-        }
+      lapply(pars_gc_names$names, function(pars_gc_nodes) {
+        pars_node_index <- match(pars_gc_nodes, pars_gc_names$names)
+        pars_def_value <- pars_gc_values[pars_node_index]
+        
+        column(6, textInput(pars_gc_nodes, label = pars_gc_nodes, value = pars_def_value))
       })
     })
   })
   
-  get_grandchild_node_values <- function(param) {
-    switch(param,
-           "reftemp" = list(rd = 25, vcmax = 25, jmax = 25, tpu = 25, k_pepc = 25, Kc = 25, Ko = 25, gstar = 25, tau = 25),
-           "atref" = list(rd = 2, vcmax = 50, jmax = 100, tpu = 5, k_pepc = 7e+05, Kc = 40.49, Ko = 27.84, gstar = 4.325, tau = 2.6, vomax = 0),
-           "Ha" = list(rd = 69830, vcmax = 69830, jmax = 100280, tpu = 69830, k_pepc = 69830, Kc = 79430, Ko = 36380, gstar = 37830, tau = -41572, vomax = 60110),
-           "Hd" = list(rd = 2e+05, vcmax = 2e+05, jmax = 2e+05, tpu = 2e+05, k_pepc = 2e+05),
-           "Topt" = list(rd = 27.56, vcmax = 27.56, jmax = 19.89, tpu = 27.56, k_pepc = 27.56),
-           "deltaS" = list(rd = 0, vcmax = 0, jmax = 0, tpu = 0, k_pepc = 0),
-           "a_deltaS_t" = list(rd = 490, vcmax = 668, jmax = 660, tpu = 485),
-           "b_deltaS_t" = list(rd = 0, vcmax = -1.07, jmax = -0.75, tpu = 0),
-           "c_deltaS_t" = list(rd = 0, vcmax = 0, jmax = -0.52, tpu = 0),
-           "q10" = list(rd = 2, vcmax = 2, jmax = 2, tpu = 2, k_pepc = 2, Kc = 2, Ko = 2, tau = 0.57),
-           "tupp_cox" = list(vcmax = 36, rd = 45),
-           "tlow_cox" = list(vcmax = 0, rd = 5),
-           "exp_cox" = list(vcmax = 0.3, rd = 0.4),
-           NULL
-    )
-  }
-  
-  # Update the input values when the user makes changes
-  observeEvent(input$ui, {
-    for (node_name in pars_leaf_node) {
-      if (node_name %in% pars_grandchild_node_names) {
-        updateTextInput(session, node_name, value = input[[node_name]])
+  observeEvent(input$update_button, {
+    # Retrieve the input data from the "Parameters w/Sub-Script" panel
+    input_data <- lapply(pars_gc_names$names, function(pars_gc_nodes) {
+      if (pars_gc_nodes %in% pars_gc_names$names) {
+        input_value <- input[[pars_gc_nodes]]
+        return(list(node_name = pars_gc_nodes, value = input_value))
+      }
+      print(input_data)
+    })
+    
+    for (input_item in input_data) {
+      if (!is.null(input_item)) {
+        # print("Input:", input_item$node_name, "Value:", input_item$value, "\n")
+        # print(input_item$node_name)
       }
     }
   })
+
+  
+  # observeEvent(input$update_button, {
+  #   # Create a copy of the XML data
+  #   updated_xml_data <- xml_data
+  # 
+  #   # Update the values in the XML data based on the user input
+  #   for (node_name in leaf_pars_name) {
+  #     if (node_name %in% leaf_pars_ggc) {
+  #       next
+  #     }
+  # 
+  #     new_value <- input[[node_name]]
+  # 
+  #     # Find the corresponding XML node and update its text
+  #     node <- xml_find_first(updated_xml_data, paste0(".//pars/leaf/", node_name))
+  #     if (!is.null(node)) {
+  #       xml_text(node) <- new_value
+  #     }
+  #   }
+  # 
+  #   # Save the updated XML data to a new file
+  #   new_xml_file <- "/Users/fs8/Desktop/Project/test/updated_leaf.xml"
+  #   write_xml(updated_xml_data, new_xml_file)
+  # 
+  #   # Show a success message or perform any additional actions
+  #   showModal(modalDialog(
+  #     title = "Update Successful",
+  #     "The XML file has been updated.",
+  #     easyClose = TRUE
+  #   ))
+  # })
 }
-
-
 
 shinyApp(ui = ui, server = server)
