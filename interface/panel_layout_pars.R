@@ -38,13 +38,18 @@ ui <- fluidPage(
                                       style = "success", 
                                       fluidRow(
                                         column(12, align = "right",
-                                               actionButton("update_button", "Update")
+                                               actionButton("pss_update_button", "Update")
                                         )
                                       )
                       ),
                       bsCollapsePanel("Parameters", 
                                       uiOutput("ui"), 
-                                      style = "info"
+                                      style = "info", 
+                                      fluidRow(
+                                        column(12, align = "right",
+                                               actionButton("p_update_button", "Update")
+                                        )
+                                      )
                       )
            )
     )
@@ -89,55 +94,83 @@ server <- function(input, output, session) {
     })
   })
   
-  observeEvent(input$update_button, {
+  observeEvent(input$pss_update_button, {
+    updated_xml_data <- xml_data
+    pars_gc_options <- input$gc_pars
+    
     # Retrieve the input data from the "Parameters w/Sub-Script" panel
     input_data <- lapply(pars_gc_names$names, function(pars_gc_nodes) {
       if (pars_gc_nodes %in% pars_gc_names$names) {
         input_value <- input[[pars_gc_nodes]]
-        return(list(node_name = pars_gc_nodes, value = input_value))
+        return(data.frame(node_name = pars_gc_nodes, value = input_value))
       }
-      print(input_data)
     })
     
-    for (input_item in input_data) {
-      if (!is.null(input_item)) {
-        # print("Input:", input_item$node_name, "Value:", input_item$value, "\n")
-        # print(input_item$node_name)
+    # Remove NULL elements from the list
+    input_data <- input_data[!sapply(input_data, is.null)]
+    
+    # Combine the list of data frames into a single data frame
+    input_data_df <- do.call(rbind, input_data)
+    
+    for (i in seq_len(nrow(input_data_df))) {
+      # Access individual rows of the data frame
+      input_item <- input_data_df[i, ]
+      
+      # Access values from the input_item row
+      node_name <- input_item$node_name
+      value <- input_item$value
+      
+      # Find the corresponding XML node and update its text
+      xpath <- paste0(".//pars/leaf/", pars_gc_options, "/", node_name)
+      # print(xpath)
+      node <- xml_find_first(updated_xml_data, xpath)
+      
+      if (!is.null(node)) {
+        xml_text(node) <- value
       }
     }
+    
+    new_xml_file <- "/Users/fs8/Desktop/Project/test/updated_leaf.xml"
+    write_xml(updated_xml_data, new_xml_file)
+    
+    showModal(modalDialog(
+      title = "Update Successful",
+      "The XML file has been updated.",
+      easyClose = TRUE
+    ))
   })
-
   
-  # observeEvent(input$update_button, {
-  #   # Create a copy of the XML data
-  #   updated_xml_data <- xml_data
-  # 
-  #   # Update the values in the XML data based on the user input
-  #   for (node_name in leaf_pars_name) {
-  #     if (node_name %in% leaf_pars_ggc) {
-  #       next
-  #     }
-  # 
-  #     new_value <- input[[node_name]]
-  # 
-  #     # Find the corresponding XML node and update its text
-  #     node <- xml_find_first(updated_xml_data, paste0(".//pars/leaf/", node_name))
-  #     if (!is.null(node)) {
-  #       xml_text(node) <- new_value
-  #     }
-  #   }
-  # 
-  #   # Save the updated XML data to a new file
-  #   new_xml_file <- "/Users/fs8/Desktop/Project/test/updated_leaf.xml"
-  #   write_xml(updated_xml_data, new_xml_file)
-  # 
-  #   # Show a success message or perform any additional actions
-  #   showModal(modalDialog(
-  #     title = "Update Successful",
-  #     "The XML file has been updated.",
-  #     easyClose = TRUE
-  #   ))
-  # })
+  observeEvent(input$p_update_button, {
+    # Create a copy of the XML data
+    updated_xml_data <- xml_data
+    
+    # Update the values in the XML data based on the user input
+    for (node_name in leaf_pars_name) {
+      if (node_name %in% leaf_pars_ggc) {
+        next
+      }
+      
+      new_value <- input[[node_name]]
+      
+      # Find the corresponding XML node and update its text
+      node <- xml_find_first(updated_xml_data, paste0(".//pars/leaf/", node_name))
+      
+      if (!is.null(node)) {
+        xml_text(node) <- new_value
+      }
+    }
+    
+    # Save the updated XML data to a new file
+    new_xml_file <- "/Users/fs8/Desktop/Project/test/updated_leaf.xml"
+    write_xml(updated_xml_data, new_xml_file)
+
+    # Show a success message or perform any additional actions
+    showModal(modalDialog(
+      title = "Update Successful",
+      "The XML file has been updated.",
+      easyClose = TRUE
+    ))
+  })
 }
 
 shinyApp(ui = ui, server = server)
