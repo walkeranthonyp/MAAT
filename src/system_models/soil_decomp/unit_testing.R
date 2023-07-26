@@ -81,5 +81,9 @@ soil_decomp_object$.test_var_kinetics_yearly(kinetics = 'rmm', vmax1 = 2, vmax3 
 soil_decomp_object$.test_var_kinetics_yearly(kinetics = 'lin', k1 = .3, k3 = .09)
 
 
+source('soil_decomp_object.R')
+soil_decomp_object$.test.ctc()
+
+
 
 ### END ###

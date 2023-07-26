@@ -1,7 +1,7 @@
 ################################
 #
 # Script to generate default and option XMLs from a newly created MAAT model object 
-# call this from the command line inside the run_scripts directory with RScript   
+# call this from the command line inside the head directory with RScript   
 #
 # AWalker November 2017
 #
@@ -11,7 +11,7 @@ mod_obj <- NULL
 
 # parse command line arguments   
 # - any one of the above objects can be specified as a command line argument using the syntax:
-# - Rscript <nameofthisscript> "<object1> <- <value1>" 
+# - Rscript ./run_script/<nameofthisscript> "<object1> <- <value1>" 
 # - e.g. Rscript create_default_XMLs.R "mod_obj <- 'template'" 
 
 if(length(commandArgs(T))>=1) {

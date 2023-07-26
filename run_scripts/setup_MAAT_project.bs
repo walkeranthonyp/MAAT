@@ -15,21 +15,21 @@ SDIRM=${SDIR}/system_models
 mkdir -p $PDIR >/dev/null 2>&1
 mkdir -p $PDIR/logs >/dev/null 2>&1
 
-cp    $RSDIR/qsubmit_MAAT_arg_ORNLCADES.pbs $PDIR && chmod 755 $PDIR/qsubmit_MAAT_arg_ORNLCADES.pbs
+cp    $RSDIR/slurm_MAAT_ORNLCADES.sbatch    $PDIR && chmod 755 $PDIR/slurm_MAAT_ORNLCADES.sbatch
 cp    $RSDIR/call_run_MAAT*.bs              $PDIR && chmod 755 $PDIR/call_run_MAAT*.bs
 cp    $SDIRM/$MOBJ/init_files/init_MAAT.R   $PDIR && chmod 755 $PDIR/init_MAAT.R
 cp    $SDIRM/$MOBJ/init_files/*.xml         $PDIR && chmod 755 $PDIR/*.xml
 
 # if else
 if [[ $OSTYPE == darwin* ]]; then
-   sed -i '' "s@##SDIR##@$SDIR@"  $PDIR/qsubmit_MAAT*.pbs
-   sed -i '' "s@##PDIR##@$PDIR@"  $PDIR/qsubmit_MAAT*.pbs
+   sed -i '' "s@##SDIR##@$SDIR@"  $PDIR/slurm_MAAT*.sbatch
+   sed -i '' "s@##PDIR##@$PDIR@"  $PDIR/slurm_MAAT*.sbatch
    sed -i '' "s@##SDIR##@$SDIR@"  $PDIR/call_run_MAAT*.bs
    sed -i '' "s@##PDIR##@$PDIR@"  $PDIR/call_run_MAAT*.bs
    sed -i '' "s@##MOBJ##@$MOBJ@"  $PDIR/call_run_MAAT*.bs
 else
-   sed -i    "s@##SDIR##@$SDIR@"  $PDIR/qsubmit_MAAT*.pbs
-   sed -i    "s@##PDIR##@$PDIR@"  $PDIR/qsubmit_MAAT*.pbs
+   sed -i    "s@##SDIR##@$SDIR@"  $PDIR/slurm_MAAT*.sbatch
+   sed -i    "s@##PDIR##@$PDIR@"  $PDIR/slurm_MAAT*.sbatch
    sed -i    "s@##SDIR##@$SDIR@"  $PDIR/call_run_MAAT*.bs
    sed -i    "s@##PDIR##@$PDIR@"  $PDIR/call_run_MAAT*.bs
    sed -i    "s@##MOBJ##@$MOBJ@"  $PDIR/call_run_MAAT*.bs

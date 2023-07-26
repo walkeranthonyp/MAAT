@@ -66,8 +66,9 @@ f_tcor_wieder <- function(.,C,t,i){
 ###################
 
 # linear decomp, Oleson 1963
-#MEND O6,O7
-f_decomp_lin        <- function(.,C,t,i, k_from_list = TRUE, k = NULL) {
+# MEND O6,O7
+# convert this to two functions, one which takes k from list as an arg and one that callc that with an alternative k 
+f_decomp_lin        <- function(., C, t, i, k_from_list=TRUE, k=NULL ) {
   if(k_from_list == TRUE){
     C[i]*.super$pars$k[[i]]
   } else {
@@ -76,23 +77,26 @@ f_decomp_lin        <- function(.,C,t,i, k_from_list = TRUE, k = NULL) {
 }
 
 # density-dependent decomp, used for density-dependent turnover as in Georgiou et al. 2017  
-f_decomp_dd_georgiou         <- function(.,C,t,i) (C[i]^.super$pars$beta) * .super$pars$k[[i]]      
+f_decomp_dd_georgiou <- function(.,C,t,i) 
+  (C[i]^.super$pars$beta) * .super$pars$k[[i]]      
 
 # non-linear Michaelis-Menten decomp, a function of microbial biomass
-f_decomp_MM_microbe <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[i])
+f_decomp_MM_microbe <- function(.,C,t,i) 
+  (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[i])
 
 # reverse Michaelis-Menten decomp
 #C[4] is microbial biomass in CORPSE
-f_decomp_rmm <- function(.,C,t,i, cat = 4) (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[cat] + .super$pars$km[[i]])
+f_decomp_rmm <- function(.,C,t,i, cat = 4) 
+  (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[cat] + .super$pars$km[[i]])
 
 # double Michaelis-Menten decomp
-f_decomp_dmm <- function(.,C,t,i){
+f_decomp_dmm <- function(.,C,t,i)
   .super$pars$vmax[[i]] * (C[1]/(.super$pars$km[[1]] + C[1])) * (C[2]/(.super$pars$rkm[[1]]+C[2]))
-}
 
-f_decomp_mm <- function(.,C,t,i,cat){
+
+f_decomp_mm <- function(.,C,t,i,cat)
   (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[i] + .super$pars$km[[i]])
-}
+
 
 f_sorp_sat  <- function(.,C,t,i, k_from_list = TRUE, k = NULL, sat_pool) {
   if(k_from_list == TRUE){
@@ -103,6 +107,7 @@ f_sorp_sat  <- function(.,C,t,i, k_from_list = TRUE, k = NULL, sat_pool) {
 }
 
 f_zero <- function(.,C,t,i) 0
+
 
 #########
 #MEND-SPECIFIC FUNCTIONS

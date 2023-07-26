@@ -74,8 +74,24 @@ soil_decomp_object$fnames <- list(
   input              = 'f_input',
   DotO               = 'f_DotO',
   transfermatrix     = 'f_transfermatrix',
-  steadystate        ='f_steadystate_npools', # options: 'f_steadystate_null','f_steadystate_npools',
+  steadystate        = 'f_steadystate_npools', # options: 'f_steadystate_null','f_steadystate_npools',
   solver_steadystate = 'pstode',
+  
+  docuptake  = 'f_decomp_mm', #MM uptake of DOC
+  growthresp = NA,
+  maintresp  = NA,
+  scor       = NA,
+  wcor       = 'f_wcor_ghezzehei_diffusion',
+  wcor2      = 'f_wcor_ghezzehei_biological',
+  
+  #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
+  tcor = list(                  #this structure for corpse
+    t1 = 'f_tcor_arrhenius_millennialv2',
+    t2 = NULL,
+    t3 = NULL,
+    t4 = 'f_tcor_arrhenius_millennialv2',
+    t5 = NULL
+  ),
   
   # decay/decomposition functions
   decomp = list(
@@ -83,7 +99,9 @@ soil_decomp_object$fnames <- list(
     d2 = 'f_decomp_dd_georgiou',  
     d3 = 'f_zero', 
     d4 = 'f_decomp_lin', 
-    d5 = 'f_decomp_lin'
+    d5 = 'f_decomp_lin',
+    d6 = 'f_decomp_lin',
+    d7 = 'f_decomp_lin'
   ),
   
   desorp = list(
@@ -103,25 +121,6 @@ soil_decomp_object$fnames <- list(
   aggform = list( 
     a1 = 'f_decomp_lin', #Aggregate formation from POM
     a3 = 'f_decomp_lin'  #Aggregate formation from MAOM
-  ),
-  
-  docuptake = 'f_decomp_mm', #MM uptake of DOC
-  
-  growthresp = NA,
-  
-  maintresp = NA,
-  
-  scor = NA,
-  wcor = 'f_wcor_ghezzehei_diffusion',
-  wcor2 = 'f_wcor_ghezzehei_biological',
-
-  #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
-  tcor = list(                  #this structure for corpse
-    t1 = 'f_tcor_arrhenius_millennialv2',
-    t2 = NULL,
-    t3 = NULL,
-    t4 = 'f_tcor_arrhenius_millennialv2',
-    t5 = NULL
   ),
   
   # transfer list
@@ -145,21 +144,21 @@ soil_decomp_object$fnames <- list(
 # environment
 ####################################
 soil_decomp_object$env <- list(
-  litter = 172.8978/365, #forc_npp in MILLENNIALv2
-  temp   = 11.21961, #default for MILLENNIALv2 (sum across mean year)
-  vwc    = .2422044, #default for MILLENNIALv2 (average across mean year)
-  porosity = 0.6, #default for MILLENNIALv2
-  clay = .0, 
-  lignin = 0,
-  N = 0,
-  anpp = 0,
-  depth = 0,
-  pH = 7, #default for MILLENNIALv2
-  BD = 1000,  #default for MILLENNIALv2 #Bulk density 
-  matpot = 15, #default for MILLENNIALv2
-  lambda = 2.1000e-04, #default for MILLENNIALv2
-  kamin = .2, #default for MILLENNIALv2
-  claysilt = 80  #default for MILLENNIALv2 #MILLENNIAL uses clay+silt% to calculate Qmax
+  litter   = 172.8978/365, # forc_npp in MILLENNIALv2
+  temp     = 11.21961,     # default for MILLENNIALv2 (sum across mean year)
+  vwc      = .2422044,     # default for MILLENNIALv2 (average across mean year)
+  porosity = 0.6,          # default for MILLENNIALv2
+  clay     = .0, 
+  lignin   = 0,
+  N        = 0,
+  anpp     = 0,
+  depth    = 0,
+  pH       = 7,            # default for MILLENNIALv2
+  BD       = 1000,         # default for MILLENNIALv2   # Bulk density 
+  matpot   = 15,           # default for MILLENNIALv2
+  lambda   = 2.1000e-04,   # default for MILLENNIALv2
+  kamin    = .2,           # default for MILLENNIALv2
+  claysilt = 80            # default for MILLENNIALv2   # MILLENNIAL uses clay+silt% to calculate Qmax
 )
 
 
@@ -211,7 +210,9 @@ soil_decomp_object$pars <- list(
     input_coef2 = 0,
     input_coef3 = 0,
     input_coef4 = .34,
-    input_coef5 = 0
+    input_coef5 = .34,
+    input_coef6 = .34,
+    input_coef7 = 0
   ),
   
   # initial pool mass for each pool
@@ -220,7 +221,9 @@ soil_decomp_object$pars <- list(
     cstate02 = 1,          
     cstate03 = 1,      
     cstate04 = 1,       
-    cstate05 = 1
+    cstate05 = 1,       
+    cstate06 = 1,       
+    cstate07 = 1
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
@@ -231,7 +234,9 @@ soil_decomp_object$pars <- list(
     cue2 = NA,       
     cue3 = NA,
     cue4 = .19,
-    cue5 = NA
+    cue5 = NA,
+    cue6 = NA,
+    cue7 = NA
   ),  
   
   cue2 = list( 
@@ -239,7 +244,9 @@ soil_decomp_object$pars <- list(
     cue2 = NA,       
     cue3 = NA,
     cue4 = NA,
-    cue5 = NA
+    cue5 = NA,
+    cue6 = NA,
+    cue7 = NA
   ),  
 
   # max turnover rate per unit microbial biomass for pool i
@@ -249,7 +256,9 @@ soil_decomp_object$pars <- list(
     vmax2 = NA,   #Vm
     vmax3 = NA,
     vmax4 = 2.3000e+12, #alpha_lb #pre-exponential constant for temp sensitivity of DOC uptake
-    vmax5 = NA
+    vmax5 = NA,
+    vmax6 = NA,
+    vmax7 = NA
   ),
   
   vmax2 = list(
@@ -257,7 +266,9 @@ soil_decomp_object$pars <- list(
     vmax2 = NA,
     vmax3 = NA,
     vmax4 = NA,
-    vmax5 = NA
+    vmax5 = NA,
+    vmax6 = NA,
+    vmax7 = NA
   ),
   
   # idea for how to handle one pool being decomposed by multiple catalysts (e.g. multiple microbial pools or multiple enzyme pools)
@@ -280,7 +291,9 @@ soil_decomp_object$pars <- list(
     km2 = NA,
     km3 = NA,
     km4 = 774.6, #DOC uptake half sat constant,
-    km5 = NA
+    km5 = NA,
+    km6 = NA,
+    km7 = NA
   ),
   
   km2 = list( 
@@ -288,7 +301,9 @@ soil_decomp_object$pars <- list(
     km2 = NA,     
     km3 = NA,
     km4 = NA,
-    km5 = NA
+    km5 = NA,
+    km6 = NA,
+    km7 = NA
   ),
   
   # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i
@@ -298,16 +313,20 @@ soil_decomp_object$pars <- list(
     rkm2 = NA,     
     rkm3 = NA,
     rkm4 = NA,
-    rkm5 = NA
+    rkm5 = NA,
+    rkm6 = NA,
+    rkm7 = NA
   ),   
 
   # turnover rate for linear decomposition
   k = list(    
-    k1 = .018, #aggregate formation from POM       
+    k1 = .018,       #aggregate formation from POM       
     k2 = 4.5000e-03, #microbial turnover rate   
     k3 = 4.8000e-03, #aggregate formation from maom 
-    k4 = .0015, #leaching rate (kd)
-    k5 = .02 #aggregrate breakdown rate (kb)
+    k4 = .0015,      #leaching rate (kd)
+    k5 = .02,        #aggregrate breakdown rate (kb)
+    k6 = .02,        #aggregrate breakdown rate (kb)
+    k7 = .02         #aggregrate breakdown rate (kb)
   ),
 
   # maximum size for pool i 
@@ -316,7 +335,9 @@ soil_decomp_object$pars <- list(
     poolmax2 = NA,       
     poolmax3 = NA, #this is calculated in solver function 
     poolmax4 = NA,
-    poolmax5 = NA
+    poolmax5 = NA,
+    poolmax6 = NA,
+    poolmax7 = NA
   ),
   
   #mimics-specific parameters
@@ -619,12 +640,90 @@ soil_decomp_object$.test.mimics.ss <- function(., verbose=F, metdf=F, litter=172
 }
 
 
+soil_decomp_object$.test.ctc <- function(., verbose=F, metdf=F, 
+                                         litter=1, ntimes=1 ) {
+  
+  if(verbose) str(.)
+  .$build(switches=c(F,verbose,F))
+  .$configure_test() # if only used in test functions should begin with a .
+  
+  .$fnames <- list(
+    sys                = 'f_sys_npools',
+    solver             = 'plsoda',
+    solver_func        = 'f_solver_func_mimics',
+    # input              = 'f_input_mimics',
+    steadystate        = 'f_steadystate_npools',
+    solver_steadystate = 'pstode',
+    decomp = list(
+      d1 = 'f_decomp_lin', 
+      d2 = 'f_decomp_lin', 
+      d3 = 'f_decomp_lin', 
+      d4 = 'f_decomp_lin', 
+      d6 = 'f_decomp_lin',
+      d7 = 'f_decomp_lin'
+    )
+  )
+  
+  .$pars <- list(
+    n_pools = 7,          # number of pools in model  
+    
+    # initial pool mass for each pool
+    # values are equilibrium calculated with stode function in DeSolve script
+    cstate0 <- list(
+      cstate01 = 0.1, 
+      cstate02 = 0.1,          
+      cstate03 = 0.1,      
+      cstate04 = 0.1,       
+      cstate05 = 0.1,
+      cstate06 = 0.1,
+      cstate07 = 0.1
+    ),
+    
+    input_coefs = list(
+      input_coef1 = 0.1,
+      input_coef2 = 0.2,
+      input_coef3 = 0.5,
+      input_coef4 = 0.3,
+      input_coef5 = 0.5,
+      input_coef6 = 0.5,
+      input_coef7 = 0
+    ),
+    
+    # Carbon use efficiency from pool i r-microbes (cue) or k-microbes (cue2)
+    cue = list(
+      cue1 = 1.0,       
+      cue2 = 0.61,  
+      cue3 = 0.45,
+      cue4 = 0.71,
+      cue5 = 0.72,
+      cue6 = 0.54,
+      cue7 = 0
+    ),  
 
-
-
-
-
-
+    # turnover rate for linear decomposition
+    k = list(
+      k1 = .001,
+      k2 = .7,
+      k3 = .07,
+      k4 = .014,
+      k5 = .07,
+      k6 = .014,
+      k7 = .0005
+    )
+  )
+  
+  .$env <- list(
+    litter = 1#,
+    # temp   = 20,          # soil temperature
+    # clay   = .05,            # proportion clay (i.e. .4 = 40%) #default = .4, changed to .05 to match CORPSE
+    # lignin = 16.6,        # Lignin concentration of litter inputs (units must be same as N (%))
+    # N      = 1.37,             # N concentration of litter inputs (units must be same as lignin (%))
+    # anpp   = 500*24,           # ANPP (gC / m^2 / y) 
+    # depth  = 20           # depth (cm)
+  )
+  
+  .$run()
+}
 
 
 
