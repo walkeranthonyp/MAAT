@@ -97,6 +97,8 @@ server <- function(input, output, session) {
   pars_rv <- reactiveValues(names = NULL)
   env_rv <- reactiveValues(names = NULL)
   
+  fnames_gc_rv <- reactiveValues()
+  
   output$gc_params_ui <- renderUI({})
   output$gc_textboxes <- renderUI({})
   
@@ -112,7 +114,7 @@ server <- function(input, output, session) {
             f_o_names <- xml_children(f_options) %>% xml_name()
             f_o_values <- xml_children(f_options) %>% xml_text()
             f_o_values <- trimws(gsub("^\\s*'c\\(|\\)'\\s*$", "", f_o_values))
-            
+
             split_values <- strsplit(f_o_values, "', '")
 
             nodes_with_multiple_values <- list()
@@ -129,7 +131,7 @@ server <- function(input, output, session) {
 
             f_o_final_names <- unlist(nodes_with_multiple_values)
             f_o_final_values <- unlist(values_with_multiple_values)
-           
+
             # The new code to read and populate f_o_final_values correctly
             # Create a list of choices for each node
             choices_list <- lapply(strsplit(f_o_values, "', '"), function(x) trimws(sub("^'|'$", "", x)))
@@ -145,17 +147,21 @@ server <- function(input, output, session) {
             if (node_name %in% fnames_names) {
             node_index <- match(node_name, fnames_names)
             default_value <- fnames_values[node_index]
-
+            user_value <- fnames_rv[[node_name]]
+            new_value <- if (!is.null(user_value)) user_value else default_value
+            
             if (node_name %in% f_o_final_names) {
               node_index <- match(node_name, f_o_final_names)
               dd_default_values <- f_o_final_values[[node_index]]
-
+              
               default_value <- gsub("'", "", default_value)
               default_value_single <- toString(default_value)
-              column(6, pickerInput(node_name, label = node_name, choices = dd_default_values, selected = default_value, options = list(`actions-box` = TRUE), multiple = TRUE))
+              
+              user_value <- fnames_rv[[node_name]]
+              new_value <- if (!is.null(user_value)) user_value else default_value
+              column(6, pickerInput(node_name, label = node_name, choices = dd_default_values, selected = new_value, options = list(`actions-box` = TRUE), multiple = TRUE))
             } else {
-              disable("ui")
-              column(6, textInput(node_name, label = node_name, value = if (is.null(fnames_rv[[node_name]]) || fnames_rv[[node_name]] == default_value) default_value else fnames_rv[[node_name]]))
+              column(6, textInput(node_name, label = node_name, value = new_value))
               }
             }
           }
@@ -164,19 +170,19 @@ server <- function(input, output, session) {
             if (node_name %in% pars_gc) {
               return(NULL)
             }
-            # print(input[[node_name]])
+
             if (node_name %in% pars_names) {
               node_index <- match(node_name, pars_names)
               default_value <- pars_values[node_index]
               
               column(6, textInput(node_name, label = node_name, value = default_value))
             }
-          } 
+          }
           else if (parent_node == "env") {
             if (node_name %in% env_names) {
               node_index <- match(node_name, env_names)
               default_value <- env_values[node_index]
-              
+
               column(6, textInput(node_name, label = node_name, value = if (is.null(input[[node_name]]) || input[[node_name]] == default_value) default_value else input[[node_name]]))
             }
           }
@@ -184,6 +190,8 @@ server <- function(input, output, session) {
       )
     })
   })
+  
+  
   
   observeEvent(input$parts, {
     parent_node <- input$parts
@@ -225,19 +233,28 @@ server <- function(input, output, session) {
           default_value <- fnames_gc_values[fnames_gc_names$names == fnames_node_name]
           
           # Use fnames_node_name as the input ID for each pickerInput
-          print(f_o_final_values[1])
+          
           column(6, pickerInput(
             fnames_node_name, 
             label = fnames_node_name,
             choices = f_o_final_values[[i]], 
-            selected = default_value, options = list(`actions-box` = TRUE),
+            selected = {
+              user_changes <- gc_picker_changes[[fnames_node_name]]
+              if (!is.null(user_changes)) {
+                user_changes
+              } else {
+                default_value
+              }
+            }, 
+            options = list(`actions-box` = TRUE),
             multiple = TRUE
           ))
         })
         
         # Combine all the pickerInput elements into a single output
         do.call(tagList, input_list)
-      } else if (parent_node == "pars" && !is.null(selected_option)) {
+      } 
+      else if (parent_node == "pars" && !is.null(selected_option)) {
         pars_gc_nodes <- xml_data %>% xml_find_first(paste0(".//pars/leaf/", selected_option))
         pars_gc_names$names <- xml_children(pars_gc_nodes) %>% xml_name()
         pars_gc_values <- xml_children(pars_gc_nodes) %>% xml_text()
@@ -303,39 +320,38 @@ server <- function(input, output, session) {
     parent_node <- input$parts
     updated_xml_data <- xml_data
   
+    if (parent_node == "fnames") {
+      for (node_name in fnames_names) {
+        # if (node_name %in% fnames_gc()) {next}
+        new_value <- input[[node_name]]
+        
+        default_value <- fnames_values[match(node_name, fnames_names)]
+        
+        if (!is.null(new_value) && new_value != default_value) { # new_value is check whether it's not NULL and it differes from default_value
+          node <- xml_find_first(updated_xml_data, paste0(".//fnames/leaf/", node_name))
+          if (!is.null(node)) {
+            xml_text(node) <- new_value
+            fnames_rv[[node_name]] <- new_value
+          }
+        }
+      }
+    }
     if (parent_node == "pars") {
       for (node_name in pars_names) {
-        if (node_name %in% pars_gc) {next}
+        # if (node_name %in% pars_gc) {next}
         new_value <- input[[node_name]]
+        
         default_value <- pars_values[match(node_name, pars_names)]
         
         if (!is.null(new_value) && new_value != default_value) { # new_value is check whether it's not NULL and it differes from default_value
           node <- xml_find_first(updated_xml_data, paste0(".//pars/leaf/", node_name))
-          
           if (!is.null(node)) {
             xml_text(node) <- new_value
+            pars_rv[[node_name]] <- new_value
           }
         }
       }
     }
-    
-    if (parent_node == "fnames") {
-      for (node_name in fnames_names) {
-        if (node_name %in% fnames_gc) {next}
-        new_value <- input[[node_name]]
-        default_value <- fnames_values[match(node_name, fnames_names)]
-
-        if (!is.null(new_value) && new_value != default_value) { # new_value is check whether it's not NULL and it differes from default_value
-          node <- xml_find_first(updated_xml_data, paste0(".//fnames/leaf/", node_name))
-          
-          if (!is.null(node)) {
-            xml_text(node) <- new_value
-          }
-        }
-      }
-    }
-    
-    
     if (parent_node == "env") {
       for (node_name in env_names) {
         if (node_name %in% env_gc) {next}

@@ -13,7 +13,9 @@ library(dplyr)
 
 # # Get folder names within the system_models directory
 model_names <- read.csv("/Users/fs8/Desktop/Project/MAAT/src/system_models/model_names.csv")
-# 
+static_xml <- read.csv("/Users/fs8/Desktop/Project/test/leaf_user_static.xml")
+
+
 # # Read the XML file and extract the options
 # xml_data <- read_xml("/Users/fs8/Desktop/Project/MAAT/src/system_models/leaf/leaf_default.xml")
 # 
@@ -38,7 +40,11 @@ model_names <- read.csv("/Users/fs8/Desktop/Project/MAAT/src/system_models/model
 # env_gc <- xml_find_all(env, ".//*[count(*) > 1]") %>% xml_name()
 
 ui <- fluidPage(
-  titlePanel('The Multi-Assumption Architecture and Testbed (MAAT) modelling system'),
+  titlePanel(
+    a(img(src = "https://tes-sfa.ornl.gov/sites/default/files/inline-images/MAAT%20Logo%202%20color.jpg", height = "100"), 
+      "The Multi-Assumption Architecture and Testbed (MAAT)"
+    )
+  ),
   navbarPage(
     id = "maat_menu",
     tags$head(
@@ -134,8 +140,17 @@ ui <- fluidPage(
                           status = "danger",
                           fill = TRUE
                         )
-                      )
-               ), 
+                      ),
+                      wellPanel(
+                        HTML("<p>Once done changing the parameters, click the below button.</p>"),
+                        actionButton(
+                          inputId = "success",
+                          label = "Run Script",
+                          width = '100%',
+                          icon = icon("fas fa-file-pen")
+                          )
+                        )
+                      ),
                column(10, 
                       bsCollapse(id = "collapse_ex", open = "Parameters", multiple = TRUE,
                                  bsCollapsePanel("Parameters w/Sub-Script", uiOutput("gc_params_ui"), uiOutput("gc_textboxes"), style = "success", 
@@ -151,7 +166,10 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   rv <- reactiveValues(directory_path = NULL, selected_model = NULL)
-  fnames_rv <- reactiveValues(names = NULL)
+  
+  fnames_rv <- reactiveValues()
+  pars_rv <- reactiveValues()
+  env_rv <- reactiveValues()
   
   observeEvent(input$model_object_buttons, {
     rv$selected_model <- input$model_object_buttons
@@ -206,7 +224,7 @@ server <- function(input, output, session) {
   observeEvent(input$directory, {
     rv$directory_path <- parseDirPath(volumes, input$directory)
     rv$directory_path <- gsub('^/Volumes/Macintosh HD', '', rv$directory_path)
-    # print(rv$directory_path)
+    print(rv$directory_path)
   })
   
   observeEvent(input$run_script, {
@@ -230,20 +248,22 @@ server <- function(input, output, session) {
           if (parent_node == "env") {
             output$gc_params_ui <- renderUI({})
             output$gc_textboxes <- renderUI({print("Nothing here")})
+            # print(length(env_gc()))
             if (node_name %in% env_names()) {
               node_index <- match(node_name, env_names())
               default_value <- env_values()[node_index]
-
-              column(6, textInput(node_name, label = node_name, value = default_value))
+              
+              column(6, textInput(node_name, label = node_name, value = if (is.null(input[[node_name]]) || input[[node_name]] == default_value) default_value else input[[node_name]]))
             }
           } 
           else if (parent_node == "pars") {
             output$gc_params_ui <- renderUI({
               selectInput("gc_params", "Select a Parameter", choices = pars_gc())
             })
+            
             output$gc_textboxes <- renderUI({
               selected_option <- input$gc_params
-
+              
               pars_gc_nodes <- xml_data() %>% xml_find_first(paste0(".//pars/", rv$selected_model, "/", selected_option))
               pars_gc_names$names <- xml_children(pars_gc_nodes) %>% xml_name()
               pars_gc_values <- xml_children(pars_gc_nodes) %>% xml_text()
@@ -261,8 +281,10 @@ server <- function(input, output, session) {
             if (node_name %in% pars_names()) {
               node_index <- match(node_name, pars_names())
               default_value <- pars_values()[node_index]
-
-              column(6, textInput(node_name, label = node_name, value = default_value))
+              user_value <- pars_rv[[node_name]]
+              new_value <- if (!is.null(user_value)) user_value else default_value
+              
+              column(6, textInput(node_name, label = node_name, value = new_value))
             }
           }
           else if (parent_node == "fnames") {
@@ -298,12 +320,12 @@ server <- function(input, output, session) {
                   default_value <- fnames_gc_values[fnames_gc_names$names == fnames_node_name]
                   
                   # Use fnames_node_name as the input ID for each pickerInput
-                  print(f_o_final_values[1])
                   column(6, pickerInput(
                     fnames_node_name, 
                     label = fnames_node_name,
                     choices = f_o_final_values[[i]], 
-                    selected = default_value, options = list(`actions-box` = TRUE),
+                    selected = default_value, 
+                    options = list(`actions-box` = TRUE),
                     multiple = TRUE
                   ))
                 })
@@ -350,6 +372,9 @@ server <- function(input, output, session) {
               if (node_name %in% fnames_names()) {
                 node_index <- match(node_name, fnames_names())
                 default_value <- fnames_values()[node_index]
+                user_value <- fnames_rv[[node_name]]
+                new_value <- if (!is.null(user_value)) user_value else default_value
+                
                 if (node_name %in% f_o_final_names) {
                   node_index <- match(node_name, f_o_final_names)
                   dd_default_values <- f_o_final_values[[node_index]]
@@ -358,7 +383,7 @@ server <- function(input, output, session) {
                   default_value_single <- toString(default_value)
                   column(6, pickerInput(node_name, label = node_name, choices = dd_default_values, selected = default_value, options = list(`actions-box` = TRUE), multiple = TRUE))
                 } else {
-                  column(6, textInput(node_name, label = node_name, value = if (is.null(fnames_rv[[node_name]]) || fnames_rv[[node_name]] == default_value) default_value else fnames_rv[[node_name]]))
+                  column(6, textInput(node_name, label = node_name, value = new_value))
                   } 
                 }
             }
@@ -370,7 +395,7 @@ server <- function(input, output, session) {
 
   observeEvent(input$fir_update_button, {
     parent_node <- input$parts
-    updated_xml_data <- xml_data
+    updated_xml_data <- xml_data()
     selected_option <- input$gc_params
 
     if (parent_node == "fnames") {
@@ -388,6 +413,7 @@ server <- function(input, output, session) {
       }
     }
 
+    
     if (parent_node == "pars") {
       for (node_name in pars_gc_names$names) {
         new_value <- input[[node_name]]
@@ -399,7 +425,6 @@ server <- function(input, output, session) {
         }
       }
     }
-
 
     new_xml_file <- "/Users/fs8/Desktop/Project/test/updated_leaf.xml"
     write_xml(updated_xml_data, new_xml_file)
@@ -413,35 +438,43 @@ server <- function(input, output, session) {
 
   observeEvent(input$sec_update_button, {
     parent_node <- input$parts
-    updated_xml_data <- xml_data
-
-    if (parent_node == "pars") {
-      for (node_name in pars_names) {
-        if (node_name %in% pars_gc) {next}
+    updated_xml_data <- xml_data()
+    
+    if (parent_node == "fnames") {
+      for (node_name in fnames_names()) {
+        if (node_name %in% fnames_gc()) {next}
         new_value <- input[[node_name]]
-
-        node <- xml_find_first(updated_xml_data, paste0(".//pars/leaf/", node_name))
-
-        if (!is.null(node)) {
-          xml_text(node) <- new_value
+        
+        default_value <- fnames_values()[match(node_name, fnames_names())]
+        
+        if (!is.null(new_value) && new_value != default_value) { # new_value is check whether it's not NULL and it differes from default_value
+          node <- xml_find_first(updated_xml_data, paste0(".//fnames/leaf/", node_name))
+          if (!is.null(node)) {
+            xml_text(node) <- new_value
+            fnames_rv[[node_name]] <- new_value
+          }
         }
       }
     }
-    if (parent_node == "fnames") {
-      for (node_name in fnames_names) {
-        if (node_name %in% fnames_gc) {next}
+    if (parent_node == "pars") {
+      for (node_name in pars_names()) {
+        if (node_name %in% pars_gc()) {next}
         new_value <- input[[node_name]]
-
-        node <- xml_find_first(updated_xml_data, paste0(".//fnames/leaf/", node_name))
-
-        if (!is.null(node)) {
-          xml_text(node) <- new_value
+        
+        default_value <- pars_values()[match(node_name, pars_names())]
+        
+        if (!is.null(new_value) && new_value != default_value) { # new_value is check whether it's not NULL and it differes from default_value
+          node <- xml_find_first(updated_xml_data, paste0(".//pars/leaf/", node_name))
+          if (!is.null(node)) {
+            xml_text(node) <- new_value
+            pars_rv[[node_name]] <- new_value
+          }
         }
       }
     }
     if (parent_node == "env") {
-      for (node_name in env_names) {
-        if (node_name %in% env_gc) {next}
+      for (node_name in env_names()) {
+        if (node_name %in% env_gc()) {next}
         new_value <- input[[node_name]]
 
         node <- xml_find_first(updated_xml_data, paste0(".//env/leaf/", node_name))
@@ -455,13 +488,45 @@ server <- function(input, output, session) {
 
     new_xml_file <- "/Users/fs8/Desktop/Project/test/updated_leaf.xml"
     write_xml(updated_xml_data, new_xml_file)
-
+    
     showModal(modalDialog(
       title = "Update Successful",
       "The XML file has been updated.",
       easyClose = TRUE
     ))
   })
+  
+  
+  execute_command <- eventReactive(input$success, {
+    # Validate and sanitize inputs if necessary to prevent command injection attacks
+    # For example, use regex or specific validations to ensure safe values.
+    
+    if (!is.null(rv$directory_path) && !is.null(rv$selected_model)) {
+      # Safely construct the command using shQuote to escape special characters
+      selected_model_safe <- shQuote(rv$selected_model)
+      directory_path_safe <- shQuote(rv$directory_path)
+      cmd <- sprintf("/Users/fs8/Desktop/Project/test/call_run_MAAT.bs %s %s", selected_model_safe, directory_path_safe)
+      
+      # Execute the command using system
+      system(cmd)
+    }
+    
+    # Return a message to be displayed in the alert
+    "Parameters have been updated"
+  })
+  
+  # Display the alert after the command is executed
+  observe({
+    if (!is.null(input$success)) {
+      alert_message <- execute_command()
+      show_alert(
+        title = "Success!!",
+        text = alert_message,
+        type = "success"
+      )
+    }
+  })
+  
 }
 
 shinyApp(ui, server)
