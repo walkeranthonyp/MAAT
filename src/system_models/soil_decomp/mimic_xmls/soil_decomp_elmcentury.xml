@@ -15,13 +15,12 @@
         <d5>'f_decomp_lin'</d5>
         <d6>'f_decomp_lin'</d6>
         <d7>'f_decomp_lin'</d7>
-        <d7>'f_decomp_lin'</d7>
       </decomp>
     </soil_decomp>
   </fnames>
   <pars>
     <soil_decomp>
-      <n_pools>8</n_pools>
+      <n_pools>7</n_pools>
       <input_coefs>
         <input_coef1>0.1</input_coef1>
         <input_coef2>0.2</input_coef2>
@@ -30,7 +29,6 @@
         <input_coef5>0.5</input_coef5>
         <input_coef6>0.5</input_coef6>
         <input_coef7>NA</input_coef7>
-        <input_coef8>NA</input_coef8>
       </input_coefs>
       <cstate0>
         <cstate01>0.1</cstate01>
@@ -40,7 +38,6 @@
         <cstate05>0.1</cstate05>
         <cstate06>0.1</cstate06>
         <cstate07>0.1</cstate07>
-        <cstate08>0.1</cstate08>
       </cstate0>
       <cue>
         <cue1>1</cue1>
@@ -49,8 +46,7 @@
         <cue4>0.71</cue4>
         <cue5>0.72</cue5>
         <cue6>0.54</cue6>
-        <cue7>0.45</cue7>
-        <cue7>0</cue7>
+        <cue7>1</cue7>
       </cue>
       <k>
         <k1>0.001</k1>
@@ -59,8 +55,7 @@
         <k4>0.014</k4>
         <k5>0.07</k5>
         <k6>0.014</k6>
-        <k7>0.0014</k7>
-        <k8>0.0001</k8>
+        <k7>0.0005</k7>
       </k>
     </soil_decomp>
   </pars>

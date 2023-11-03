@@ -65,6 +65,9 @@ f_tcor_wieder <- function(.,C,t,i){
 # decay functions
 ###################
 
+f_decomp_none <- function(., C, t, i, ... ) 0
+  
+
 # linear decomp, Oleson 1963
 # MEND O6,O7
 # convert this to two functions, one which takes k from list as an arg and one that callc that with an alternative k 
@@ -291,7 +294,8 @@ f_transfer_zero <- function(.,C,t,from,to) 0
 
 # CUE or carbon transfer efficiency sets transfer from one pool to another
 #MEND15
-f_transfer_cue  <- function(.,C,t,from,to) .super$pars$cue[[from]]    
+f_transfer_cue       <- function(.,C,t,from,to) .super$pars$cue[[from]]    
+f_transfer_cue_resp  <- function(.,C,t,from,to) 1 - .super$pars$cue[[from]]    
 
 # CUE / transfer efficiency sets transfer subject to a maximum pool size 
 # - can be used both for saturating MAOM pool and density dependent microbial growth efficiency

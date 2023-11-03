@@ -82,7 +82,11 @@ soil_decomp_object$.test_var_kinetics_yearly(kinetics = 'lin', k1 = .3, k3 = .09
 
 
 source('soil_decomp_object.R')
-soil_decomp_object$.test.ctc()
+soil_decomp_object$.test_ctc()
+soil_decomp_object$pars$n_pools
+soil_decomp_object$pars$cstate0
+soil_decomp_object$state_pars$solver_out
+soil_decomp_object$state_pars$solver_steadystate_out
 
 
 

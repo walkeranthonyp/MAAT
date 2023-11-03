@@ -14,17 +14,13 @@
 # a system of n pools, composed of a single dynamic solver function
 f_sys_npools <- function(.) {
 
-  print('')
-  print('')
-  
   .super$state_pars$solver_out <- 
-    .$solver(.super$state$cpools, c(0,1), .$solver_func )
-  # tryCatch(
-  #     .$solver(.super$state$cpools, c(0,1), .$solver_func ), 
-  #     error = function(c) {
-  #       print(c)
-  #       matrix(ncol=.super$pars$n_pools+1)
-  #     })
+    tryCatch(
+      .$solver(.super$state$cpools, c(0L,1L), .$solver_func ),
+      error = function(c) {
+        print(c)
+        matrix(ncol=.super$pars$n_pools+1)
+      })
   
   .super$state$cpools[,1] <- .super$state_pars$solver_out[dim(.super$state_pars$solver_out)[1],2:(.super$pars$n_pools+1)]
 }

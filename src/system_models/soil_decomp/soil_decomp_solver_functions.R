@@ -536,20 +536,10 @@ f_solver_dummy <- function(., t, y, ... ) {
 }
 
 f_solver_func_elmv2ctc <- function(., t, y, parms ) {
-# CTC <- function(t, state, params ) {
-#   with(as.list(c(state, params )),
-       # {
-         
-  # print('here 1')
-  # print(.$solver)
-  print(.super$state_pars$solver_out)
-  # print(.super$fnames)
-  # print(.$sys)
-  
+
   # k_env_scalar     <- .$tcor$t1(.) * .$wcor(.)
   k_env_scalar     <- 1
   # print('here 2')
-  f_litter_not_cwd <- 1 - .super$pars$input_coefs[[1]]
   f_CWD   <- .$decomp.d1(t=t, C=y, i=1 ) * k_env_scalar
   f_LIT1  <- .$decomp.d2(t=t, C=y, i=2 ) * k_env_scalar
   f_LIT2  <- .$decomp.d3(t=t, C=y, i=3 ) * k_env_scalar
@@ -557,26 +547,23 @@ f_solver_func_elmv2ctc <- function(., t, y, parms ) {
   f_SOM1  <- .$decomp.d5(t=t, C=y, i=5 ) * k_env_scalar
   f_SOM2  <- .$decomp.d6(t=t, C=y, i=6 ) * k_env_scalar
   f_SOM3  <- .$decomp.d7(t=t, C=y, i=7 ) * k_env_scalar
+  f_SOM4  <- .$decomp.d7(t=t, C=y, i=8 ) * k_env_scalar
   
   #ODE system
-  # dcwd  <- I*f_cwd                             - cwd*k1
-  # dlit1 <- I*f_lit*f_sol                       - lit1*k2
-  # dlit2 <- I*f_lit*f_cell + cwd*k1*f_cell_cwd  - lit2*k3
-  # dlit3 <- I*f_lit*f_lig  + cwd*k1*f_lig_cwd   - lit3*k4
-  # dsom1 <- lit1*k2*lit1_eff                    - som1*k5
-  # dsom2 <- lit2*k3*lit2_eff + som1*k5*som1_eff - som2*k6
-  # dsom3 <- lit3*k4*lit3_eff + som2*k6*som2_eff - som3*k7
+  f_litter_not_cwd <- 1 - .super$pars$input_coefs[[1]]
   dcwd  <- .super$env$litter*.super$pars$input_coefs[[1]] - f_CWD
   dlit1 <- .super$env$litter*f_litter_not_cwd*.super$pars$input_coefs[[2]] - f_LIT1
-  dlit2 <- .super$env$litter*f_litter_not_cwd*.super$pars$input_coefs[[3]] + f_CWD*.super$pars$input_coefs[[5]] - f_LIT2
-  dlit3 <- .super$env$litter*f_litter_not_cwd*.super$pars$input_coefs[[4]] + f_CWD*.super$pars$input_coefs[[6]] - f_LIT3
+  dlit2 <- .super$env$litter*f_litter_not_cwd*.super$pars$input_coefs[[3]] + 
+    f_CWD*.super$pars$input_coefs[[5]] - f_LIT2
+  dlit3 <- .super$env$litter*f_litter_not_cwd*.super$pars$input_coefs[[4]] + 
+    f_CWD*.super$pars$input_coefs[[6]] - f_LIT3
   dsom1 <- f_LIT1*.super$pars$cue[[2]]                               - f_SOM1
   dsom2 <- f_LIT2*.super$pars$cue[[3]] + f_SOM1*.super$pars$cue[[5]] - f_SOM2
   dsom3 <- f_LIT3*.super$pars$cue[[4]] + f_SOM2*.super$pars$cue[[6]] - f_SOM3
+  dsom4 <-                               f_SOM3*.super$pars$cue[[7]] - f_SOM4
   
-  list(c(dcwd, dlit1, dlit2, dlit3, dsom1, dsom2, dsom3 ))
-  # }
-  # )
+  # print(c(dcwd, dlit1, dlit2, dlit3, dsom1, dsom2, dsom3 ))
+  list(c(dcwd, dlit1, dlit2, dlit3, dsom1, dsom2, dsom3, dsom4 ))
 }
 
 

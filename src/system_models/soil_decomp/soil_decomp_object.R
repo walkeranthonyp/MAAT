@@ -101,7 +101,9 @@ soil_decomp_object$fnames <- list(
     d4 = 'f_decomp_lin', 
     d5 = 'f_decomp_lin',
     d6 = 'f_decomp_lin',
-    d7 = 'f_decomp_lin'
+    d7 = 'f_decomp_lin',
+    d8 = 'f_decomp_lin',
+    d9 = 'f_decomp_none'
   ),
   
   desorp = list(
@@ -126,17 +128,32 @@ soil_decomp_object$fnames <- list(
   # transfer list
   transfer = list(
     t1_to_3 = 'f_transfer_cue_remainder',
-    t1_to_5 = 'f_transfer_cue',
-    t2_to_1 = 'f_transfer_mend21',
-    t2_to_5 = 'f_transfer_mend25',
-    t2_to_6 = 'f_transfer_mend26',
-    t2_to_7 = 'f_transfer_mend27',
-    t3_to_5 = 'f_transfer_all',
-    t4_to_5 = 'f_transfer_all',
-    t5_to_2 = 'f_transfer_mend52',
-    t5_to_4 = 'f_transfer_mend54',
-    t6_to_5 = 'f_transfer_all',
-    t7_to_5 = 'f_transfer_all'
+    t1_to_4 = 'f_transfer_cue_remainder',
+    t2_to_5 = 'f_transfer_mend27',
+    t3_to_6 = 'f_transfer_all',
+    t4_to_7 = 'f_transfer_all',
+    t5_to_6 = 'f_transfer_mend52',
+    t6_to_7 = 'f_transfer_all',
+    t7_to_8 = 'f_transfer_all',
+    t2_to_9 = 'f_transfer_mend27',
+    t3_to_9 = 'f_transfer_all',
+    t4_to_9 = 'f_transfer_all',
+    t5_to_9 = 'f_transfer_mend52',
+    t6_to_9 = 'f_transfer_all',
+    t7_to_9 = 'f_transfer_all',
+    t8_to_9 = 'f_transfer_all'
+    # t1_to_3 = 'f_transfer_cue_remainder',
+    # t1_to_5 = 'f_transfer_cue',
+    # t2_to_1 = 'f_transfer_mend21',
+    # t2_to_5 = 'f_transfer_mend25',
+    # t2_to_6 = 'f_transfer_mend26',
+    # t2_to_7 = 'f_transfer_mend27',
+    # t3_to_5 = 'f_transfer_all',
+    # t4_to_5 = 'f_transfer_all',
+    # t5_to_2 = 'f_transfer_mend52',
+    # t5_to_4 = 'f_transfer_mend54',
+    # t6_to_5 = 'f_transfer_all',
+    # t7_to_5 = 'f_transfer_all'
   )
 )
 
@@ -212,7 +229,9 @@ soil_decomp_object$pars <- list(
     input_coef4 = .34,
     input_coef5 = .34,
     input_coef6 = .34,
-    input_coef7 = 0
+    input_coef7 = 0,
+    input_coef8 = 0,
+    input_coef9 = 0
   ),
   
   # initial pool mass for each pool
@@ -223,7 +242,9 @@ soil_decomp_object$pars <- list(
     cstate04 = 1,       
     cstate05 = 1,       
     cstate06 = 1,       
-    cstate07 = 1
+    cstate07 = 1,       
+    cstate08 = 1,
+    cstate09 = 0
   ),
 
   # Carbon use or transfer efficiency from pool i to any another 
@@ -236,7 +257,9 @@ soil_decomp_object$pars <- list(
     cue4 = .19,
     cue5 = NA,
     cue6 = NA,
-    cue7 = NA
+    cue7 = NA,
+    cue8 = NA,
+    cue9 = NA
   ),  
   
   cue2 = list( 
@@ -246,7 +269,8 @@ soil_decomp_object$pars <- list(
     cue4 = NA,
     cue5 = NA,
     cue6 = NA,
-    cue7 = NA
+    cue7 = NA,
+    cue8 = NA
   ),  
 
   # max turnover rate per unit microbial biomass for pool i
@@ -326,7 +350,9 @@ soil_decomp_object$pars <- list(
     k4 = .0015,      #leaching rate (kd)
     k5 = .02,        #aggregrate breakdown rate (kb)
     k6 = .02,        #aggregrate breakdown rate (kb)
-    k7 = .02         #aggregrate breakdown rate (kb)
+    k7 = .02,        #aggregrate breakdown rate (kb)
+    k8 = .02,        #aggregrate breakdown rate (kb)
+    k9 = .0          #aggregrate breakdown rate (kb)
   ),
 
   # maximum size for pool i 
@@ -640,17 +666,16 @@ soil_decomp_object$.test.mimics.ss <- function(., verbose=F, metdf=F, litter=172
 }
 
 
-soil_decomp_object$.test.ctc <- function(., verbose=F, metdf=F, 
+soil_decomp_object$.test_ctc <- function(., verbose=F, metdf=F, 
                                          litter=1, ntimes=1 ) {
   
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))
-  .$configure_test() # if only used in test functions should begin with a .
   
   .$fnames <- list(
     sys                = 'f_sys_npools',
     solver             = 'plsoda',
-    solver_func        = 'f_solver_func_mimics',
+    solver_func        = 'f_solver_func_elmv2ctc',
     # input              = 'f_input_mimics',
     steadystate        = 'f_steadystate_npools',
     solver_steadystate = 'pstode',
@@ -659,6 +684,7 @@ soil_decomp_object$.test.ctc <- function(., verbose=F, metdf=F,
       d2 = 'f_decomp_lin', 
       d3 = 'f_decomp_lin', 
       d4 = 'f_decomp_lin', 
+      d5 = 'f_decomp_lin',
       d6 = 'f_decomp_lin',
       d7 = 'f_decomp_lin'
     )
@@ -669,7 +695,7 @@ soil_decomp_object$.test.ctc <- function(., verbose=F, metdf=F,
     
     # initial pool mass for each pool
     # values are equilibrium calculated with stode function in DeSolve script
-    cstate0 <- list(
+    cstate0 = list(
       cstate01 = 0.1, 
       cstate02 = 0.1,          
       cstate03 = 0.1,      
@@ -713,14 +739,10 @@ soil_decomp_object$.test.ctc <- function(., verbose=F, metdf=F,
   )
   
   .$env <- list(
-    litter = 1#,
-    # temp   = 20,          # soil temperature
-    # clay   = .05,            # proportion clay (i.e. .4 = 40%) #default = .4, changed to .05 to match CORPSE
-    # lignin = 16.6,        # Lignin concentration of litter inputs (units must be same as N (%))
-    # N      = 1.37,             # N concentration of litter inputs (units must be same as lignin (%))
-    # anpp   = 500*24,           # ANPP (gC / m^2 / y) 
-    # depth  = 20           # depth (cm)
+    litter = 1
   )
+  
+  .$configure_test() # if only used in test functions should begin with a .
   
   .$run()
 }

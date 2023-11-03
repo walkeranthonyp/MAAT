@@ -178,6 +178,7 @@ run_met <- function(.,l) {
   # call steady state system model if it exists and doesn't return a null value
   # APW Matt: this is the additional function call to initialise the model at steady state
   #           if you want to turn this off just set the fnames$steadystate value to f_steadystate_null (a dummy function that just returns NULL)
+  # APW : need to add this as an option to run_MAAT, if !init_steady then fnames$steady <- null
   if(!is.null(.$fns$steadystate)) if(!is.null(.$fns$steadystate() )) .$fns$steadystate()  
 
   # run over an input/meteorological dataset 
