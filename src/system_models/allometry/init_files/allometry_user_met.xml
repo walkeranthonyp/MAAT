@@ -1,0 +1,8 @@
+<met_data_translator>
+  <env>
+    <allometry>
+      <dbh>'column name of variable in metdata file'</dbh>
+      <canopy_packing>'column name of variable in metdata file'</canopy_packing>
+    </allometry>
+  </env>
+</met_data_translator>

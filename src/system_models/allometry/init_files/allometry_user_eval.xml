@@ -1,0 +1,16 @@
+<eval_data_translator>
+  <state>
+    <allometry>
+      <dbh>'column name of variable in evaldata file'</dbh>
+      <height>'column name of variable in evaldata file'</height>
+      <leaf_biomass>'column name of variable in evaldata file'</leaf_biomass>
+      <crown_area>'column name of variable in evaldata file'</crown_area>
+      <crown_depth>'column name of variable in evaldata file'</crown_depth>
+      <crown_lai>'column name of variable in evaldata file'</crown_lai>
+      <abg_wood_biomass>'column name of variable in evaldata file'</abg_wood_biomass>
+      <blg_wood_biomass>'column name of variable in evaldata file'</blg_wood_biomass>
+      <wood_biomass>'column name of variable in evaldata file'</wood_biomass>
+      <fineroot_biomass>'column name of variable in evaldata file'</fineroot_biomass>
+    </allometry>
+  </state>
+</eval_data_translator>

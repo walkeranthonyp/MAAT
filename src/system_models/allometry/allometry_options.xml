@@ -1,0 +1,17 @@
+<options>
+  <fnames>
+    <allometry>
+      <sys>'c( 'f_sys_1' )'</sys>
+      <canopy_packing>'c( 'f_canopy_packing' )'</canopy_packing>
+      <height>'c( 'f_height_hdbh_chave2014', 'f_height_hdbh_martinezcano2019', 'f_height_hdbh_obrien1995', 'f_height_hdbh_poorter2006', 'f_height_hdbh_power' )'</height>
+      <leaf_biomass>'c( 'f_leaf_biomass_dbh_power', 'f_leaf_biomass_dbh_salda', 'f_leaf_biomass_dbhmax_power' )'</leaf_biomass>
+      <crown_area>'c( 'f_crown_area_fates', 'f_crown_area_purves2008' )'</crown_area>
+      <crown_depth>'c( 'f_crown_depth_fates' )'</crown_depth>
+      <abg_biomass>'c( 'f_abg_biomass_dbh_chave2014', 'f_abg_biomass_dbh_power', 'f_abg_biomass_dbh_saldariaga1998' )'</abg_biomass>
+      <blg_biomass>'c( 'f_blg_biomass_dbh_fracabg' )'</blg_biomass>
+      <wood_biomass>'c( 'f_wood_biomass' )'</wood_biomass>
+      <crown_lai>'c( 'f_crown_lai_linear' )'</crown_lai>
+      <fineroot_biomass>'c( 'f_fineroot_biomass_leaffrac' )'</fineroot_biomass>
+    </allometry>
+  </fnames>
+</options>
