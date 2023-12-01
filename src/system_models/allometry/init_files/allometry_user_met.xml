@@ -2,7 +2,8 @@
   <env>
     <allometry>
       <dbh>'column name of variable in metdata file'</dbh>
-      <canopy_packing>'column name of variable in metdata file'</canopy_packing>
+      <canopy_openness>'column name of variable in metdata file'</canopy_openness>
+      <canopy_lai_above>'column name of variable in metdata file'</canopy_lai_above>
     </allometry>
   </env>
 </met_data_translator>

@@ -2,15 +2,18 @@
   <fnames>
     <allometry>
       <sys>NA</sys>
-      <canopy_packing>NA</canopy_packing>
+      <crwnallom>NA</crwnallom>
       <height>NA</height>
       <leaf_biomass>NA</leaf_biomass>
       <crown_area>NA</crown_area>
+      <crown_radius>NA</crown_radius>
       <crown_depth>NA</crown_depth>
       <abg_biomass>NA</abg_biomass>
       <blg_biomass>NA</blg_biomass>
       <wood_biomass>NA</wood_biomass>
-      <crown_lai>NA</crown_lai>
+      <lai>NA</lai>
+      <lai_linear>NA</lai_linear>
+      <lai_exponential>NA</lai_exponential>
       <fineroot_biomass>NA</fineroot_biomass>
     </allometry>
   </fnames>
@@ -29,7 +32,9 @@
       <abg_p4>NA</abg_p4>
       <carbon_to_biomass>NA</carbon_to_biomass>
       <slatop>NA</slatop>
-      <crwnarea_p1>NA</crwnarea_p1>
+      <slamax>NA</slamax>
+      <k>NA</k>
+      <crwnarea_p2>NA</crwnarea_p2>
       <crwndepth_frac>NA</crwndepth_frac>
       <crwnarea_dbh_max>NA</crwnarea_dbh_max>
       <crwnarea_dbh_min>NA</crwnarea_dbh_min>
@@ -41,7 +46,8 @@
   <env>
     <allometry>
       <dbh>NA</dbh>
-      <canopy_packing>NA</canopy_packing>
+      <canopy_openness>NA</canopy_openness>
+      <canopy_lai_above>NA</canopy_lai_above>
     </allometry>
   </env>
 </dynamic>

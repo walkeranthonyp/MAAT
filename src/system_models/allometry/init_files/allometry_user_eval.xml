@@ -5,6 +5,7 @@
       <height>'column name of variable in evaldata file'</height>
       <leaf_biomass>'column name of variable in evaldata file'</leaf_biomass>
       <crown_area>'column name of variable in evaldata file'</crown_area>
+      <crown_radius>'column name of variable in evaldata file'</crown_radius>
       <crown_depth>'column name of variable in evaldata file'</crown_depth>
       <crown_lai>'column name of variable in evaldata file'</crown_lai>
       <abg_wood_biomass>'column name of variable in evaldata file'</abg_wood_biomass>

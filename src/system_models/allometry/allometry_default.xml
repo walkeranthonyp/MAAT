@@ -2,15 +2,18 @@
   <fnames>
     <allometry>
       <sys>'f_sys_1'</sys>
-      <canopy_packing>'f_canopy_packing'</canopy_packing>
+      <crwnallom>'f_crwnallom_canopy_mod'</crwnallom>
       <height>'f_height_hdbh_obrien1995'</height>
       <leaf_biomass>'f_leaf_biomass_dbh_salda'</leaf_biomass>
       <crown_area>'f_crown_area_fates'</crown_area>
+      <crown_radius>'f_crown_radius'</crown_radius>
       <crown_depth>'f_crown_depth_fates'</crown_depth>
       <abg_biomass>'f_abg_biomass_dbh_saldariaga1998'</abg_biomass>
       <blg_biomass>'f_blg_biomass_dbh_fracabg'</blg_biomass>
       <wood_biomass>'f_wood_biomass'</wood_biomass>
-      <crown_lai>'f_crown_lai_linear'</crown_lai>
+      <lai>'f_lai_kovenock_exponential_sla'</lai>
+      <lai_linear>'f_lai_linear_constant_sla'</lai_linear>
+      <lai_exponential>'f_lai_exponential_sla'</lai_exponential>
       <fineroot_biomass>'f_fineroot_biomass_leaffrac'</fineroot_biomass>
     </allometry>
   </fnames>
@@ -28,8 +31,10 @@
       <abg_p3>1.94</abg_p3>
       <abg_p4>0.931</abg_p4>
       <carbon_to_biomass>2</carbon_to_biomass>
-      <slatop>0.01995827</slatop>
-      <crwnarea_p1>1.56</crwnarea_p1>
+      <slatop>0.012</slatop>
+      <slamax>0.0954</slamax>
+      <k>0.2</k>
+      <crwnarea_p2>1.56</crwnarea_p2>
       <crwndepth_frac>0.5</crwndepth_frac>
       <crwnarea_dbh_max>0.6568464</crwnarea_dbh_max>
       <crwnarea_dbh_min>0.3381119</crwnarea_dbh_min>
@@ -41,7 +46,8 @@
   <env>
     <allometry>
       <dbh>0</dbh>
-      <canopy_packing>0</canopy_packing>
+      <canopy_openness>0</canopy_openness>
+      <canopy_lai_above>0</canopy_lai_above>
     </allometry>
   </env>
 </default>
