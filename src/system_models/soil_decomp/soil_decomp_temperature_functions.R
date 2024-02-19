@@ -93,6 +93,7 @@ f_tcor_standcarb <- function(.,C,t,i){
     (exp(-1 * (.super$pars$reftemp/(Topt + Tlag))^Tshape) * .super$pars$q10^((.super$pars$reftemp - 10)/10))
 }
 
+#all these arrhenius funcs should be the same, but just putting the original equations in from each model right now
 f_tcor_arrhenius <- function(.,C,t,i) {
   #sourced from MAAT leaf model
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
@@ -115,5 +116,11 @@ f_tcor_arrhenius <- function(.,C,t,i) {
 
 f_tcor_arrhenius_millennialv2 <- function(.,C,t,i) {
   exp(-.super$pars$ea[[i]] / (.super$pars$R * (.super$env$temp + 273.15)))
+}
+
+f_tcor_arrhenius_mend <- function(.,C,t,i){
+  TKref = .super$pars$reftemp + 273.15
+  TK = .super$env$temp + 273.15
+  exp(.super$pars$ea[[i]]*1000/8.314 * (1/TKref - 1/TK))
 }
 

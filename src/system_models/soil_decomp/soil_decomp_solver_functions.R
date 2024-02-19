@@ -612,5 +612,207 @@ f_solver_func_century <- function(., t, y, parms) {
   list(c(dStrLitter, dMetLitter, dACTIVE, dSLOW, dPASSIVE))
 }
 
+############## MEND2019 #################
+# lsoda style function to solve MEND
+#######################################
+# - parms is a dummy argument to work with lsoda
+# Equations from Wang et al. 2019 MEND soil moisture paper
+f_solver_func_mend2019 <- function(., t, y, parms) {#MEND based on Wang et al. 2019
+  
+  # #ENV functions
+  ## Convert soil water content to soil water potential according to vanGenuchten equation
+  ##store this in soil_decomp_water_functions.R
+  # fSWC2SWP <- function(SWC0,SWCres,SWCsat,alpha,n,SWPmin){
+  #   const_cm2MPa = 98e-6
+  #   rlim = 1.01
+  #   m = 1-1/n
+  #   if(SWC0<=SWCres*rlim) {
+  #     SWC = SWCres*rlim
+  #   } else {
+  #     SWC = SWC0
+  #   }
+  #   if(SWC < SWCsat){
+  #     eff_sat = (SWC - SWCres)/(SWCsat - SWCres)
+  #     fSWC2SWP = (1/(eff_sat^(1/m)) - 1)^(1/n)/alpha
+  #     fSWC2SWP = -1*fSWC2SWP*const_cm2MPa
+  #   } else {
+  #     fSWC2SWP = 0
+  #   }
+  #   fSWC2SWP
+  # }
+  SWP = water_unit_converter(.)
+  # #pH 
+  # #below parameters found in MOD_MEND.F90 (MEND-CN model)
+  # #cellulases: pHopt = 5.3, pHsens = 1.7
+  # #ligninases: pHopt = 4.2, pHsens = 1.4
+  # #Mineral-associated org matter: pHopt = 4.8, pHsen = 1.6
+  # #pH default value = 6.0 (mean pH of 763 soil samples)
+  #should move this eventually...
+  fpH <- function(enz, a = pH){
+    if(enz == 'cel'){
+      pHopt = 5.3
+      pHsens = 1.7
+    } else if(enz == 'lig'){
+      pHopt = 4.2
+      pHsens = 1.4
+    } else if(enz == 'mom'){
+      pHopt = 4.8
+      pHsens = 1.6
+    }
+    exp(-((a - pHopt)/pHsens)^2)
+  }
+  # 
+  # #Arrhenius temp sensitivity
+  #adding to soil_decomp_temperature_functions.R as f_tcor_arrhenius_mend
+  # fTemp <- function(Ea., Temp. = Temp, Tempref. = Tempref){
+  #   # TKref = Tref + const_tmp_C2K
+  #   TKref = Tempref. + 273.15
+  #   # TK = T + const_tmp_C2K
+  #   TK = Temp. + 273.15
+  #   # fTArh0 = dexp(Ea*1.D3/const_R * (1.d0/TKref - 1.d0/TK))
+  #   exp(Ea.*1000/8.314 * (1/TKref - 1/TK))
+  #   # #exp(-Ea.*1000 / 8.314472 * (1 / (Temp.+273) - 1 / (Tempref.+ 273)))
+  # }
+  # 
+  # #calculated par for fSWP
+  # SWPD2A = tau * SWPA2D
+  SWPD2A = .super$pars$tau * .super$pars$SWPA2D
+  # 
+  # #water scalars (4 different functions depending on process being modified)
+  # fSWP <- function(proc, SWP. = SWP, SWP_FC. = SWP_FC, SWP_min. = SWP_min, b. = b, 
+  #                  SWPA2D. = SWPA2D, SWPD2A. = SWPD2A, omega. = omega){
+  #   #proc = the process that is being modified (lig, cel, dormancy, resuscitation)
+  #   if(proc == 'lig'){ #modifies decomp by oxidative enzymes (specifically, ligninases)
+  #     if(SWP. <= -10^2.5) 0
+  #     else if(SWP. <= -10^-1.5) 0.625 - 0.25 * log10(-SWP.)
+  #     else if(SWP. <= -10^-2.5) 1
+  #     else if(SWP. <= -10^-4) (2.5 + 0.4 * log10(-SWP.))/1.5
+  #     else 0.6
+  #   } else if(proc == 'cel'){ #modifies decomp by hydrolytic enzymes (specifically, cellulases)
+  #     if (SWP. <= SWP_min.) 0
+  #     else if(SWP. <= SWP_FC.) 1 - (log(SWP./SWP_FC.)/log(SWP_min./SWP_FC.))^b.
+  #     else 1
+  #   } else if(proc == 'dormancy') abs(-SWP.)^omega. / (abs(-SWP.)^omega. + abs(-SWPA2D.)^omega.)
+  #   else if(proc == 'resuscitation') abs(-SWPD2A.)^omega. / (abs(-SWP.)^omega. + abs(-SWPD2A.)^omega.)
+  # }
+  # 
+  # #CUE temp sensitivity
+  # Yg = Ygref - kYg * (Temp - Tempref)
+  # 
+  # #calculated parms 
+  # kads = kdes * Kba
+  # Vm = -alpha * Vg / (alpha - 1)
+  # pEM = pEP * fpEM
+  # 
+  # #Fluxes
+  # #Michaelis-Menten decay of POM1
+  # #temp sensitivity of half-saturation constant
+  # KP1m = KP1 * fTemp(Ea = Ea[['KP1']])
+  # F1 = VdP1 * EP1 * P1 / (KP1m + P1) * fTemp(Ea = Ea[['VdP1']]) * fpH(enz = 'lig') * fSWP(proc = 'lig')
+  # F1 = min(F1,P1)
+  # 
+  # #Michaelis-Menten decay of POM2
+  # #temp sensitivity of half-saturation constant
+  # KP2m = KP2 * fTemp(Ea = Ea[['KP2']])
+  # F2 = VdP2 * EP2 * P2 / (KP2m + P2) * fTemp(Ea = Ea[['VdP2']]) * fpH(enz = 'cel') * fSWP(proc = 'cel')
+  # F2 = min(F2,P2)
+  # 
+  # #Michaelis-Menten decay of MAOM
+  # #temp sensitivity of half-saturation constant
+  # KMm = KM * fTemp(Ea = Ea[['KM']]) 
+  # F3 = VdM * EM * M / (KMm + M) * fTemp(Ea = Ea[['VdM']]) * fpH(enz = 'mom') * fSWP(proc = 'cel')
+  # F3 = min(F3,M)
+  # 
+  # #########
+  # ###adding flux early here so so that fraction of DOC can be reserved for microbial uptake as it is in main MEND Fortran code##
+  # #DOC uptake by microbes (This is basically Michaelis-Menten where Vmax is (1/Yg*(Vg+Vm)))
+  # #temp modification of Vg, Vm, and KD
+  # Vgm = Vg * fTemp(Ea = Ea[['Vg']])
+  # Vmm = Vm * fTemp(Ea = Ea[['Vm']])
+  # KDm = KD * fTemp(Ea = Ea[['KD']])
+  # F6 = (1 / Yg) * (Vgm + Vmm) * D * BA / (KDm + D)
+  # F6 = min(F6,D)
+  # # D = D-F6
+  # 
+  # # print(paste0(c('mr = ', gamma*Vmm)))
+  # #########
+  # 
+  # #Saturating adsorption of DOC to Q pool
+  # # F4 = kads * (1 - Q / Qmax) * (D) * fTemp(Ea = Ea[['kads']])
+  # F4 = kads * (1 - Q / Qmax) * (D-F6) * fTemp(Ea = Ea[['kads']]) ##computes based on DOC after microbial uptake (i.e. D-F6 instead of D) as in main code
+  # # print(paste(c("Kads = ", kads*fTemp(Ea = Ea[['kads']]))))
+  # 
+  # #Desorption of Q to DOC pool (increases as Q gets to saturation point)
+  # F5 = kdes * (Q / Qmax) * fTemp(Ea = Ea[['kdes']])
+  # # print(paste(c("kdes = ", kdes*fTemp(Ea = Ea[['kdes']]))))
+  # 
+  # #sorption-desorption if-then from FORTRAN script
+  # #           if (sOUT % des > (sINP % adsorbent + sOUT % ads)) then
+  # if(F5 > (Q+F4)){
+  #   F5 = Q+F4
+  # } else if(F4>(D+F5)) {
+  #   F4 = D+F5
+  # }
+  # #          sOUT % des = sINP % adsorbent + sOUT % ads
+  # #          elseif(sOUT % ads > (sINP % adsorbate + sOUT % des)) then
+  # # sOUT % ads = sINP % adsorbate + sOUT % des
+  # 
+  # # #DOC uptake by microbes (This is basically Michaelis-Menten where Vmax is (1/Yg*(Vg+Vm)))
+  # # #temp modification of Vg, Vm, and KD
+  # # Vgm = Vg * fTemp(Ea = Ea[['Vg']])
+  # # Vmm = Vm * fTemp(Ea = Ea[['Vm']])
+  # # KDm = KD * fTemp(Ea = Ea[['KD']])
+  # # F6 = (1 / Yg) * (Vgm + Vmm) * D * BA / (KDm + D)
+  # # F6 = min(F6,D)
+  # 
+  # #Dormancy
+  # F7 = (1 - D / (KDm + D)) * Vmm * BA * fSWP(proc = 'dormancy')
+  # F7 = min(F7,BA)
+  # 
+  # #Reactivation
+  # F8 = D /(KDm + D) * Vmm * BD * fSWP(proc = 'resuscitation')
+  # F8 = min(F8,BD)
+  # 
+  # #Growth respiration for BA (active MBC)
+  # F9 = (1 / Yg - 1) * Vgm * BA * D / (KDm + D) 
+  # F9 = min(F9,BA)
+  # 
+  # #Maintenance respiration for BA (active MBC)
+  # F10 = (1 / Yg - 1) * Vmm * BA * D / (KDm + D) 
+  # F10 = min(F10,BA)
+  # 
+  # #Maintenance respiration for BD (dormant MBC)
+  # F11 = Vm * BD * beta #Vm or Vmm??
+  # F11 = min(F11,BD)
+  # 
+  # #Mortality for BA (active MBC)
+  # F12 = gamma * Vmm * BA * fSWP(proc = 'dormancy')
+  # F12 = min(F12,BA)
+  # print(paste0(c("fSWP_dormancy = ",fSWP(proc = 'dormancy'))))
+  # 
+  # #Synthesis of Enzymes (lin)
+  # F13EP1 = P1 / (P1 + P2 ) * pEP * Vmm * BA
+  # F13EP2 = P2 / (P1 + P2 ) * pEP * Vmm * BA
+  # F13EM = pEM * Vmm * BA
+  # 
+  # #Turnover of Enzymes
+  # F14EP1 = rE * EP1
+  # F14EP2 = rE * EP2
+  # F14EM = rE * EM
+  # 
+  # #ODE system
+  # dP1  <- IP1 + (1-gD) * F12 - F1
+  # dP2  <- IP2 - F2
+  # dM   <- (1-fD) * (F1 + F2) - F3
+  # dQ   <- F4 - F5
+  # dD   <- ID + fD * (F1 + F2) + gD * F12 + F3 + (F14EP1 + F14EP2 + F14EM) - F6 - (F4 - F5)
+  # dBA  <- F6 - (F7 - F8) - (F9 + F10) - F12 - (F13EP1 + F13EP2 + F13EM)
+  # dBD  <- (F7 - F8) - F11
+  # dEP1 <- F13EP1 - F14EP1
+  # dEP2 <- F13EP2 - F14EP2
+  # dEM  <- F13EM - F14EM
+
+  list(c(dP1, dP2, dM, dQ, dD, dBA, dBD, dEP1, dEP2, dEM))
+}
 
 ### END ###

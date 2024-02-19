@@ -134,6 +134,8 @@ soil_decomp_object$fnames <- list(
   #   t7 = NA
   # ),
 
+  water_unit_converter = 'f_SWC2SWP_vanGenuchten',
+  
   # transfer list
   transfer = list(
     t1_to_3 = 'f_transfer_cue_remainder',
