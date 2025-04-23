@@ -269,10 +269,23 @@ f_solver_analytical_leaf_simple <- function(.) {
   
     # calculate rs
     .super$state_pars$rs <- .super$state$ca / (fe * Anet * .super$env$atm_press*1e-6) 
-  
+ 
+    # if rs > r0 can recalculate Anet with rs = r0, can wrap this function 
+ 
     # return net A
     return(Anet)
   }
+}
+
+
+f_solver_analytical_leaf_simple_rsminr0 <- function(.) {
+  # call analytical solver -- embedded in fns
+  f_solver_analytical_leaf_simple
+  
+  if(.super$state_pars$rs > .super$pars$r0) {
+    # analytical solve where r = r0p
+    .super$state_pars$rs <- .super$pars$r0
+  } 
 }
 
 
@@ -404,7 +417,7 @@ f_solver_analytical_leaf_c4_r0 <- function(.) {
 # Calculate assimilation assuming zero resistance to CO2 diffusion from the atmosphere to the site of carboxylation
 f_solver_analytical_leaf_no_r <- function(.,...) {
   # This function can be used to calculate the stomatal limitation to photosynthesis when rb and ri are assumed zero 
-  # (when ri and rb are non-zero, use below function 'f_A_r_leaf_noRs' )
+  # (when ri and rb are non-zero, use above function 'f_A_r_leaf_noRs' )
   
   # combines all rate limiting processes
   
