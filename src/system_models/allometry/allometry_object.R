@@ -208,7 +208,7 @@ allometry_object$.test_pars <- function(., verbose=F, diag=F, cverbose=F,
                                    carbon_to_biomass = 2,       # conversion factor for carbon units to biomass dry weight (DW) 
                                    # leaf, crown area & depth
                                    slatop       = 0.01995827,     # specific leaf area (SLA) at top of canopy (m2 g-1)
-                                   crwnarea_p1  = 1.56,           # crown area to DBH exponent
+                                   crwnarea_p2  = 1.56,           # crown area to DBH exponent
                                    crwndepth_frac  = 0.5,         # crown depth fraction of height 
                                    crwnarea_dbh_max  = 0.6568464, # crown depth fraction of height 
                                    crwnarea_dbh_min  = 0.3381119, # crown depth fraction of height 
@@ -233,7 +233,7 @@ allometry_object$.test_pars <- function(., verbose=F, diag=F, cverbose=F,
   .$pars$abg_p3       <- abg_p3 
   .$pars$abg_p4       <- abg_p4 
   .$pars$slatop       <- slatop     # specific leaf area (SLA) at top of canopy (m2 g-1)
-  .$pars$crwnarea_p1  <- crwnarea_p1           # crown area to DBH exponent
+  .$pars$crwnarea_p2  <- crwnarea_p2           # crown area to DBH exponent
   .$pars$crwndepth_frac    <- crwndepth_frac         # crown depth fraction of height 
   .$pars$crwnarea_dbh_max  <- crwnarea_dbh_max  # crown depth fraction of height 
   .$pars$crwnarea_dbh_min  <- crwnarea_dbh_min  # crown depth fraction of height 
@@ -265,7 +265,8 @@ allometry_object$.test_dbh <- function(., verbose=F, diag=F, cverbose=F,
                                    carbon_to_biomass = 2,         # conversion factor for carbon units to biomass dry weight (DW) 
                                    # leaf, crown area & depth
                                    slatop       = 0.012,          # specific leaf area (SLA) at top of canopy (m2 g-1)
-                                   crwnarea_p1  = 1.56,           # crown area to DBH exponent
+                                   slamax       = 0.012,          # max specific leaf area (SLA) at bottom of canopy (m2 g-1)
+                                   crwnarea_p2  = 1.56,           # crown area to DBH exponent
                                    crwndepth_frac  = 0.5,         # crown depth fraction of height 
                                    crwnarea_dbh_max  = 0.6568464, # crown depth fraction of height 
                                    crwnarea_dbh_min  = 0.3381119, # crown depth fraction of height 
@@ -296,7 +297,8 @@ allometry_object$.test_dbh <- function(., verbose=F, diag=F, cverbose=F,
   .$pars$abg_p3       <- abg_p3 
   .$pars$abg_p4       <- abg_p4 
   .$pars$slatop       <- slatop     # specific leaf area (SLA) at top of canopy (m2 g-1)
-  .$pars$crwnarea_p1  <- crwnarea_p1           # crown area to DBH exponent
+  .$pars$slamax       <- slamax     # specific leaf area (SLA) at top of canopy (m2 g-1)
+  .$pars$crwnarea_p2  <- crwnarea_p2           # crown area to DBH exponent
   .$pars$crwndepth_frac    <- crwndepth_frac         # crown depth fraction of height 
   .$pars$crwnarea_dbh_max  <- crwnarea_dbh_max  # crown depth fraction of height 
   .$pars$crwnarea_dbh_min  <- crwnarea_dbh_min  # crown depth fraction of height 

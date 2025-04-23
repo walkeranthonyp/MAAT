@@ -106,6 +106,62 @@ allometry_object$.test_dbh(dbh_max=80, slatop=0.009, wood_density=0.54 )
 # FATES broadleaf cold-decid extratropical tree
 allometry_object$.test_dbh(dbh_max=80, slatop=0.03 )
 
+# FATES broadleaf evergreen tropical tree -- RK BCI e2
+allometry_object$.test_dbh(
+  fnames.abg_biomass='f_abg_biomass_dbh_chave2014',
+  abg_p1=0.0673,abg_p2=0.967,abg_p3=-9,abg_p4=-9,
+  frac_abg=0.8, wood_density=0.4,
+  fnames.leaf_biomass='f_leaf_biomass_dbhmax_power',
+  ldbh_p1=0.1267, ldbh_p2=1.2813, ldbh_p3=-9,
+  slatop=0.02, slamax=0.04,
+  crwnarea_dbh_min=0.7687, crwnarea_dbh_max=0.7687,
+  crwnarea_p2=1.2813,
+  fnames.height='f_height_hdbh_martinezcano2019',
+  hdbh_p1=57.6, hdbh_p2=0.74, hdbh_p3=21.6, dbh_max=200   
+)
+
+# FATES broadleaf evergreen tropical tree -- RK BCI e3
+allometry_object$.test_dbh(
+  fnames.abg_biomass='f_abg_biomass_dbh_chave2014',
+  abg_p1=0.0673,abg_p2=0.967,abg_p3=-9,abg_p4=-9,
+  frac_abg=0.8, wood_density=0.4,
+  fnames.leaf_biomass='f_leaf_biomass_dbhmax_power',
+  ldbh_p1=0.1267, ldbh_p2=1.2813, ldbh_p3=-9,
+  slatop=0.02, slamax=0.04,
+  crwnarea_dbh_min=0.7687, crwnarea_dbh_max=0.7687,
+  crwnarea_p2=1.2813,
+  fnames.height='f_height_hdbh_martinezcano2019',
+  hdbh_p1=85, hdbh_p2=0.99, hdbh_p3=70, dbh_max=300   
+)
+
+# FATES broadleaf evergreen tropical tree -- RK BCI e4
+allometry_object$.test_dbh(
+  fnames.abg_biomass='f_abg_biomass_dbh_chave2014',
+  abg_p1=0.0673,abg_p2=0.967,abg_p3=-9,abg_p4=-9,
+  frac_abg=0.8, wood_density=0.4,
+  fnames.leaf_biomass='f_leaf_biomass_dbhmax_power',
+  ldbh_p1=0.1267, ldbh_p2=1.2813, ldbh_p3=-9,
+  slatop=0.02, slamax=0.04,
+  crwnarea_dbh_min=0.7687, crwnarea_dbh_max=0.7687,
+  crwnarea_p2=1.2813,
+  fnames.height='f_height_hdbh_martinezcano2019',
+  hdbh_p1=85, hdbh_p2=0.99, hdbh_p3=20, dbh_max=300   
+)
+
+# FATES broadleaf evergreen tropical tree -- RK BCI e4 tester
+allometry_object$.test_dbh(
+  fnames.abg_biomass='f_abg_biomass_dbh_chave2014',
+  abg_p1=0.0673,abg_p2=0.967,abg_p3=-9,abg_p4=-9,
+  frac_abg=0.8, wood_density=0.4,
+  fnames.leaf_biomass='f_leaf_biomass_dbhmax_power',
+  ldbh_p1=0.25, ldbh_p2=1.2813, ldbh_p3=-9,
+  slatop=0.02, slamax=0.04,
+  crwnarea_dbh_min=0.7687, crwnarea_dbh_max=0.7687,
+  crwnarea_p2=1.2813,
+  fnames.height='f_height_hdbh_martinezcano2019',
+  hdbh_p1=85, hdbh_p2=0.99, hdbh_p3=20, dbh_max=300   
+)
+
 
 
 # Rob Tunison -- Puerto Rico
