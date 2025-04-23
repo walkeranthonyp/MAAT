@@ -15,8 +15,8 @@
         <d3>'f_decomp_lin'</d3>
         <d4>'f_decomp_lin'</d4>
         <d5>'f_decomp_lin'</d5>
-        <d6>'f_zero'</d6>
-        <d7>'f_zero'</d7>
+        <d6>NA</d6>
+        <d7>NA</d7>
       </decomp>
       <desorp>
         <ds1>NA</ds1>
@@ -46,7 +46,12 @@
       <scor>NA</scor>
       <wcor>'f_wcor_abramoff'</wcor>
       <wcor2>'f_wcor_ghezzehei_biological'</wcor2>
-      <tcor>'f_tcor_daycent2_abramoff'</tcor>
+      <tcor>
+        <t1>'f_tcor_arrhenius_millennialv2'</t1>
+        <t2>NA</t2>  
+        <t3>NA</t3> 
+        <t4>'f_tcor_arrhenius_millennialv2'</t4>
+      </tcor>
       <transfer>
         <t1_to_3>'f_transfer_cue_remainder'</t1_to_3>
         <t1_to_5>'f_transfer_cue'</t1_to_5>
@@ -166,13 +171,15 @@
         <rkm3>NA</rkm3>
         <rkm4>NA</rkm4>
         <rkm5>NA</rkm5>
+        <rkm6>NA</rkm6>
+        <rkm7>NA</rkm7>
       </rkm>
       <k>
-        <k1>0.1</k1>
-        <k2>0.045</k2>
-        <k3>0.02</k3>
-        <k4>5e-04</k4>
-        <k5>2e-05</k5>
+        <k1>0.018</k1>
+        <k2>0.0045</k2>
+        <k3>0.0048</k3>
+        <k4>0.0015</k4>
+        <k5>0.02</k5>
         <k6>NA</k6>
         <k7>NA</k7>
       </k>
