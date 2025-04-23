@@ -133,5 +133,48 @@ f_wcor_ghezzehei_biological <- function(.,C,t,i){
 #tricky think about this function is that monthly moisture limitation
 #depends on value from previous month.
 
+f_SWC2SWP_vanGenuchten <- function(.,C,t,i){
+  SWC0 = .super$env$vwc
+  SWCres = 0.108 # probably should store these parameters elsewhere, but they are constant in MEND
+  SWCsat = 0.6 
+  alpha = 0.035 
+  n = 1.445
+  SWPmin = .super$env$SWP_min   #not sure why this is an argument in MEND code; It's not used in function
+
+    const_cm2MPa = 98e-6
+    rlim = 1.01
+    m = 1-1/n
+    if(SWC0<=SWCres*rlim) {
+      SWC = SWCres*rlim
+    } else {
+      SWC = SWC0
+    }
+    if(SWC < SWCsat){
+      eff_sat = (SWC - SWCres)/(SWCsat - SWCres)
+      fSWC2SWP = (1/(eff_sat^(1/m)) - 1)^(1/n)/alpha
+      fSWC2SWP = -1*fSWC2SWP*const_cm2MPa
+    } else {
+      fSWC2SWP = 0
+    }
+    fSWC2SWP
+}
+# fSWC2SWP <- function(SWC0,SWCres,SWCsat,alpha,n,SWPmin){
+#   const_cm2MPa = 98e-6
+#   rlim = 1.01
+#   m = 1-1/n
+#   if(SWC0<=SWCres*rlim) {
+#     SWC = SWCres*rlim
+#   } else {
+#     SWC = SWC0
+#   }
+#   if(SWC < SWCsat){
+#     eff_sat = (SWC - SWCres)/(SWCsat - SWCres)
+#     fSWC2SWP = (1/(eff_sat^(1/m)) - 1)^(1/n)/alpha
+#     fSWC2SWP = -1*fSWC2SWP*const_cm2MPa
+#   } else {
+#     fSWC2SWP = 0
+#   }
+#   fSWC2SWP
+# }
 
 

@@ -70,7 +70,7 @@ soil_decomp_object$fnames <- list(
 
   sys                = 'f_sys_npools', 
   solver             = 'plsoda',
-  solver_func        = 'f_solver_func_millennialV2',
+  solver_func        = 'f_solver_func_century',
   input              = 'f_input',
   DotO               = 'f_DotO',
   transfermatrix     = 'f_transfermatrix',
@@ -103,7 +103,7 @@ soil_decomp_object$fnames <- list(
     s2 = NA,
     s3 = NA,
     s4 = 'f_sorp_sat',
-    s5 = NA,
+    s5 = NA, 
     s6 = NA,
     s7 = NA
   ),
@@ -120,17 +120,21 @@ soil_decomp_object$fnames <- list(
   maintresp = NA,
   
   scor = NA,
-  wcor = 'f_wcor_ghezzehei_diffusion',
+  wcor = 'f_wcor_abramoff', #century
   wcor2 = 'f_wcor_ghezzehei_biological',
 
-  #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
-  tcor = list(                  #this structure for corpse
-    t1 = 'f_tcor_arrhenius_millennialv2',
-    t2 = NULL,
-    t3 = NULL,
-    t4 = 'f_tcor_arrhenius_millennialv2',
-    t5 = NULL
-  ),
+  tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
+  # tcor = list(                  #this structure for corpse
+  #   t1 = 'f_tcor_arrhenius_millennialv2',
+  #   t2 = NA,
+  #   t3 = NA,
+  #   t4 = 'f_tcor_arrhenius_millennialv2',
+  #   t5 = NA,
+  #   t6 = NA,
+  #   t7 = NA
+  # ),
+
+  water_unit_converter = 'f_SWC2SWP_vanGenuchten',
   
   # transfer list
   transfer = list(
@@ -153,12 +157,12 @@ soil_decomp_object$fnames <- list(
 # environment
 ####################################
 soil_decomp_object$env <- list(
-  litter = 172.8978/365, #forc_npp in MILLENNIALv2
-  temp   = 11.21961, #default for MILLENNIALv2 (sum across mean year)
-  vwc    = .2422044, #default for MILLENNIALv2 (average across mean year)
-  porosity = 0.6, #default for MILLENNIALv2
+  litter = 172.8978/365, #forc_npp in #century (sum across mean year)
+  temp   = 11.21961, #default for #century (avg across mean year)
+  vwc    = .2422044, #default for #century (average across mean year)
+  porosity = 0.39, # default for century
   clay = .0, 
-  lignin = 0,
+  lignin = 0.2,#for CENTURY, this is LigFrac, not Lig Percent
   N = 0,
   anpp = 0,
   depth = 0,
@@ -167,7 +171,7 @@ soil_decomp_object$env <- list(
   matpot = 15, #default for MILLENNIALv2
   lambda = 2.1000e-04, #default for MILLENNIALv2
   kamin = .2, #default for MILLENNIALv2
-  claysilt = 80  #default for MILLENNIALv2 #MILLENNIAL uses clay+silt% to calculate Qmax
+  claysilt = 80  #default for century #MILLENNIAL uses clay+silt% to calculate Qmax
 )
 
 
@@ -191,7 +195,7 @@ soil_decomp_object$state_pars <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 7,          # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
+  n_pools = 7,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
   beta    = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = NA,      
   clay    = NA,        
@@ -201,7 +205,7 @@ soil_decomp_object$pars <- list(
   pem     = NA,        
   Kads    = NA,       
   qslope_mayes = NA,
-  reftemp = NA,
+  reftemp = 30,        #CENTURY
   R = 8.31446,#72,        #used in MILLENNIALv2
   minmic = NA,
   q10 = NA,
@@ -211,13 +215,15 @@ soil_decomp_object$pars <- list(
     ea2 = NA,
     ea3 = NA,
     ea4 = 5.7865e+04, #MILLENNIALv2 #activiation energy for temp sensitivity of DOC uptake
-    ea5 = NA
+    ea5 = NA,
+    ea6 = NA,
+    ea7 = NA
   ),
  
   #input coefficients (allocaties proportions of inputs into different pools)
   input_coefs = list(
-    input_coef1 = .66,
-    input_coef2 = 0,
+    input_coef1 = .66, #CENTURY input_to_strLitter
+    input_coef2 = .34, #Century input to MetLitter
     input_coef3 = 0,
     input_coef4 = .34,
     input_coef5 = 0,
@@ -330,11 +336,11 @@ soil_decomp_object$pars <- list(
 
   # turnover rate for linear decomposition
   k = list(    
-    k1 = .018, #aggregate formation from POM       
-    k2 = 4.5000e-03, #microbial turnover rate   
-    k3 = 4.8000e-03, #aggregate formation from maom 
-    k4 = .0015, #leaching rate (kd)
-    k5 = .02, #aggregrate breakdown rate (kb)
+    k1 = .018,       # aggregate formation from POM       
+    k2 = 4.5000e-03, # microbial turnover rate   
+    k3 = 4.8000e-03, # aggregate formation from maom 
+    k4 = .0015,      # leaching rate (kd)
+    k5 = .02,        # aggregrate breakdown rate (kb)
     k6 = NA,
     k7 = NA
   ),
@@ -423,6 +429,18 @@ soil_decomp_object$pars <- list(
     Taeref = 15,   #ref temp for CUE temp-dependence equation
     pa = 0.33,      #proportion agg breakdown into pom
     param_pb = .5 #fraction of mb turnover to maom vs doc
+  ),
+  
+  century = list(
+    c1= 0.85, #century constant in texture function
+    c2= 0.68, #century constant in texture function
+    slow_to_active= 0.42, #century transfer coefficient
+    slow_to_passive= 0.03,#century transfer coefficient
+    passive_to_active= 0.45,#century transfer coefficient
+    active_to_passive= 0.004,#century transfer coefficient
+    metlitter_to_active= 0.45,#century transfer coefficient
+    strlitter_to_active= 0.5,#century transfer coefficient
+    strlitter_to_slow= 0.7#century transfer coefficient
   )
 )
 

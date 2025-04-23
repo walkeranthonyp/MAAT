@@ -46,10 +46,7 @@
       <scor>NA</scor>
       <wcor>NA</wcor>
       <wcor2>NA</wcor2>
-      <tcor>
-        <t1>NA</t1>
-        <t4>NA</t4>
-      </tcor>
+      <tcor>NA</tcor>
       <transfer>
         <t1_to_3>NA</t1_to_3>
         <t1_to_5>NA</t1_to_5>
@@ -88,6 +85,8 @@
         <ea3>NA</ea3>
         <ea4>NA</ea4>
         <ea5>NA</ea5>
+        <ea6>NA</ea6>
+        <ea7>NA</ea7>
       </ea>
       <input_coefs>
         <input_coef1>NA</input_coef1>
@@ -256,6 +255,17 @@
         <pa>NA</pa>
         <param_pb>NA</param_pb>
       </millennialV2>
+      <century>
+        <c1>NA</c1>
+        <c2>NA</c2>
+        <slow_to_active>NA</slow_to_active>
+        <slow_to_passive>NA</slow_to_passive>
+        <passive_to_active>NA</passive_to_active>
+        <active_to_passive>NA</active_to_passive>
+        <metlitter_to_active>NA</metlitter_to_active>
+        <strlitter_to_active>NA</strlitter_to_active>
+        <strlitter_to_slow>NA</strlitter_to_slow>
+      </century>
     </soil_decomp>
   </pars>
   <env>
