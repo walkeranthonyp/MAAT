@@ -79,13 +79,13 @@ soil_decomp_object$fnames <- list(
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_lin', #century
-    d2 = 'f_decomp_lin', #century 
-    d3 = 'f_decomp_lin', #century
-    d4 = 'f_decomp_lin', #century
-    d5 = 'f_decomp_lin',#century
-    d6 = 'f_zero',
-    d7 = 'f_zero'
+    d1 = 'f_decomp_rmm',
+    d2 = 'f_decomp_dd_georgiou',  
+    d3 = 'f_zero', 
+    d4 = 'f_decomp_lin', 
+    d5 = 'f_decomp_lin',
+    d6 = NA,
+    d7 = NA
   ),
   
   desorp = list(
@@ -178,7 +178,8 @@ soil_decomp_object$env <- list(
 # state
 ####################################
 soil_decomp_object$state <- list(
-  cpools = matrix(1:3, ncol=1 )
+  cpools = matrix(1:3, ncol=1 ),
+  respiration = vector("double",1)
 )
 
 
@@ -194,7 +195,7 @@ soil_decomp_object$state_pars <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 7,          # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
+  n_pools = 7,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
   beta    = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = NA,      
   clay    = NA,        
@@ -224,10 +225,10 @@ soil_decomp_object$pars <- list(
     input_coef1 = .66, #CENTURY input_to_strLitter
     input_coef2 = .34, #Century input to MetLitter
     input_coef3 = 0,
-    input_coef4 = 0,
+    input_coef4 = .34,
     input_coef5 = 0,
-    input_coef6 = 0,
-    input_coef7 = 0
+    input_coef6 = NA,
+    input_coef7 = NA
   ),
   
   # initial pool mass for each pool
@@ -328,16 +329,18 @@ soil_decomp_object$pars <- list(
     rkm2 = NA,     
     rkm3 = NA,
     rkm4 = NA,
-    rkm5 = NA
+    rkm5 = NA,
+    rkm6 = NA,
+    rkm7 = NA
   ),   
 
   # turnover rate for linear decomposition
   k = list(    
-    k1 = .1, #CENTURY k_strlitter    
-    k2 = .045, #CENTURY k_metlitter 
-    k3 = .02, #CENTURY k_active
-    k4 = .0005, #CENTURY k_slow
-    k5 = .00002, #CENTURY k_passive 
+    k1 = .018,       # aggregate formation from POM       
+    k2 = 4.5000e-03, # microbial turnover rate   
+    k3 = 4.8000e-03, # aggregate formation from maom 
+    k4 = .0015,      # leaching rate (kd)
+    k5 = .02,        # aggregrate breakdown rate (kb)
     k6 = NA,
     k7 = NA
   ),
@@ -521,7 +524,9 @@ soil_decomp_object$.test.mimics.ss <- function(., verbose=F, metdf=F, litter=172
         desorp = list(
           ds5 = 'f_decomp_lin'
         ),
-        tcor = 'f_tcor_wieder'
+        tcor = list(
+          t1 = 'f_tcor_wieder'
+        )
       )
     .$pars <- list(
       n_pools = 7,          # number of pools in model  
