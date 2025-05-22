@@ -617,6 +617,7 @@ f_solver_func_century <- function(., t, y, parms) {
 #######################################
 # - parms is a dummy argument to work with lsoda
 # Equations from Wang et al. 2019 MEND soil moisture paper
+# this is in development, commenting out for now
 f_solver_func_mend2019 <- function(., t, y, parms) {#MEND based on Wang et al. 2019
   
   # #ENV functions
