@@ -4,6 +4,7 @@
       <cpools1>'column name of variable in evaldata file'</cpools1>
       <cpools2>'column name of variable in evaldata file'</cpools2>
       <cpools3>'column name of variable in evaldata file'</cpools3>
+      <respiration>'column name of variable in evaldata file'</respiration>
     </soil_decomp>
   </state>
 </eval_data_translator>

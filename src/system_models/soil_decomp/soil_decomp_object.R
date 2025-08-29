@@ -123,16 +123,16 @@ soil_decomp_object$fnames <- list(
   wcor = 'f_wcor_abramoff', #century
   wcor2 = 'f_wcor_ghezzehei_biological',
 
-  tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
-  # tcor = list(                  #this structure for corpse
-  #   t1 = 'f_tcor_arrhenius_millennialv2',
-  #   t2 = NA,
-  #   t3 = NA,
-  #   t4 = 'f_tcor_arrhenius_millennialv2',
-  #   t5 = NA,
-  #   t6 = NA,
-  #   t7 = NA
-  # ),
+  # tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
+  tcor = list(                  #this structure for corpse
+    t1 = 'f_tcor_arrhenius_millennialv2',
+    t2 = NA,
+    t3 = NA,
+    t4 = 'f_tcor_arrhenius_millennialv2',
+    t5 = NA,
+    t6 = NA,
+    t7 = NA
+  ),
 
   water_unit_converter = 'f_SWC2SWP_vanGenuchten',
   

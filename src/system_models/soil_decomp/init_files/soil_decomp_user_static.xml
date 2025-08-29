@@ -46,7 +46,16 @@
       <scor>NA</scor>
       <wcor>NA</wcor>
       <wcor2>NA</wcor2>
-      <tcor>NA</tcor>
+      <tcor>
+        <t1>NA</t1>
+        <t2>NA</t2>
+        <t3>NA</t3>
+        <t4>NA</t4>
+        <t5>NA</t5>
+        <t6>NA</t6>
+        <t7>NA</t7>
+      </tcor>
+      <water_unit_converter>NA</water_unit_converter>
       <transfer>
         <t1_to_3>NA</t1_to_3>
         <t1_to_5>NA</t1_to_5>

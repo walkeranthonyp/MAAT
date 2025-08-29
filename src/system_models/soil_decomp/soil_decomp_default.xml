@@ -10,9 +10,9 @@
       <steadystate>'f_steadystate_npools'</steadystate>
       <solver_steadystate>'pstode'</solver_steadystate>
       <decomp>
-        <d1>'f_decomp_lin'</d1>
-        <d2>'f_decomp_lin'</d2>
-        <d3>'f_decomp_lin'</d3>
+        <d1>'f_decomp_rmm'</d1>
+        <d2>'f_decomp_dd_georgiou'</d2>
+        <d3>'f_zero'</d3>
         <d4>'f_decomp_lin'</d4>
         <d5>'f_decomp_lin'</d5>
         <d6>NA</d6>
@@ -48,10 +48,14 @@
       <wcor2>'f_wcor_ghezzehei_biological'</wcor2>
       <tcor>
         <t1>'f_tcor_arrhenius_millennialv2'</t1>
-        <t2>NA</t2>  
-        <t3>NA</t3> 
+        <t2>NA</t2>
+        <t3>NA</t3>
         <t4>'f_tcor_arrhenius_millennialv2'</t4>
+        <t5>NA</t5>
+        <t6>NA</t6>
+        <t7>NA</t7>
       </tcor>
+      <water_unit_converter>'f_SWC2SWP_vanGenuchten'</water_unit_converter>
       <transfer>
         <t1_to_3>'f_transfer_cue_remainder'</t1_to_3>
         <t1_to_5>'f_transfer_cue'</t1_to_5>
@@ -97,10 +101,10 @@
         <input_coef1>0.66</input_coef1>
         <input_coef2>0.34</input_coef2>
         <input_coef3>0</input_coef3>
-        <input_coef4>0</input_coef4>
+        <input_coef4>0.34</input_coef4>
         <input_coef5>0</input_coef5>
-        <input_coef6>0</input_coef6>
-        <input_coef7>0</input_coef7>
+        <input_coef6>NA</input_coef6>
+        <input_coef7>NA</input_coef7>
       </input_coefs>
       <cstate0>
         <cstate01>1</cstate01>
