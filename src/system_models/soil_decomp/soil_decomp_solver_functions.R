@@ -415,7 +415,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #Equation 11
   #Q max; maximum MAOM capacity
   #not sure if this will work?
-  .super$pars$poolmax[[3]] = .super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']]
+  .super$pars$poolmax[[3]] = .super$env$claysilt * .super$pars$millennialV2[['param_pc']] #.super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']] (in g m-2 version)
   # param_qmax = .super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']]
   
   #Equation 10
@@ -493,7 +493,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #desorption
   # MAOM -> LMWC
   if(MAOM>0){
-    f_MA_LM = .$desorp.ds3(t = t, C=y, i=3, k = .super$pars$millennialV2[['kld']], cat = 2)
+    f_MA_LM = .$desorp.ds3(t = t, C=y, i=3, k = .super$pars$millennialV2[['kld']]/1000, cat = 2)
     #f_MA_LM = kld * MAOM / param_qmax
   }else{
     f_MA_LM=0
@@ -633,6 +633,7 @@ f_solver_func_century <- function(., t, y, parms) {
 #######################################
 # - parms is a dummy argument to work with lsoda
 # Equations from Wang et al. 2019 MEND soil moisture paper
+# this is in development, commenting out for now
 f_solver_func_mend2019 <- function(., t, y, parms) {#MEND based on Wang et al. 2019
   
   # #ENV functions
