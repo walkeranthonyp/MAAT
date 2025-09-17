@@ -7,6 +7,7 @@
 #
 ################################
 
+
 #function for converting ANPP to litter inputs from MIMICS
 f_input_mimics <- function(., t ) {
   EST_LIT_in = .super$env$anpp / (365*24) # gC/m2/h (from gC/m2/y)
@@ -23,7 +24,7 @@ f_solver_func_corpse <- function(., t, y, parms) {
   dCs <- .$input(t)[[1]] + .$desorp.ds5(t=t,C=y,i=5) - .$sorp.s1(t=t,C=y,i=1)*.$scor(.) - .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)
   dCr <- .$input(t)[[2]] + .$desorp.ds6(t=t,C=y,i=6) - .$sorp.s2(t=t,C=y,i=2)*.$scor(.) - .$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)
   dCn <- .$decomp.d4(t = t, C=y, i=4)*.super$pars$cue[[4]] + .$desorp.ds7(t=t,C=y,i=7) - .$sorp.s3(t=t,C=y,i=3)*.$scor(.) - .$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)
-  dM <- .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)*.super$pars$cue[[1]]+.$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)*.super$pars$cue[[2]]+.$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)*.super$pars$cue[[3]] - .$decomp.d4(t = t, C=y, i=4)
+  dM  <- .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)*.super$pars$cue[[1]]+.$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)*.super$pars$cue[[2]]+.$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)*.super$pars$cue[[3]] - .$decomp.d4(t = t, C=y, i=4)
   dPs <- .$sorp.s1(t=t,C=y,i=1)*.$scor(.) - .$desorp.ds5(t=t,C=y,i=5)
   dPr <- .$sorp.s2(t=t,C=y,i=2)*.$scor(.) - .$desorp.ds6(t=t,C=y,i=6)
   dPn <- .$sorp.s3(t=t,C=y,i=3)*.$scor(.) - .$desorp.ds7(t=t,C=y,i=7)
@@ -433,11 +434,11 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #          #Fluxes
   
   #define states so that if/then statements work here
-  POM = .super$state$cpools[[1]]
-  MIC = .super$state$cpools[[2]]
+  POM  = .super$state$cpools[[1]]
+  MIC  = .super$state$cpools[[2]]
   MAOM = .super$state$cpools[[3]]
   LMWC = .super$state$cpools[[4]]
-  AGG = .super$state$cpools[[5]]
+  AGG  = .super$state$cpools[[5]]
   
   #Equation 6
   #agg breakdown
@@ -831,5 +832,109 @@ f_solver_func_mend2019 <- function(., t, y, parms) {#MEND based on Wang et al. 2
 
   list(c(dP1, dP2, dM, dQ, dD, dBA, dBD, dEP1, dEP2, dEM))
 }
+
+
+############## CENTURY #################
+# lsoda style function to solve CENTURY
+#######################################
+# - parms is a dummy argument to work with lsoda
+# Equations from Abramoff et al. 2021 Millennial v2 paper
+f_solver_func_century <- function(., t, y, parms ) {
+  #Equation B1 
+  #just use .$tcor(.) instead of t_scalar
+  # t_scalar <- (t2 + (t3 / pi) * atan(pi * t4 * (forc_st - t1))) /
+  #   (t2 + (t3 / pi) * atan(pi * t4 *(30.0 - t1)))
+  
+  #Equation B2
+  #just use .$wcor(.) instead of w_scalar (porosity would need to be set to .39 to match Abramoff et al. 2021)
+  # w_scalar <- 1.0 / (1.0 + w1 * exp(-w2 * forc_sw/0.39))
+  
+  #Equation B3
+  f_TEX = .super$pars$century[['c1']] - .super$pars$century[['c2']]*.super$env$claysilt*.01
+  
+  #Equation B4
+  # f_StrLitter = StrLitter * k_strlitter * t_scalar * w_scalar * exp(-3*LigFrac)
+  f_StrLitter = .$decomp.d1(t = t, C=y, i=1) * .$tcor(.) * .$wcor(.) * exp(-3*.super$env$lignin)
+  
+  #Equation B5
+  # f_MetLitter = MetLitter * k_metlitter * t_scalar * w_scalar  
+  f_MetLitter = .$decomp.d2(t = t, C=y, i=2) * .$tcor(.) * .$wcor(.)
+  
+  #Equation B6
+  # f_ACTIVE <- ACTIVE * k_active * t_scalar * w_scalar * f_TEX
+  f_ACTIVE = .$decomp.d3(t = t, C=y, i=3) * .$tcor(.) * .$wcor(.) *f_TEX
+  
+  #Equation B7 
+  # f_SLOW <- SLOW * k_slow * t_scalar * w_scalar
+  f_SLOW = .$decomp.d4(t = t, C=y, i=4) * .$tcor(.) * .$wcor(.)
+  
+  #Equation B8
+  # f_PASSIVE <- PASSIVE * k_passive * t_scalar * w_scalar
+  f_PASSIVE = .$decomp.d5(t = t, C=y, i=5) * .$tcor(.) * .$wcor(.)
+  
+  #Equation B9
+  dStrLitter = .super$pars$input_coef[[1]] * .super$env$litter - f_StrLitter
+  
+  #Equation B10
+  dMetLitter = .super$pars$input_coefs[[2]] * .super$env$litter - f_MetLitter
+  
+  #Equation B11
+  dACTIVE <- (1-.super$env$lignin) * .super$pars$century[['strlitter_to_active']] * f_StrLitter + .super$pars$century[['metlitter_to_active']] * f_MetLitter  + f_SLOW * .super$pars$century[['slow_to_active']] + f_PASSIVE * .super$pars$century[['passive_to_active']] - f_ACTIVE
+  
+  #Equation B12
+  dSLOW <-  .super$env$lignin * .super$pars$century[['strlitter_to_slow']] * f_StrLitter + f_ACTIVE * (1-f_TEX-.super$pars$century[['active_to_passive']]) - f_SLOW
+  
+  #Equation B13
+  dPASSIVE <- f_ACTIVE * .super$pars$century[['active_to_passive']] + f_SLOW * .super$pars$century[['slow_to_passive']] - f_PASSIVE
+  
+  list(c(dStrLitter, dMetLitter, dACTIVE, dSLOW, dPASSIVE ))
+}
+
+
+
+############## ELM CTC #################
+# lsoda style function to solve CTC in ELMv2
+#######################################
+# - parms is a dummy argument to work with lsoda
+# Thornton, P. E., & Rosenbloom, N. A. (2005). Ecosystem model spin-up: Estimating steady state conditions in a coupled terrestrial carbon and nitrogen cycle model. Ecological Modelling, 189(1), 25–48. https://doi.org/10.1016/j.ecolmodel.2005.04.008
+# This model forms the basis of soil C dynamics in ELM, though C-only is represented here
+# Code adapted from publication by M. Craig
+f_solver_dummy <- function(., t, y, ... ) {
+  x <- rep(1, length(y) )
+  rbind(c(0,1,x), c(1,1,x) )
+}
+
+f_solver_func_elmv2ctc <- function(., t, y, parms ) {
+
+  # k_env_scalar     <- .$tcor$t1(.) * .$wcor(.)
+  k_env_scalar     <- 1
+  # print('here 2')
+  f_CWD   <- .$decomp.d1(t=t, C=y, i=1 ) * k_env_scalar
+  f_LIT1  <- .$decomp.d2(t=t, C=y, i=2 ) * k_env_scalar
+  f_LIT2  <- .$decomp.d3(t=t, C=y, i=3 ) * k_env_scalar
+  f_LIT3  <- .$decomp.d4(t=t, C=y, i=4 ) * k_env_scalar
+  f_SOM1  <- .$decomp.d5(t=t, C=y, i=5 ) * k_env_scalar
+  f_SOM2  <- .$decomp.d6(t=t, C=y, i=6 ) * k_env_scalar
+  f_SOM3  <- .$decomp.d7(t=t, C=y, i=7 ) * k_env_scalar
+  f_SOM4  <- .$decomp.d7(t=t, C=y, i=8 ) * k_env_scalar
+  
+  #ODE system
+  f_litter_not_cwd <- 1 - .super$pars$input_coefs[[1]]
+  dcwd  <- .super$env$litter*.super$pars$input_coefs[[1]] - f_CWD
+  dlit1 <- .super$env$litter*f_litter_not_cwd*.super$pars$input_coefs[[2]] - f_LIT1
+  dlit2 <- .super$env$litter*f_litter_not_cwd*.super$pars$input_coefs[[3]] + 
+    f_CWD*.super$pars$input_coefs[[5]] - f_LIT2
+  dlit3 <- .super$env$litter*f_litter_not_cwd*.super$pars$input_coefs[[4]] + 
+    f_CWD*.super$pars$input_coefs[[6]] - f_LIT3
+  dsom1 <- f_LIT1*.super$pars$cue[[2]]                               - f_SOM1
+  dsom2 <- f_LIT2*.super$pars$cue[[3]] + f_SOM1*.super$pars$cue[[5]] - f_SOM2
+  dsom3 <- f_LIT3*.super$pars$cue[[4]] + f_SOM2*.super$pars$cue[[6]] - f_SOM3
+  dsom4 <-                               f_SOM3*.super$pars$cue[[7]] - f_SOM4
+  
+  # print(c(dcwd, dlit1, dlit2, dlit3, dsom1, dsom2, dsom3 ))
+  list(c(dcwd, dlit1, dlit2, dlit3, dsom1, dsom2, dsom3, dsom4 ))
+}
+
+
 
 ### END ###

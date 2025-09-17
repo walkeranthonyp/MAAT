@@ -9,6 +9,16 @@
       <transfermatrix>NA</transfermatrix>
       <steadystate>NA</steadystate>
       <solver_steadystate>NA</solver_steadystate>
+      <docuptake>NA</docuptake>
+      <growthresp>NA</growthresp>
+      <maintresp>NA</maintresp>
+      <scor>NA</scor>
+      <wcor>NA</wcor>
+      <wcor2>NA</wcor2>
+      <tcor>
+        <t1>NA</t1>
+        <t4>NA</t4>
+      </tcor>
       <decomp>
         <d1>NA</d1>
         <d2>NA</d2>
@@ -17,6 +27,8 @@
         <d5>NA</d5>
         <d6>NA</d6>
         <d7>NA</d7>
+        <d8>NA</d8>
+        <d9>NA</d9>
       </decomp>
       <desorp>
         <ds1>NA</ds1>
@@ -58,17 +70,20 @@
       <water_unit_converter>NA</water_unit_converter>
       <transfer>
         <t1_to_3>NA</t1_to_3>
-        <t1_to_5>NA</t1_to_5>
-        <t2_to_1>NA</t2_to_1>
+        <t1_to_4>NA</t1_to_4>
         <t2_to_5>NA</t2_to_5>
-        <t2_to_6>NA</t2_to_6>
-        <t2_to_7>NA</t2_to_7>
-        <t3_to_5>NA</t3_to_5>
-        <t4_to_5>NA</t4_to_5>
-        <t5_to_2>NA</t5_to_2>
-        <t5_to_4>NA</t5_to_4>
-        <t6_to_5>NA</t6_to_5>
-        <t7_to_5>NA</t7_to_5>
+        <t3_to_6>NA</t3_to_6>
+        <t4_to_7>NA</t4_to_7>
+        <t5_to_6>NA</t5_to_6>
+        <t6_to_7>NA</t6_to_7>
+        <t7_to_8>NA</t7_to_8>
+        <t2_to_9>NA</t2_to_9>
+        <t3_to_9>NA</t3_to_9>
+        <t4_to_9>NA</t4_to_9>
+        <t5_to_9>NA</t5_to_9>
+        <t6_to_9>NA</t6_to_9>
+        <t7_to_9>NA</t7_to_9>
+        <t8_to_9>NA</t8_to_9>
       </transfer>
     </soil_decomp>
   </fnames>
@@ -105,6 +120,8 @@
         <input_coef5>NA</input_coef5>
         <input_coef6>NA</input_coef6>
         <input_coef7>NA</input_coef7>
+        <input_coef8>NA</input_coef8>
+        <input_coef9>NA</input_coef9>
       </input_coefs>
       <cstate0>
         <cstate01>NA</cstate01>
@@ -114,6 +131,8 @@
         <cstate05>NA</cstate05>
         <cstate06>NA</cstate06>
         <cstate07>NA</cstate07>
+        <cstate08>NA</cstate08>
+        <cstate09>NA</cstate09>
       </cstate0>
       <cue>
         <cue1>NA</cue1>
@@ -123,6 +142,8 @@
         <cue5>NA</cue5>
         <cue6>NA</cue6>
         <cue7>NA</cue7>
+        <cue8>NA</cue8>
+        <cue9>NA</cue9>
       </cue>
       <cue2>
         <cue1>NA</cue1>
@@ -132,6 +153,7 @@
         <cue5>NA</cue5>
         <cue6>NA</cue6>
         <cue7>NA</cue7>
+        <cue8>NA</cue8>
       </cue2>
       <vmax>
         <vmax1>NA</vmax1>
@@ -186,6 +208,8 @@
         <k5>NA</k5>
         <k6>NA</k6>
         <k7>NA</k7>
+        <k8>NA</k8>
+        <k9>NA</k9>
       </k>
       <poolmax>
         <poolmax1>NA</poolmax1>

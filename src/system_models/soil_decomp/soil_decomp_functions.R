@@ -65,8 +65,11 @@ f_tcor_wieder <- function(.,C,t,i){
 # decay functions
 ###################
 
+f_decomp_none <- function(., C, t, i, ... ) 0
+  
+
 # linear decomp, Oleson 1963
-#MEND O6,O7
+# MEND O6,O7
 f_decomp_lin        <- function(.,C,t,i, k_from_list = TRUE, k = NULL, cat = NULL, sat_pool = NULL) { #cat and sat_pool ars dummy arguments to allow switching from other functions
   if(k_from_list == TRUE){
     C[i]*.super$pars$k[[i]]
@@ -76,24 +79,26 @@ f_decomp_lin        <- function(.,C,t,i, k_from_list = TRUE, k = NULL, cat = NUL
 }
 
 # density-dependent decomp, used for density-dependent turnover as in Georgiou et al. 2017  
-f_decomp_dd_georgiou         <- function(.,C,t,i) (C[i]^.super$pars$beta) * .super$pars$k[[i]]      
+f_decomp_dd_georgiou <- function(.,C,t,i) 
+  (C[i]^.super$pars$beta) * .super$pars$k[[i]]      
 
 # non-linear Michaelis-Menten decomp, a function of microbial biomass
-f_decomp_MM_microbe <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[i])
+f_decomp_MM_microbe <- function(.,C,t,i) 
+  (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[i])
 
 # reverse Michaelis-Menten decomp
 #C[4] is microbial biomass in CORPSE
-f_decomp_rmm <- function(.,C,t,i, cat = 4, k = NULL) { #k is dummy argument to get MILLENNIAL to work for mic decay of maom 
+f_decomp_rmm <- function(.,C,t,i, cat=4, k=NULL ) { #k is dummy argument to get MILLENNIAL to work for mic decay of maom 
   (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[cat] + .super$pars$km[[i]])
 }
-# double Michaelis-Menten decomp
-f_decomp_dmm <- function(.,C,t,i){
-  .super$pars$vmax[[i]] * (C[1]/(.super$pars$km[[1]] + C[1])) * (C[2]/(.super$pars$rkm[[1]]+C[2]))
-}
 
-f_decomp_mm <- function(.,C,t,i,cat = 4){
+# double Michaelis-Menten decomp
+f_decomp_dmm <- function(.,C,t,i)
+  .super$pars$vmax[[i]] * (C[1]/(.super$pars$km[[1]] + C[1])) * (C[2]/(.super$pars$rkm[[1]]+C[2]))
+
+f_decomp_mm <- function(.,C,t,i, cat=4 )
   (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[i] + .super$pars$km[[i]])
-}
+
 
 f_sorp_sat  <- function(.,C,t,i, k_from_list = TRUE, k = NULL, sat_pool) {
   if(k_from_list == TRUE){
@@ -106,6 +111,7 @@ f_sorp_sat  <- function(.,C,t,i, k_from_list = TRUE, k = NULL, sat_pool) {
 f_zero <- function(.,C,t,i) 0
 
 f_identity <- function(.,C,t,i) 1
+
 
 #########
 #MEND-SPECIFIC FUNCTIONS
@@ -349,7 +355,8 @@ f_transfer_zero <- function(.,C,t,from,to) 0
 
 # CUE or carbon transfer efficiency sets transfer from one pool to another
 #MEND15
-f_transfer_cue  <- function(.,C,t,from,to) .super$pars$cue[[from]]    
+f_transfer_cue       <- function(.,C,t,from,to) .super$pars$cue[[from]]    
+f_transfer_cue_resp  <- function(.,C,t,from,to) 1 - .super$pars$cue[[from]]    
 
 # CUE / transfer efficiency sets transfer subject to a maximum pool size 
 # - can be used both for saturating MAOM pool and density dependent microbial growth efficiency
