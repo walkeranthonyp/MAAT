@@ -8,11 +8,12 @@
 ################################
 
 mod_obj <- NULL
+options_only <- T
 
 # parse command line arguments   
 # - any one of the above objects can be specified as a command line argument using the syntax:
-# - Rscript ./run_script/<nameofthisscript> "<object1> <- <value1>" 
-# - e.g. Rscript create_default_XMLs.R "mod_obj <- 'template'" 
+# - Rscript ./run_scripts/<nameofthisscript> "<object1><-<value1>" 
+# - e.g. Rscript ./run_scripts/create_default_XMLs.R "mod_obj<-'template'" 
 
 if(length(commandArgs(T))>=1) {
   for( ca in 1:length(commandArgs(T)) ) {
@@ -77,13 +78,15 @@ l1n <- rapply(l1, function(x) NA, how='replace' )
 
 # convert list to XMLs
 print('', quote=F )
-listtoXML(paste(mod_obj,'default.xml',sep='_'), 'default',  sublist=l1 )
 listtoXML(paste(mod_obj,'options.xml',sep='_'), 'options',  sublist=l1opt )
-setwd('init_files')
-listtoXML(paste(mod_obj,'user_static.xml',sep='_'),  'static',               sublist=l1n )
-listtoXML(paste(mod_obj,'user_dynamic.xml',sep='_'), 'dynamic',              sublist=l1n )
-listtoXML(paste(mod_obj,'user_met.xml',sep='_'),     'met_data_translator',  sublist=l2 )
-listtoXML(paste(mod_obj,'user_eval.xml',sep='_'),    'eval_data_translator', sublist=l3 )
+if(!options_only) {
+  listtoXML(paste(mod_obj,'default.xml',sep='_'), 'default',  sublist=l1 )
+  setwd('init_files')
+  listtoXML(paste(mod_obj,'user_static.xml',sep='_'),  'static',               sublist=l1n )
+  listtoXML(paste(mod_obj,'user_dynamic.xml',sep='_'), 'dynamic',              sublist=l1n )
+  listtoXML(paste(mod_obj,'user_met.xml',sep='_'),     'met_data_translator',  sublist=l2 )
+  listtoXML(paste(mod_obj,'user_eval.xml',sep='_'),    'eval_data_translator', sublist=l3 )
+}
 
 # open options XML to add labels by hand 
 setwd('..')
