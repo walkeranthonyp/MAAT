@@ -15,6 +15,7 @@ source('../../functions/packagemod_functions_deSolve.R')
 source('../../functions/packagemod_functions_rootSolve.R')
 
 
+
 # soil_decomp OBJECT
 ###############################################################################
 
@@ -77,13 +78,6 @@ soil_decomp_object$fnames <- list(
   steadystate        = 'f_steadystate_npools', # options: 'f_steadystate_null','f_steadystate_npools',
   solver_steadystate = 'pstode',
   
-  docuptake  = 'f_decomp_mm', #MM uptake of DOC
-  growthresp = NA,
-  maintresp  = NA,
-  scor       = NA,
-  wcor       = 'f_wcor_ghezzehei_diffusion',
-  wcor2      = 'f_wcor_ghezzehei_biological',
-  
   #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
   tcor = list(                  #this structure for corpse
     t1 = 'f_tcor_arrhenius_millennialv2',
@@ -129,16 +123,13 @@ soil_decomp_object$fnames <- list(
     a3 = 'f_decomp_lin'  #Aggregate formation from MAOM
   ),
   
-  docuptake = 'f_decomp_mm', #MM uptake of DOC
-  
+  docuptake  = 'f_decomp_mm', #MM uptake of DOC
   growthresp = NA,
+  maintresp  = NA,
+  scor       = NA,
+  wcor       = 'f_wcor_ghezzehei_diffusion',
+  wcor2      = 'f_wcor_ghezzehei_biological',
   
-  maintresp = NA,
-  
-  scor = NA,
-  wcor = 'f_wcor_abramoff', #century
-  wcor2 = 'f_wcor_ghezzehei_biological',
-
   # tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
   tcor = list(                  #this structure for corpse
     t1 = 'f_tcor_arrhenius_millennialv2',
@@ -389,14 +380,14 @@ soil_decomp_object$pars <- list(
   poolmax = list(       
     poolmax1 = NA,      
     poolmax2 = NA,       
-    poolmax3 = NA, #this is calculated in solver function 
+    poolmax3 = NA, 
     poolmax4 = NA,
     poolmax5 = NA,
     poolmax6 = NA,
     poolmax7 = NA
   ),
   
-  #mimics-specific parameters
+  # MIMICS-specific parameters
   mimics = list(
     fmet_p1 = .5,
     fmet_p2 = .85,
@@ -435,7 +426,17 @@ soil_decomp_object$pars <- list(
     fi_LITs = .005
   ),
   
-  #millennial-specific parameters
+  # MEND-specific parameters
+  mend = list(
+    Mr =  .00028,
+    Pep = .01,
+    Pem = .01,
+    Gd =  .5,
+    Fd =  .5
+  ),
+  
+  # MILLENNIAL-specific parameters
+  # v1
   millennial = list(
     cuet = -0.012, #slope relating assimilation efficiency to temperature
     Taeref = 15,   #ref temp for CUE temp-dependence equation
@@ -451,15 +452,7 @@ soil_decomp_object$pars <- list(
     pa = 0.333
   ),
   
-  #mend-specific parameters
-  mend = list(
-    Mr =  .00028,
-    Pep = .01,
-    Pem = .01,
-    Gd =  .5,
-    Fd =  .5
-  ),
-  
+  # v2
   millennialV2 = list(
     param_pc = .86, ##slope of mineral C - clay relationship from Georgiou et al. in review
     kld = 1, #desorption coefficient
@@ -471,6 +464,7 @@ soil_decomp_object$pars <- list(
     param_pb = .5 #fraction of mb turnover to maom vs doc
   ),
   
+  # CENTURY-specific parameters
   century = list(
     c1= 0.85, #century constant in texture function
     c2= 0.68, #century constant in texture function

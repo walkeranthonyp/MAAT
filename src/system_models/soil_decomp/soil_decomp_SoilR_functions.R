@@ -15,11 +15,12 @@
 
 # input matrix, single column, rows = cpools_n
 # - this is where inputs would be divided among pools
-# - APW I don't think this needs to be part of the solver
+# - APW I'm not sure this needs to be part of the solver
 f_input <- function(., t ) {
-  #why is .$env$litter not .super$env$litter??
+  # why is .$env$litter not .super$env$litter??
   .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 )
 }
+
 
 f_input_clm5 <- function(., t ) {
   m <- matrix(0, nrow=.super$pars$n_pools, ncol=1 )

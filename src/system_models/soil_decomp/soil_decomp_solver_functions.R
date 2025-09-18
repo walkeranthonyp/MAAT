@@ -8,36 +8,229 @@
 ################################
 
 
-#function for converting ANPP to litter inputs from MIMICS
-f_input_mimics <- function(., t ) {
-  EST_LIT_in = .super$env$anpp / (365*24) # gC/m2/h (from gC/m2/y)
-  EST_LIT    = EST_LIT_in  * 1e3 / 1e4    #mgC/cm2/h(from gC/m2/h)
-  EST_LIT/.super$env$depth 
-  
+f_solver_dummy <- function(., t, y, ... ) {
+  x <- rep(1, length(y) )
+  rbind(c(0,1,x), c(1,1,x) )
 }
 
-############## CORPSE #################
+
+
+# lsoda style function to solve MILLENNIALv2
+#############################################
+
+f_solver_func_millennialV2 <- function(., t, y, parms) {
+  #State parameters (i.e. calculated parameters)
+  #Equation 4
+  ##scalar_wd = (swc / porosity)^0.5
+  ##this is now .$wcor(.)
+  
+  #Equation 15
+  #scalar_wb = exp(lambda * -matpot) * (kamin + (1 - kamin) * ((porosity - swc) / porosity)^0.5) * scalar_wd
+  ##this is now .$wcor2(.)
+  
+  #Equation 11
+  #Q max; maximum MAOM capacity
+  #not sure if this will work?
+  .super$pars$poolmax[[3]] = .super$env$claysilt * .super$pars$millennialV2[['param_pc']] #.super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']] (in g m-2 version)
+  # param_qmax = .super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']]
+  
+  #Equation 10
+  #Binding affinity parameter
+  kaff_lm = exp(-.super$pars$millennialV2[['sorp_p1']] * .super$env$pH - .super$pars$millennialV2[['sorp_p2']]) * .super$pars$millennialV2[['kld']]
+  
+  #Equation 3
+  #arrhenius modification of vmax for pom decay
+  #vmax_pl = .super$pars$millennialV2[['alpha_pl']] * .$tcor.t1(i=1)
+  
+  #Equation 14
+  #arrhenius modification of vmax for mic uptake
+  #vmax_lb = .super$pars$millennialV2[['alpha_lb']] * .$tcor.t4(i=4)
+  #          
+  #          #Fluxes
+  
+  #define states so that if/then statements work here
+  POM  = .super$state$cpools[[1]]
+  MIC  = .super$state$cpools[[2]]
+  MAOM = .super$state$cpools[[3]]
+  LMWC = .super$state$cpools[[4]]
+  AGG  = .super$state$cpools[[5]]
+  
+  #Equation 6
+  #agg breakdown
+  # AGG -> MAOM + POM
+  # APW: are these >0 constrainst for sure needed? 
+  # APW: if so, how would they work in the SoilR set of functions 
+  if(AGG>0){
+    f_AG_break = .$decomp.d5(t = t, C=y, i=5) * .$wcor(.)
+  }else{
+    f_AG_break=0
+  }
+  
+  #Equation 5
+  #agg formation
+  # POM -> AGG
+  # no saturation of agg fraction in v2 I guess
+  # APW: linear decomp (the POM pool "decomposes" into aggregates with no CO2 release)
+  if(POM>0){
+    f_PO_AG = .$aggform.a1(t = t, C=y, i=1) * .$wcor(.)
+  }else{
+    f_PO_AG=0
+  }
+  
+  #Equation 2
+  #RMM decay of POM
+  # POM -> LMWC
+  # APW: RMM decomp
+  if(POM>0 && MIC>0){
+    f_PO_LM = .$tcor.t1(i=1) * .$decomp.d1(t=t,C=y,i=1,cat=2) *.$wcor(.)
+    #f_PO_LM = vmax_pl * .$wcor(.) * POM * MIC / (km1 + MIC)
+  }else{
+    f_PO_LM=0
+  }
+  
+  #Equation 8
+  #leaching
+  # LMWC -> out of system leaching
+  # APW: linear decomp/loss of LMWC out of system  
+  if(LMWC>0){
+    f_LM_leach = .$decomp.d4(t = t, C=y, i=4) * .$wcor(.)
+    #f_LM_leach = k4 * .$wcor(.) * LMWC
+  }else{
+    f_LM_leach=0
+  }
+  
+  #Equation 9
+  #sorption
+  # LMWC -> MAOM #this is no longer a double-sided equation, seperate funcs for sorp and desorp
+  # APW: saturating sorption of LMWC to MAOM, potentially needs to be a decomp term 
+  if(LMWC>0 && MAOM>0){
+    f_LM_MA = .$wcor(.) * .$sorp.s4(t = t, C=y, i=4, k_from_list = FALSE, k = kaff_lm, sat_pool = 3)
+    #f_LM_MA = .$wcor(.) * kaff_lm * LMWC * (1 - MAOM / param_qmax)
+  }else{
+    f_LM_MA=0
+  }
+  
+  
+  #Equation 12
+  #desorption
+  # MAOM -> LMWC
+  # APW: desorption of LMWC from MAOM, potentially needs to be a decomp term  
+  if(MAOM>0){
+    f_MA_LM = .$desorp.ds3(t = t, C=y, i=3, k = .super$pars$millennialV2[['kld']]/1000, cat = 2)
+    #f_MA_LM = kld * MAOM / param_qmax
+  }else{
+    f_MA_LM=0
+  }
+  
+  #Equation 13
+  #microbial uptake via michaelis menten equation
+  # LMWC -> MIC
+  if(LMWC>0 && MIC>0){
+    f_LM_MB = .$wcor2(.) * .$tcor.t4(i=4) * .$docuptake(t=t,C=y,i=4,cat=2)
+    #f_LM_MB = vmax_lb * .$wcor2(.) * MIC * LMWC / (km4 + LMWC)
+  }else{
+    f_LM_MB=0
+  }
+  
+  #Equation 18
+  #agg formation from maom
+  # MAOM -> AGG
+  if(MAOM>0){  
+    f_MA_AG = .$aggform.a3(t = t, C=y, i=3) * .$wcor(.)
+    #f_MA_AG = k3 * .$wcor(.) * MAOM
+  }else{
+    f_MA_AG=0
+  }
+  
+  #Equation 16
+  #microbial turnover
+  # MIC -> MAOM/LMWC
+  if(MIC>0){
+    f_MB_turn = .$decomp.d2(t = t, C=y, i=2)
+    #f_MB_turn = k2 * MIC^2.0
+  }else{
+    f_MB_turn=0
+  }
+  
+  #Equation 22
+  # microbial growth flux, but is not used in mass balance
+  
+  #Equation 21
+  #mic respiration
+  # MIC -> atmosphere
+  if(MIC>0 && LMWC>0){ 
+    f_MB_atm = f_LM_MB * (1 - (.super$pars$cue[[4]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']]) ) )
+  }else{
+    f_MB_atm=0
+  }
+
+  .super$state$respiration = f_MB_atm
+
+  #          
+  #          #ODE system
+  
+  # Equation 1 - change in POM, pool 1, 2 out fluxes
+  # APW: = input_frac + aggregate_break_frac - aggregate_form_pom - decomp_lmwc_pom
+  dPOM = .$input(t)[[1]] + f_AG_break * .super$pars$millennialV2[['pa']] - f_PO_AG - f_PO_LM
+  #dPOM = forc_npp * pri + f_AG_break * pa - f_PO_AG - f_PO_LM
+  
+  # Equation 20 - change in Microbial biomass, pool 2, 1 out flux
+  # APW: = microbial_lmwc_uptake - microbial_turnover - respiration (which is a T-dependent fraction of the LMWC flux to MB)
+  # APW: = (microbial_lmwc_uptake - respiration)  - microbial_turnover 
+  dMIC = f_LM_MB - f_MB_turn - f_MB_atm
+  #dMIC = f_LM_MB - f_MB_turn - f_MB_atm
+  
+  # Equation 19, change in MAOM, pool 3, 2 out fluxes
+  # APW: = sorption + microbial_turnover_frac + aggregate_break_frac - desorption - aggregate_form_maom  
+  dMAOM = f_LM_MA - f_MA_LM + f_MB_turn * .super$pars$millennialV2[['param_pb']] - f_MA_AG + f_AG_break * (1. - .super$pars$millennialV2[['pa']])
+  #dMAOM = f_LM_MA - f_MA_LM + f_MB_turn * param_pb - f_MA_AG + f_AG_break * (1. - pa)
+  
+  # Equation 7, change in dissolved organic C, pool 4, 3 out fluxes
+  # APW: = input_frac + decomp_lmwc_pom + microbial_turnover_frac + desorption - leaching - sorption - microbial_lmwc_uptake  
+  dLMWC = .$input(t)[[4]] - f_LM_leach + f_PO_LM - f_LM_MA - f_LM_MB + f_MB_turn * (1. - .super$pars$millennialV2[['param_pb']]) + f_MA_LM
+  #dLMWC = forc_npp * (1. - pri) - f_LM_leach + f_PO_LM - f_LM_MA - f_LM_MB + f_MB_turn * (1. - param_pb) + f_MA_LM
+  
+  # Equation 17, change in aggregates, pool 5, 1 out flux
+  # APW: = aggregate_form_maom + aggregate_form_pom - aggregate_break  
+  dAGG = f_MA_AG + f_PO_AG - f_AG_break
+  #dAGG = f_MA_AG + f_PO_AG - f_AG_break
+  
+  #print(.$sorp.s4(t = t, C=y, i=4, k_from_list = FALSE, k = kaff_lm, sat_pool = 3))
+  #print(f_MA_LM)
+  
+  list(c(dPOM, dMIC, dMAOM, dLMWC, dAGG))
+}
+
+
+
 # lsoda style function to solve CORPSE
 #######################################
+
 # - parms is a dummy argument to work with lsoda
 f_solver_func_corpse <- function(., t, y, parms) {
   dCs <- .$input(t)[[1]] + .$desorp.ds5(t=t,C=y,i=5) - .$sorp.s1(t=t,C=y,i=1)*.$scor(.) - .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)
   dCr <- .$input(t)[[2]] + .$desorp.ds6(t=t,C=y,i=6) - .$sorp.s2(t=t,C=y,i=2)*.$scor(.) - .$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)
-  dCn <- .$decomp.d4(t = t, C=y, i=4)*.super$pars$cue[[4]] + .$desorp.ds7(t=t,C=y,i=7) - .$sorp.s3(t=t,C=y,i=3)*.$scor(.) - .$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)
-  dM  <- .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)*.super$pars$cue[[1]]+.$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)*.super$pars$cue[[2]]+.$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)*.super$pars$cue[[3]] - .$decomp.d4(t = t, C=y, i=4)
+  dCn <- .$decomp.d4(t = t, C=y, i=4)*.super$pars$cue[[4]] + .$desorp.ds7(t=t,C=y,i=7) - 
+           .$sorp.s3(t=t,C=y,i=3)*.$scor(.) - .$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)
+  dM  <- .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)*.super$pars$cue[[1]]+.$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)*.super$pars$cue[[2]] + 
+           .$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)*.super$pars$cue[[3]] - .$decomp.d4(t = t, C=y, i=4)
   dPs <- .$sorp.s1(t=t,C=y,i=1)*.$scor(.) - .$desorp.ds5(t=t,C=y,i=5)
   dPr <- .$sorp.s2(t=t,C=y,i=2)*.$scor(.) - .$desorp.ds6(t=t,C=y,i=6)
   dPn <- .$sorp.s3(t=t,C=y,i=3)*.$scor(.) - .$desorp.ds7(t=t,C=y,i=7)
+
   .super$state$respiration = .$decomp.d1(t = t, C=y, i=1)*.$wcor(.)*.$tcor.t1(i=1)*(1-.super$pars$cue[[1]]) + 
-  .$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)*(1-.super$pars$cue[[2]]) + 
-  .$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)*(1-.super$pars$cue[[3]]) +
-  .$decomp.d4(t = t, C=y, i=4)*(1-.super$pars$cue[[4]]  )
+    .$decomp.d2(t = t, C=y, i=2)*.$wcor(.)*.$tcor.t2(i=2)*(1-.super$pars$cue[[2]]) + 
+    .$decomp.d3(t = t, C=y, i=3)*.$wcor(.)*.$tcor.t3(i=3)*(1-.super$pars$cue[[3]]) +
+    .$decomp.d4(t = t, C=y, i=4)*(1-.super$pars$cue[[4]]  )
+
   list(c(dCs, dCr, dCn, dM, dPs, dPr, dPn))
 }
 
-############## MIMICS #################
+
+
 # lsoda style function to solve MIMICS
 #######################################
+
 # - parms is a dummy argument to work with lsoda
 f_solver_func_mimics <- function(., t, y, parms){
   
@@ -108,6 +301,7 @@ f_solver_func_mimics <- function(., t, y, parms){
   #print(fmet)
 }
 
+
 f_solver_func_mimics_sat <- function(., t, y, parms){
   
   .super$pars$vmax[[6]] = .super$pars$vmax[[2]]
@@ -177,9 +371,11 @@ f_solver_func_mimics_sat <- function(., t, y, parms){
   #print(fmet)
 }
 
-############## MILLENNIALv1 #################
+
+
 # lsoda style function to solve MILLENNIALv1
 #############################################
+
 f_solver_func_millennial <- function(., t, y, parms) {
   #State parameters (i.e. calculated parameters)
   
@@ -301,281 +497,10 @@ f_solver_func_millennial <- function(., t, y, parms) {
 }
 
 
-############## MEND2013 #################
-# lsoda style function to solve MEND2013
-#########################################
-f_solver_func_mend2013 <- function(., t, y, parms) {
-  # MEND <- function(t,state,params){
-  #   with(as.list(c(state,params)),
-  #        { 
-  #Input to POC
-  #          IP = I*(1-fid)
-  IP = .$input(t)[[1]] #*(1-fid) done within input function
-  #Input to DOC
-  #          ID = I*fid
-  ID = .$input(t)[[5]] #*fid done within input function
-  #Decomp of POC
-  #          F1 = Vp*EP*P/(Kp+P)
-  F1 = .$decomp.d1(t=t,C=y,i=1, cat=6) #!!MM decomp
-  #Decomp of MAOC
-  #          F3 = Vm*EM*M/(Km+M)
-  F3 = .$decomp.d2(t=t,C=y,i=2, cat=7) #!! MM decomp 
-  #Sorption to Q pool
-  #          F4 = Kads*(1-Q/Qmax)*D
-  F4 = .$sorp.s5(t=t,C=y,i=5, sat_pool = 3) #!!add function to functions.R # sat function
-  #Depsorption from Q pool
-  #          F5 = Kdes*(Q/Qmax)
-  F5 = .$desorp.ds3(t=t,C=y,i=3) #!!add function to functions.R
-  #DOC uptake by microbes
-  #          F6 = 1/Ec*(Vd+Mr)*D*B/(Kd+D)
-  F6 = 1/.super$pars$cue[[5]]*.$docuptake(t=t,C=y,i=5) #!!add function to functions.R
-  #Microbial growth respiration
-  #          F9 = (1/Ec-1)*Vd*B*D/(Kd+D)
-  F9 = (1/.super$pars$cue[[5]]-1)*.$growthresp(t=t,C=y,i=4) #!!add function to functions.R
-  #Microbial Maintenance respiration
-  #          F10 = (1/Ec-1)*Mr*B*D/(Kd+D)
-  F10 = (1/.super$pars$cue[[5]]-1)*.$maintresp(t=t,C=y,i=4) #!!add function to functions.R
-  #Microbial mortality
-  #          F12 = (1-Pep-Pem)*Mr*B
-  F12 = (1-.super$pars$mend[['Pep']]-.super$pars$mend[['Pem']])*.$decomp.d4(t=t,C=y,i=4) #!!linear decomp
-  #Enzyme production
-  #          F13EP = Pep*Mr*B
-  F13EP = .super$pars$mend[['Pep']]*.$decomp.d4(t=t,C=y,i=4)
-  #          F13EM = Pem*Mr*B
-  F13EM = .super$pars$mend[['Pem']]*.$decomp.d4(t=t,C=y,i=4)
 
-  .super$state$respiration = F9 + F10
-  
-  #Enzyme turnover
-  #          F14EP = Rep*EP
-  F14EP = .$decomp.d6(t=t,C=y,i=6)
-  #          F14EM = Rem*EM
-  F14EM = .$decomp.d7(t=t,C=y,i=7)
-  #          
-  #          dP <- IP + (1-Gd) * F12 - F1
-  dP <- IP + (1-.super$pars$mend[['Gd']]) * F12 - F1
-  #          dM <- (1-Fd) * F1 - F3
-  dM <- (1-.super$pars$mend[['Fd']]) * F1 - F3
-  #          dQ <- F4 - F5
-  dQ <- F4 - F5
-  #          dB <- F6 - (F9 + F10) - F12 - (F13EP + F13EM)
-  dB <- F6 - (F9 + F10) - F12 - (F13EP + F13EM)
-  #          dD <- ID + Fd * F1 + Gd * F12 + F3 + (F14EP + F14EM) - F6 - (F4 - F5)
-  dD <- ID + .super$pars$mend[['Fd']] * F1 + .super$pars$mend[['Gd']] * F12 + F3 + (F14EP + F14EM) - F6 - (F4 - F5)
-  #          dEP <- F13EP - F14EP
-  dEP <- F13EP - F14EP
-  #          dEM <- F13EM - F14EM
-  dEM <- F13EM - F14EM
-  #          list(c(dP, dM, dQ, dB, dD, dEP, dEM))
-  list(c(dP, dM, dQ, dB, dD, dEP, dEM))
-  #print(F4)
-  #        }
-  #   )
-  # }
-}
-
-#version of MEND where MAOM saturates (ideally would be able to do this with just a different process function in the previous solver function)
-f_solver_func_mend2013_sat <- function(., t, y, parms) {
-  IP = .$input(t)[[1]] #*(1-fid) done within input function
-  ID = .$input(t)[[5]] #*fid done within input function
-  F1 = .$decomp.d1(t=t,C=y,i=1, cat=6) #!!MM decomp
-  F3 = .$decomp.d2(t=t,C=y,i=2, cat=7) #!! MM decomp 
-  F4 = .$sorp.s5(t=t,C=y,i=5, sat_pool = 3) #!!add function to functions.R # sat function
-  F5 = .$desorp.ds3(t=t,C=y,i=3) #!!add function to functions.R
-  F6 = 1/.super$pars$cue[[5]]*.$docuptake(t=t,C=y,i=5) #!!add function to functions.R
-  F9 = (1/.super$pars$cue[[5]]-1)*.$growthresp(t=t,C=y,i=4) #!!add function to functions.R
-  F10 = (1/.super$pars$cue[[5]]-1)*.$maintresp(t=t,C=y,i=4) #!!add function to functions.R
-  F12 = (1-.super$pars$mend[['Pep']]-.super$pars$mend[['Pem']])*.$decomp.d4(t=t,C=y,i=4) #!!linear decomp
-  F13EP = .super$pars$mend[['Pep']]*.$decomp.d4(t=t,C=y,i=4)
-  F13EM = .super$pars$mend[['Pem']]*.$decomp.d4(t=t,C=y,i=4)
-  F14EP = .$decomp.d6(t=t,C=y,i=6)
-  F14EM = .$decomp.d7(t=t,C=y,i=7)
-  dP <- IP + (1-.super$pars$mend[['Gd']]) * F12 - F1 +(1-.super$pars$mend[['Fd']]) * F1 * (.super$state$cpools[[2]]/.super$pars$poolmax[[2]]) #returns un-sorbed to unprotected
-  dM <- (1-.super$pars$mend[['Fd']]) * F1 * (1-.super$state$cpools[[2]]/.super$pars$poolmax[[2]]) - F3 #transfer into MAOM limited to poolmax par
-  dQ <- F4 - F5
-  dB <- F6 - (F9 + F10) - F12 - (F13EP + F13EM)
-  dD <- ID + .super$pars$mend[['Fd']] * F1 + .super$pars$mend[['Gd']] * F12 + F3 + (F14EP + F14EM) - F6 - (F4 - F5)
-  dEP <- F13EP - F14EP
-  dEM <- F13EM - F14EM
-  list(c(dP, dM, dQ, dB, dD, dEP, dEM))
-}
-
-############## MILLENNIALv2 #################
-# lsoda style function to solve MILLENNIALv2
-#############################################
-f_solver_func_millennialV2 <- function(., t, y, parms) {
-  #State parameters (i.e. calculated parameters)
-  #Equation 4
-  ##scalar_wd = (swc / porosity)^0.5
-  ##this is now .$wcor(.)
-  
-  #Equation 15
-  #scalar_wb = exp(lambda * -matpot) * (kamin + (1 - kamin) * ((porosity - swc) / porosity)^0.5) * scalar_wd
-  ##this is now .$wcor2(.)
-  
-  #Equation 11
-  #Q max; maximum MAOM capacity
-  #not sure if this will work?
-  .super$pars$poolmax[[3]] = .super$env$claysilt * .super$pars$millennialV2[['param_pc']] #.super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']] (in g m-2 version)
-  # param_qmax = .super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']]
-  
-  #Equation 10
-  #Binding affinity parameter
-  kaff_lm = exp(-.super$pars$millennialV2[['sorp_p1']] * .super$env$pH - .super$pars$millennialV2[['sorp_p2']]) * .super$pars$millennialV2[['kld']]
-  
-  #Equation 3
-  #arrhenius modification of vmax for pom decay
-  #vmax_pl = .super$pars$millennialV2[['alpha_pl']] * .$tcor.t1(i=1)
-  
-  #Equation 14
-  #arrhenius modification of vmax for mic uptake
-  #vmax_lb = .super$pars$millennialV2[['alpha_lb']] * .$tcor.t4(i=4)
-  #          
-  #          #Fluxes
-  
-  #define states so that if/then statements work here
-  POM  = .super$state$cpools[[1]]
-  MIC  = .super$state$cpools[[2]]
-  MAOM = .super$state$cpools[[3]]
-  LMWC = .super$state$cpools[[4]]
-  AGG  = .super$state$cpools[[5]]
-  
-  #Equation 6
-  #agg breakdown
-  # AGG -> MAOM + POM
-  if(AGG>0){
-    f_AG_break = .$decomp.d5(t = t, C=y, i=5) * .$wcor(.)
-  }else{
-    f_AG_break=0
-  }
-  
-  #Equation 5
-  #agg formation
-  # POM -> AGG
-  # no saturation of agg fraction in v2 I guess
-  if(POM>0){
-    f_PO_AG = .$aggform.a1(t = t, C=y, i=1) * .$wcor(.)
-  }else{
-    f_PO_AG=0
-  }
-  
-  #Equation 2
-  #RMM decay of POM
-  # POM -> LMWC
-  if(POM>0 && MIC>0){
-    f_PO_LM = .$tcor.t1(i=1) * .$decomp.d1(t=t,C=y,i=1,cat=2) *.$wcor(.)
-    #f_PO_LM = vmax_pl * .$wcor(.) * POM * MIC / (km1 + MIC)
-  }else{
-    f_PO_LM=0
-  }
-  
-  #Equation 8
-  #leaching
-  # LMWC -> out of system leaching
-  if(LMWC>0){
-    f_LM_leach = .$decomp.d4(t = t, C=y, i=4) * .$wcor(.)
-    #f_LM_leach = k4 * .$wcor(.) * LMWC
-  }else{
-    f_LM_leach=0
-  }
-  
-  #Equation 9
-  #sorption
-  # LMWC -> MAOM #this is no longer a double-sided equation, seperate funcs for sorp and desorp
-  if(LMWC>0 && MAOM>0){
-    f_LM_MA = .$wcor(.) * .$sorp.s4(t = t, C=y, i=4, k_from_list = FALSE, k = kaff_lm, sat_pool = 3)
-    #f_LM_MA = .$wcor(.) * kaff_lm * LMWC * (1 - MAOM / param_qmax)
-  }else{
-    f_LM_MA=0
-  }
-  
-  
-  #Equation 12
-  #desorption
-  # MAOM -> LMWC
-  if(MAOM>0){
-    f_MA_LM = .$desorp.ds3(t = t, C=y, i=3, k = .super$pars$millennialV2[['kld']]/1000, cat = 2)
-    #f_MA_LM = kld * MAOM / param_qmax
-  }else{
-    f_MA_LM=0
-  }
-  
-  #Equation 13
-  #microbial uptake via michaelis menten equation
-  # LMWC -> MIC
-  if(LMWC>0 && MIC>0){
-    f_LM_MB = .$wcor2(.) * .$tcor.t4(i=4) * .$docuptake(t=t,C=y,i=4,cat=2)
-    #f_LM_MB = vmax_lb * .$wcor2(.) * MIC * LMWC / (km4 + LMWC)
-  }else{
-    f_LM_MB=0
-  }
-  
-  #Equation 18
-  #agg formation from maom
-  # MAOM -> AGG
-  if(MAOM>0){  
-    f_MA_AG = .$aggform.a3(t = t, C=y, i=3) * .$wcor(.)
-    #f_MA_AG = k3 * .$wcor(.) * MAOM
-  }else{
-    f_MA_AG=0
-  }
-  
-  #Equation 16
-  #microbial turnover
-  # MIC -> MAOM/LMWC
-  if(MIC>0){
-    f_MB_turn = .$decomp.d2(t = t, C=y, i=2)
-    #f_MB_turn = k2 * MIC^2.0
-  }else{
-    f_MB_turn=0
-  }
-  
-  #Equation 22
-  # microbial growth flux, but is not used in mass balance
-  
-  #Equation 21
-  #mic respiration
-  # MIC -> atmosphere
-  if(MIC>0 && LMWC>0){ 
-    f_MB_atm = f_LM_MB * (1 - (.super$pars$cue[[4]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']]) ) )
-  }else{
-    f_MB_atm=0
-  }
-
-  .super$state$respiration = f_MB_atm
-
-  #          
-  #          #ODE system
-  
-  #Equation 1
-  dPOM = .$input(t)[[1]] + f_AG_break * .super$pars$millennialV2[['pa']] - f_PO_AG - f_PO_LM
-  #dPOM = forc_npp * pri + f_AG_break * pa - f_PO_AG - f_PO_LM
-  
-  #Equation 20
-  dMIC = f_LM_MB - f_MB_turn - f_MB_atm
-  #dMIC = f_LM_MB - f_MB_turn - f_MB_atm
-  
-  #Equation 19
-  dMAOM = f_LM_MA - f_MA_LM + f_MB_turn * .super$pars$millennialV2[['param_pb']] - f_MA_AG + f_AG_break * (1. - .super$pars$millennialV2[['pa']])
-  #dMAOM = f_LM_MA - f_MA_LM + f_MB_turn * param_pb - f_MA_AG + f_AG_break * (1. - pa)
-  
-  #Equation 7
-  dLMWC = .$input(t)[[4]] - f_LM_leach + f_PO_LM - f_LM_MA - f_LM_MB + f_MB_turn * (1. - .super$pars$millennialV2[['param_pb']]) + f_MA_LM
-  #dLMWC = forc_npp * (1. - pri) - f_LM_leach + f_PO_LM - f_LM_MA - f_LM_MB + f_MB_turn * (1. - param_pb) + f_MA_LM
-  
-  #Equation 17
-  dAGG = f_MA_AG + f_PO_AG - f_AG_break
-  #dAGG = f_MA_AG + f_PO_AG - f_AG_break
-  
-  #print(.$sorp.s4(t = t, C=y, i=4, k_from_list = FALSE, k = kaff_lm, sat_pool = 3))
-  #print(f_MA_LM)
-  
-  list(c(dPOM, dMIC, dMAOM, dLMWC, dAGG))
-}
-
-############## CENTURY #################
 # lsoda style function to solve CENTURY
 #######################################
+
 # - parms is a dummy argument to work with lsoda
 # Equations from Abramoff et al. 2021 Millennial v2 paper
 f_solver_func_century <- function(., t, y, parms) {
@@ -629,9 +554,11 @@ f_solver_func_century <- function(., t, y, parms) {
   list(c(dStrLitter, dMetLitter, dACTIVE, dSLOW, dPASSIVE))
 }
 
-############## MEND2019 #################
+
+
 # lsoda style function to solve MEND
 #######################################
+
 # - parms is a dummy argument to work with lsoda
 # Equations from Wang et al. 2019 MEND soil moisture paper
 # this is in development, commenting out for now
@@ -834,9 +761,111 @@ f_solver_func_mend2019 <- function(., t, y, parms) {#MEND based on Wang et al. 2
 }
 
 
-############## CENTURY #################
+
+# lsoda style function to solve MEND2013
+#########################################
+
+f_solver_func_mend2013 <- function(., t, y, parms) {
+  # MEND <- function(t,state,params){
+  #   with(as.list(c(state,params)),
+  #        { 
+  #Input to POC
+  #          IP = I*(1-fid)
+  IP = .$input(t)[[1]] #*(1-fid) done within input function
+  #Input to DOC
+  #          ID = I*fid
+  ID = .$input(t)[[5]] #*fid done within input function
+  #Decomp of POC
+  #          F1 = Vp*EP*P/(Kp+P)
+  F1 = .$decomp.d1(t=t,C=y,i=1, cat=6) #!!MM decomp
+  #Decomp of MAOC
+  #          F3 = Vm*EM*M/(Km+M)
+  F3 = .$decomp.d2(t=t,C=y,i=2, cat=7) #!! MM decomp 
+  #Sorption to Q pool
+  #          F4 = Kads*(1-Q/Qmax)*D
+  F4 = .$sorp.s5(t=t,C=y,i=5, sat_pool = 3) #!!add function to functions.R # sat function
+  #Depsorption from Q pool
+  #          F5 = Kdes*(Q/Qmax)
+  F5 = .$desorp.ds3(t=t,C=y,i=3) #!!add function to functions.R
+  #DOC uptake by microbes
+  #          F6 = 1/Ec*(Vd+Mr)*D*B/(Kd+D)
+  F6 = 1/.super$pars$cue[[5]]*.$docuptake(t=t,C=y,i=5) #!!add function to functions.R
+  #Microbial growth respiration
+  #          F9 = (1/Ec-1)*Vd*B*D/(Kd+D)
+  F9 = (1/.super$pars$cue[[5]]-1)*.$growthresp(t=t,C=y,i=4) #!!add function to functions.R
+  #Microbial Maintenance respiration
+  #          F10 = (1/Ec-1)*Mr*B*D/(Kd+D)
+  F10 = (1/.super$pars$cue[[5]]-1)*.$maintresp(t=t,C=y,i=4) #!!add function to functions.R
+  #Microbial mortality
+  #          F12 = (1-Pep-Pem)*Mr*B
+  F12 = (1-.super$pars$mend[['Pep']]-.super$pars$mend[['Pem']])*.$decomp.d4(t=t,C=y,i=4) #!!linear decomp
+  #Enzyme production
+  #          F13EP = Pep*Mr*B
+  F13EP = .super$pars$mend[['Pep']]*.$decomp.d4(t=t,C=y,i=4)
+  #          F13EM = Pem*Mr*B
+  F13EM = .super$pars$mend[['Pem']]*.$decomp.d4(t=t,C=y,i=4)
+
+  .super$state$respiration = F9 + F10
+  
+  #Enzyme turnover
+  #          F14EP = Rep*EP
+  F14EP = .$decomp.d6(t=t,C=y,i=6)
+  #          F14EM = Rem*EM
+  F14EM = .$decomp.d7(t=t,C=y,i=7)
+  #          
+  #          dP <- IP + (1-Gd) * F12 - F1
+  dP <- IP + (1-.super$pars$mend[['Gd']]) * F12 - F1
+  #          dM <- (1-Fd) * F1 - F3
+  dM <- (1-.super$pars$mend[['Fd']]) * F1 - F3
+  #          dQ <- F4 - F5
+  dQ <- F4 - F5
+  #          dB <- F6 - (F9 + F10) - F12 - (F13EP + F13EM)
+  dB <- F6 - (F9 + F10) - F12 - (F13EP + F13EM)
+  #          dD <- ID + Fd * F1 + Gd * F12 + F3 + (F14EP + F14EM) - F6 - (F4 - F5)
+  dD <- ID + .super$pars$mend[['Fd']] * F1 + .super$pars$mend[['Gd']] * F12 + F3 + (F14EP + F14EM) - F6 - (F4 - F5)
+  #          dEP <- F13EP - F14EP
+  dEP <- F13EP - F14EP
+  #          dEM <- F13EM - F14EM
+  dEM <- F13EM - F14EM
+  #          list(c(dP, dM, dQ, dB, dD, dEP, dEM))
+  list(c(dP, dM, dQ, dB, dD, dEP, dEM))
+  #print(F4)
+  #        }
+  #   )
+  # }
+}
+
+#version of MEND where MAOM saturates (ideally would be able to do this with just a different process function in the previous solver function)
+f_solver_func_mend2013_sat <- function(., t, y, parms) {
+  IP = .$input(t)[[1]] #*(1-fid) done within input function
+  ID = .$input(t)[[5]] #*fid done within input function
+  F1 = .$decomp.d1(t=t,C=y,i=1, cat=6) #!!MM decomp
+  F3 = .$decomp.d2(t=t,C=y,i=2, cat=7) #!! MM decomp 
+  F4 = .$sorp.s5(t=t,C=y,i=5, sat_pool = 3) #!!add function to functions.R # sat function
+  F5 = .$desorp.ds3(t=t,C=y,i=3) #!!add function to functions.R
+  F6 = 1/.super$pars$cue[[5]]*.$docuptake(t=t,C=y,i=5) #!!add function to functions.R
+  F9 = (1/.super$pars$cue[[5]]-1)*.$growthresp(t=t,C=y,i=4) #!!add function to functions.R
+  F10 = (1/.super$pars$cue[[5]]-1)*.$maintresp(t=t,C=y,i=4) #!!add function to functions.R
+  F12 = (1-.super$pars$mend[['Pep']]-.super$pars$mend[['Pem']])*.$decomp.d4(t=t,C=y,i=4) #!!linear decomp
+  F13EP = .super$pars$mend[['Pep']]*.$decomp.d4(t=t,C=y,i=4)
+  F13EM = .super$pars$mend[['Pem']]*.$decomp.d4(t=t,C=y,i=4)
+  F14EP = .$decomp.d6(t=t,C=y,i=6)
+  F14EM = .$decomp.d7(t=t,C=y,i=7)
+  dP <- IP + (1-.super$pars$mend[['Gd']]) * F12 - F1 +(1-.super$pars$mend[['Fd']]) * F1 * (.super$state$cpools[[2]]/.super$pars$poolmax[[2]]) #returns un-sorbed to unprotected
+  dM <- (1-.super$pars$mend[['Fd']]) * F1 * (1-.super$state$cpools[[2]]/.super$pars$poolmax[[2]]) - F3 #transfer into MAOM limited to poolmax par
+  dQ <- F4 - F5
+  dB <- F6 - (F9 + F10) - F12 - (F13EP + F13EM)
+  dD <- ID + .super$pars$mend[['Fd']] * F1 + .super$pars$mend[['Gd']] * F12 + F3 + (F14EP + F14EM) - F6 - (F4 - F5)
+  dEP <- F13EP - F14EP
+  dEM <- F13EM - F14EM
+  list(c(dP, dM, dQ, dB, dD, dEP, dEM))
+}
+
+
+
 # lsoda style function to solve CENTURY
 #######################################
+
 # - parms is a dummy argument to work with lsoda
 # Equations from Abramoff et al. 2021 Millennial v2 paper
 f_solver_func_century <- function(., t, y, parms ) {
@@ -892,18 +921,13 @@ f_solver_func_century <- function(., t, y, parms ) {
 
 
 
-############## ELM CTC #################
 # lsoda style function to solve CTC in ELMv2
 #######################################
+
 # - parms is a dummy argument to work with lsoda
 # Thornton, P. E., & Rosenbloom, N. A. (2005). Ecosystem model spin-up: Estimating steady state conditions in a coupled terrestrial carbon and nitrogen cycle model. Ecological Modelling, 189(1), 25–48. https://doi.org/10.1016/j.ecolmodel.2005.04.008
 # This model forms the basis of soil C dynamics in ELM, though C-only is represented here
 # Code adapted from publication by M. Craig
-f_solver_dummy <- function(., t, y, ... ) {
-  x <- rep(1, length(y) )
-  rbind(c(0,1,x), c(1,1,x) )
-}
-
 f_solver_func_elmv2ctc <- function(., t, y, parms ) {
 
   # k_env_scalar     <- .$tcor$t1(.) * .$wcor(.)
@@ -918,7 +942,7 @@ f_solver_func_elmv2ctc <- function(., t, y, parms ) {
   f_SOM3  <- .$decomp.d7(t=t, C=y, i=7 ) * k_env_scalar
   f_SOM4  <- .$decomp.d7(t=t, C=y, i=8 ) * k_env_scalar
   
-  #ODE system
+  # ODE system
   f_litter_not_cwd <- 1 - .super$pars$input_coefs[[1]]
   dcwd  <- .super$env$litter*.super$pars$input_coefs[[1]] - f_CWD
   dlit1 <- .super$env$litter*f_litter_not_cwd*.super$pars$input_coefs[[2]] - f_LIT1
