@@ -53,7 +53,6 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   # to work with soil_decomp will need to be called after structure build
 
   # build model pool structure
-
   if(!is.null(.$pars$n_pools)) .$build_pool_structure(init_default$pars[[.$name]]$n_pools)
 
   # assign default and mod mimic values to data structure
@@ -253,7 +252,12 @@ configure <- function(., vlist, df, init=F, o=T ) {
   }
 
   # split variable names at .
-  listnames <- vapply( strsplit(names(df),'.', fixed=T), function(cv) {cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)}, character(3) )
+  listnames <- vapply( strsplit(names(df),'.', fixed=T), 
+                 function(cv) {
+                   #print(cv)
+                   cv3<-character(3); cv3[1:length(cv)]<-cv; t(cv3)
+                   },
+                 character(3) )
 
   # df subscripts for model object
   mss <- which(listnames[1,]==.$name)

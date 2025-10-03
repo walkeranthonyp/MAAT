@@ -78,6 +78,7 @@ listtoXML <- function(fname,name,...) {
 
   rec <- function(node, sublist) {
     for(i in 1:length(sublist)) {
+      # print(sublist, quote=F )
       if(!is.null(unlist(sublist[[i]]))) {
         child <- newXMLNode(names(sublist)[i], parent=node)
 

@@ -8,7 +8,7 @@
 ################################
 
 mod_obj <- NULL
-options_only <- T
+options_only <- F 
 
 # parse command line arguments   
 # - any one of the above objects can be specified as a command line argument using the syntax:
@@ -72,13 +72,14 @@ l1opt[['fnames']][[mod_obj]] <-
     out <- substr(out, 1, nchar(out)-1)
     paste('c(',out,')')
   })
+print('', quote=F )
+print(' ... all representations listed.', quote=F )
 
 # replace all entires in l1 with NA for init static and dynamic
 l1n <- rapply(l1, function(x) NA, how='replace' )  
 
 # convert list to XMLs
 print('', quote=F )
-listtoXML(paste(mod_obj,'options.xml',sep='_'), 'options',  sublist=l1opt )
 if(!options_only) {
   listtoXML(paste(mod_obj,'default.xml',sep='_'), 'default',  sublist=l1 )
   setwd('init_files')
@@ -87,6 +88,7 @@ if(!options_only) {
   listtoXML(paste(mod_obj,'user_met.xml',sep='_'),     'met_data_translator',  sublist=l2 )
   listtoXML(paste(mod_obj,'user_eval.xml',sep='_'),    'eval_data_translator', sublist=l3 )
 }
+listtoXML(paste(mod_obj,'options.xml',sep='_'), 'options',  sublist=l1opt )
 
 # open options XML to add labels by hand 
 setwd('..')

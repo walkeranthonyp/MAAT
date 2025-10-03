@@ -69,31 +69,38 @@ soil_decomp_object$init  <- function(.) {
 ####################################
 soil_decomp_object$fnames <- list(
 
-  sys                = 'f_sys_npools', 
+  #sys                = 'f_sys_npools', 
+  sys                = 'f_steadystate_npools', # if f_steadystate_npools selected, solver_steadystate automatically used  
   solver             = 'plsoda',
-  solver_func        = 'f_solver_func_century',
+  solver_func        = 'f_solver_func_soilR_outfluxes',
+  #solver_func        = 'f_solver_func_millennialV2', 
   input              = 'f_input',
   DotO               = 'f_DotO',
   transfermatrix     = 'f_transfermatrix',
+  outfluxes          = 'f_outfluxes',
   steadystate        = 'f_steadystate_npools', # options: 'f_steadystate_null','f_steadystate_npools',
   solver_steadystate = 'pstode',
   
-  #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
-  tcor = list(                  #this structure for corpse
-    t1 = 'f_tcor_arrhenius_millennialv2',
-    t2 = NULL,
-    t3 = NULL,
-    t4 = 'f_tcor_arrhenius_millennialv2',
-    t5 = NULL
+  # output fluxes from pools functions (more generic than decomp and designed for when there are more than one output flux from a pool)
+  outflux = list(
+    of1 = 'f_decomp_lin',
+    of2 = 'f_decomp_rmm',
+    of3 = 'f_decomp_dd_georgiou',  
+    of4 = 'f_desorp_millennialv2', 
+    of5 = 'f_decomp_lin', 
+    of6 = 'f_decomp_lin',
+    of7 = 'f_sorp_sat',
+    of8 = 'f_decomp_mm',
+    of9 = 'f_decomp_lin'
   ),
   
   # decay/decomposition functions
   decomp = list(
-    d1 = 'f_decomp_rmm',
-    d2 = 'f_decomp_dd_georgiou',  
-    d3 = 'f_zero', 
-    d4 = 'f_decomp_lin', 
-    d5 = 'f_decomp_lin',
+    d1 = 'f_decomp_fluxsum',
+    d2 = 'f_decomp_fluxsum',
+    d3 = 'f_decomp_fluxsum',
+    d4 = 'f_decomp_fluxsum',
+    d5 = 'f_decomp_fluxsum',
     d6 = NA,
     d7 = NA
   ),
@@ -127,39 +134,64 @@ soil_decomp_object$fnames <- list(
   growthresp = NA,
   maintresp  = NA,
   scor       = NA,
-  wcor       = 'f_wcor_ghezzehei_diffusion',
-  wcor2      = 'f_wcor_ghezzehei_biological',
+  water_unit_converter = 'f_SWC2SWP_vanGenuchten',
   
+  # tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
   # tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
-  tcor = list(                  #this structure for corpse
-    t1 = 'f_tcor_arrhenius_millennialv2',
-    t2 = NA,
-    t3 = NA,
-    t4 = 'f_tcor_arrhenius_millennialv2',
-    t5 = NA,
-    t6 = NA,
-    t7 = NA
+  tcor = list(             
+    t1 = 'f_tcor_none',
+    t2 = 'f_tcor_arrhenius_millennialv2',
+    t3 = 'f_tcor_none',
+    t4 = 'f_tcor_none',
+    t5 = 'f_tcor_none',
+    t6 = 'f_tcor_none',
+    t7 = 'f_tcor_none',
+    t8 = 'f_tcor_arrhenius_millennialv2',
+    t9 = 'f_tcor_none'
   ),
 
-  water_unit_converter = 'f_SWC2SWP_vanGenuchten',
+  wcor = list(             
+    w1 = 'f_wcor_ghezzehei_diffusion', 
+    w2 = 'f_wcor_ghezzehei_diffusion',
+    w3 = 'f_wcor_none',
+    w4 = 'f_wcor_none', 
+    w5 = 'f_wcor_ghezzehei_diffusion',
+    w6 = 'f_wcor_ghezzehei_diffusion',
+    w7 = 'f_wcor_ghezzehei_diffusion',
+    w8 = 'f_wcor_ghezzehei_biological',
+    w9 = 'f_wcor_ghezzehei_diffusion'
+  ),
+
   
   # transfer list
   transfer = list(
-    t1_to_3 = 'f_transfer_cue_remainder',
-    t1_to_4 = 'f_transfer_cue_remainder',
-    t2_to_5 = 'f_transfer_mend27',
-    t3_to_6 = 'f_transfer_all',
-    t4_to_7 = 'f_transfer_all',
-    t5_to_6 = 'f_transfer_mend52',
-    t6_to_7 = 'f_transfer_all',
-    t7_to_8 = 'f_transfer_all',
-    t2_to_9 = 'f_transfer_mend27',
-    t3_to_9 = 'f_transfer_all',
-    t4_to_9 = 'f_transfer_all',
-    t5_to_9 = 'f_transfer_mend52',
-    t6_to_9 = 'f_transfer_all',
-    t7_to_9 = 'f_transfer_all',
-    t8_to_9 = 'f_transfer_all'
+    t1_to_4 = 'f_transfer_fluxsum_prop_two',
+    t1_to_5 = 'f_transfer_fluxsum_prop_one', 
+    t2_to_3 = 'f_transfer_cue', 
+    t2_to_4 = 'f_transfer_cue_remainder', 
+    t3_to_4 = 'f_transfer_fluxsum_prop_one', 
+    t3_to_5 = 'f_transfer_fluxsum_prop_two', 
+    t4_to_2 = 'f_transfer_fluxsum_prop_three_cue', 
+    t4_to_3 = 'f_transfer_fluxsum_prop_two',
+    #t4_to_resp = uptake 'frac of three out fluxes from pool 4 * (1- CUE)',
+    #t4_to_leached = leached 'frac of three out fluxes from pool 4',
+    t5_to_1 = 'f_transfer_cue', 
+    t5_to_3 = 'f_transfer_cue_remainder' 
+    # t1_to_3 = 'f_transfer_cue_remainder',
+    # t1_to_4 = 'f_transfer_cue_remainder',
+    # t2_to_5 = 'f_transfer_mend27',
+    # t3_to_6 = 'f_transfer_all',
+    # t4_to_7 = 'f_transfer_all',
+    # t5_to_6 = 'f_transfer_mend52',
+    # t6_to_7 = 'f_transfer_all',
+    # t7_to_8 = 'f_transfer_all',
+    # t2_to_9 = 'f_transfer_mend27',
+    # t3_to_9 = 'f_transfer_all',
+    # t4_to_9 = 'f_transfer_all',
+    # t5_to_9 = 'f_transfer_mend52',
+    # t6_to_9 = 'f_transfer_all',
+    # t7_to_9 = 'f_transfer_all',
+    # t8_to_9 = 'f_transfer_all'
     # t1_to_3 = 'f_transfer_cue_remainder',
     # t1_to_5 = 'f_transfer_cue',
     # t2_to_1 = 'f_transfer_mend21',
@@ -200,8 +232,19 @@ soil_decomp_object$env <- list(
 # state
 ####################################
 soil_decomp_object$state <- list(
-  cpools = matrix(1:3, ncol=1 ),
-  respiration = vector("double",1)
+  cpools      = matrix(1:5, ncol=1 ),     # APW: would ideally be 1:n_pools 
+  respiration = vector("double",1),
+  outflux     = list(
+    of1 = numeric(1),
+    of2 = numeric(1),
+    of3 = numeric(1),
+    of4 = numeric(1),
+    of5 = numeric(1),
+    of6 = numeric(1),
+    of7 = numeric(1),
+    of8 = numeric(1),
+    of9 = numeric(1)
+  )
 )
 
 
@@ -217,93 +260,95 @@ soil_decomp_object$state_pars <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 7,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
-  beta    = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
-  silt    = NA,      
-  clay    = NA,        
-  clayref = NA,
-  mr      = NA,     
-  pep     = NA,        
-  pem     = NA,        
-  Kads    = NA,       
+  n_pools      = 5,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
+  n_outfluxes  = 9,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
+  cat_pool     = 2,        # pool which catalyses reactions 
+  sat_pool     = 3,        # pool which saturates
+  beta         = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
+  silt         = NA,      
+  clay         = NA,        
+  clayref      = NA,
+  mr           = NA,     
+  pep          = NA,        
+  pem          = NA,        
+  Kads         = NA,       
   qslope_mayes = NA,
-  reftemp = 30,        #CENTURY
-  R = 8.31446,#72,        #used in MILLENNIALv2
-  minmic = NA,
-  q10 = NA,
+  reftemp      = 30,       # CENTURY
+  R            = 8.31446,  # used in MILLENNIALv2
+  minmic       = NA,
+  q10          = NA,
+
   
-  ea = list(
-    ea1 = 6.3909e+04, #MILLENNIALv2 #activiation energy for temp sensitivity of POM decay
-    ea2 = NA,
-    ea3 = NA,
-    ea4 = 5.7865e+04, #MILLENNIALv2 #activiation energy for temp sensitivity of DOC uptake
-    ea5 = NA,
-    ea6 = NA,
-    ea7 = NA
-  ),
- 
-  #input coefficients (allocaties proportions of inputs into different pools)
-  input_coefs = list(
-    input_coef1 = .66, 
-    input_coef2 = 0, 
-    input_coef3 = 0,
-    input_coef4 = .34,
-    input_coef5 = 0,
-    input_coef6 = NA,
-    input_coef7 = NA,
-    input_coef8 = NA,
-    input_coef9 = NA
-  ),
-  
+  # Pool-specific parameters
   # initial pool mass for each pool
   cstate0 = list( 
     cstate01 = 1, 
     cstate02 = 1,          
     cstate03 = 1,      
     cstate04 = 1,       
-    cstate05 = 1,       
-    cstate06 = 1,       
-    cstate07 = 1,       
-    cstate08 = 1,
-    cstate09 = 0
+    cstate05 = 1       
   ),
 
-  # Carbon use or transfer efficiency from pool i to any another 
-  # - if this varies by the 'to' pool we need another function / parameters
-  # MC: I've created a function cue_remainder that can allocate the remainder to another pool rather than CO2
-  cue = list(
-    cue1 = NA,       
-    cue2 = NA,       
-    cue3 = NA,
-    cue4 = .19,
-    cue5 = NA,
-    cue6 = NA,
-    cue7 = NA,
-    cue8 = NA,
-    cue9 = NA
-  ),  
+  # input coefficients (allocates proportions of inputs into different pools)
+  input_coefs = list(
+    input_coef1 = .66, 
+    input_coef2 = 0, 
+    input_coef3 = 0,
+    input_coef4 = .34,
+    input_coef5 = 0
+  ),
   
-  cue2 = list( 
-    cue1 = NA,       
-    cue2 = NA,       
-    cue3 = NA,
-    cue4 = NA,
-    cue5 = NA,
-    cue6 = NA,
-    cue7 = NA,
-    cue8 = NA
-  ),  
+  # maximum size for pool i 
+  poolmax = list(       
+    poolmax1 = NA,      
+    poolmax2 = NA,       
+    poolmax3 = 68.8, 
+    poolmax4 = NA,
+    poolmax5 = NA
+  ),
+  
+  # assign outfluxes to decomp pools
+#  decomp_outflux = list(
+    decomp_outflux1 = list(dof11=1, dof12=2),
+    decomp_outflux2 = list(dof21=3),
+    decomp_outflux3 = list(dof31=4, dof32=5),
+    decomp_outflux4 = list(dof41=6, dof42=7, dof43=8),
+    decomp_outflux5 = list(dof51=9),
+#    decomp_outflux1 = list(dof1.1=1, dof1.2=2),
+#    decomp_outflux2 = list(dof2.1=3),
+#    decomp_outflux3 = list(dof3.1=4, dof3.2=5),
+#    decomp_outflux4 = list(dof4.1=6, dof4.2=7, dof4.3=8),
+#    decomp_outflux5 = list(dof5.1=9),
+#  ),
+  
+
+  # Decomposition / Outflux parameters 
+  # - these lists are n_outfluxes long and when there is just a single outflux per pool this collapses to n_pools long
+  # turnover rate for linear decomposition
+  k = list(    
+    k1 = 0.018,       # aggregate formation from POM       
+    k2 = NA,
+    k3 = 4.5000e-03,  # microbial turnover rate   
+    k4 = NA,
+    k5 = 4.8000e-03,  # aggregate formation from maom 
+    k6 = 0.0015,      # leaching rate (kd)
+    k7 = NA, 
+    k8 = NA,
+    k9 = 0.02         # aggregrate breakdown rate (kb)
+  ),
 
   # max turnover rate per unit microbial biomass for pool i
   # commented out old list (updating to allow for multiple mic groups or catalysts)
   vmax = list(
-    vmax1 = 1.8000e+12,#alpha_pl; pre-exponential constant for temp sensitivity of POM decay
-    vmax2 = NA,   #Vm
+    vmax1 = NA,   #Vm
+    vmax2 = 1.8e+12,  # alpha_pl; pre-exponential constant for temp sensitivity of POM decay
     vmax3 = NA,
-    vmax4 = 2.3000e+12, #alpha_lb #pre-exponential constant for temp sensitivity of DOC uptake
+    vmax4 = NA,
     vmax5 = NA,
     vmax6 = NA,
-    vmax7 = NA
+    vmax7 = NA,
+    vmax8 = 2.3e+12, # alpha_lb #pre-exponential constant for temp sensitivity of DOC uptake
+    vmax9 = NA
   ),
   
   vmax2 = list(
@@ -313,9 +358,23 @@ soil_decomp_object$pars <- list(
     vmax4 = NA,
     vmax5 = NA,
     vmax6 = NA,
-    vmax7 = NA
+    vmax7 = NA,
+    vmax8 = NA,
+    vmax9 = NA
   ),
   
+  ea = list(
+    ea1 = NA,
+    ea2 = 6.3909e+04, # MILLENNIALv2 #activiation energy for temp sensitivity of POM decay
+    ea3 = NA,
+    ea4 = NA,
+    ea5 = NA,
+    ea6 = NA,
+    ea7 = NA,
+    ea8 = 5.7865e+04, # MILLENNIALv2 #activiation energy for temp sensitivity of DOC uptake
+    ea9 = NA
+  ),
+ 
   # idea for how to handle one pool being decomposed by multiple catalysts (e.g. multiple microbial pools or multiple enzyme pools)
   # vmax = list(
   #   #vmax of pool 1
@@ -332,13 +391,15 @@ soil_decomp_object$pars <- list(
  
   # michaelis-menten half-saturation constant for microbial decomnp of pool i      
   km = list(   
-    km1 = 6443, #MillennialV2 #half sat const for POM breakdown 
-    km2 = NA,
+    km1 = NA,
+    km2 = 6443, # MillennialV2, half sat const for POM breakdown 
     km3 = NA,
-    km4 = 774.6, #DOC uptake half sat constant,
+    km4 = NA,
     km5 = NA,
     km6 = NA,
-    km7 = NA
+    km7 = NA,
+    km8 = 774.6, # DOC uptake half sat constant
+    km9 = NA
   ),
   
   km2 = list( 
@@ -348,7 +409,9 @@ soil_decomp_object$pars <- list(
     km4 = NA,
     km5 = NA,
     km6 = NA,
-    km7 = NA
+    km7 = NA,
+    km8 = NA,
+    km9 = NA
   ),
   
   # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i
@@ -360,33 +423,50 @@ soil_decomp_object$pars <- list(
     rkm4 = NA,
     rkm5 = NA,
     rkm6 = NA,
-    rkm7 = NA
+    rkm7 = NA,
+    rkm8 = NA,
+    rkm9 = NA
   ),   
 
-  # turnover rate for linear decomposition
-  k = list(    
-    k1 = .018,       # aggregate formation from POM       
-    k2 = 4.5000e-03, # microbial turnover rate   
-    k3 = 4.8000e-03, # aggregate formation from maom 
-    k4 = .0015,      # leaching rate (kd)
-    k5 = .02,        # aggregrate breakdown rate (kb)
-    k6 = NA,
-    k7 = NA,
-    k8 = NA,
-    k9 = NA 
-  ),
-
-  # maximum size for pool i 
-  poolmax = list(       
-    poolmax1 = NA,      
-    poolmax2 = NA,       
-    poolmax3 = NA, 
-    poolmax4 = NA,
-    poolmax5 = NA,
-    poolmax6 = NA,
-    poolmax7 = NA
-  ),
   
+  # Transfer parameters 
+  # Carbon use or transfer efficiency from pool i to any another 
+  # - if this varies by the 'to' pool we need another function / parameters
+  # MC: I've created a function cue_remainder that can allocate the remainder to another pool rather than CO2
+  # APW: these lists should probably be n_outfluxes long 
+  cue = list(
+    cue1 = NA,       
+    cue2 = 0.5,
+    cue3 = NA,      
+    cue4 = 0.19,
+    cue5 = 0.33 
+  ),  
+#  cue = list(
+#    cue1 = NA,       
+#    cue2 = NA,
+#    cue3 = 0.5,      
+#    cue4 = NA,
+#    cue5 = NA, 
+#    cue6 = NA,
+#    cue7 = NA,
+#    cue8 = 0.19,
+#    cue9 = 0.33
+#  ),  
+  
+  cue2 = list( 
+    cue1 = NA,       
+    cue2 = NA,       
+    cue3 = NA,
+    cue4 = NA,
+    cue5 = NA,
+    cue6 = NA,
+    cue7 = NA,
+    cue8 = NA,
+    cue9 = NA
+  ),  
+
+
+  # Model specific parameters
   # MIMICS-specific parameters
   mimics = list(
     fmet_p1 = .5,
@@ -484,7 +564,7 @@ soil_decomp_object$pars <- list(
 soil_decomp_object$cpars <- list(
   verbose  = F,          # write diagnostic output during runtime 
   cverbose = F,          # write diagnostic output from configure function 
-  output   = 'run'       # type of output from run function
+  output   = 'pools'     # type of output from run function
 )
 
 
@@ -497,6 +577,10 @@ f_output_soil_decomp_eval <- f_output_eval
 
 f_output_soil_decomp_run <- function(.) {
   unlist(.$state)
+}
+
+f_output_soil_decomp_pools <- function(.) {
+  c(unlist(.$state$cpools),unlist(.$state$respiration))
 }
 
 f_output_soil_decomp_state <- function(.) {
@@ -528,7 +612,7 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.00016, ntime
     .$run_met()
   } else {
     .$env$litter  <- litter
-    .$run()
+    signif(.$run(), 3 )
   }
 }
 

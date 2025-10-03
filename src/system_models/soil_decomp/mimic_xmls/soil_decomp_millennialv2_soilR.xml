@@ -31,6 +31,22 @@
         <t1>'f_tcor_arrhenius_millennialv2'</t1>
         <t4>'f_tcor_arrhenius_millennialv2'</t4>
       </tcor>
+      <transfer>
+        <!-- --> 
+        <!-- -->
+        <t1_to_4>decomp frac of two out fluxes from pool 1</t1_to_4> 
+        <t1_to_5>aggregation frac of two out fluxes from pool 1</t1_to_5>
+        <t2_to_3>.super$pars$millennialV2[['param_pb']] </t2_to_3> 
+        <t2_to_4>1-.super$pars$millennialV2[['param_pb']]</t2_to_4> 
+        <t3_to_4>desorption frac of two out fluxes from pool 3</t3_to_4> 
+        <t3_to_5>aggregation frac of two out fluxes from pool 3</t3_to_5> 
+        <t4_to_2>uptake frac of three out fluxes from pool 4 * CUE</t4_to_2> 
+        <t4_to_3>sorption frac of three out fluxes from pool 4</t4_to_3> 
+        <t4_to_resp>uptake frac of three out fluxes from pool 4 * (1- CUE)</t4_to_resp> 
+        <t4_to_leached>leached frac of three out fluxes from pool 4</t4_to_leached> 
+        <t5_to_1>.super$pars$millennialV2[['pa']]</t5_to_1> 
+        <t5_to_3>1-.super$pars$millennialV2[['pa']]</t5_to_3> 
+      </transfer>
     </soil_decomp>
   </fnames>
   <pars>

@@ -18,8 +18,10 @@ f_solver_dummy <- function(., t, y, ... ) {
 # lsoda style function to solve MILLENNIALv2
 #############################################
 
-f_solver_func_millennialV2 <- function(., t, y, parms) {
-  #State parameters (i.e. calculated parameters)
+f_solver_func_millennialV2 <- function(., t, y, parms ) {
+  print(y)
+
+  # State parameters (i.e. calculated parameters)
   #Equation 4
   ##scalar_wd = (swc / porosity)^0.5
   ##this is now .$wcor(.)
@@ -27,6 +29,14 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #Equation 15
   #scalar_wb = exp(lambda * -matpot) * (kamin + (1 - kamin) * ((porosity - swc) / porosity)^0.5) * scalar_wd
   ##this is now .$wcor2(.)
+  
+  #Equation 3
+  #arrhenius modification of vmax for pom decay
+  #vmax_pl = .super$pars$millennialV2[['alpha_pl']] * .$tcor.t1(i=1)
+  
+  #Equation 14
+  #arrhenius modification of vmax for mic uptake
+  #vmax_lb = .super$pars$millennialV2[['alpha_lb']] * .$tcor.t4(i=4)
   
   #Equation 11
   #Q max; maximum MAOM capacity
@@ -38,30 +48,25 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #Binding affinity parameter
   kaff_lm = exp(-.super$pars$millennialV2[['sorp_p1']] * .super$env$pH - .super$pars$millennialV2[['sorp_p2']]) * .super$pars$millennialV2[['kld']]
   
-  #Equation 3
-  #arrhenius modification of vmax for pom decay
-  #vmax_pl = .super$pars$millennialV2[['alpha_pl']] * .$tcor.t1(i=1)
   
-  #Equation 14
-  #arrhenius modification of vmax for mic uptake
-  #vmax_lb = .super$pars$millennialV2[['alpha_lb']] * .$tcor.t4(i=4)
-  #          
-  #          #Fluxes
-  
-  #define states so that if/then statements work here
+  # define states so that if/then statements work here
   POM  = .super$state$cpools[[1]]
   MIC  = .super$state$cpools[[2]]
   MAOM = .super$state$cpools[[3]]
   LMWC = .super$state$cpools[[4]]
   AGG  = .super$state$cpools[[5]]
   
-  #Equation 6
-  #agg breakdown
+
+  # Individual fluxes
+  # Equation 6
+  # agg breakdown
   # AGG -> MAOM + POM
   # APW: are these >0 constrainst for sure needed? 
   # APW: if so, how would they work in the SoilR set of functions 
+  # of 9
   if(AGG>0){
-    f_AG_break = .$decomp.d5(t = t, C=y, i=5) * .$wcor(.)
+    #f_AG_break = .$decomp.d5(t = t, C=y, i=5) * .$wcor(.)
+    f_AG_break = .$decomp.d5(t=t, C=y, i=5, of=9 ) * .$wcor.w9(.)
   }else{
     f_AG_break=0
   }
@@ -71,8 +76,10 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   # POM -> AGG
   # no saturation of agg fraction in v2 I guess
   # APW: linear decomp (the POM pool "decomposes" into aggregates with no CO2 release)
+  # of 1
   if(POM>0){
-    f_PO_AG = .$aggform.a1(t = t, C=y, i=1) * .$wcor(.)
+    #f_PO_AG = .$aggform.a1(t = t, C=y, i=1) * .$wcor(.)
+    f_PO_AG = .$aggform.a1(t=t, C=y, i=1, of=1 ) * .$wcor.w1(.)
   }else{
     f_PO_AG=0
   }
@@ -81,8 +88,11 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #RMM decay of POM
   # POM -> LMWC
   # APW: RMM decomp
+  # of 2 
   if(POM>0 && MIC>0){
-    f_PO_LM = .$tcor.t1(i=1) * .$decomp.d1(t=t,C=y,i=1,cat=2) *.$wcor(.)
+    #f_PO_LM = .$tcor.t1(i=1) * .$decomp.d1(t=t,C=y,i=1,cat=2) *.$wcor(.)
+    # APW: here i refers to of, no pool information used in tcor function 
+    f_PO_LM = .$tcor.t2(i=2) * .$decomp.d1(t=t, C=y, i=1, cat=2, of=2 ) *.$wcor.w2(.)
     #f_PO_LM = vmax_pl * .$wcor(.) * POM * MIC / (km1 + MIC)
   }else{
     f_PO_LM=0
@@ -92,8 +102,10 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #leaching
   # LMWC -> out of system leaching
   # APW: linear decomp/loss of LMWC out of system  
+  # of 6 
   if(LMWC>0){
-    f_LM_leach = .$decomp.d4(t = t, C=y, i=4) * .$wcor(.)
+    #f_LM_leach = .$decomp.d4(t = t, C=y, i=4) * .$wcor(.)
+    f_LM_leach = .$decomp.d4(t = t, C=y, i=4, of=6 ) * .$wcor.w6(.)
     #f_LM_leach = k4 * .$wcor(.) * LMWC
   }else{
     f_LM_leach=0
@@ -103,8 +115,10 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #sorption
   # LMWC -> MAOM #this is no longer a double-sided equation, seperate funcs for sorp and desorp
   # APW: saturating sorption of LMWC to MAOM, potentially needs to be a decomp term 
+  # of 7 
   if(LMWC>0 && MAOM>0){
-    f_LM_MA = .$wcor(.) * .$sorp.s4(t = t, C=y, i=4, k_from_list = FALSE, k = kaff_lm, sat_pool = 3)
+    #f_LM_MA = .$wcor(.) * .$sorp.s4(t = t, C=y, i=4, k_from_list = FALSE, k = kaff_lm, sat_pool = 3)
+    f_LM_MA = .$wcor.w7(.) * .$sorp.s4(t = t, C=y, i=4, of=7, k=kaff_lm, sat_pool=3 )
     #f_LM_MA = .$wcor(.) * kaff_lm * LMWC * (1 - MAOM / param_qmax)
   }else{
     f_LM_MA=0
@@ -115,8 +129,10 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #desorption
   # MAOM -> LMWC
   # APW: desorption of LMWC from MAOM, potentially needs to be a decomp term  
+  # of 4 
   if(MAOM>0){
-    f_MA_LM = .$desorp.ds3(t = t, C=y, i=3, k = .super$pars$millennialV2[['kld']]/1000, cat = 2)
+    #f_MA_LM = .$desorp.ds3(t=t, C=y, i=3, k=.super$pars$millennialV2[['kld']]/1000, cat=2 )
+    f_MA_LM = .$desorp.ds3(t=t, C=y, i=3, of=4, k=.super$pars$millennialV2[['kld']]/1000, cat=2 )
     #f_MA_LM = kld * MAOM / param_qmax
   }else{
     f_MA_LM=0
@@ -125,8 +141,10 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #Equation 13
   #microbial uptake via michaelis menten equation
   # LMWC -> MIC
+  # of 8 
   if(LMWC>0 && MIC>0){
-    f_LM_MB = .$wcor2(.) * .$tcor.t4(i=4) * .$docuptake(t=t,C=y,i=4,cat=2)
+    #f_LM_MB = .$wcor2(.) * .$tcor.t4(i=4) * .$docuptake(t=t,C=y,i=4,cat=2)
+    f_LM_MB = .$wcor.w8(.) * .$tcor.t8(i=8) * .$docuptake(t=t, C=y, i=4, of=8, cat=2 )
     #f_LM_MB = vmax_lb * .$wcor2(.) * MIC * LMWC / (km4 + LMWC)
   }else{
     f_LM_MB=0
@@ -135,8 +153,10 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #Equation 18
   #agg formation from maom
   # MAOM -> AGG
+  # of 5 
   if(MAOM>0){  
-    f_MA_AG = .$aggform.a3(t = t, C=y, i=3) * .$wcor(.)
+    #f_MA_AG = .$aggform.a3(t = t, C=y, i=3) * .$wcor(.)
+    f_MA_AG = .$aggform.a3(t=t, C=y, i=3, of=5 )* .$wcor.w5(.)
     #f_MA_AG = k3 * .$wcor(.) * MAOM
   }else{
     f_MA_AG=0
@@ -145,8 +165,10 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   #Equation 16
   #microbial turnover
   # MIC -> MAOM/LMWC
+  # of 3 
   if(MIC>0){
-    f_MB_turn = .$decomp.d2(t = t, C=y, i=2)
+    #f_MB_turn = .$decomp.d2(t = t, C=y, i=2)
+    f_MB_turn = .$decomp.d2(t=t, C=y, i=2, of=3 )
     #f_MB_turn = k2 * MIC^2.0
   }else{
     f_MB_turn=0
@@ -166,38 +188,66 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
 
   .super$state$respiration = f_MB_atm
 
-  #          
-  #          #ODE system
   
+  # ODE system
+  
+  # APW: input is handled by SoilR input in general equation 
+
+  # Pool 1: POM
   # Equation 1 - change in POM, pool 1, 2 out fluxes
   # APW: = input_frac + aggregate_break_frac - aggregate_form_pom - decomp_lmwc_pom
-  dPOM = .$input(t)[[1]] + f_AG_break * .super$pars$millennialV2[['pa']] - f_PO_AG - f_PO_LM
-  #dPOM = forc_npp * pri + f_AG_break * pa - f_PO_AG - f_PO_LM
+  # APW, term 1: handled by input function
+  # APW, term 2, t5_to_1: .super$pars$millennialV2[['pa']] 
+  # APW, term 3, f1, dual decomp 1: .$aggform.a1(t=t, C=y, i=1) * .$wcor(.)
+  # APW, term 4, f2, dual decomp 2: .$decomp.d1(t=t, C=y, i=1, cat=2 ) *.$wcor(.) * .$tcor.t1(i=1) 
+  dPOM = .$input(t)[[1]] + f_AG_break*.super$pars$millennialV2[['pa']] - f_PO_AG - f_PO_LM
   
+  # Pool 2: Microbes
   # Equation 20 - change in Microbial biomass, pool 2, 1 out flux
   # APW: = microbial_lmwc_uptake - microbial_turnover - respiration (which is a T-dependent fraction of the LMWC flux to MB)
-  # APW: = (microbial_lmwc_uptake - respiration)  - microbial_turnover 
+  # APW: = (microbial_lmwc_uptake - respiration) - microbial_turnover
+  # APW, term 1: t4_to_2 microbial uptake, uptake frac of three out fluxes from pool 4 * CUE
+  # APW, term 2, f3: .$decomp.d2(t=t, C=y, i=2 )
+  # APW, term 3: f_LM_MB * (1 - (.super$pars$cue[[4]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']]) ) )  
+  # APW, term 3, t4_to_resp, (1-CUE) * term 1; 1-CUE = (1 - (.super$pars$cue[[4]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']]) ) )  
   dMIC = f_LM_MB - f_MB_turn - f_MB_atm
-  #dMIC = f_LM_MB - f_MB_turn - f_MB_atm
   
+  # Pool 3: MAOM
   # Equation 19, change in MAOM, pool 3, 2 out fluxes
   # APW: = sorption + microbial_turnover_frac + aggregate_break_frac - desorption - aggregate_form_maom  
+  # APW, term 1, t4_to_3, sorption: sorption frac of three out fluxes from pool 4
+  # APW, term 2, f4, dual decomp 1, desorption: .$desorp.ds3(t=t, C=y, i=3, k=.super$pars$millennialV2[['kld']]/1000, cat=2 )  
+  # APW, term 3, t2_to_3, microbial turnover frac: .super$pars$millennialV2[['param_pb']] 
+  # APW, term 4, f5, dual decomp 2, aggregation: .$aggform.a3(t=t, C=y, i=3 ) * .$wcor(.)  
+  # APW, term 5, t5_to_3: 1 - .super$pars$millennialV2[['pa']] 
   dMAOM = f_LM_MA - f_MA_LM + f_MB_turn * .super$pars$millennialV2[['param_pb']] - f_MA_AG + f_AG_break * (1. - .super$pars$millennialV2[['pa']])
-  #dMAOM = f_LM_MA - f_MA_LM + f_MB_turn * param_pb - f_MA_AG + f_AG_break * (1. - pa)
   
+  # Pool 4: DOC
   # Equation 7, change in dissolved organic C, pool 4, 3 out fluxes
   # APW: = input_frac + decomp_lmwc_pom + microbial_turnover_frac + desorption - leaching - sorption - microbial_lmwc_uptake  
+  # APW, term 1: handled by input function
+  # APW, term 2, f6, triple decomp 1, leaching: .$decomp.d4(t=t, C=y, i=4 ) * .$wcor(.) 
+  # APW, term 3, t1_to_4, decomp POM to DOC: decomp frac of two out fluxes from pool 1
+  # APW, term 4, f7, triple decomp 2, sorption: .$sorp.s4(t=t, C=y, i=4, k_from_list=FALSE, k=kaff_lm, sat_pool=3 ) * .$wcor(.) 
+  # APW, term 5, f8, triple decomp 3, microbial uptake: .$docuptake(t=t, C=y, i=4, cat=2 ) * .$wcor2(.) * .$tcor.t4(i=4)
+  # APW, term 6, t2_to_4, microbial turnover frac: 1 - .super$pars$millennialV2[['param_pb']] 
+  # APW, term 7, t3_to_4, desorption: desorption frac of two out fluxes from pool 3  
   dLMWC = .$input(t)[[4]] - f_LM_leach + f_PO_LM - f_LM_MA - f_LM_MB + f_MB_turn * (1. - .super$pars$millennialV2[['param_pb']]) + f_MA_LM
-  #dLMWC = forc_npp * (1. - pri) - f_LM_leach + f_PO_LM - f_LM_MA - f_LM_MB + f_MB_turn * (1. - param_pb) + f_MA_LM
   
+  # Pool 5: Aggregates
   # Equation 17, change in aggregates, pool 5, 1 out flux
   # APW: = aggregate_form_maom + aggregate_form_pom - aggregate_break  
+  # APW, term 1, t3_to_5, aggregation: aggregation frac of two out fluxes from pool 3  
+  # APW, term 2, t1_to_5, aggregation: aggregation frac of two out fluxes from pool 1
+  # APW, term 3, f9: .$decomp.d5(t=t, C=y, i=5 ) * .$wcor(.) 
   dAGG = f_MA_AG + f_PO_AG - f_AG_break
-  #dAGG = f_MA_AG + f_PO_AG - f_AG_break
-  
+ 
+ 
   #print(.$sorp.s4(t = t, C=y, i=4, k_from_list = FALSE, k = kaff_lm, sat_pool = 3))
   #print(f_MA_LM)
   
+  #print(.$input(t)) 
+  print(list(c(dPOM, dMIC, dMAOM, dLMWC, dAGG)))
   list(c(dPOM, dMIC, dMAOM, dLMWC, dAGG))
 }
 

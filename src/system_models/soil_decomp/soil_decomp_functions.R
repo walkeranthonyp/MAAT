@@ -34,62 +34,85 @@ f_input_mimics <- function(., t ) {
 # generic functions
 f_decomp_none <- function(., C, t, i, ... ) 0
 
-f_zero <- function(.,C,t,i) 0
+f_zero        <- function(., C, t, i ) 0
 
 # APW: where is this used? 
-f_identity <- function(.,C,t,i) 1
- 
+f_identity    <- function(., C, t, i ) 1
+
 # function where there are multiple fluxes from a single pool
-f_decomp_sum2fluxes <- function(., i, ... ) 
-  .$decomp_sum[i]$one + .$decomp_sum[i]$two 
-
-f_decomp_sum3fluxes <- function(., i, ... ) 
-  .$decomp_sum[i]$one + .$decomp_sum[i]$two + .$decomp_sum[i]$three 
+f_decomp_fluxsum <- function(., i, ... )
+  #sum(.super$state$outflux[[unlist(.super$pars$decomp_outflux[[i]]) ]])
+  sum(unlist(.super$state$outflux[unlist(.super$pars[[paste0('decomp_outflux',i)]]) ]))
+ 
+#f_decomp_sum2fluxes <- function(., i, ... ) 
+#  .$decomp_sum[i]$one + .$decomp_sum[i]$two 
+#
+#f_decomp_sum3fluxes <- function(., i, ... ) 
+#  .$decomp_sum[i]$one + .$decomp_sum[i]$two + .$decomp_sum[i]$three 
 
  
-
 # linear decomp, Oleson 1963
 # - cat and sat_pool are dummy arguments to allow switching from other functions, APW: can ... be used?
 # - MEND O6,O7 (APW: not sure what this is referring to)
 # APW: I think k_from_list can be removed and the pars k specified as default
-f_decomp_lin <- function(.,C,t,i, k_from_list=TRUE, k=NULL, cat=NULL, sat_pool=NULL ) { 
+f_decomp_lin <- function(., C, t, i, k_from_list=TRUE, k=NULL, cat=NULL, sat_pool=NULL ) { 
   if(k_from_list == TRUE){
     C[i]*.super$pars$k[[i]]
   } else {
     C[i]*k
   }
 }
+f_decomp_lin <- function(., C, t, i, of=i, k=.super$pars$k[[of]], ... ) 
+    C[i]*k
+
 
 # density-dependent decomp, used for density-dependent turnover as in Georgiou et al. 2017  
-f_decomp_dd_georgiou <- function(.,C,t,i) 
-  (C[i]^.super$pars$beta) * .super$pars$k[[i]]      
+f_decomp_dd_georgiou <- function(., C, t, i, of=i ) 
+  (C[i]^.super$pars$beta) * .super$pars$k[[of]]      
+
 
 # non-linear Michaelis-Menten decomp, a function of microbial biomass
-f_decomp_MM_microbe <- function(.,C,t,i) 
+f_decomp_MM_microbe <- function(., C, t, i ) 
   (.super$pars$vmax[[i]]*C[2]*C[i]) / (.super$pars$km[[i]]+C[i])
+f_decomp_MM_microbe <- function(., C, t, i, cat_pool=.super$pars$cat_pool ) 
+  (.super$pars$vmax[[i]]*C[cat_pool]*C[i]) / (.super$pars$km[[i]]+C[i])
+
+
+# Michaelis-Menten decomp
+f_decomp_mm <- function(., C, t, i, cat=4 )
+  (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[i] + .super$pars$km[[i]])
+f_decomp_mm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool )
+  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[i] + .super$pars$km[[of]])
+
 
 # reverse Michaelis-Menten decomp
 # - C[4] is microbial biomass in CORPSE
-# - k is dummy argument to get MILLENNIAL to work for mic decay of maom 
-f_decomp_rmm <- function(.,C,t,i, cat=4, k=NULL )
+# - k is dummy argument to get MILLENNIAL to work for mic decay of maom
+# - APW: should km be rkm here or does it not matter? 
+f_decomp_rmm <- function(., C, t, i, cat=4, k=NULL )
   (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[cat] + .super$pars$km[[i]])
+f_decomp_rmm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool, ... ) 
+  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (.super$pars$km[[of]] + C[cat_pool])
+
 
 # double Michaelis-Menten decomp
-f_decomp_dmm <- function(.,C,t,i)
+f_decomp_dmm <- function(., C, t, i )
   .super$pars$vmax[[i]] * (C[1]/(.super$pars$km[[1]] + C[1])) * (C[2]/(.super$pars$rkm[[1]]+C[2]))
 
-# Michaelis-Menten decomp
-f_decomp_mm <- function(.,C,t,i, cat=4 )
-  (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[i] + .super$pars$km[[i]])
 
 # saturating sorption
-f_sorp_sat  <- function(.,C,t,i, k_from_list = TRUE, k = NULL, sat_pool) {
+f_sorp_sat  <- function(., C, t, i, k_from_list = TRUE, k = NULL, sat_pool ) {
   if(k_from_list == TRUE){
     C[i]*.super$pars$k[[i]]*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]])
   } else {
     C[i]*k*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]])
   }
 }
+f_sorp_sat  <- function(., C, t, i, k=.super$pars$k[[i]], sat_pool=.super$pars$sat_pool ) 
+  C[i]*k*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]])
+# APW: this can be modified to access k from list with of/i indexing 
+f_sorp_sat  <- function(., C, t, i, of=i, k=.super$state_pars$kaff_lm, sat_pool=.super$pars$sat_pool )
+  C[i]*k*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]])
 
 
 
@@ -323,10 +346,14 @@ f_maintresp_mend <- function(.,C,t,i){
 #########
 
 # cat is dummy
-# APW: can we use ... ?
-f_desorp_millennialv2 <- function(.,C,t,i, k=1, cat=NULL ) { 
+# APW: can we use ... ? cat seems unnecessary, can we remove?
+f_desorp_millennialv2 <- function(., C, t, i, k=1, cat=NULL ) { 
   k*(C[i]/.super$pars$poolmax[[i]])
 }
+# APW: can be modified to pull k from list using i/of indexing
+f_desorp_millennialv2 <- function(., C, t, i, of=i, k=.super$pars$millennialV2[['kld']]/1000, ... )  
+  k*(C[i]/.super$pars$poolmax[[i]])
+
 
 # cat is dummy
 # APW: can we use ... ?
@@ -343,6 +370,45 @@ f_desorp_millennialv2_nosat <- function(.,C,t,i, k=1, cat=NULL ) {
 f_transfer_all  <- function(.,C,t,from,to) 1
 f_transfer_zero <- function(.,C,t,from,to) 0
 
+# transfer functions that when there are multiple out fluxes, calculate the proportion of each flux of the total flux
+# APW: could turn this into a standard calculation in the SoilR function that calculates proportion for all fluxes 
+f_transfer_fluxsum_prop <- function(.,C,t,from,to,f) {
+  #.super$state$outflux[[.super$pars$decomp_outflux[[from]] ]][f] /
+  .super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] /
+    .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
+}
+f_transfer_fluxsum_prop_one <- function(.,C,t,from,to,f=1) {
+  #.super$state$outflux[[.super$pars$decomp_outflux[[from]] ]][f] /
+  .super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] /
+    .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
+}
+f_transfer_fluxsum_prop_two <- function(.,C,t,from,to,f=2) {
+  #.super$state$outflux[[.super$pars$decomp_outflux[[from]] ]][f] /
+  #print(from)
+  #print(to)
+  #print(unlist(paste0(.super$pars$decomp_outflux,from)))
+  #print(.super$pars$decomp_outflux1)
+  #print(f)
+  .super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] /
+    .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
+}
+f_transfer_fluxsum_prop_three <- function(.,C,t,from,to,f=3) {
+  #.super$state$outflux[[.super$pars$decomp_outflux[[from]] ]][f] /
+  .super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] /
+    .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
+}
+f_transfer_fluxsum_prop_three_cue <- function(.,C,t,from,to,f=3) {
+  #print(from)
+  #print(to)
+  #print(unlist(paste0(.super$pars$decomp_outflux,from)))
+  #print(.super$pars$decomp_outflux4)
+  #print(f)
+  .super$pars$cue[[from]] * #.super$state$outflux[[.super$pars$decomp_outflux[[from]] ]][f] /
+  .super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] /
+    .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
+}
+
+
 # CUE or carbon transfer efficiency sets transfer from one pool to another
 # MEND15
 f_transfer_cue       <- function(.,C,t,from,to) .super$pars$cue[[from]]    
@@ -350,7 +416,7 @@ f_transfer_cue_resp  <- function(.,C,t,from,to) 1 - .super$pars$cue[[from]]
 
 # CUE / transfer efficiency sets transfer subject to a maximum pool size 
 # - can be used both for saturating MAOM pool and density dependent microbial growth efficiency
-# APW: shoudl this include a min 0 function in the final term?
+# APW: should this include a min 0 function in the final term?
 f_transfer_cue_sat <- function(.,C,t,from,to) .super$pars$cue[[from]] * (1-C[to]/.super$pars$poolmax[[to]])
 
 # transfers remainder of cue function to another pool instead of CO2
@@ -411,6 +477,10 @@ f_transfer_mend54 <- function(.,C,t,from,to){
 
 # scaling functions
 #############################
+
+f_tcor_none <- function(...) 1
+f_wcor_none <- function(...) 1
+
 
 # correct soil protection rates
 f_scor_sulman <- function(.,C,t,i) (.super$env$clay/.super$pars$clayref)^.super$pars$qslope_mayes
