@@ -19,6 +19,8 @@ f_solver_dummy <- function(., t, y, ... ) {
 #############################################
 
 f_solver_func_millennialV2 <- function(., t, y, parms) {
+  print(y)
+
   #State parameters (i.e. calculated parameters)
   #Equation 4
   ##scalar_wd = (swc / porosity)^0.5
@@ -65,7 +67,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   }else{
     f_AG_break=0
   }
-  
+ 
   #Equation 5
   #agg formation
   # POM -> AGG
@@ -197,7 +199,13 @@ f_solver_func_millennialV2 <- function(., t, y, parms) {
   
   #print(.$sorp.s4(t = t, C=y, i=4, k_from_list = FALSE, k = kaff_lm, sat_pool = 3))
   #print(f_MA_LM)
+ 
+  # out fluxes 1-9 
+  print(c(f_PO_AG, f_PO_LM, f_MB_turn, f_MA_LM, f_MA_AG, f_LM_leach, f_LM_MA, f_LM_MB, f_AG_break ))
+  # transfer coefs
   
+  # pools 1-5
+  print(list(c(dPOM, dMIC, dMAOM, dLMWC, dAGG)))
   list(c(dPOM, dMIC, dMAOM, dLMWC, dAGG))
 }
 

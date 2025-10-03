@@ -1,24 +1,14 @@
 <default>
   <fnames>
     <soil_decomp>
-      <sys>'f_sys_npools'</sys>
+      <sys>'f_steadystate_npools'</sys>
       <solver>'plsoda'</solver>
-      <solver_func>'f_solver_func_century'</solver_func>
+      <solver_func>'f_solver_func_millennialV2'</solver_func>
       <input>'f_input'</input>
       <DotO>'f_DotO'</DotO>
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <steadystate>'f_steadystate_npools'</steadystate>
       <solver_steadystate>'pstode'</solver_steadystate>
-      <docuptake>'f_decomp_mm'</docuptake>
-      <growthresp>NA</growthresp>
-      <maintresp>NA</maintresp>
-      <scor>NA</scor>
-      <wcor>'f_wcor_ghezzehei_diffusion'</wcor>
-      <wcor2>'f_wcor_ghezzehei_biological'</wcor2>
-      <tcor>
-        <t1>'f_tcor_arrhenius_millennialv2'</t1>
-        <t4>'f_tcor_arrhenius_millennialv2'</t4>
-      </tcor>
       <decomp>
         <d1>'f_decomp_rmm'</d1>
         <d2>'f_decomp_dd_georgiou'</d2>
@@ -54,16 +44,11 @@
       <growthresp>NA</growthresp>
       <maintresp>NA</maintresp>
       <scor>NA</scor>
-      <wcor>'f_wcor_abramoff'</wcor>
+      <wcor>'f_wcor_ghezzehei_diffusion'</wcor>
       <wcor2>'f_wcor_ghezzehei_biological'</wcor2>
       <tcor>
         <t1>'f_tcor_arrhenius_millennialv2'</t1>
-        <t2>NA</t2>
-        <t3>NA</t3>
         <t4>'f_tcor_arrhenius_millennialv2'</t4>
-        <t5>NA</t5>
-        <t6>NA</t6>
-        <t7>NA</t7>
       </tcor>
       <water_unit_converter>'f_SWC2SWP_vanGenuchten'</water_unit_converter>
       <transfer>
@@ -87,7 +72,7 @@
   </fnames>
   <pars>
     <soil_decomp>
-      <n_pools>7</n_pools>
+      <n_pools>5</n_pools>
       <beta>2</beta>
       <silt>NA</silt>
       <clay>NA</clay>
@@ -112,12 +97,14 @@
       </ea>
       <input_coefs>
         <input_coef1>0.66</input_coef1>
-        <input_coef2>0.34</input_coef2>
+        <input_coef2>0</input_coef2>
         <input_coef3>0</input_coef3>
         <input_coef4>0.34</input_coef4>
         <input_coef5>0</input_coef5>
         <input_coef6>NA</input_coef6>
         <input_coef7>NA</input_coef7>
+        <input_coef8>NA</input_coef8>
+        <input_coef9>NA</input_coef9>
       </input_coefs>
       <cstate0>
         <cstate01>1</cstate01>
@@ -127,6 +114,8 @@
         <cstate05>1</cstate05>
         <cstate06>1</cstate06>
         <cstate07>1</cstate07>
+        <cstate08>1</cstate08>
+        <cstate09>0</cstate09>
       </cstate0>
       <cue>
         <cue1>NA</cue1>
@@ -136,6 +125,8 @@
         <cue5>NA</cue5>
         <cue6>NA</cue6>
         <cue7>NA</cue7>
+        <cue8>NA</cue8>
+        <cue9>NA</cue9>
       </cue>
       <cue2>
         <cue1>NA</cue1>
@@ -145,6 +136,7 @@
         <cue5>NA</cue5>
         <cue6>NA</cue6>
         <cue7>NA</cue7>
+        <cue8>NA</cue8>
       </cue2>
       <vmax>
         <vmax1>1.8e+12</vmax1>
@@ -199,6 +191,8 @@
         <k5>0.02</k5>
         <k6>NA</k6>
         <k7>NA</k7>
+        <k8>NA</k8>
+        <k9>NA</k9>
       </k>
       <poolmax>
         <poolmax1>NA</poolmax1>
@@ -246,6 +240,13 @@
         <fi_LITm>0.005</fi_LITm>
         <fi_LITs>0.005</fi_LITs>
       </mimics>
+      <mend>
+        <Mr>0.00028</Mr>
+        <Pep>0.01</Pep>
+        <Pem>0.01</Pem>
+        <Gd>0.5</Gd>
+        <Fd>0.5</Fd>
+      </mend>
       <millennial>
         <cuet>-0.012</cuet>
         <Taeref>15</Taeref>
@@ -260,13 +261,6 @@
         <kmm>0.025</kmm>
         <pa>0.333</pa>
       </millennial>
-      <mend>
-        <Mr>0.00028</Mr>
-        <Pep>0.01</Pep>
-        <Pem>0.01</Pem>
-        <Gd>0.5</Gd>
-        <Fd>0.5</Fd>
-      </mend>
       <millennialV2>
         <param_pc>0.86</param_pc>
         <kld>1</kld>
@@ -295,9 +289,9 @@
       <litter>0.473692602739726</litter>
       <temp>11.21961</temp>
       <vwc>0.2422044</vwc>
-      <porosity>0.39</porosity>
+      <porosity>0.6</porosity>
       <clay>0</clay>
-      <lignin>0.2</lignin>
+      <lignin>0</lignin>
       <N>0</N>
       <anpp>0</anpp>
       <depth>0</depth>

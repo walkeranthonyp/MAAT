@@ -69,23 +69,15 @@ soil_decomp_object$init  <- function(.) {
 ####################################
 soil_decomp_object$fnames <- list(
 
-  sys                = 'f_sys_npools', 
+  #sys                = 'f_sys_npools', 
+  sys                = 'f_steadystate_npools', 
   solver             = 'plsoda',
-  solver_func        = 'f_solver_func_century',
+  solver_func        = 'f_solver_func_millennialV2',
   input              = 'f_input',
   DotO               = 'f_DotO',
   transfermatrix     = 'f_transfermatrix',
   steadystate        = 'f_steadystate_npools', # options: 'f_steadystate_null','f_steadystate_npools',
   solver_steadystate = 'pstode',
-  
-  #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
-  tcor = list(                  #this structure for corpse
-    t1 = 'f_tcor_arrhenius_millennialv2',
-    t2 = NULL,
-    t3 = NULL,
-    t4 = 'f_tcor_arrhenius_millennialv2',
-    t5 = NULL
-  ),
   
   # decay/decomposition functions
   decomp = list(
@@ -130,17 +122,16 @@ soil_decomp_object$fnames <- list(
   wcor       = 'f_wcor_ghezzehei_diffusion',
   wcor2      = 'f_wcor_ghezzehei_biological',
   
+  #tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
   # tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
   tcor = list(                  #this structure for corpse
     t1 = 'f_tcor_arrhenius_millennialv2',
-    t2 = NA,
-    t3 = NA,
+    t2 = NULL,
+    t3 = NULL,
     t4 = 'f_tcor_arrhenius_millennialv2',
-    t5 = NA,
-    t6 = NA,
-    t7 = NA
+    t5 = NULL
   ),
-
+  
   water_unit_converter = 'f_SWC2SWP_vanGenuchten',
   
   # transfer list
@@ -217,7 +208,7 @@ soil_decomp_object$state_pars <- list(
 ####################################
 soil_decomp_object$pars <- list(
 
-  n_pools = 7,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
+  n_pools = 5,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
   beta    = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt    = NA,      
   clay    = NA,        
@@ -333,9 +324,11 @@ soil_decomp_object$pars <- list(
   # michaelis-menten half-saturation constant for microbial decomnp of pool i      
   km = list(   
     km1 = 6443, #MillennialV2 #half sat const for POM breakdown 
+    #km1 = 6.443, #MillennialV2 #half sat const for POM breakdown 
     km2 = NA,
     km3 = NA,
     km4 = 774.6, #DOC uptake half sat constant,
+    #km4 = 0.7746, #DOC uptake half sat constant,
     km5 = NA,
     km6 = NA,
     km7 = NA
@@ -367,6 +360,7 @@ soil_decomp_object$pars <- list(
   k = list(    
     k1 = .018,       # aggregate formation from POM       
     k2 = 4.5000e-03, # microbial turnover rate   
+    #k2 = 4.5000,     # microbial turnover rate   
     k3 = 4.8000e-03, # aggregate formation from maom 
     k4 = .0015,      # leaching rate (kd)
     k5 = .02,        # aggregrate breakdown rate (kb)

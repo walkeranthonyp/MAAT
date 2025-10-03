@@ -9,16 +9,6 @@
       <transfermatrix>NA</transfermatrix>
       <steadystate>NA</steadystate>
       <solver_steadystate>NA</solver_steadystate>
-      <docuptake>NA</docuptake>
-      <growthresp>NA</growthresp>
-      <maintresp>NA</maintresp>
-      <scor>NA</scor>
-      <wcor>NA</wcor>
-      <wcor2>NA</wcor2>
-      <tcor>
-        <t1>NA</t1>
-        <t4>NA</t4>
-      </tcor>
       <decomp>
         <d1>NA</d1>
         <d2>NA</d2>
@@ -27,8 +17,6 @@
         <d5>NA</d5>
         <d6>NA</d6>
         <d7>NA</d7>
-        <d8>NA</d8>
-        <d9>NA</d9>
       </decomp>
       <desorp>
         <ds1>NA</ds1>
@@ -60,12 +48,7 @@
       <wcor2>NA</wcor2>
       <tcor>
         <t1>NA</t1>
-        <t2>NA</t2>
-        <t3>NA</t3>
         <t4>NA</t4>
-        <t5>NA</t5>
-        <t6>NA</t6>
-        <t7>NA</t7>
       </tcor>
       <water_unit_converter>NA</water_unit_converter>
       <transfer>
@@ -257,6 +240,13 @@
         <fi_LITm>NA</fi_LITm>
         <fi_LITs>NA</fi_LITs>
       </mimics>
+      <mend>
+        <Mr>NA</Mr>
+        <Pep>NA</Pep>
+        <Pem>NA</Pem>
+        <Gd>NA</Gd>
+        <Fd>NA</Fd>
+      </mend>
       <millennial>
         <cuet>NA</cuet>
         <Taeref>NA</Taeref>
@@ -271,13 +261,6 @@
         <kmm>NA</kmm>
         <pa>NA</pa>
       </millennial>
-      <mend>
-        <Mr>NA</Mr>
-        <Pep>NA</Pep>
-        <Pem>NA</Pem>
-        <Gd>NA</Gd>
-        <Fd>NA</Fd>
-      </mend>
       <millennialV2>
         <param_pc>NA</param_pc>
         <kld>NA</kld>

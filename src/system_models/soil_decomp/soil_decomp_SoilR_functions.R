@@ -88,7 +88,9 @@ f_transfermatrix <- function(., C, t ) {
 # deSolve/lsoda style function to solve
 # - parms is a dummy argument to work with lsoda
 f_solver_func_soilR <- function(., t, y, parms) {
+  print(y)
   YD = .$transfermatrix(y,t) %*% .$DotO(y,t) + .$input(t) 
+  print(list(as.vector(YD)))
   list(as.vector(YD))
 }
 

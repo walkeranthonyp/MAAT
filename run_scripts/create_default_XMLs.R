@@ -8,7 +8,7 @@
 ################################
 
 mod_obj <- NULL
-options_only <- T
+options_only <- F 
 
 # parse command line arguments   
 # - any one of the above objects can be specified as a command line argument using the syntax:
