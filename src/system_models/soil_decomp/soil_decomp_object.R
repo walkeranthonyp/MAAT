@@ -152,7 +152,8 @@ soil_decomp_object$fnames <- list(
 
   wcor = list(             
     w1 = 'f_wcor_ghezzehei_diffusion', 
-    w2 = 'f_wcor_ghezzehei_diffusion',
+    w2 = 'f_wcor_ghezzehei_diffusion', 
+    #w2 = 'f_wcor_ghezzehei_biological',
     w3 = 'f_wcor_none',
     w4 = 'f_wcor_none', 
     w5 = 'f_wcor_ghezzehei_diffusion',
@@ -328,7 +329,8 @@ soil_decomp_object$pars <- list(
   k = list(    
     k1 = 0.018,       # aggregate formation from POM       
     k2 = NA,
-    k3 = 4.5000e-03,  # microbial turnover rate   
+    k3 = 4.5e-3,      # microbial turnover rate   
+    #k3 = 4.5,         # microbial turnover rate   
     k4 = NA,
     k5 = 4.8000e-03,  # aggregate formation from maom 
     k6 = 0.0015,      # leaching rate (kd)
@@ -392,13 +394,15 @@ soil_decomp_object$pars <- list(
   # michaelis-menten half-saturation constant for microbial decomnp of pool i      
   km = list(   
     km1 = NA,
-    km2 = 6443, # MillennialV2, half sat const for POM breakdown 
+    km2 = 6443,   # MillennialV2, half sat const for POM breakdown 
+    #km2 = 6.443,  # MillennialV2, half sat const for POM breakdown 
     km3 = NA,
     km4 = NA,
     km5 = NA,
     km6 = NA,
     km7 = NA,
-    km8 = 774.6, # DOC uptake half sat constant
+    km8 = 774.6,  # DOC uptake half sat constant
+    #km8 = 0.7746, # DOC uptake half sat constant
     km9 = NA
   ),
   
@@ -534,14 +538,14 @@ soil_decomp_object$pars <- list(
   
   # v2
   millennialV2 = list(
-    param_pc = .86, ##slope of mineral C - clay relationship from Georgiou et al. in review
-    kld = 1, #desorption coefficient
-    sorp_p1 = .12, #sorption affinity parameter
-    sorp_p2 = .216, #sorption affinity parameter
-    cue_t = 0.012, #slope of CUE temp sensitivity
-    Taeref = 15,   #ref temp for CUE temp-dependence equation
-    pa = 0.33,      #proportion agg breakdown into pom
-    param_pb = .5 #fraction of mb turnover to maom vs doc
+    param_pc = .86, # slope of mineral C - clay relationship from Georgiou et al. in review
+    kld = 1,        # desorption coefficient
+    sorp_p1 = .12,  # sorption affinity parameter
+    sorp_p2 = .216, # sorption affinity parameter
+    cue_t = 0.012,  # slope of CUE temp sensitivity
+    Taeref = 15,    # ref temp for CUE temp-dependence equation
+    pa = 0.33,      # proportion agg breakdown into pom
+    param_pb = .5   # fraction of mb turnover to maom vs doc
   ),
   
   # CENTURY-specific parameters

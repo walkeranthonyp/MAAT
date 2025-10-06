@@ -61,8 +61,6 @@ f_outfluxes <- function(., C, t ) {
   # call outflux functions and assign to state outflux list 
   for(i in 1:.super$pars$n_pools) { 
     #print(i); print(.[[paste0('outflux.of',i)]]); print(.[[paste0('tcor.t',i)]]); print(.[[paste0('wcor.w',i)]]) 
-    #ofv[i] <- .[[paste0('outflux.of',i)]](C=C, t=t, i=i ) * .[[paste0('tcor.t',i)]]() * .[[paste0('wcor.w',i)]]()
-    
     for(of in unlist(.super$pars[[paste0('decomp_outflux',i)]]) ) {
       #print(i); print(of)
       .super$state$outflux[[paste0('of',of)]] <- 
@@ -71,36 +69,37 @@ f_outfluxes <- function(., C, t ) {
 }
 
 
-## decomp matrix with individual out flux terms calculated, single column, rows = n_pools
-f_DotO_outflux <- function(., C, t ) {
- 
-  # APW: this prob needs to be called from the SoilR function before the main operation so that transfer functions can access the results 
-  # call outflux functions and create outflux vector
-  # APW: this needs to be in state list to allow access from decomp and transfer functions  
-  for(i in 1:length(.super$pars$n_outfluxes)) { 
-    #print(i); print(.[[paste0('outflux.of',i)]]); print(.[[paste0('tcor.t',i)]]); print(.[[paste0('wcor.w',i)]]) 
-    #ofv[i] <- .[[paste0('outflux.of',i)]](C=C, t=t, i=i ) * .[[paste0('tcor.t',i)]]() * .[[paste0('wcor.w',i)]]() 
-    .super$state$outflux[[paste0('of',i)]] <- .[[paste0('outflux.of',i)]](C=C, t=t, i=i ) * .[[paste0('tcor.t',i)]]() * .[[paste0('wcor.w',i)]]() 
-  }
-
-
-  # - the following two steps are not needed, think they're a hangover from pre n_pools days 
-  # - could just use 1:n_pools for id but this reads directly from dnames
-  # search fns proto object for functions named starting with 'decomp.' and use to make dnames 
-  #dnames <- grep('decomp\\.', names(.), value=T )[1:.super$pars$n_pools]
-  
-  # get integer id's of the decomp function for each pool
-  #id     <- sub('decomp.d', '', dnames )
-  
-  # call functions and create decomp matrix 
-  m      <- matrix(ncol=1, nrow=.super$pars$n_pools )
-  for(i in 1:nrow(m)) { 
-    #print(i); print(.[[paste0('decomp.d',i)]]) 
-    m[i,] <- .[[paste0('decomp.d',i)]](C=C, t=t, i=i )
-  }
-  m
-}
-
+### decomp matrix with individual out flux terms calculated, single column, rows = n_pools
+#f_DotO_outflux <- function(., C, t ) {
+# 
+#  # APW: this prob needs to be called from the SoilR function before the main operation so that transfer functions can access the results 
+#  # call outflux functions and create outflux vector
+#  # APW: this needs to be in state list to allow access from decomp and transfer functions  
+#  for(of in 1:length(.super$pars$n_outfluxes)) { 
+#    #print(i); print(.[[paste0('outflux.of',i)]]); print(.[[paste0('tcor.t',i)]]); print(.[[paste0('wcor.w',i)]]) 
+#    #ofv[i] <- .[[paste0('outflux.of',i)]](C=C, t=t, i=i ) * .[[paste0('tcor.t',i)]]() * .[[paste0('wcor.w',i)]]() 
+#    .super$state$outflux[[paste0('of',of)]] <- .[[paste0('outflux.of',of)]](C=C, t=t, i=of ) * 
+#                                                 .[[paste0('tcor.t',of)]]() * .[[paste0('wcor.w',of)]]() 
+#  }
+#
+#
+#  # - the following two steps are not needed, think they're a hangover from pre n_pools days 
+#  # - could just use 1:n_pools for id but this reads directly from dnames
+#  # search fns proto object for functions named starting with 'decomp.' and use to make dnames 
+#  #dnames <- grep('decomp\\.', names(.), value=T )[1:.super$pars$n_pools]
+#  
+#  # get integer id's of the decomp function for each pool
+#  #id     <- sub('decomp.d', '', dnames )
+#  
+#  # call functions and create decomp matrix 
+#  m      <- matrix(ncol=1, nrow=.super$pars$n_pools )
+#  for(i in 1:nrow(m)) { 
+#    #print(i); print(.[[paste0('decomp.d',i)]]) 
+#    m[i,] <- .[[paste0('decomp.d',i)]](C=C, t=t, i=i )
+#  }
+#  m
+#}
+#
 
 ## transfer matrix, square, n_pools extent
 f_transfermatrix <- function(., C, t ) {
@@ -147,7 +146,9 @@ f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
   YD = .$transfermatrix(y,t) %*% .$DotO(y,t) + .$input(t)
   #print(.$state$outflux); print(.$transfermatrix(y,t)); print(.$DotO(y,t)); print(.$input(t)) 
   #print(YD) 
+  print(unlist(.super$state$outflux)) 
   print(list(as.vector(YD)))
+  if(is.na(sum(as.vector(YD)))) stop('You fucked up.')
   list(as.vector(YD))
 }
 
