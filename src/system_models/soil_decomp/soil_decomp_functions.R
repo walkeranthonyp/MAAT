@@ -63,12 +63,13 @@ f_decomp_lin <- function(., C, t, i, k_from_list=TRUE, k=NULL, cat=NULL, sat_poo
   }
 }
 f_decomp_lin <- function(., C, t, i, of=i, k=.super$pars$k[[of]], ... ) 
-    C[i]*k
+  #C[i]*k
+  if(C[i]>0) C[i]*k else 0
 
 
 # density-dependent decomp, used for density-dependent turnover as in Georgiou et al. 2017  
 f_decomp_dd_georgiou <- function(., C, t, i, of=i ) 
-  (C[i]^.super$pars$beta) * .super$pars$k[[of]]      
+  if(C[i]>0) (C[i]^.super$pars$beta) * .super$pars$k[[of]] else 0      
 
 
 # non-linear Michaelis-Menten decomp, a function of microbial biomass
@@ -82,7 +83,7 @@ f_decomp_MM_microbe <- function(., C, t, i, cat_pool=.super$pars$cat_pool )
 f_decomp_mm <- function(., C, t, i, cat=4 )
   (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[i] + .super$pars$km[[i]])
 f_decomp_mm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool )
-  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[i] + .super$pars$km[[of]])
+  if(C[i]>0 & C[cat_pool]>0) (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[i] + .super$pars$km[[of]]) else 0
 
 
 # reverse Michaelis-Menten decomp
@@ -92,7 +93,7 @@ f_decomp_mm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool )
 f_decomp_rmm <- function(., C, t, i, cat=4, k=NULL )
   (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[cat] + .super$pars$km[[i]])
 f_decomp_rmm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool, ... ) 
-  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (.super$pars$km[[of]] + C[cat_pool])
+  if(C[i]>0 & C[cat_pool]>0) (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (.super$pars$km[[of]] + C[cat_pool]) else 0
 
 
 # double Michaelis-Menten decomp
@@ -108,11 +109,12 @@ f_sorp_sat  <- function(., C, t, i, k_from_list = TRUE, k = NULL, sat_pool ) {
     C[i]*k*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]])
   }
 }
-f_sorp_sat  <- function(., C, t, i, k=.super$pars$k[[i]], sat_pool=.super$pars$sat_pool ) 
+f_sorp_sat <- function(., C, t, i, k=.super$pars$k[[i]], sat_pool=.super$pars$sat_pool ) 
   C[i]*k*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]])
 # APW: this can be modified to access k from list with of/i indexing 
-f_sorp_sat  <- function(., C, t, i, of=i, k=.super$state_pars$kaff_lm, sat_pool=.super$pars$sat_pool )
-  C[i]*k*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]])
+f_sorp_sat <- function(., C, t, i, of=i, k=.super$state_pars$kaff_lm, sat_pool=.super$pars$sat_pool )
+  #C[i]*k*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]])
+  if(C[i]>0 & C[sat_pool]>0) C[i]*k*(1-C[sat_pool]/.super$pars$poolmax[[sat_pool]]) else 0
 
 
 
@@ -352,8 +354,8 @@ f_desorp_millennialv2 <- function(., C, t, i, k=1, cat=NULL ) {
 }
 # APW: can be modified to pull k from list using i/of indexing
 f_desorp_millennialv2 <- function(., C, t, i, of=i, k=.super$pars$millennialV2[['kld']]/1000, ... )  
-  k*(C[i]/.super$pars$poolmax[[i]])
-
+  #k*(C[i]/.super$pars$poolmax[[i]])
+  if(C[i]>0) k*(C[i]/.super$pars$poolmax[[i]]) else 0 
 
 # cat is dummy
 # APW: can we use ... ?
