@@ -48,12 +48,15 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   # assign model output function
   if(.$cpars$diag) mod_out <- 'full' ### this will assign full to all child objects too could add a child switch
   .$output <- get(paste('f', 'output', .$name, .$cpars$mod_out, sep='_' ))
-  # could add a catch here to test that requested eval variables exist.
-  # will need to be done once latest soil model development has been merged
-  # to work with soil_decomp will need to be called after structure build
+  # APW: could add a catch here to test that requested eval variables exist.
+  # APW: will need to be done once latest soil model development has been merged
+  # APW: to work with soil_decomp will need to be called after structure build
 
   # build model pool structure
-  if(!is.null(.$pars$n_pools)) .$build_pool_structure(init_default$pars[[.$name]]$n_pools)
+  if(!is.null(.$pars$n_outfluxes)) {
+    .$build_pool_structure(init_default$pars[[.$name]]$n_pools, init_default$pars[[.$name]]$n_outfluxes )
+  } else if(!is.null(.$pars$n_pools)) 
+    .$build_pool_structure(init_default$pars[[.$name]]$n_pools)
 
   # assign default and mod mimic values to data structure
   .$configure(vlist='pars',   df=unlist(init_default$pars))
@@ -66,11 +69,15 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
 
 
 # function to build lists that vary in length depending on pool size
-build_pool_structure <- function(., init_n_pools ) {
+# - takes the number of n_pools/n_outfluxes from init files (max n if in dynamic init)
+# - and replaces fnames' decomp, outflux, transfer lists and lists of pool_pars with NA to that n
+# APW: note this does not recreate the lists to n, just wipes them, could add that functionality
+# - also creates state matrix and outflux list  
+build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
 
-  # number of model pools
   #print(.)
   #print(names(.))
+  # number of model pools
   n_pools <- 
     if(!is.null(.$.super[['init_dynamic']][['pars']][[.$name]][['n_pools']])) {
       max(.$init_dynamic$pars[[.$name]]$n_pools)
@@ -90,6 +97,27 @@ build_pool_structure <- function(., init_n_pools ) {
     #print(.$fnames$decomp, quote=F )
   } 
 
+  # number of model outfluxes
+  if(!is.null(init_n_outfluxes)) {
+    n_outfluxes <- 
+      if(!is.null(.$.super[['init_dynamic']][['pars']][[.$name]][['n_outfluxes']])) {
+        max(.$init_dynamic$pars[[.$name]]$n_outfluxes)
+      } else if(!is.null(.$.super[['init_static']][['pars']][[.$name]][['n_outfluxes']])) { 
+        .$init_static$pars[[.$name]]$n_outfluxes
+      #} else .$pars$n_outfluxes 
+      } else init_n_outfluxes 
+   
+    print(paste0('Building ', .$name, ' model outflux structure with: ', n_outfluxes, ' fluxes.'), quote=F )
+  
+    # generate outfluxes list
+    if(!is.null(.$fnames$outflux)) {
+      lnames <- paste0('of',1:n_outfluxes) 
+      .$fnames$outflux[lnames] <- NA  
+      #print('  outflux list:', quote=F )
+      #print(.$fnames$outfluxes, quote=F )
+    } 
+  }
+
   # generate transfer list
   if(!is.null(.$fnames$transfer)) {
     .$fnames$transfer <- list() # allows sequential ordering of the list if list is not empty  
@@ -107,8 +135,11 @@ build_pool_structure <- function(., init_n_pools ) {
     if(is.list(.$pars[[l]])) .$pars[[l]][paste0(l,1:n_pools)] <- 1 
   }
   
-  # generate state matrix
-  .$state$cpools <- matrix(1.01, ncol=1, nrow=n_pools )
+  # generate state matrix and outflux list
+  # APW: this seems redundant with init function in model object 
+  .$state$cpools  <- matrix(1.01, ncol=1, nrow=n_pools )
+  .$state$outflux <- as.list(numeric(.$pars$n_outflux))
+  names(.$state$outflux) <- paste0('of',1:.$pars$n_outflux)
 }
 
 

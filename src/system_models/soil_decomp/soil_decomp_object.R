@@ -57,7 +57,9 @@ soil_decomp_object$init1 <- init_state
 
 soil_decomp_object$init  <- function(.) {
   .$init1()
-  .$state$cpools = matrix(unlist(.$pars$cstate0)[1:.$pars$n_pools], ncol=1 )
+  .$state$cpools  = matrix(unlist(.$pars$cstate0)[1:.$pars$n_pools], ncol=1 )
+  .$state$outflux = as.list(numeric(.$pars$n_outflux))
+  names(.$state$outflux) = paste0('of',1:.$pars$n_outflux)
 }
 
 
@@ -69,32 +71,24 @@ soil_decomp_object$init  <- function(.) {
 ####################################
 soil_decomp_object$fnames <- list(
 
-  #sys                = 'f_sys_npools', 
-  sys                = 'f_steadystate_npools', # if f_steadystate_npools selected, solver_steadystate automatically used  
-  solver             = 'plsoda',
-  solver_func        = 'f_solver_func_soilR_outfluxes',
-  #solver_func        = 'f_solver_func_millennialV2', 
-  input              = 'f_input',
-  DotO               = 'f_DotO',
-  transfermatrix     = 'f_transfermatrix',
-  outfluxes          = 'f_outfluxes',
-  steadystate        = 'f_steadystate_npools', # options: 'f_steadystate_null','f_steadystate_npools',
-  solver_steadystate = 'pstode',
+  # generic functions
+  #sys                   = 'f_sys_npools', 
+  sys                   = 'f_steadystate_npools', # if f_steadystate_npools selected, solver_steadystate automatically used  
+  solver                = 'plsoda',
+  solver_func           = 'f_solver_func_soilR_outfluxes',
+  #solver_func           = 'f_solver_func_millennialV2', 
+  steadystate           = 'f_steadystate_npools', # options: 'f_steadystate_null','f_steadystate_npools',
+  solver_steadystate    = 'pstode',
+  input                 = 'f_input',
+  DotO                  = 'f_DotO',
+  transfermatrix        = 'f_transfermatrix',
+  transfer_fluxsum_prop = 'f_transfer_fluxsum_prop',
+  outfluxes             = 'f_outfluxes',
   
-  # output fluxes from pools functions (more generic than decomp and designed for when there are more than one output flux from a pool)
-  outflux = list(
-    of1 = 'f_decomp_lin',
-    of2 = 'f_decomp_rmm',
-    of3 = 'f_decomp_dd_georgiou',  
-    of4 = 'f_desorp_millennialv2', 
-    of5 = 'f_decomp_lin', 
-    of6 = 'f_decomp_lin',
-    of7 = 'f_sorp_sat',
-    of8 = 'f_decomp_mm',
-    of9 = 'f_decomp_lin'
-  ),
-  
-  # decay/decomposition functions
+  # decay/decomposition/flux functions, one per pool
+  # - these functions represent the total flux out of a given pool
+  # - can be the sum of multipl terms in the "outflux" list
+  # - pars$decomp_outflux{1-n} lists for ouflux assignments to each pool 
   decomp = list(
     d1 = 'f_decomp_fluxsum',
     d2 = 'f_decomp_fluxsum',
@@ -129,15 +123,32 @@ soil_decomp_object$fnames <- list(
     a1 = 'f_decomp_lin', #Aggregate formation from POM
     a3 = 'f_decomp_lin'  #Aggregate formation from MAOM
   ),
-  
+ 
+  # DOC uptake, another flux term 
   docuptake  = 'f_decomp_mm', #MM uptake of DOC
-  growthresp = NA,
-  maintresp  = NA,
-  scor       = NA,
-  water_unit_converter = 'f_SWC2SWP_vanGenuchten',
-  
-  # tcor = 'f_tcor_wieder', #use this structure for millennial or models with only one scalar
-  # tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
+ 
+ 
+  # output fluxes from pools functions 
+  # - one function per flux, designed for when there are more than one output flux from a pool
+  outflux = list(
+    of1 = 'f_decomp_lin',
+    of2 = 'f_decomp_rmm',
+    of3 = 'f_decomp_dd_georgiou',  
+    of4 = 'f_desorp_millennialv2', 
+    of5 = 'f_decomp_lin', 
+    of6 = 'f_decomp_lin',
+    of7 = 'f_sorp_sat',
+    of8 = 'f_decomp_mm',
+    of9 = 'f_decomp_lin'
+  ),
+
+  # currently use non-list tcor structure for model-specific solvers for millennial or models with only one scalar
+  # - will be deprecated when generic solver used for all models   
+  # - tcor = 'f_tcor_wieder', 
+  # - tcor = 'f_tcor_daycent2_abramoff', #use this structure for millennial or models with only one scalar #century
+
+  # functions that align with each outflux 
+  # - temperature scalars 
   tcor = list(             
     t1 = 'f_tcor_none',
     t2 = 'f_tcor_arrhenius_millennialv2',
@@ -150,6 +161,7 @@ soil_decomp_object$fnames <- list(
     t9 = 'f_tcor_none'
   ),
 
+  # - water scalars 
   wcor = list(             
     w1 = 'f_wcor_ghezzehei_diffusion', 
     w2 = 'f_wcor_ghezzehei_diffusion', 
@@ -165,6 +177,10 @@ soil_decomp_object$fnames <- list(
 
   
   # transfer list
+  # - a set of functions that calculate the transfer coefficients from one pool to another
+  # - numbers in names refer to pools in order of decomp lsit and state  
+  # - the first number in the name is the pool 'from' which the flux is coming 
+  # - the second number in the name is the pool 'to' which the flux is going 
   transfer = list(
     t1_to_4 = 'f_transfer_fluxsum_prop_two',
     t1_to_5 = 'f_transfer_fluxsum_prop_one', 
@@ -205,7 +221,13 @@ soil_decomp_object$fnames <- list(
     # t5_to_4 = 'f_transfer_mend54',
     # t6_to_5 = 'f_transfer_all',
     # t7_to_5 = 'f_transfer_all'
-  )
+  ),
+
+  # individual functions not directly associated with a specific pool or flux  
+  growthresp = NA,
+  maintresp  = NA,
+  scor       = NA,
+  water_unit_converter = 'f_SWC2SWP_vanGenuchten'
 )
 
 
@@ -230,25 +252,6 @@ soil_decomp_object$env <- list(
 )
 
 
-# state
-####################################
-soil_decomp_object$state <- list(
-  cpools      = matrix(1:5, ncol=1 ),     # APW: would ideally be 1:n_pools 
-  respiration = vector("double",1),
-  outflux     = list(
-    of1 = numeric(1),
-    of2 = numeric(1),
-    of3 = numeric(1),
-    of4 = numeric(1),
-    of5 = numeric(1),
-    of6 = numeric(1),
-    of7 = numeric(1),
-    of8 = numeric(1),
-    of9 = numeric(1)
-  )
-)
-
-
 # state parameters (i.e. calculated parameters)
 ####################################
 soil_decomp_object$state_pars <- list(
@@ -260,11 +263,16 @@ soil_decomp_object$state_pars <- list(
 # parameters
 ####################################
 soil_decomp_object$pars <- list(
-
+  
+  # model structure parameters
   n_pools      = 5,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
   n_outfluxes  = 9,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
+  # APW: these might need to be n_outfluxes long
   cat_pool     = 2,        # pool which catalyses reactions 
   sat_pool     = 3,        # pool which saturates
+
+  # general scalar parameters
+  # APW: looks like some of these might be env vars
   beta         = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
   silt         = NA,      
   clay         = NA,        
@@ -281,6 +289,24 @@ soil_decomp_object$pars <- list(
 
   
   # Pool-specific parameters
+  # - lists 1:n_pools long 
+  ################################################
+  
+  # outfluxes to decomp pool assignment
+  # APW: list format didn't work due to nesting lists within a list, configure functions cannot handle 
+  decomp_outflux1 = list(dof11=1, dof12=2),
+  decomp_outflux2 = list(dof21=3),
+  decomp_outflux3 = list(dof31=4, dof32=5),
+  decomp_outflux4 = list(dof41=6, dof42=7, dof43=8),
+  decomp_outflux5 = list(dof51=9),
+#  decomp_outflux = list(
+#    decomp_outflux1 = list(dof1.1=1, dof1.2=2),
+#    decomp_outflux2 = list(dof2.1=3),
+#    decomp_outflux3 = list(dof3.1=4, dof3.2=5),
+#    decomp_outflux4 = list(dof4.1=6, dof4.2=7, dof4.3=8),
+#    decomp_outflux5 = list(dof5.1=9),
+#  ),
+  
   # initial pool mass for each pool
   cstate0 = list( 
     cstate01 = 1, 
@@ -308,29 +334,17 @@ soil_decomp_object$pars <- list(
     poolmax5 = NA
   ),
   
-  # assign outfluxes to decomp pools
-#  decomp_outflux = list(
-    decomp_outflux1 = list(dof11=1, dof12=2),
-    decomp_outflux2 = list(dof21=3),
-    decomp_outflux3 = list(dof31=4, dof32=5),
-    decomp_outflux4 = list(dof41=6, dof42=7, dof43=8),
-    decomp_outflux5 = list(dof51=9),
-#    decomp_outflux1 = list(dof1.1=1, dof1.2=2),
-#    decomp_outflux2 = list(dof2.1=3),
-#    decomp_outflux3 = list(dof3.1=4, dof3.2=5),
-#    decomp_outflux4 = list(dof4.1=6, dof4.2=7, dof4.3=8),
-#    decomp_outflux5 = list(dof5.1=9),
-#  ),
-  
 
   # Decomposition / Outflux parameters 
   # - these lists are n_outfluxes long and when there is just a single outflux per pool this collapses to n_pools long
-  # turnover rate for linear decomposition
+  ################################################ 
+
+  # turnover rates for linear decomposition
   k = list(    
     k1 = 0.018,       # aggregate formation from POM       
     k2 = NA,
-    k3 = 4.5e-3,      # microbial turnover rate   
-    #k3 = 4.5,         # microbial turnover rate   
+    #k3 = 4.5e-3,      # microbial turnover rate   
+    k3 = 4.5,         # microbial turnover rate   
     k4 = NA,
     k5 = 4.8000e-03,  # aggregate formation from maom 
     k6 = 0.0015,      # leaching rate (kd)
@@ -339,7 +353,7 @@ soil_decomp_object$pars <- list(
     k9 = 0.02         # aggregrate breakdown rate (kb)
   ),
 
-  # max turnover rate per unit microbial biomass for pool i
+  # max turnover rates per unit microbial biomass for pool i
   # commented out old list (updating to allow for multiple mic groups or catalysts)
   vmax = list(
     vmax1 = NA,   #Vm
@@ -394,15 +408,15 @@ soil_decomp_object$pars <- list(
   # michaelis-menten half-saturation constant for microbial decomnp of pool i      
   km = list(   
     km1 = NA,
-    km2 = 6443,   # MillennialV2, half sat const for POM breakdown 
-    #km2 = 6.443,  # MillennialV2, half sat const for POM breakdown 
+    #km2 = 6443,   # MillennialV2, half sat const for POM breakdown 
+    km2 = 6.443,  # MillennialV2, half sat const for POM breakdown 
     km3 = NA,
     km4 = NA,
     km5 = NA,
     km6 = NA,
     km7 = NA,
-    km8 = 774.6,  # DOC uptake half sat constant
-    #km8 = 0.7746, # DOC uptake half sat constant
+    #km8 = 774.6,  # DOC uptake half sat constant
+    km8 = 0.7746, # DOC uptake half sat constant
     km9 = NA
   ),
   
@@ -442,7 +456,7 @@ soil_decomp_object$pars <- list(
     cue1 = NA,       
     cue2 = 0.5,
     cue3 = NA,      
-    cue4 = 0.19,
+    cue4 = 0.19, # what is this for in Mv2 context?
     cue5 = 0.33 
   ),  
 #  cue = list(
@@ -471,6 +485,8 @@ soil_decomp_object$pars <- list(
 
 
   # Model specific parameters
+  ################################################
+
   # MIMICS-specific parameters
   mimics = list(
     fmet_p1 = .5,
@@ -561,6 +577,29 @@ soil_decomp_object$pars <- list(
     strlitter_to_slow= 0.7#century transfer coefficient
   )
 )
+
+# state
+####################################
+soil_decomp_object$state <- list(
+  #cpools      = matrix(1:5, ncol=1 ),     # APW: would ideally be 1:n_pools 
+  cpools      = matrix(1:soil_decomp_object$pars$n_pools, ncol=1 ),   
+  respiration = vector("double",1),
+  # APW: must also be set during initialization
+  outflux     = as.list(numeric(soil_decomp_object$pars$n_outfluxes)) 
+#  outflux     = list(   # APW: would ideally use 1:n_oufluxes to set up  
+#    of1 = numeric(1),
+#    of2 = numeric(1),
+#    of3 = numeric(1),
+#    of4 = numeric(1),
+#    of5 = numeric(1),
+#    of6 = numeric(1),
+#    of7 = numeric(1),
+#    of8 = numeric(1),
+#    of9 = numeric(1)
+#  )
+)
+names(soil_decomp_object$state$outflux) <- paste0('of',1:soil_decomp_object$pars$n_outfluxes)
+
 
 
 # run control parameters

@@ -46,21 +46,23 @@ f_DotO <- function(., C, t ) {
   #id     <- sub('decomp.d', '', dnames )
   
   # call functions and create decomp matrix 
-  m      <- matrix(ncol=1, nrow=.super$pars$n_pools )
-  #for(i in id) { 
+  m <- matrix(ncol=1, nrow=.super$pars$n_pools )
   for(i in 1:nrow(m)) { 
     #print(i); print(.[[paste0('decomp.d',i)]]) 
-    #m[as.numeric(i),] <- .[[paste0('decomp.d',i)]](C=C, t=t, i=as.numeric(i) )
     m[i,] <- .[[paste0('decomp.d',i)]](C=C, t=t, i=i )
   }
   m
 }
 
 
+# function that calls outflux functions multiplied by env scalars 
+# - assigns output to state outflux list 
 f_outfluxes <- function(., C, t ) {
-  # call outflux functions and assign to state outflux list 
+  # cycle through pools to assign correct pool to outflux 
   for(i in 1:.super$pars$n_pools) { 
     #print(i); print(.[[paste0('outflux.of',i)]]); print(.[[paste0('tcor.t',i)]]); print(.[[paste0('wcor.w',i)]]) 
+
+    # cycle through outfluxes associated with each pool 
     for(of in unlist(.super$pars[[paste0('decomp_outflux',i)]]) ) {
       #print(i); print(of)
       .super$state$outflux[[paste0('of',of)]] <- 
@@ -104,14 +106,20 @@ f_outfluxes <- function(., C, t ) {
 ## transfer matrix, square, n_pools extent
 f_transfermatrix <- function(., C, t ) {
   
+  #print('')
+  #print('Transfer matrix generation:')
+  #print('**********************')
+  
   # search fns proto object for functions named starting with 'transfer.' and use to make tnames 
   tnames <- grep('transfer\\.', names(.), value=T )
-  
+  #print(as.matrix(tnames)) 
+ 
   # get integer id's of the transfer functions
   id     <- sub('transfer.t', '', tnames )
-  
+
   # remove transfers that are not required, i.e. are 0 or from/to pools > n_pools
   id     <- id[!is.na(.super$fnames$transfer[paste0('t',id)])]
+  #print(as.matrix(id))  
   
   # get integer id's of the from and to pools of the transfers 
   idm    <- apply(as.matrix(id,nrow=1), 1, function(i) as.numeric(unlist(strsplit(i,'_to_'))) )
@@ -121,12 +129,14 @@ f_transfermatrix <- function(., C, t ) {
   m      <- -1 * diag(nrow=.super$pars$n_pools)
   #print(idm)
   #print(dim(idm)[1])
-  #print(m)
+  #print('')
   for(i in 1:dim(idm)[1]) {
     ss <- idm[i,]
-    #print(i); print(ss); print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]]) 
+    #print(paste('transfer: ',i)); print(ss); print(.super$fnames$transfer[[paste0('t',ss[1],'_to_',ss[2])]])
+    #print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]]) 
     m[matrix(rev(ss),nrow=1)] <- .[[paste0('transfer.t',ss[1],'_to_',ss[2])]](.=.,C=C, t=t, from=ss[1], to=ss[2] )
   }
+  #print(m)
   m
 }
   
@@ -141,14 +151,15 @@ f_solver_func_soilR <- function(., t, y, parms) {
 
 # as above but allows calculation of individual fluxes out of pools prior to SoilR function execution
 f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
-  print(y)
+  #print(y)
   .$outfluxes(y,t)
   YD = .$transfermatrix(y,t) %*% .$DotO(y,t) + .$input(t)
-  #print(.$state$outflux); print(.$transfermatrix(y,t)); print(.$DotO(y,t)); print(.$input(t)) 
+  #print(.$state$outflux); 
+  #print(.$transfermatrix(y,t)) #; print(.$DotO(y,t)); print(.$input(t)) 
   #print(YD) 
-  print(unlist(.super$state$outflux)) 
-  print(list(as.vector(YD)))
-  if(is.na(sum(as.vector(YD)))) stop('You fucked up.')
+  #print(unlist(.super$state$outflux)) 
+  #print(list(as.vector(YD)))
+  if(is.na(sum(as.vector(YD)))) stop('NAs in SoilR solver function.')
   list(as.vector(YD))
 }
 

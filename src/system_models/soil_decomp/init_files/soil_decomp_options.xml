@@ -7,6 +7,7 @@
       <input>'c( 'f_input', 'f_input_clm5', 'f_input_mimics' )'</input>
       <DotO>'c( 'f_DotO' )'</DotO>
       <transfermatrix>'c( 'f_transfermatrix' )'</transfermatrix>
+      <transfer_fluxsum_prop>'c( 'f_transfer_fluxsum_prop', 'f_transfer_fluxsum_prop_one', 'f_transfer_fluxsum_prop_three', 'f_transfer_fluxsum_prop_three_cue', 'f_transfer_fluxsum_prop_two' )'</transfer_fluxsum_prop>
       <outfluxes>'c( 'f_outfluxes' )'</outfluxes>
       <steadystate>'c( 'f_steadystate_npools', 'f_steadystate_null' )'</steadystate>
       <solver_steadystate>'c(  )'</solver_steadystate>

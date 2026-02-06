@@ -23,12 +23,19 @@ unlist(soil_decomp_object$state)
 soil_decomp_object$state$cpools
 soil_decomp_object$state$outflux
 soil_decomp_object$fnames
+soil_decomp_object$fnames$transfer
+soil_decomp_object$pars
+soil_decomp_object$pars$cue
+soil_decomp_object$pars$millennialV2
 
 names(soil_decomp_object$fns)
 soil_decomp_object$fns$decomp.d1
 soil_decomp_object$fns$decomp.d1(soil_decomp_object$state$cpools, i=1 )
 soil_decomp_object$fns$decomp.d2(soil_decomp_object$state$cpools, i=2 )
-
+soil_decomp_object$fns$transfer_fluxsum_prop(from=2)
+soil_decomp_object$fns[["transfer_fluxsum_prop"]](from=2)
+soil_decomp_object$fns[["transfer_fluxsum_prop"]](.=soil_decomp_object$fns,from=2)
+  
 soil_decomp_object$pars$millennialV2
 
 soil_decomp_object$pars$decomp_outflux1

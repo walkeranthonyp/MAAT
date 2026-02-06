@@ -70,7 +70,8 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   }else{
     f_AG_break=0
   }
-  
+  .super$state$outflux$of9 = f_AG_break 
+ 
   #Equation 5
   #agg formation
   # POM -> AGG
@@ -83,6 +84,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   }else{
     f_PO_AG=0
   }
+  .super$state$outflux$of1 = f_PO_AG 
   
   #Equation 2
   #RMM decay of POM
@@ -91,12 +93,21 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   # of 2 
   if(POM>0 && MIC>0){
     #f_PO_LM = .$tcor.t1(i=1) * .$decomp.d1(t=t,C=y,i=1,cat=2) *.$wcor(.)
-    # APW: here i refers to of, no pool information used in tcor function 
-    f_PO_LM = .$tcor.t2(i=2) * .$decomp.d1(t=t, C=y, i=1, cat=2, of=2 ) *.$wcor.w2(.)
+    # APW: i in tcor here refers to of, no pool information used in tcor function 
+    #f_PO_LM = .$tcor.t2(i=2) * .$decomp.d1(t=t, C=y, i=1, cat=2, of=1 ) *.$wcor.w2(.)
+    f_PO_LM = .$tcor.t2(i=2) * .$decomp.d1(t=t, C=y, i=1, cat=2 ) *.$wcor.w2(.)
+    #print("f_PO_LM")
+    #print(".$tcor.t2(i=2)")
+    #print(.$tcor.t2(i=2))
+    #print(".$decomp.d1(t=t, C=y, i=1, cat=2 )")
+    #print(.$decomp.d1(t=t, C=y, i=1, cat=2 ))
+    #print(".$wcor.w2(.)")
+    #print(.$wcor.w2(.))
     #f_PO_LM = vmax_pl * .$wcor(.) * POM * MIC / (km1 + MIC)
   }else{
     f_PO_LM=0
   }
+  .super$state$outflux$of2 = f_PO_LM 
   
   #Equation 8
   #leaching
@@ -110,6 +121,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   }else{
     f_LM_leach=0
   }
+  .super$state$outflux$of6 = f_LM_leach 
   
   #Equation 9
   #sorption
@@ -123,6 +135,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   }else{
     f_LM_MA=0
   }
+  .super$state$outflux$of7 = f_LM_MA 
   
   
   #Equation 12
@@ -137,6 +150,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   }else{
     f_MA_LM=0
   }
+  .super$state$outflux$of4 = f_MA_LM 
   
   #Equation 13
   #microbial uptake via michaelis menten equation
@@ -149,6 +163,7 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   }else{
     f_LM_MB=0
   }
+  .super$state$outflux$of8 = f_LM_MB 
   
   #Equation 18
   #agg formation from maom
@@ -156,11 +171,12 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   # of 5 
   if(MAOM>0){  
     #f_MA_AG = .$aggform.a3(t = t, C=y, i=3) * .$wcor(.)
-    f_MA_AG = .$aggform.a3(t=t, C=y, i=3, of=5 )* .$wcor.w5(.)
+    f_MA_AG = .$aggform.a3(t=t, C=y, i=3 )* .$wcor.w5(.)
     #f_MA_AG = k3 * .$wcor(.) * MAOM
   }else{
     f_MA_AG=0
   }
+  .super$state$outflux$of5 = f_MA_AG 
   
   #Equation 16
   #microbial turnover
@@ -168,11 +184,12 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   # of 3 
   if(MIC>0){
     #f_MB_turn = .$decomp.d2(t = t, C=y, i=2)
-    f_MB_turn = .$decomp.d2(t=t, C=y, i=2, of=3 )
+    f_MB_turn = .$decomp.d2(t=t, C=y, i=2 )
     #f_MB_turn = k2 * MIC^2.0
   }else{
     f_MB_turn=0
   }
+  .super$state$outflux$of3 = f_MB_turn 
   
   #Equation 22
   # microbial growth flux, but is not used in mass balance
@@ -185,10 +202,41 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   }else{
     f_MB_atm=0
   }
-
   .super$state$respiration = f_MB_atm
 
   
+  # Print transfer coeffcients
+  print("")
+  print("Transfer coefficients:")
+  print("from pool 1 POM")
+  print("  to p4 DOC")
+  print(f_PO_LM/(f_PO_AG+f_PO_LM))
+  print("  to p5 Agg.")
+  print(f_PO_AG/(f_PO_AG+f_PO_LM))
+  print("from pool 2 Microbes")
+  print("  to p3 MAOM")
+  print(.super$pars$millennialV2[['param_pb']])
+  print("  to p4 DOC")
+  print(1-.super$pars$millennialV2[['param_pb']])
+  print("from pool 3 MAOM")
+  print("  to p4 DOC")
+  print(f_MA_LM/(f_MA_AG+f_MA_LM))
+  print("  to p5 Agg.")
+  print(f_MA_AG/(f_MA_AG+f_MA_LM))
+  print("from pool 4 DOC")
+  print("  to p2 Microbes")
+  print(f_LM_MB/(f_LM_MB+f_LM_MA+f_LM_leach) * ((.super$pars$cue[[4]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']]))) )
+  print("  to p3 MAOM")
+  print(f_LM_MA/(f_LM_MB+f_LM_MA+f_LM_leach))
+  print("from pool 5 Aggregates")
+  print("  to p1 POM")
+  print(.super$pars$millennialV2[['pa']])
+  print("  to p3 MAOM")
+  print((1-.super$pars$millennialV2[['pa']]))
+
+  # Print out fluxes 
+  print(unlist(.super$state$outflux))
+ 
   # ODE system
   
   # APW: input is handled by SoilR input in general equation 
@@ -201,7 +249,21 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   # APW, term 3, f1, dual decomp 1: .$aggform.a1(t=t, C=y, i=1) * .$wcor(.)
   # APW, term 4, f2, dual decomp 2: .$decomp.d1(t=t, C=y, i=1, cat=2 ) *.$wcor(.) * .$tcor.t1(i=1) 
   dPOM = .$input(t)[[1]] + f_AG_break*.super$pars$millennialV2[['pa']] - f_PO_AG - f_PO_LM
-  
+  #print("")
+  #print(".$input(t)[[1]]")
+  #print(.$input(t)[[1]])
+  #print("f_AG_break")
+  #print(f_AG_break)
+  #print(".super$pars$millennialV2[['pa']]")
+  #print(.super$pars$millennialV2[['pa']])
+  #print("f_PO_AG")
+  #print(f_PO_AG)
+  #print("f_PO_LM")
+  #print(f_PO_LM)
+  #print("dPOM")
+  #print(dPOM)
+
+ 
   # Pool 2: Microbes
   # Equation 20 - change in Microbial biomass, pool 2, 1 out flux
   # APW: = microbial_lmwc_uptake - microbial_turnover - respiration (which is a T-dependent fraction of the LMWC flux to MB)
@@ -233,7 +295,25 @@ f_solver_func_millennialV2 <- function(., t, y, parms ) {
   # APW, term 6, t2_to_4, microbial turnover frac: 1 - .super$pars$millennialV2[['param_pb']] 
   # APW, term 7, t3_to_4, desorption: desorption frac of two out fluxes from pool 3  
   dLMWC = .$input(t)[[4]] - f_LM_leach + f_PO_LM - f_LM_MA - f_LM_MB + f_MB_turn * (1. - .super$pars$millennialV2[['param_pb']]) + f_MA_LM
-  
+  #print(".$input(t)[[4]]")
+  #print(.$input(t)[[4]])
+  #print("f_LM_leach")
+  #print(f_LM_leach)
+  #print("f_PO_LM")
+  #print(f_PO_LM)
+  #print("f_LM_MA")
+  #print(f_LM_MA)
+  #print("f_LM_MB")
+  #print(f_LM_MB)
+  #print("f_MB_turn")
+  #print(f_MB_turn)
+  #print("(1. - .super$pars$millennialV2[['param_pb']])")
+  #print((1. - .super$pars$millennialV2[['param_pb']]))
+  #print("f_MA_LM")
+  #print(f_MA_LM)
+  #print("dLMWC")
+  #print(dLMWC)
+ 
   # Pool 5: Aggregates
   # Equation 17, change in aggregates, pool 5, 1 out flux
   # APW: = aggregate_form_maom + aggregate_form_pom - aggregate_break  
