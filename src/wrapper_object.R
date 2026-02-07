@@ -48,8 +48,8 @@ wrapper_object$build <- function(., ... ) {
 
   # MCMC specific functions
   if(.$wpars$runtype=='mcmc') {
-    .$proposal_generate      <- get(paste0('proposal_generate_mcmc_',.$wpars$mcmc$mcmc_type))
-    .$proposal_accept        <- get(paste0('proposal_accept_mcmc_',.$wpars$mcmc$mcmc_type))
+    .$proposal_generate      <- get(paste0('proposal_generate_mcmc_',.$wpars$mcmc$type))
+    .$proposal_accept        <- get(paste0('proposal_accept_mcmc_',.$wpars$mcmc$type))
     .$boundary_handling      <- get(paste0('boundary_handling_', .$wpars$mcmc$boundary_handling))
     .$boundary_handling_set  <- boundary_handling_set
     .$proposal_lklihood      <- get(paste0('f_proposal_lklihood_',.$wpars$mcmc$lklihood))
@@ -87,11 +87,17 @@ wrapper_object$run   <- function(.,verbose=T) {
     if(.$wpars$runtype=='SAprocess_ye' | .$wpars$runtype=='mcmc')  .$wpars$eval_strings <- T
     .$init()
   } else {
+    hd <- getwd()
     .$wpars$of_dir       <- '~/tmp'
     .$wpars$of_type      <- 'csv'
-    .$wpars$of_name_stem <- 'unit_test'
-    hd <- getwd()
+    if(.$wpars$of_name_stem=='MAAT_output') .$wpars$of_name_stem <- 'unit_test'
+
+    # remove history files -- unit test not designed to work with an MCMC restart 
+    print('Remove history files since unit_testing not compatible with MCMC restart')
+    setwd(.$wpars$of_dir)
+    system(paste0('rm ',.$wpars$of_name, '_history_*'))  
   }
+
 
   # Initialisation checks
   # need to add a check for equal par vector lengths if this is a UQ run and not eval_strings
@@ -117,10 +123,10 @@ wrapper_object$run   <- function(.,verbose=T) {
   .$print_data()
   .$print_data(otype='run')
   print('',quote=F); print('Write record of static run variables:', quote=F )
-  print(paste(ofname,'setup_static.xml',sep='_'), quote=F )
+  print(paste(.$wpars$of_name_stem,'setup_static.xml',sep='_'), quote=F )
   config_list <- .$model$read_config()
-  setwd(odir)
-  listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=config_list ) 
+  setwd(.$wpars$of_dir)
+  listtoXML(paste(.$wpars$of_name_stem,'setup_static.xml',sep='_'),  'static',  sublist=config_list ) 
   rm(config_list)
 
   # store model output template (currently must be a vector)
@@ -303,7 +309,7 @@ wrapper_object$wpars <- list(
   unit_testing    = F,
 
   mcmc = list(
-    mcmc_type       = 'dream',
+    type            = 'dream',
     lklihood        = 'ssquared',
     outlier         = 'iqr',
     converge        = 'Gelman_Rubin',
@@ -370,6 +376,8 @@ wrapper_object$combine <- function(., i, df ) suppressWarnings(data.frame(t(.$da
 # function to write ensemble output data to file
 wrapper_object$write_to_file <- function(., df=.$output(), app=F ) {
 
+  print(getwd())
+  print(.$wpars$of_dir)
   setwd(.$wpars$of_dir)
   if(.$wpars$of_type=='csv')      write.table(format(df,width=12), paste(.$wpars$of_name,'.csv',sep=''),
                                               quote=F, row.names=F, col.names=!app, sep=',', append=app )
@@ -862,8 +870,8 @@ wrapper_object$.test_ye <- function(.,metd=F,mc=T,pr=4,oconf=F,n=3) {
   print('Run time:',quote=F)
   print(st)
   print('',quote=F)
-
 }
+
 
 # test function for Saltelli method Sobol parametric sensitivity analysis
 wrapper_object$.test_saltelli <- function(., metd=F, mc=T, pr=4, oconf=F, n=3, eval_strings=T ) {
@@ -931,15 +939,20 @@ wrapper_object$.test_saltelli <- function(., metd=F, mc=T, pr=4, oconf=F, n=3, e
   list(AB=.$dataf$out, ABi=.$dataf$out_saltelli)
 }
 
+
+
 # test function for MCMC parameter estimation using mixture model with tri-modal distribution
-wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
-                                              mcmc_chains=8, mcmc_maxiter=100,
-                                              mu_vector=c(-8,0,8),
-                                              sd_vector=c(1,1,1),
-                                              height_vector=c(0.2,0.5,0.3),
-                                              mixture_scale=1e12,
-                                              verbose=F, cverbose=F, diag=F
-                                              ) {
+wrapper_object$.test_mcmc_mixture <- 
+  function(., 
+    mc=F, pr=4, mcmc_type='dream',
+    mcmc_chains=8, mcmc_maxiter=100,
+    mu_vector=c(-8,0,8),
+    sd_vector=c(1,1,1),
+    height_vector=c(0.2,0.5,0.3),
+    mixture_scale=1e12,
+    of_name_stem='mcmc_mixture_test',
+    verbose=F, cverbose=F, diag=F
+    ) {
 
 
   library(lattice)
@@ -956,16 +969,20 @@ wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
   .$wpars$procs          <- pr           # number of cores to use if above is true
   .$wpars$UQ             <- T            # run a UQ/SA style ensemble
   .$wpars$UQtype         <- 'mcmc'       # MCMC ensemble
-  .$wpars$mcmc$mcmc_type <- mcmc_type    # MCMC type, 'demc' or 'dream'
+  .$wpars$mcmc$type      <- mcmc_type    # MCMC type, 'demc' or 'dream'
   .$wpars$mcmc$chains    <- mcmc_chains  # MCMC number of chains
   .$wpars$mcmc$maxiter   <- mcmc_maxiter # MCMC max number of steps / iterations on each chain
   .$wpars$mcmc$lklihood  <- 'log'        # MCMC likelihood function
   .$build(mod_out='mixture', switches=c(diag,verbose,cverbose) )
 
   # set model system function
-  .$model$fnames$sys    <- 'f_sys_mixture'
+  .$model$fnames$sys <- 'f_sys_mixture'
 
-  # Define static variables
+  # define of_name
+  .$wpars$of_name_stem <- of_name_stem
+  .$wpars$of_name      <- paste(.$wpars$of_name_stem, 'mcmc', sep='_' )
+
+  # define static variables
   .$static$fnames <- list(mcmc_test.sys='f_sys_mixture')
 
   # set problem specific parameters
@@ -987,9 +1004,6 @@ wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
     mcmc_test.proposal3  = 'runif(n,-20,20)',
     mcmc_test.proposal4  = 'runif(n,-20,20)'
   )
-
-  # define ofname
-  .$ofname <- 'mcmc_mixture_test'
 
   # Run MCMC
   st <- system.time(.$run())
@@ -1018,14 +1032,17 @@ wrapper_object$.test_mcmc_mixture <- function(., mc=F, pr=4, mcmc_type='dream',
 
 
 # test function for MCMC parameter estimation in a linear regression
-wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_chains,
-                                             mcmc_type='dream', mcmc_lklihood='ssquared',
-                                             mcmc_homosced=T, mcmc_maxiter=3,
-                                             x=1:10, a_mu=-5, b_mu=15, a_sd=1, b_sd=1, standard_err=0.5,
-                                             mcmc_test.a  = 'runif(n,-30,30)',
-                                             mcmc_test.b  = 'runif(n,-30,30)',
-                                             verbose=F, cverbose=F, diag=F
-                                             ) {
+wrapper_object$.test_mcmc_linreg <- 
+  function(., 
+    mc=F, mcmc_chains=7, pr=mcmc_chains,
+    mcmc_type='dream', mcmc_lklihood='ssquared',
+    mcmc_homosced=T, mcmc_maxiter=100,
+    x=1:10, a_mu=-5, b_mu=15, a_sd=1, b_sd=1, standard_err=0.5,
+    mcmc_test.a  = 'runif(n,-30,30)',
+    mcmc_test.b  = 'runif(n,-30,30)',
+    of_name_stem='mcmc_linreg_test',
+    verbose=F, cverbose=F, diag=F
+    ) {
 
   ### currently does not work with multicoring,
   ### probably due to assignment to . datastructure during the forked processes
@@ -1048,13 +1065,17 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_cha
   .$wpars$procs         <- pr            # number of cores to use if above is true
   .$wpars$UQ            <- T             # run a UQ/SA style ensemble
   .$wpars$UQtype        <- 'mcmc'        # MCMC ensemble
-  .$wpars$mcmc$mcmc_type <- mcmc_type     # MCMC type, 'demc' or 'dream'
-  .$wpars$mcmc$chains    <- mcmc_chains   # MCMC number of chains
-  .$wpars$mcmc$homosced  <- mcmc_homosced # MCMC homoscedastic error
-  .$wpars$mcmc$maxiter   <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
+  .$wpars$mcmc$type     <- mcmc_type     # MCMC type, 'demc' or 'dream'
+  .$wpars$mcmc$chains   <- mcmc_chains   # MCMC number of chains
+  .$wpars$mcmc$homosced <- mcmc_homosced # MCMC homoscedastic error
+  .$wpars$mcmc$maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain
   .$build(mod_out='regression', switches=c(diag,verbose,cverbose) )
 
-  # Define static variables
+  # define of_name
+  .$wpars$of_name_stem <- of_name_stem 
+  .$wpars$of_name      <- paste(.$wpars$of_name_stem, 'mcmc', sep='_' )
+
+  # define static variables
   .$static$fnames <- list(
     mcmc_test.sys      = 'f_sys_regression',
     mcmc_test.reg_func = 'f_reg_func_linear'
@@ -1076,9 +1097,6 @@ wrapper_object$.test_mcmc_linreg <- function(., mc=F, mcmc_chains=7, pr=mcmc_cha
     mcmc_test.a  = mcmc_test.a,
     mcmc_test.b  = mcmc_test.b
   )
-
-  # define ofname
-  .$ofname <- 'lin_reg_test'
 
   # Run MCMC
   st <- system.time(.$run())

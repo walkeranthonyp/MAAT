@@ -282,12 +282,12 @@ maat$wpars$nmult         <- salt_nmult
 maat$wpars$eval_strings  <- eval_strings
 maat$wpars$of_name_stem  <- ofname
 maat$wpars$of_type       <- of_format
-maat$wpars$of_dir        <- odir
+maat$wpars$of_dir        <- odir 
 maat$wpars$parsinit_read <- !is.null(parsinit_mcmc)
 
 # define MCMC run parameters (sublist of wpars)
 # APW: if statement doesn't work for all MCMC functions as maat builds immediately after this before the restart can be read, fix 
-maat$wpars$mcmc$mcmc_type         <- mcmc_type
+maat$wpars$mcmc$type              <- mcmc_type
 maat$wpars$mcmc$lklihood          <- mcmc_lklihood
 maat$wpars$mcmc$outlier           <- mcmc_outlier
 maat$wpars$mcmc$boundary_handling <- boundary_handling
@@ -389,7 +389,7 @@ maat$init_dynamic <- init_dynamic
 
 # get mcmc filename, delete history files if not a restart and they exist
 if(runtype=='mcmc') {
-  maat$wpars$of_name <- paste(ofname, 'mcmc', sep='_' )
+  maat$wpars$of_name <- paste(maat$wpars$of_name_stem, 'mcmc', sep='_' )
   if(is.null(parsinit_mcmc)) {
     setwd(odir)
     hist_file_list <- list.files(pattern=paste0(maat$wpars$of_name, '_history_' ))      
@@ -404,6 +404,7 @@ mcmc_restart <- F
 if(!is.null(parsinit_mcmc)) {
   if(parsinit_mcmc=='restart') mcmcout <- paste0(maat$wpars$of_name,'.RDS')
   if(is.null(mcmcdir))         mcmcdir <- paste0('results/',date)
+  mcmcdir <- normalizePath(mcmcdir, mustWork=T )
 
   print('',quote=F); print('',quote=F)
   print('Read input from MCMC run output.',quote=F)
@@ -492,8 +493,8 @@ if(!is.null(parsinit_mcmc)) {
 print('',quote=F); print('',quote=F)
 print('Write record of dynamic run variables:',quote=F)
 setwd(odir)
-#listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=init_static)
-listtoXML(paste(ofname,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
+#listtoXML(paste(maat$wpars$of_name_stem,'setup_static.xml',sep='_'),  'static',  sublist=init_static)
+listtoXML(paste(maat$wpars$of_name_stem,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
 
 
 

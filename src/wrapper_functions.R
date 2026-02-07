@@ -134,9 +134,9 @@ generate_ensemble_pars_mcmc <- function(.) {
     if(is.null(.$dynamic$pars)) {
     if(!is.null(.$dynamic$pars_eval)) {
 
-      if(.$wpars$mcmc$mcmc_type=='dream') {
+      if(.$wpars$mcmc$type=='dream') {
         n <- .$wpars$mcmc$chains
-      } else if(.$wpars$mcmc$mcmc_type=='dreamzs') {
+      } else if(.$wpars$mcmc$type=='dreamzs') {
         n <- .$wpars$mcmc$prior_n 
       }
       .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
@@ -161,7 +161,7 @@ generate_ensemble_pars_mcmc <- function(.) {
 
   # for DREAM-ZS reconfigure pars array 
   # - initialise past state array
-  if(.$wpars$mcmc$mcmc_type=='dreamzs') {
+  if(.$wpars$mcmc$type=='dreamzs') {
     if(!.$wpars$parsinit_read) {
       lps     <- NULL
       lps_new <- dim(.$dataf$pars)[2] + .$wpars$mcmc$chains*floor(.$wpars$mcmc$maxiter/.$wpars$mcmc$iterappend)
@@ -633,7 +633,7 @@ run1_SAprocess_ye <- function(.,f) {
   }, function(a) a, .$dataf$out[,,,,,1] )
 
   # process & record output
-  if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); ofname <- 'Ye_test' }
+  if(.$wpars$unit_testing) { hd <- getwd(); setwd('~/tmp'); .$wpars$of_name_stem <- 'Ye_test' }
   else                     setwd(odir)
   .$write_output(f=f)
 
@@ -804,7 +804,6 @@ run2_mcmc <- function(.,j) {
         else                 lapply(1:.$dataf$lp, .$run3 )
     })
 
-
   # calculate likelihood of proposals on each chain, accept/reject proposals
   prop_lklihood <- .$proposal_lklihood()
   curr_lklihood <- .$dataf$pars_lklihood[,j-1]
@@ -839,17 +838,15 @@ run2_mcmc <- function(.,j) {
     if(j==.$wpars$mcmc$preburnin_iter & .$wpars$mcmc$adapt_pCR ) .$mcmc$adapt_pCR <- T
   if(.$mcmc$adapt_pCR) .$mcmc_adapt_pCR() 
 
-  
   # append history matrix
   # - for dreamzs
-  if(.$wpars$mcmc$mcmc_type=='dreamzs') {
+  if(.$wpars$mcmc$type=='dreamzs') {
     if((.$mcmc$j_true%%.$wpars$mcmc$iterappend)==0) {
       new_lps                                       <- .$dataf$lps + .$wpars$mcmc$chains
       .$dataf$past_states[,(.$dataf$lps+1):new_lps] <- .$dataf$pars_array[,,j] 
       .$dataf$lps                                   <- new_lps 
     } 
   }
-
 
   # MCMC checks
   mcmc_check <- ((j>=.$wpars$mcmc$preburnin_iter)|.$wpars$parsinit_read) & (j%%.$wpars$mcmc$check_iter==0)
@@ -934,7 +931,7 @@ write_output_rbind <- write_output_factorial
 # write AB output array
 write_output_SApar_saltelli <- function(.) {
 
-  #write_to_file(.$output_saltelli_AB(), paste(ofname,'salt','AB',sep='_'), type='rds' )
+  # write AB matrix
   .$wpars$of_name <- paste(.$wpars$of_name_stem,'salt','AB',sep='_')
   .$write_to_file()
 
@@ -944,7 +941,6 @@ write_output_SApar_saltelli <- function(.) {
 
   # remove large out array
   if(!.$wpars$unit_testing) .$dataf$out <- NULL
-
 }
 
 
@@ -970,7 +966,7 @@ write_output_SAprocess_ye <- function(.,f) {
 write_output_mcmc <- function(.,i) {
 
   # write MCMC output
-  #.$wpars$of_name <- paste(ofname, 'mcmc', 'f', i, sep='_' )
+  #.$wpars$of_name <- paste(.$wpars$of_name_stem, 'mcmc', 'f', i, sep='_' )
   .$write_to_file()
 
   # determine restart iteration number 

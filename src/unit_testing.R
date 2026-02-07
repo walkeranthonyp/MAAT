@@ -106,12 +106,17 @@ wrapper_object$dataf$pars
 
 # MCMC Mixture test
 source('wrapper_object.R')
+out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=500)
+source('wrapper_object.R') # MAAT needs reloaded to wipe MCMC arrays for fresh run
 out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=1000)
-out <- wrapper_object$.test_mcmc_mixture(mcmc_type='dream',
-                                         mcmc_maxiter=5000, mcmc_chains=8, mc=F, pr=4,
-                                         mu_vector=c(-8, 0, 8), sd_vector=c(1, 1, 1),
-                                         height_vector=c(0.1, 0.3, 0.6), mixture_scale=1e12
-                                         )
+source('wrapper_object.R')
+out <- wrapper_object$.test_mcmc_mixture(
+  mcmc_type='dream',
+  mcmc_maxiter=4000, mcmc_chains=8, mc=T, pr=4,
+  mu_vector=c(-10, 0, 5), sd_vector=c(1, 1, 1),
+  height_vector=c(0.1, 0.3, 0.6), mixture_scale=1e12
+)
+
 names(out)
 wrapper_object$dynamic
 wrapper_object$dynamic$pars_eval
@@ -122,10 +127,14 @@ wrapper_object$dataf$pars_lklihood
 wrapper_object$dataf$pars_array
 wrapper_object$wpars
 
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=20)
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=20, mc=T )
 
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=1000)
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_mixture(mcmc_maxiter=1000, mc=T )
 
 wrapper_object$dataf$pars
@@ -140,9 +149,13 @@ wrapper_object$dataf$pars_array
 # MCMC linear regression test
 source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg()
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg(cverbose=T)
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=10)
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=1000)
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=1000,
                                         mcmc_test.a='runif(n,-20,20)',
                                         mcmc_test.b='runif(n,-20,20)')
@@ -154,9 +167,12 @@ wrapper_object$dynamic
 
 source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=2, mc=F )
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=2, mc=T )
 
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=1000, mc=F )
+source('wrapper_object.R')
 out <- wrapper_object$.test_mcmc_linreg(mcmc_maxiter=1000, mc=T )
 
 wrapper_object$dataf$pars
