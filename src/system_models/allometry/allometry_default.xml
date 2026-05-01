@@ -3,12 +3,12 @@
     <allometry>
       <sys>'f_sys_1'</sys>
       <crwnallom>'f_crwnallom_canopy_mod'</crwnallom>
-      <height>'f_height_hdbh_obrien1995'</height>
-      <leaf_biomass>'f_leaf_biomass_dbh_salda'</leaf_biomass>
+      <height>'f_height_hdbh_martinezcano2019'</height>
+      <leaf_biomass>'f_leaf_biomass_dbh_power'</leaf_biomass>
       <crown_area>'f_crown_area_fates'</crown_area>
       <crown_radius>'f_crown_radius'</crown_radius>
       <crown_depth>'f_crown_depth_fates'</crown_depth>
-      <abg_biomass>'f_abg_biomass_dbh_saldariaga1998'</abg_biomass>
+      <abg_biomass>'f_abg_biomass_dbh_chave2014'</abg_biomass>
       <blg_biomass>'f_blg_biomass_dbh_fracabg'</blg_biomass>
       <wood_biomass>'f_wood_biomass'</wood_biomass>
       <lai>'f_lai_kovenock_exponential_sla'</lai>
@@ -19,15 +19,15 @@
   </fnames>
   <pars>
     <allometry>
-      <dbh_max>90</dbh_max>
-      <hdbh_p1>0.64</hdbh_p1>
-      <hdbh_p2>0.37</hdbh_p2>
-      <hdbh_p3>NA</hdbh_p3>
+      <dbh_max>1000</dbh_max>
+      <hdbh_p1>78.4087704</hdbh_p1>
+      <hdbh_p2>0.8124383</hdbh_p2>
+      <hdbh_p3>47.6666164</hdbh_p3>
       <wood_density>0.7</wood_density>
       <frac_abg>0.6</frac_abg>
       <fineroot_to_leaf_ratio>0.6</fineroot_to_leaf_ratio>
-      <abg_p1>0.06896</abg_p1>
-      <abg_p2>0.572</abg_p2>
+      <abg_p1>0.0673</abg_p1>
+      <abg_p2>0.976</abg_p2>
       <abg_p3>1.94</abg_p3>
       <abg_p4>0.931</abg_p4>
       <carbon_to_biomass>2</carbon_to_biomass>
@@ -36,11 +36,12 @@
       <k>0.2</k>
       <crwnarea_p2>1.56</crwnarea_p2>
       <crwndepth_frac>0.5</crwndepth_frac>
-      <crwnarea_dbh_max>0.6568464</crwnarea_dbh_max>
-      <crwnarea_dbh_min>0.3381119</crwnarea_dbh_min>
-      <ldbh_p1>0.07</ldbh_p1>
-      <ldbh_p2>1.3</ldbh_p2>
+      <crwnarea_dbh_max>0.2715891</crwnarea_dbh_max>
+      <crwnarea_dbh_min>0.2715891</crwnarea_dbh_min>
+      <ldbh_p1>0.04</ldbh_p1>
+      <ldbh_p2>1.6019679</ldbh_p2>
       <ldbh_p3>0.55</ldbh_p3>
+      <ldbh_edif>-0.12</ldbh_edif>
     </allometry>
   </pars>
   <env>
