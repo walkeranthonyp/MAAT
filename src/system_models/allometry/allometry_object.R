@@ -55,12 +55,12 @@ allometry_object$name <- 'allometry'
 allometry_object$fnames <- list(
   sys                = 'f_sys_1',
   crwnallom          = 'f_crwnallom_canopy_mod',
-  height             = 'f_height_hdbh_obrien1995',
-  leaf_biomass       = 'f_leaf_biomass_dbh_salda',
+  height             = 'f_height_hdbh_martinezcano2019',
+  leaf_biomass       = 'f_leaf_biomass_dbh_power',
   crown_area         = 'f_crown_area_fates',
   crown_radius       = 'f_crown_radius',
   crown_depth        = 'f_crown_depth_fates',
-  abg_biomass        = 'f_abg_biomass_dbh_saldariaga1998',
+  abg_biomass        = 'f_abg_biomass_dbh_chave2014',
   blg_biomass        = 'f_blg_biomass_dbh_fracabg',
   wood_biomass       = 'f_wood_biomass',
   lai                = 'f_lai_kovenock_exponential_sla',
@@ -138,8 +138,8 @@ allometry_object$pars   <- list(
   crwnarea_dbh_min  = 0.3381119,      # crown depth fraction of height 
   ldbh_p1           = 0.07,
   ldbh_p2           = 1.3,
-  ldbh_p3           = 0.55
-
+  ldbh_p3           = 0.55,
+  ldbh_edif         = -0.12
 )
 
 
@@ -245,64 +245,69 @@ allometry_object$.test_pars <- function(., verbose=F, diag=F, cverbose=F,
 }
 
 
-allometry_object$.test_dbh <- function(., verbose=F, diag=F, cverbose=F, 
-                                   allometry.dbh=c(0.5,1:9,seq(10,200,5)),
-                                   fnames.abg_biomass   = NULL,
-                                   fnames.leaf_biomass  = NULL,
-                                   fnames.height        = NULL,
-                                   dbh_max      = 90,            # DBH where max height reached (cm)         
-                                   hdbh_p1      = 0.64,
-                                   hdbh_p2      = 0.37,
-                                   hdbh_p3      = NA,
-                                   # biomass
-                                   wood_density = 0.7,           # wood density (g cm-3)  
-                                   frac_abg     = 0.6,           # fraction woody biomass aboveground 
-                                   fineroot_to_leaf_ratio = 0.6, # ratio of fine-root to leaf biomass  
-                                   abg_p1       = 0.06896, 
-                                   abg_p2       = 0.572, 
-                                   abg_p3       = 1.94, 
-                                   abg_p4       = 0.931, 
-                                   carbon_to_biomass = 2,         # conversion factor for carbon units to biomass dry weight (DW) 
-                                   # leaf, crown area & depth
-                                   slatop       = 0.012,          # specific leaf area (SLA) at top of canopy (m2 g-1)
-                                   crwnarea_p1  = 1.56,           # crown area to DBH exponent
-                                   crwndepth_frac  = 0.5,         # crown depth fraction of height 
-                                   crwnarea_dbh_max  = 0.6568464, # crown depth fraction of height 
-                                   crwnarea_dbh_min  = 0.3381119, # crown depth fraction of height 
-                                   ldbh_p1      = 0.07,
-                                   ldbh_p2      = 1.3,
-                                   ldbh_p3      = 0.55
-                                   ) {
+allometry_object$.test_dbh <- function(., 
+  verbose=F, diag=F, cverbose=F, write_data=NULL, 
+  #allometry.dbh=c(seq(0.1,1.9,0.1),2:9,seq(10,200,5)),
+  allometry.dbh=c(seq(0.1,1.9999,0.005),seq(2,3.9999,0.05),seq(4,7.99,0.5),8:200),
+  fnames.abg_biomass   = NULL,
+  fnames.leaf_biomass  = NULL,
+  fnames.height        = NULL,
+  dbh_max      = 1000,            # DBH where max height reached (cm)         
+  hdbh_p1      = 78.4,
+  hdbh_p2      = 0.812,
+  hdbh_p3      = 47.7,
+  # biomass
+  wood_density = 0.548,         # wood density (g cm-3)  
+  frac_abg     = 0.6,           # fraction woody biomass aboveground 
+  fineroot_to_leaf_ratio = 0.6, # ratio of fine-root to leaf biomass  
+  abg_p1       = 0.0673, 
+  abg_p2       = 0.976, 
+  abg_p3       = 1.94, 
+  abg_p4       = 0.931, 
+  carbon_to_biomass = 2,        # conversion factor for carbon units to biomass dry weight (DW) 
+  # leaf, crown area & depth
+  slatop       = 0.012,         # specific leaf area (SLA) at top of canopy (m2 g-1)
+  slamax       = 0.0954,        # specific leaf area (SLA) at top of canopy (m2 g-1)
+  crwnarea_p1      = 1.56,      # crown area to DBH exponent
+  crwndepth_frac   = 0.5,       # crown depth fraction of height 
+  crwnarea_dbh_max = 0.2715891, # crown area norm const max 
+  crwnarea_dbh_min = 0.2715891, # crown area norm const min
+  ldbh_p1      = 0.04,
+  ldbh_p2      = 1.60,
+  ldbh_p3      = 0.55,
+  ldbh_edif    = -0.12
+  ) {
 
   if(verbose) { str(.); print(.$env) }
   .$build(mod_out='full', switches=c(diag,verbose,cverbose) )
 
   # configure fnames
-
   if(!is.null(fnames.abg_biomass))  .$fnames$abg_biomass = fnames.abg_biomass 
   if(!is.null(fnames.leaf_biomass)) .$fnames$leaf_biomass = fnames.leaf_biomass 
   if(!is.null(fnames.height))       .$fnames$height = fnames.height 
   .$configure_test() 
 
-  .$pars$dbh_max      <- dbh_max                  # DBH where max height reached (cm)         
+  .$pars$dbh_max      <- dbh_max              # DBH where max height reached (cm)         
   .$pars$hdbh_p1      <- hdbh_p1
   .$pars$hdbh_p2      <- hdbh_p2
   .$pars$hdbh_p3      <- hdbh_p3
-  .$pars$wood_density <- wood_density           # wood density (g cm-3)  
-  .$pars$frac_abg     <- frac_abg           # fraction woody biomass aboveground 
+  .$pars$wood_density <- wood_density         # wood density (g cm-3)  
+  .$pars$frac_abg     <- frac_abg             # fraction woody biomass aboveground 
   .$pars$fineroot_to_leaf_ratio <- fineroot_to_leaf_ratio  # ratio of fine-root to leaf biomass  
   .$pars$abg_p1       <- abg_p1 
   .$pars$abg_p2       <- abg_p2 
   .$pars$abg_p3       <- abg_p3 
   .$pars$abg_p4       <- abg_p4 
-  .$pars$slatop       <- slatop     # specific leaf area (SLA) at top of canopy (m2 g-1)
+  .$pars$slatop       <- slatop                # specific leaf area (SLA) at top of canopy (m2 g-1)
+  .$pars$slamax       <- slamax                # max specific leaf area (SLA) (m2 g-1)
   .$pars$crwnarea_p1  <- crwnarea_p1           # crown area to DBH exponent
-  .$pars$crwndepth_frac    <- crwndepth_frac         # crown depth fraction of height 
-  .$pars$crwnarea_dbh_max  <- crwnarea_dbh_max  # crown depth fraction of height 
-  .$pars$crwnarea_dbh_min  <- crwnarea_dbh_min  # crown depth fraction of height 
+  .$pars$crwndepth_frac   <- crwndepth_frac    # crown depth fraction of height 
+  .$pars$crwnarea_dbh_max <- crwnarea_dbh_max  # crown depth fraction of height 
+  .$pars$crwnarea_dbh_min <- crwnarea_dbh_min  # crown depth fraction of height 
   .$pars$ldbh_p1      <- ldbh_p1
   .$pars$ldbh_p2      <- ldbh_p2
   .$pars$ldbh_p3      <- ldbh_p3
+  .$pars$ldbh_edif    <- ldbh_edif
 
   # configure met data and run
   .$dataf          <- list()
@@ -312,8 +317,15 @@ allometry_object$.test_dbh <- function(., verbose=F, diag=F, cverbose=F,
   .$dataf$out      <- .$run_met() 
   .$dataf$out_full <- as.data.frame(cbind(t(.$dataf$met), .$dataf$out ))
   print(head(.$dataf$out_full))
+  print(tail(.$dataf$out_full))
   .$dataf$out_full$BA <- pi * (allometry.dbh/2)^2
-  
+  if(!is.null(write_data)) { 
+    opdir <- getwd()
+    setwd('~')
+    write.csv(.$dataf$out, write_data, quote=F, row.names=F )
+    setwd(opdir) 
+  } 
+ 
 #  p1 <- xyplot(crown_area + crown_leaf_area ~ allometry.dbh , .$dataf$out_full, 
 #	       type='l', abline=list(h=c(0,1)), auto.key=list(points=F, lines=T, x=0, y=1),  
 #               ylab=expression('CA, LA ['*m^2*']'), xlab=expression(DBH*' ['*m*']') )

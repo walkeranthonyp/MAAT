@@ -21,7 +21,7 @@
 # height ~ dbh
 #########################
 
-# Obrien et al 1995
+# O'Brien et al 1995
 # FATES case 1
 f_height_hdbh_obrien1995 <- function(.) {
   10^(log10(.super$state_pars$dbh_effective) * (.super$pars$hdbh_p1+.super$pars$hdbh_p2)) 
@@ -97,10 +97,10 @@ f_leaf_biomass_dbhmax_power <- function(., dbh=.super$state$dbh ) {
 
 f_crown_area_fates <- function(., dbh=.super$state$dbh ) {
   #.super$state_pars$crwnarea_norm * dbh^.super$pars$crwnarea_p2  
-  .super$state_pars$crwnarea_norm * dbh^.super$pars$ldbh_p2  
+  .super$state_pars$crwnarea_norm * dbh^(.super$pars$ldbh_p2 - .super$pars$ldbh_edif)  
 }
 
-# check this APW
+# APW: check this 
 f_crown_area_purves2008 <- function(., dbh=.super$state$dbh ) {
   pi * (dbh*.super$state_pars$crownarea_norm)^.super$pars$crwnarea_p1  
 }
