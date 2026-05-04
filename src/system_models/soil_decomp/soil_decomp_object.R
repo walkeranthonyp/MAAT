@@ -76,7 +76,6 @@ soil_decomp_object$fnames <- list(
   sys                   = 'f_steadystate_npools', # if f_steadystate_npools selected, solver_steadystate automatically used  
   solver                = 'plsoda',
   solver_func           = 'f_solver_func_soilR_outfluxes',
-  #solver_func           = 'f_solver_func_millennialV2', 
   steadystate           = 'f_steadystate_npools', # options: 'f_steadystate_null','f_steadystate_npools',
   solver_steadystate    = 'pstode',
   input                 = 'f_input',
@@ -339,11 +338,12 @@ soil_decomp_object$pars <- list(
   # - these lists are n_outfluxes long and when there is just a single outflux per pool this collapses to n_pools long
   ################################################ 
 
-  # turnover rates for linear decomposition
+  # turnover rates for linear and some non-linear decomposition 
+  # -- linear decomp units are: day-1
+  # -- however, some more funky decomp functions require different units, e.g. Giorgiou DD function: g soil mg-1 C day-1 
   k = list(    
     k1 = 0.018,       # aggregate formation from POM       
     k2 = NA,
-    #k3 = 4.5e-3,      # microbial turnover rate   
     k3 = 4.5,         # microbial turnover rate   
     k4 = NA,
     k5 = 4.8000e-03,  # aggregate formation from maom 
@@ -356,7 +356,7 @@ soil_decomp_object$pars <- list(
   # max turnover rates per unit microbial biomass for pool i
   # commented out old list (updating to allow for multiple mic groups or catalysts)
   vmax = list(
-    vmax1 = NA,   #Vm
+    vmax1 = NA,       # Vm
     vmax2 = 1.8e+12,  # alpha_pl; pre-exponential constant for temp sensitivity of POM decay
     vmax3 = NA,
     vmax4 = NA,
@@ -408,14 +408,12 @@ soil_decomp_object$pars <- list(
   # michaelis-menten half-saturation constant for microbial decomnp of pool i      
   km = list(   
     km1 = NA,
-    #km2 = 6443,   # MillennialV2, half sat const for POM breakdown 
     km2 = 6.443,  # MillennialV2, half sat const for POM breakdown 
     km3 = NA,
     km4 = NA,
     km5 = NA,
     km6 = NA,
     km7 = NA,
-    #km8 = 774.6,  # DOC uptake half sat constant
     km8 = 0.7746, # DOC uptake half sat constant
     km9 = NA
   ),

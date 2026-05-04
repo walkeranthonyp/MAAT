@@ -4,24 +4,13 @@
       <sys>NA</sys>
       <solver>NA</solver>
       <solver_func>NA</solver_func>
+      <steadystate>NA</steadystate>
+      <solver_steadystate>NA</solver_steadystate>
       <input>NA</input>
       <DotO>NA</DotO>
       <transfermatrix>NA</transfermatrix>
       <transfer_fluxsum_prop>NA</transfer_fluxsum_prop>
       <outfluxes>NA</outfluxes>
-      <steadystate>NA</steadystate>
-      <solver_steadystate>NA</solver_steadystate>
-      <outflux>
-        <of1>NA</of1>
-        <of2>NA</of2>
-        <of3>NA</of3>
-        <of4>NA</of4>
-        <of5>NA</of5>
-        <of6>NA</of6>
-        <of7>NA</of7>
-        <of8>NA</of8>
-        <of9>NA</of9>
-      </outflux>
       <decomp>
         <d1>NA</d1>
         <d2>NA</d2>
@@ -54,10 +43,17 @@
         <a3>NA</a3>
       </aggform>
       <docuptake>NA</docuptake>
-      <growthresp>NA</growthresp>
-      <maintresp>NA</maintresp>
-      <scor>NA</scor>
-      <water_unit_converter>NA</water_unit_converter>
+      <outflux>
+        <of1>NA</of1>
+        <of2>NA</of2>
+        <of3>NA</of3>
+        <of4>NA</of4>
+        <of5>NA</of5>
+        <of6>NA</of6>
+        <of7>NA</of7>
+        <of8>NA</of8>
+        <of9>NA</of9>
+      </outflux>
       <tcor>
         <t1>NA</t1>
         <t2>NA</t2>
@@ -92,6 +88,10 @@
         <t5_to_1>NA</t5_to_1>
         <t5_to_3>NA</t5_to_3>
       </transfer>
+      <growthresp>NA</growthresp>
+      <maintresp>NA</maintresp>
+      <scor>NA</scor>
+      <water_unit_converter>NA</water_unit_converter>
     </soil_decomp>
   </fnames>
   <pars>
@@ -113,6 +113,25 @@
       <R>NA</R>
       <minmic>NA</minmic>
       <q10>NA</q10>
+      <decomp_outflux1>
+        <dof11>NA</dof11>
+        <dof12>NA</dof12>
+      </decomp_outflux1>
+      <decomp_outflux2>
+        <dof21>NA</dof21>
+      </decomp_outflux2>
+      <decomp_outflux3>
+        <dof31>NA</dof31>
+        <dof32>NA</dof32>
+      </decomp_outflux3>
+      <decomp_outflux4>
+        <dof41>NA</dof41>
+        <dof42>NA</dof42>
+        <dof43>NA</dof43>
+      </decomp_outflux4>
+      <decomp_outflux5>
+        <dof51>NA</dof51>
+      </decomp_outflux5>
       <cstate0>
         <cstate01>NA</cstate01>
         <cstate02>NA</cstate02>
@@ -134,25 +153,6 @@
         <poolmax4>NA</poolmax4>
         <poolmax5>NA</poolmax5>
       </poolmax>
-      <decomp_outflux1>
-        <dof11>NA</dof11>
-        <dof12>NA</dof12>
-      </decomp_outflux1>
-      <decomp_outflux2>
-        <dof21>NA</dof21>
-      </decomp_outflux2>
-      <decomp_outflux3>
-        <dof31>NA</dof31>
-        <dof32>NA</dof32>
-      </decomp_outflux3>
-      <decomp_outflux4>
-        <dof41>NA</dof41>
-        <dof42>NA</dof42>
-        <dof43>NA</dof43>
-      </decomp_outflux4>
-      <decomp_outflux5>
-        <dof51>NA</dof51>
-      </decomp_outflux5>
       <k>
         <k1>NA</k1>
         <k2>NA</k2>

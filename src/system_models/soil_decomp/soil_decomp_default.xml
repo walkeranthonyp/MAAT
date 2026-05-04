@@ -4,24 +4,13 @@
       <sys>'f_steadystate_npools'</sys>
       <solver>'plsoda'</solver>
       <solver_func>'f_solver_func_soilR_outfluxes'</solver_func>
+      <steadystate>'f_steadystate_npools'</steadystate>
+      <solver_steadystate>'pstode'</solver_steadystate>
       <input>'f_input'</input>
       <DotO>'f_DotO'</DotO>
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <transfer_fluxsum_prop>'f_transfer_fluxsum_prop'</transfer_fluxsum_prop>
       <outfluxes>'f_outfluxes'</outfluxes>
-      <steadystate>'f_steadystate_npools'</steadystate>
-      <solver_steadystate>'pstode'</solver_steadystate>
-      <outflux>
-        <of1>'f_decomp_lin'</of1>
-        <of2>'f_decomp_rmm'</of2>
-        <of3>'f_decomp_dd_georgiou'</of3>
-        <of4>'f_desorp_millennialv2'</of4>
-        <of5>'f_decomp_lin'</of5>
-        <of6>'f_decomp_lin'</of6>
-        <of7>'f_sorp_sat'</of7>
-        <of8>'f_decomp_mm'</of8>
-        <of9>'f_decomp_lin'</of9>
-      </outflux>
       <decomp>
         <d1>'f_decomp_fluxsum'</d1>
         <d2>'f_decomp_fluxsum'</d2>
@@ -54,10 +43,17 @@
         <a3>'f_decomp_lin'</a3>
       </aggform>
       <docuptake>'f_decomp_mm'</docuptake>
-      <growthresp>NA</growthresp>
-      <maintresp>NA</maintresp>
-      <scor>NA</scor>
-      <water_unit_converter>'f_SWC2SWP_vanGenuchten'</water_unit_converter>
+      <outflux>
+        <of1>'f_decomp_lin'</of1>
+        <of2>'f_decomp_rmm'</of2>
+        <of3>'f_decomp_dd_georgiou'</of3>
+        <of4>'f_desorp_millennialv2'</of4>
+        <of5>'f_decomp_lin'</of5>
+        <of6>'f_decomp_lin'</of6>
+        <of7>'f_sorp_sat'</of7>
+        <of8>'f_decomp_mm'</of8>
+        <of9>'f_decomp_lin'</of9>
+      </outflux>
       <tcor>
         <t1>'f_tcor_none'</t1>
         <t2>'f_tcor_arrhenius_millennialv2'</t2>
@@ -92,6 +88,10 @@
         <t5_to_1>'f_transfer_cue'</t5_to_1>
         <t5_to_3>'f_transfer_cue_remainder'</t5_to_3>
       </transfer>
+      <growthresp>NA</growthresp>
+      <maintresp>NA</maintresp>
+      <scor>NA</scor>
+      <water_unit_converter>'f_SWC2SWP_vanGenuchten'</water_unit_converter>
     </soil_decomp>
   </fnames>
   <pars>
@@ -113,6 +113,25 @@
       <R>8.31446</R>
       <minmic>NA</minmic>
       <q10>NA</q10>
+      <decomp_outflux1>
+        <dof11>1</dof11>
+        <dof12>2</dof12>
+      </decomp_outflux1>
+      <decomp_outflux2>
+        <dof21>3</dof21>
+      </decomp_outflux2>
+      <decomp_outflux3>
+        <dof31>4</dof31>
+        <dof32>5</dof32>
+      </decomp_outflux3>
+      <decomp_outflux4>
+        <dof41>6</dof41>
+        <dof42>7</dof42>
+        <dof43>8</dof43>
+      </decomp_outflux4>
+      <decomp_outflux5>
+        <dof51>9</dof51>
+      </decomp_outflux5>
       <cstate0>
         <cstate01>1</cstate01>
         <cstate02>1</cstate02>
@@ -134,25 +153,6 @@
         <poolmax4>NA</poolmax4>
         <poolmax5>NA</poolmax5>
       </poolmax>
-      <decomp_outflux1>
-        <dof11>1</dof11>
-        <dof12>2</dof12>
-      </decomp_outflux1>
-      <decomp_outflux2>
-        <dof21>3</dof21>
-      </decomp_outflux2>
-      <decomp_outflux3>
-        <dof31>4</dof31>
-        <dof32>5</dof32>
-      </decomp_outflux3>
-      <decomp_outflux4>
-        <dof41>6</dof41>
-        <dof42>7</dof42>
-        <dof43>8</dof43>
-      </decomp_outflux4>
-      <decomp_outflux5>
-        <dof51>9</dof51>
-      </decomp_outflux5>
       <k>
         <k1>0.018</k1>
         <k2>NA</k2>
