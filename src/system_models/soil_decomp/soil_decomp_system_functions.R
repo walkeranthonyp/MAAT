@@ -29,6 +29,10 @@ f_sys_npools <- function(.) {
 # steady-state solver for a system of n pools
 f_steadystate_npools <- function(.) {
 
+  .super$state_pars$kaff_lm <- exp(-.super$pars$millennialV2[['sorp_p1']]*.super$env$pH - 
+                                 .super$pars$millennialV2[['sorp_p2']] ) * .super$pars$millennialV2[['kld']]
+
+  #print('here1')
   .super$state_pars$solver_steadystate_out <- 
     tryCatch(
       .$solver_steadystate(.super$state$cpools, 0, func=.$solver_func ),
@@ -36,6 +40,7 @@ f_steadystate_npools <- function(.) {
         print(c)
         list(y=rep(NA,.super$pars$n_pools))
       })
+  #print('here2')
   
   .super$state$cpools[,1] <- .super$state_pars$solver_steadystate_out$y
 }

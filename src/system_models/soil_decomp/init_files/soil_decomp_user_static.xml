@@ -4,11 +4,13 @@
       <sys>NA</sys>
       <solver>NA</solver>
       <solver_func>NA</solver_func>
+      <steadystate>NA</steadystate>
+      <solver_steadystate>NA</solver_steadystate>
       <input>NA</input>
       <DotO>NA</DotO>
       <transfermatrix>NA</transfermatrix>
-      <steadystate>NA</steadystate>
-      <solver_steadystate>NA</solver_steadystate>
+      <transfer_fluxsum_prop>NA</transfer_fluxsum_prop>
+      <outfluxes>NA</outfluxes>
       <decomp>
         <d1>NA</d1>
         <d2>NA</d2>
@@ -41,38 +43,63 @@
         <a3>NA</a3>
       </aggform>
       <docuptake>NA</docuptake>
+      <outflux>
+        <of1>NA</of1>
+        <of2>NA</of2>
+        <of3>NA</of3>
+        <of4>NA</of4>
+        <of5>NA</of5>
+        <of6>NA</of6>
+        <of7>NA</of7>
+        <of8>NA</of8>
+        <of9>NA</of9>
+      </outflux>
+      <tcor>
+        <t1>NA</t1>
+        <t2>NA</t2>
+        <t3>NA</t3>
+        <t4>NA</t4>
+        <t5>NA</t5>
+        <t6>NA</t6>
+        <t7>NA</t7>
+        <t8>NA</t8>
+        <t9>NA</t9>
+      </tcor>
+      <wcor>
+        <w1>NA</w1>
+        <w2>NA</w2>
+        <w3>NA</w3>
+        <w4>NA</w4>
+        <w5>NA</w5>
+        <w6>NA</w6>
+        <w7>NA</w7>
+        <w8>NA</w8>
+        <w9>NA</w9>
+      </wcor>
+      <transfer>
+        <t1_to_4>NA</t1_to_4>
+        <t1_to_5>NA</t1_to_5>
+        <t2_to_3>NA</t2_to_3>
+        <t2_to_4>NA</t2_to_4>
+        <t3_to_4>NA</t3_to_4>
+        <t3_to_5>NA</t3_to_5>
+        <t4_to_2>NA</t4_to_2>
+        <t4_to_3>NA</t4_to_3>
+        <t5_to_1>NA</t5_to_1>
+        <t5_to_3>NA</t5_to_3>
+      </transfer>
       <growthresp>NA</growthresp>
       <maintresp>NA</maintresp>
       <scor>NA</scor>
-      <wcor>NA</wcor>
-      <wcor2>NA</wcor2>
-      <tcor>
-        <t1>NA</t1>
-        <t4>NA</t4>
-      </tcor>
       <water_unit_converter>NA</water_unit_converter>
-      <transfer>
-        <t1_to_3>NA</t1_to_3>
-        <t1_to_4>NA</t1_to_4>
-        <t2_to_5>NA</t2_to_5>
-        <t3_to_6>NA</t3_to_6>
-        <t4_to_7>NA</t4_to_7>
-        <t5_to_6>NA</t5_to_6>
-        <t6_to_7>NA</t6_to_7>
-        <t7_to_8>NA</t7_to_8>
-        <t2_to_9>NA</t2_to_9>
-        <t3_to_9>NA</t3_to_9>
-        <t4_to_9>NA</t4_to_9>
-        <t5_to_9>NA</t5_to_9>
-        <t6_to_9>NA</t6_to_9>
-        <t7_to_9>NA</t7_to_9>
-        <t8_to_9>NA</t8_to_9>
-      </transfer>
     </soil_decomp>
   </fnames>
   <pars>
     <soil_decomp>
       <n_pools>NA</n_pools>
+      <n_outfluxes>NA</n_outfluxes>
+      <cat_pool>NA</cat_pool>
+      <sat_pool>NA</sat_pool>
       <beta>NA</beta>
       <silt>NA</silt>
       <clay>NA</clay>
@@ -86,103 +113,46 @@
       <R>NA</R>
       <minmic>NA</minmic>
       <q10>NA</q10>
-      <ea>
-        <ea1>NA</ea1>
-        <ea2>NA</ea2>
-        <ea3>NA</ea3>
-        <ea4>NA</ea4>
-        <ea5>NA</ea5>
-        <ea6>NA</ea6>
-        <ea7>NA</ea7>
-      </ea>
-      <input_coefs>
-        <input_coef1>NA</input_coef1>
-        <input_coef2>NA</input_coef2>
-        <input_coef3>NA</input_coef3>
-        <input_coef4>NA</input_coef4>
-        <input_coef5>NA</input_coef5>
-        <input_coef6>NA</input_coef6>
-        <input_coef7>NA</input_coef7>
-        <input_coef8>NA</input_coef8>
-        <input_coef9>NA</input_coef9>
-      </input_coefs>
+      <decomp_outflux1>
+        <dof11>NA</dof11>
+        <dof12>NA</dof12>
+      </decomp_outflux1>
+      <decomp_outflux2>
+        <dof21>NA</dof21>
+      </decomp_outflux2>
+      <decomp_outflux3>
+        <dof31>NA</dof31>
+        <dof32>NA</dof32>
+      </decomp_outflux3>
+      <decomp_outflux4>
+        <dof41>NA</dof41>
+        <dof42>NA</dof42>
+        <dof43>NA</dof43>
+      </decomp_outflux4>
+      <decomp_outflux5>
+        <dof51>NA</dof51>
+      </decomp_outflux5>
       <cstate0>
         <cstate01>NA</cstate01>
         <cstate02>NA</cstate02>
         <cstate03>NA</cstate03>
         <cstate04>NA</cstate04>
         <cstate05>NA</cstate05>
-        <cstate06>NA</cstate06>
-        <cstate07>NA</cstate07>
-        <cstate08>NA</cstate08>
-        <cstate09>NA</cstate09>
       </cstate0>
-      <cue>
-        <cue1>NA</cue1>
-        <cue2>NA</cue2>
-        <cue3>NA</cue3>
-        <cue4>NA</cue4>
-        <cue5>NA</cue5>
-        <cue6>NA</cue6>
-        <cue7>NA</cue7>
-        <cue8>NA</cue8>
-        <cue9>NA</cue9>
-      </cue>
-      <cue2>
-        <cue1>NA</cue1>
-        <cue2>NA</cue2>
-        <cue3>NA</cue3>
-        <cue4>NA</cue4>
-        <cue5>NA</cue5>
-        <cue6>NA</cue6>
-        <cue7>NA</cue7>
-        <cue8>NA</cue8>
-      </cue2>
-      <vmax>
-        <vmax1>NA</vmax1>
-        <vmax2>NA</vmax2>
-        <vmax3>NA</vmax3>
-        <vmax4>NA</vmax4>
-        <vmax5>NA</vmax5>
-        <vmax6>NA</vmax6>
-        <vmax7>NA</vmax7>
-      </vmax>
-      <vmax2>
-        <vmax1>NA</vmax1>
-        <vmax2>NA</vmax2>
-        <vmax3>NA</vmax3>
-        <vmax4>NA</vmax4>
-        <vmax5>NA</vmax5>
-        <vmax6>NA</vmax6>
-        <vmax7>NA</vmax7>
-      </vmax2>
-      <km>
-        <km1>NA</km1>
-        <km2>NA</km2>
-        <km3>NA</km3>
-        <km4>NA</km4>
-        <km5>NA</km5>
-        <km6>NA</km6>
-        <km7>NA</km7>
-      </km>
-      <km2>
-        <km1>NA</km1>
-        <km2>NA</km2>
-        <km3>NA</km3>
-        <km4>NA</km4>
-        <km5>NA</km5>
-        <km6>NA</km6>
-        <km7>NA</km7>
-      </km2>
-      <rkm>
-        <rkm1>NA</rkm1>
-        <rkm2>NA</rkm2>
-        <rkm3>NA</rkm3>
-        <rkm4>NA</rkm4>
-        <rkm5>NA</rkm5>
-        <rkm6>NA</rkm6>
-        <rkm7>NA</rkm7>
-      </rkm>
+      <input_coefs>
+        <input_coef1>NA</input_coef1>
+        <input_coef2>NA</input_coef2>
+        <input_coef3>NA</input_coef3>
+        <input_coef4>NA</input_coef4>
+        <input_coef5>NA</input_coef5>
+      </input_coefs>
+      <poolmax>
+        <poolmax1>NA</poolmax1>
+        <poolmax2>NA</poolmax2>
+        <poolmax3>NA</poolmax3>
+        <poolmax4>NA</poolmax4>
+        <poolmax5>NA</poolmax5>
+      </poolmax>
       <k>
         <k1>NA</k1>
         <k2>NA</k2>
@@ -194,15 +164,90 @@
         <k8>NA</k8>
         <k9>NA</k9>
       </k>
-      <poolmax>
-        <poolmax1>NA</poolmax1>
-        <poolmax2>NA</poolmax2>
-        <poolmax3>NA</poolmax3>
-        <poolmax4>NA</poolmax4>
-        <poolmax5>NA</poolmax5>
-        <poolmax6>NA</poolmax6>
-        <poolmax7>NA</poolmax7>
-      </poolmax>
+      <vmax>
+        <vmax1>NA</vmax1>
+        <vmax2>NA</vmax2>
+        <vmax3>NA</vmax3>
+        <vmax4>NA</vmax4>
+        <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
+        <vmax8>NA</vmax8>
+        <vmax9>NA</vmax9>
+      </vmax>
+      <vmax2>
+        <vmax1>NA</vmax1>
+        <vmax2>NA</vmax2>
+        <vmax3>NA</vmax3>
+        <vmax4>NA</vmax4>
+        <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
+        <vmax8>NA</vmax8>
+        <vmax9>NA</vmax9>
+      </vmax2>
+      <ea>
+        <ea1>NA</ea1>
+        <ea2>NA</ea2>
+        <ea3>NA</ea3>
+        <ea4>NA</ea4>
+        <ea5>NA</ea5>
+        <ea6>NA</ea6>
+        <ea7>NA</ea7>
+        <ea8>NA</ea8>
+        <ea9>NA</ea9>
+      </ea>
+      <km>
+        <km1>NA</km1>
+        <km2>NA</km2>
+        <km3>NA</km3>
+        <km4>NA</km4>
+        <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
+        <km8>NA</km8>
+        <km9>NA</km9>
+      </km>
+      <km2>
+        <km1>NA</km1>
+        <km2>NA</km2>
+        <km3>NA</km3>
+        <km4>NA</km4>
+        <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
+        <km8>NA</km8>
+        <km9>NA</km9>
+      </km2>
+      <rkm>
+        <rkm1>NA</rkm1>
+        <rkm2>NA</rkm2>
+        <rkm3>NA</rkm3>
+        <rkm4>NA</rkm4>
+        <rkm5>NA</rkm5>
+        <rkm6>NA</rkm6>
+        <rkm7>NA</rkm7>
+        <rkm8>NA</rkm8>
+        <rkm9>NA</rkm9>
+      </rkm>
+      <cue>
+        <cue1>NA</cue1>
+        <cue2>NA</cue2>
+        <cue3>NA</cue3>
+        <cue4>NA</cue4>
+        <cue5>NA</cue5>
+      </cue>
+      <cue2>
+        <cue1>NA</cue1>
+        <cue2>NA</cue2>
+        <cue3>NA</cue3>
+        <cue4>NA</cue4>
+        <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
+        <cue8>NA</cue8>
+        <cue9>NA</cue9>
+      </cue2>
       <mimics>
         <fmet_p1>NA</fmet_p1>
         <fmet_p2>NA</fmet_p2>
