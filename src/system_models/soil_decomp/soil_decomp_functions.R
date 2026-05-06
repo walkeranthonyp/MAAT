@@ -163,9 +163,11 @@ f_decomp_doc_mend <- function(.,C,t,i) {
 # CORPSE-specific functions
 #########
 f_decomp_rmm_sulman <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
+f_decomp_rmm_sulman_gen <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool, ... ) 
+  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[cat_pool] + .super$pars$km[[of]]*(C[1]+C[2]+C[3]))
 
-f_micturn_sulman <- function(.,C,t,i) {
-  (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[i]] 
+f_micturn_sulman <- function(., C, t, i, of=i ) {
+  (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[of]] 
 }
 
 f_micturn_sulman_mdd <- function(.,C,t,i) {
@@ -406,6 +408,9 @@ f_transfer_fluxsum_prop_three <- function(., ... ) .$transfer_fluxsum_prop(f=3, 
 f_transfer_fluxsum_prop_three_cue <- function(., from, ... ) 
   (.super$pars$cue[[from]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']])) * 
   .$transfer_fluxsum_prop(f=3, from=from, ... ) 
+
+f_transfer_fluxsum_prop_one_cue <- function(., from, ... ) 
+  .super$pars$cue[[from]] * .$transfer_fluxsum_prop(f=1, from=from, ... ) 
 
 # CUE or carbon transfer efficiency sets transfer from one pool to another
 # MEND15

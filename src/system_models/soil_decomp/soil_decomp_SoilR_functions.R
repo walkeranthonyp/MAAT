@@ -136,8 +136,10 @@ f_transfermatrix <- function(., C, t ) {
   #print('')
   for(i in 1:dim(idm)[1]) {
     ss <- idm[i,]
-    #print(paste('transfer: ',i)); print(ss); print(.super$fnames$transfer[[paste0('t',ss[1],'_to_',ss[2])]])
-    #print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]]) 
+    print(''); print(paste('transfer', i, '... from pool',ss[1],'to',ss[2],':')) 
+    #print(.super$fnames$transfer[[paste0('t',ss[1],'_to_',ss[2])]])
+    #print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]])
+    print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]](.=.,C=C, t=t, from=ss[1], to=ss[2] )) 
     m[matrix(rev(ss),nrow=1)] <- .[[paste0('transfer.t',ss[1],'_to_',ss[2])]](.=.,C=C, t=t, from=ss[1], to=ss[2] )
   }
   #print(m)
@@ -148,23 +150,23 @@ f_transfermatrix <- function(., C, t ) {
 # deSolve/lsoda style functions to solve the SoilR style function
 # - parms is a dummy argument to work with lsoda
 f_solver_func_soilR <- function(., t, y, parms) {
-  print(y)
+  #print(y)
   YD = .$transfermatrix(y,t) %*% .$DotO(y,t) + .$input(t) 
-  print(list(as.vector(YD)))
+  #print(list(as.vector(YD)))
   list(as.vector(YD))
 }
 
 
 # as above but allows calculation of individual fluxes out of pools prior to SoilR function execution
 f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
-  #print(y)
+  print(y)
   .$outfluxes(y,t)
   YD = .$transfermatrix(y,t) %*% .$DotO(y,t) + .$input(t)
   #print(.$state$outflux); 
-  #print(.$transfermatrix(y,t)) #; print(.$DotO(y,t)); print(.$input(t)) 
+  print(.$transfermatrix(y,t)); print(.$DotO(y,t)); print(.$input(t)) 
   #print(YD) 
   #print(unlist(.super$state$outflux)) 
-  #print(list(as.vector(YD)))
+  print(list(as.vector(YD)))
   if(is.na(sum(as.vector(YD)))) stop('NAs in SoilR solver function.')
   list(as.vector(YD))
 }

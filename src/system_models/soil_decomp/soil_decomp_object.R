@@ -157,7 +157,8 @@ soil_decomp_object$fnames <- list(
     t6 = 'f_tcor_none',
     t7 = 'f_tcor_none',
     t8 = 'f_tcor_arrhenius_millennialv2',
-    t9 = 'f_tcor_none'
+    t9 = 'f_tcor_none',
+    t10 = 'f_tcor_none'
   ),
 
   # - water scalars 
@@ -171,7 +172,8 @@ soil_decomp_object$fnames <- list(
     w6 = 'f_wcor_ghezzehei_diffusion',
     w7 = 'f_wcor_ghezzehei_diffusion',
     w8 = 'f_wcor_ghezzehei_biological',
-    w9 = 'f_wcor_ghezzehei_diffusion'
+    w9 = 'f_wcor_ghezzehei_diffusion',
+    w10 = 'f_wcor_ghezzehei_diffusion'
   ),
 
   # - soil or litter scalars 
@@ -184,7 +186,8 @@ soil_decomp_object$fnames <- list(
     s6 = 'f_scor_none',
     s7 = 'f_scor_none',
     s8 = 'f_scor_none',
-    s9 = 'f_scor_none'
+    s9 = 'f_scor_none',
+    s10 = 'f_scor_none'
   ),
 
   # transfer list
@@ -304,11 +307,18 @@ soil_decomp_object$pars <- list(
   
   # outfluxes to decomp pool assignment
   # APW: list format didn't work due to nesting lists within a list, configure functions cannot handle 
-  decomp_outflux1 = list(dof11=1),
-  decomp_outflux2 = list(dof21=3),
-  decomp_outflux3 = list(dof31=4),
-  decomp_outflux4 = list(dof41=6),
-  decomp_outflux5 = list(dof51=9),
+  decomp_outflux1 = list(dof11=1, dof12=2),
+  decomp_outflux2 = list(dof21=1, dof22=2),
+  decomp_outflux3 = list(dof31=1, dof32=2),
+  decomp_outflux4 = list(dof41=7),
+  decomp_outflux5 = list(dof51=8),
+  decomp_outflux6 = list(dof51=9),
+  decomp_outflux7 = list(dof51=10),
+#  decomp_outflux1 = list(dof11=1),
+#  decomp_outflux2 = list(dof21=3),
+#  decomp_outflux3 = list(dof31=4),
+#  decomp_outflux4 = list(dof41=6),
+#  decomp_outflux5 = list(dof51=9),
 #  decomp_outflux1 = list(dof11=1, dof12=2),
 #  decomp_outflux2 = list(dof21=3),
 #  decomp_outflux3 = list(dof31=4, dof32=5),
@@ -333,11 +343,11 @@ soil_decomp_object$pars <- list(
 
   # input coefficients (allocates proportions of inputs into different pools)
   input_coefs = list(
-    input_coef1 = .66, 
-    input_coef2 = 0, 
-    input_coef3 = 0,
-    input_coef4 = .34,
-    input_coef5 = 0
+    input_coefs1 = .66, 
+    input_coefs2 = 0, 
+    input_coefs3 = 0,
+    input_coefs4 = .34,
+    input_coefs5 = 0
   ),
   
   # maximum size for pool i 
@@ -366,7 +376,8 @@ soil_decomp_object$pars <- list(
     k6 = 0.0015,      # leaching rate (kd)
     k7 = NA, 
     k8 = NA,
-    k9 = 0.02         # aggregrate breakdown rate (kb)
+    k9 = 0.02,         # aggregrate breakdown rate (kb)
+    k10 = 0.02         # aggregrate breakdown rate (kb)
   ),
 
   # max turnover rates per unit microbial biomass for pool i
@@ -380,7 +391,8 @@ soil_decomp_object$pars <- list(
     vmax6 = NA,
     vmax7 = NA,
     vmax8 = 2.3e+12, # alpha_lb #pre-exponential constant for temp sensitivity of DOC uptake
-    vmax9 = NA
+    vmax9 = NA,
+    vmax10 = NA
   ),
   
   vmax2 = list(
@@ -392,7 +404,8 @@ soil_decomp_object$pars <- list(
     vmax6 = NA,
     vmax7 = NA,
     vmax8 = NA,
-    vmax9 = NA
+    vmax9 = NA,
+    vmax10 = NA
   ),
   
   ea = list(
@@ -404,7 +417,8 @@ soil_decomp_object$pars <- list(
     ea6 = NA,
     ea7 = NA,
     ea8 = 5.7865e+04, # MILLENNIALv2 #activiation energy for temp sensitivity of DOC uptake
-    ea9 = NA
+    ea9 = NA,
+    ea10 = NA
   ),
  
   # idea for how to handle one pool being decomposed by multiple catalysts (e.g. multiple microbial pools or multiple enzyme pools)
@@ -431,7 +445,8 @@ soil_decomp_object$pars <- list(
     km6 = NA,
     km7 = NA,
     km8 = 0.7746, # DOC uptake half sat constant
-    km9 = NA
+    km9 = NA,
+    km10 = NA
   ),
   
   km2 = list( 
@@ -443,7 +458,8 @@ soil_decomp_object$pars <- list(
     km6 = NA,
     km7 = NA,
     km8 = NA,
-    km9 = NA
+    km9 = NA,
+    km10 = NA
   ),
   
   # reverse michaelis-menten half-saturation constant for microbial decomnp of pool i
@@ -457,7 +473,8 @@ soil_decomp_object$pars <- list(
     rkm6 = NA,
     rkm7 = NA,
     rkm8 = NA,
-    rkm9 = NA
+    rkm9 = NA,
+    rkm10 = NA
   ),   
 
   
