@@ -51,6 +51,8 @@ soil_decomp_object$pars$decomp_outflux2
 soil_decomp_object$pars$decomp_outflux3
 soil_decomp_object$pars$decomp_outflux4
 soil_decomp_object$pars$decomp_outflux5
+soil_decomp_object$pars$decomp_outflux6
+soil_decomp_object$pars$decomp_outflux7
 
 soil_decomp_object$state$cpools[] <- 1
 soil_decomp_object$fns$outflux.of1(C=soil_decomp_object$state$cpools, t=1, i=1, of=1 )
@@ -82,6 +84,8 @@ soil_decomp_object$fns$transfer.t4_to_2(from=4,to=2)
 soil_decomp_object$fns$transfer.t4_to_3(from=4,to=3)
 soil_decomp_object$fns$transfer.t5_to_1(from=5,to=1)
 soil_decomp_object$fns$transfer.t5_to_3(from=5,to=3)
+
+soil_decomp_object$init1
 
 soil_decomp_object$fns$input()
 

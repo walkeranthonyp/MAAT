@@ -32,9 +32,6 @@ setwd('soil_decomp')
 ###########################################################################
 soil_decomp_object$name      <- 'soil_decomp'
 
-# parameter names that have a value per pool
-soil_decomp_object$pool_pars <- c('cstate0', 'cue', 'vmax', 'km', 'k', 'poolmax', 'input_coefs' )
-
 
 
 # function to configure unique elements of the object
@@ -275,6 +272,14 @@ soil_decomp_object$state_pars <- list(
 
 # parameters
 ####################################
+# parameter names that have a value per pool
+# APW: decomp_ouflux needs a way to configure each list
+soil_decomp_object$pool_pars <- c('cstate0', 'decomp_outflux', 'cue', 'cue2', 'poolmax', 'input_coefs' )
+
+# parameter names that have a value per outflux
+soil_decomp_object$outflux_pars <- c('k', 'vmax', 'vmax2', 'km', 'km2', 'ea' ) 
+
+# parameters
 soil_decomp_object$pars <- list(
   
   # model structure parameters
@@ -312,8 +317,8 @@ soil_decomp_object$pars <- list(
   decomp_outflux3 = list(dof31=1, dof32=2),
   decomp_outflux4 = list(dof41=7),
   decomp_outflux5 = list(dof51=8),
-  decomp_outflux6 = list(dof51=9),
-  decomp_outflux7 = list(dof51=10),
+  decomp_outflux6 = list(dof61=9),
+  decomp_outflux7 = list(dof71=10),
 #  decomp_outflux1 = list(dof11=1),
 #  decomp_outflux2 = list(dof21=3),
 #  decomp_outflux3 = list(dof31=4),
@@ -372,8 +377,8 @@ soil_decomp_object$pars <- list(
     k2 = NA,
     k3 = 4.5,         # microbial turnover rate   
     k4 = NA,
-    k5 = 4.8000e-03,  # aggregate formation from maom 
-    k6 = 0.0015,      # leaching rate (kd)
+    #k5 = 4.8000e-03,  # aggregate formation from maom 
+    #k6 = 0.0015,      # leaching rate (kd)
     k7 = NA, 
     k8 = NA,
     k9 = 0.02,         # aggregrate breakdown rate (kb)

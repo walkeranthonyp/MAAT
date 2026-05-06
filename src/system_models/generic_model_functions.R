@@ -131,8 +131,28 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
   }
 
   # generate pars lists
-  for(l in .$pool_pars) { 
-    if(is.list(.$pars[[l]])) .$pars[[l]][paste0(l,1:n_pools)] <- 1 
+  # - given a default/dummy value of 1 that is over-written
+  # APW but might not be if not all values are supplied as input 
+  # - for parameters that are indexed by the number of pools
+  print('',quote=F)
+  print('Indexing pool_pars lists ...',quote=F)  
+  for(l in .$pool_pars) {
+    if(is.list(.$pars[[l]])) {
+      print(l)
+      .$pars[[l]] <- list(1)
+      names(.$pars[[l]]) <- paste0(l,1)
+      .$pars[[l]][paste0(l,2:n_pools)] <- NA 
+    }
+  }
+  # - for parameters that are indexed by the number of outfluxes
+  print('Indexing outflux_pars lists ...',quote=F)  
+  for(l in .$outflux_pars) { 
+    if(is.list(.$pars[[l]])) {
+      print(l)
+      .$pars[[l]] <- list(1)
+      names(.$pars[[l]]) <- paste0(l,1)
+      .$pars[[l]][paste0(l,2:n_outfluxes)] <- NA 
+    }
   }
   
   # generate state matrix and outflux list
