@@ -174,6 +174,19 @@ soil_decomp_object$fnames <- list(
     w9 = 'f_wcor_ghezzehei_diffusion'
   ),
 
+  # - soil or litter scalars 
+  scor = list(             
+    s1 = 'f_scor_none',
+    s2 = 'f_scor_none',
+    s3 = 'f_scor_none',
+    s4 = 'f_scor_none',
+    s5 = 'f_scor_none',
+    s6 = 'f_scor_none',
+    s7 = 'f_scor_none',
+    s8 = 'f_scor_none',
+    s9 = 'f_scor_none'
+  ),
+
   # transfer list
   # - a set of functions that calculate the transfer coefficients from one pool to another
   # - numbers in names refer to pools in order of decomp lsit and state  
@@ -224,7 +237,6 @@ soil_decomp_object$fnames <- list(
   # individual functions not directly associated with a specific pool or flux  
   growthresp = NA,
   maintresp  = NA,
-  scor       = NA,
   water_unit_converter = 'f_SWC2SWP_vanGenuchten'
 )
 
@@ -292,11 +304,16 @@ soil_decomp_object$pars <- list(
   
   # outfluxes to decomp pool assignment
   # APW: list format didn't work due to nesting lists within a list, configure functions cannot handle 
-  decomp_outflux1 = list(dof11=1, dof12=2),
+  decomp_outflux1 = list(dof11=1),
   decomp_outflux2 = list(dof21=3),
-  decomp_outflux3 = list(dof31=4, dof32=5),
-  decomp_outflux4 = list(dof41=6, dof42=7, dof43=8),
+  decomp_outflux3 = list(dof31=4),
+  decomp_outflux4 = list(dof41=6),
   decomp_outflux5 = list(dof51=9),
+#  decomp_outflux1 = list(dof11=1, dof12=2),
+#  decomp_outflux2 = list(dof21=3),
+#  decomp_outflux3 = list(dof31=4, dof32=5),
+#  decomp_outflux4 = list(dof41=6, dof42=7, dof43=8),
+#  decomp_outflux5 = list(dof51=9),
 #  decomp_outflux = list(
 #    decomp_outflux1 = list(dof1.1=1, dof1.2=2),
 #    decomp_outflux2 = list(dof2.1=3),

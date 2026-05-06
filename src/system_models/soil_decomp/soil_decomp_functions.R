@@ -43,6 +43,8 @@ f_identity    <- function(., C, t, i ) 1
 f_decomp_fluxsum <- function(., i, ... )
   sum(unlist(.super$state$outflux[unlist(.super$pars[[paste0('decomp_outflux',i)]]) ]))
  
+# function where there is a single flux from each pool, to work with outfluxes structure when all pools only have one flux
+f_decomp_outflux <- function(., i, ... ) .super$state$outflux[[i]]
  
 # linear decomp, Oleson 1963
 # - cat and sat_pool are dummy arguments to allow switching from other functions, APW: can ... be used?
@@ -408,16 +410,32 @@ f_transfer_fluxsum_prop_three_cue <- function(., from, ... )
 # CUE or carbon transfer efficiency sets transfer from one pool to another
 # MEND15
 f_transfer_cue       <- function(., C, t, from, to ) .super$pars$cue[[from]]    
+f_transfer_cue2      <- function(., C, t, from, to ) .super$pars$cue2[[from]]    
 f_transfer_cue_resp  <- function(., C, t, from, to ) 1 - .super$pars$cue[[from]]    
 
 # CUE / transfer efficiency sets transfer subject to a maximum pool size 
 # - can be used both for saturating MAOM pool and density dependent microbial growth efficiency
 # APW: should this include a min 0 function in the final term?
-f_transfer_cue_sat <- function(.,C,t,from,to) .super$pars$cue[[from]] * (1-C[to]/.super$pars$poolmax[[to]])
+f_transfer_cue_sat <- function(.,C,t,from,to) 
+  .super$pars$cue[[from]] * (1-C[to]/.super$pars$poolmax[[to]])
 
 # transfers remainder of cue function to another pool instead of CO2
 # MEND13
 f_transfer_cue_remainder <- function(.,C,t,from,to) (1-.super$pars$cue[[from]])
+
+# CENTURY specific CUE calculations
+f_transfer_century_quality <- function(.,C,t,from,to) 
+  #(1-.super$env$lignin) * .super$pars$century[['strlitter_to_active']] 
+  (1-.super$env$lignin) * .super$pars$cue[[from]] 
+
+f_transfer_century_quality2 <- function(.,C,t,from,to) 
+  #.super$env$lignin * .super$pars$century[['strlitter_to_slow']] 
+  .super$env$lignin * .super$pars$cue2[[from]] 
+
+f_transfer_century_texture <- function(.,C,t,from,to) 
+  #(1-f_TEX-.super$pars$century[['active_to_passive']]) 
+  (1-.[[paste0('scor.s',from)]]()-.super$pars$cue2[[from]]) 
+
 
 # transfer from mbc to pom in mend: (1-gd)(1-pe)(fe/f_decomp_mbc_mend)
 f_transfer_mend21 <- function(.,C,t,from,to){
@@ -477,6 +495,7 @@ f_transfer_mend54 <- function(.,C,t,from,to){
 
 f_tcor_none <- function(...) 1
 f_wcor_none <- function(...) 1
+f_scor_none <- function(...) 1
 
 
 # correct soil protection rates

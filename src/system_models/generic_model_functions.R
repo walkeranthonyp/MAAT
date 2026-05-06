@@ -373,8 +373,14 @@ configure <- function(., vlist, df, init=F, o=T ) {
 
 # configure a list variable
 configure_sublist <- function(., ss, vlist, df ) {
+  #print(vlist)
+  #print(ss)
+  #print(names(df)[ss])
   lnames <- strsplit(names(df)[ss], '.', fixed=T )
   ss1    <- which(names(.[[vlist]])==lnames[[1]][2])
+  #print(names(.[[vlist]]))
+  #print(lnames)
+  #print(ss1)
   ss2    <- which(names(.[[vlist]][[ss1]])==lnames[[1]][3])
   .[[vlist]][[ss1]][ss2] <- df[ss]
   return(1)

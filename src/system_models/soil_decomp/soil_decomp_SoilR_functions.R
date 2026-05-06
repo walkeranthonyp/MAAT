@@ -47,9 +47,11 @@ f_DotO <- function(., C, t ) {
   
   # call functions and create decomp matrix 
   m <- matrix(ncol=1, nrow=.super$pars$n_pools )
+  #print(m)
   for(i in 1:nrow(m)) { 
     #print(i); print(.[[paste0('decomp.d',i)]]) 
     m[i,] <- .[[paste0('decomp.d',i)]](C=C, t=t, i=i )
+    #print(m)
   }
   m
 }
@@ -64,9 +66,11 @@ f_outfluxes <- function(., C, t ) {
 
     # cycle through outfluxes associated with each pool 
     for(of in unlist(.super$pars[[paste0('decomp_outflux',i)]]) ) {
-      #print(i); print(of)
+      print('f_outfluxes, i, of:')
+      print(c(i,of)) 
       .super$state$outflux[[paste0('of',of)]] <- 
-        .[[paste0('outflux.of',of)]](C=C, t=t, i=i, of=of ) * .[[paste0('tcor.t',of)]](i=of) * .[[paste0('wcor.w',of)]](i=of) 
+        .[[paste0('outflux.of',of)]](C=C, t=t, i=i, of=of ) * 
+        .[[paste0('tcor.t',of)]](i=of) * .[[paste0('wcor.w',of)]](i=of) * .[[paste0('scor.s',of)]](i=of) 
   }}
 }
 

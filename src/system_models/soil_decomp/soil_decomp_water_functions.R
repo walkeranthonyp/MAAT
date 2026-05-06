@@ -178,3 +178,14 @@ f_SWC2SWP_vanGenuchten <- function(.,C,t,i){
 # }
 
 
+# Equation B3, Abramoff et al. 2022
+f_scor_century_texture <- function(., ... ) 
+  .super$pars$century[['c1']] - .super$pars$century[['c2']]*.super$env$claysilt*.01
+  
+# Equation B4, Abramoff et al. 2022
+f_scor_century_quality <- function(., ... ) 
+  exp(-3*.super$env$lignin)
+  
+  
+  
+  
