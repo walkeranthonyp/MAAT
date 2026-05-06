@@ -396,65 +396,14 @@ f_transfer_fluxsum_prop <- function(., C, t, from, to, f ) {
 f_transfer_fluxsum_prop_one   <- function(., ... ) .$transfer_fluxsum_prop(f=1, ... ) 
 f_transfer_fluxsum_prop_two   <- function(., ... ) .$transfer_fluxsum_prop(f=2, ... ) 
 f_transfer_fluxsum_prop_three <- function(., ... ) .$transfer_fluxsum_prop(f=3, ... ) 
+
+# APW: this is an issue that needs solved
+#      we don't need n fluxes functions for each transfer coefficient
+#      can something like above be done so it's just one function with n fluxes wrappers
+# APW: also this includes a temperature function to calculate CUE, could be a state_pars type calculation   
 f_transfer_fluxsum_prop_three_cue <- function(., from, ... ) 
   (.super$pars$cue[[from]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']])) * 
   .$transfer_fluxsum_prop(f=3, from=from, ... ) 
-
-#f_transfer_fluxsum_prop_one <- function(., C, t, from, to, f=1 ) {
-#  #.super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] /
-#  #  .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
-#  total_flux <- .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
-#  if(total_flux==0) {
-#    return(0)
-#  } else {
-#    .super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] / total_flux
-#  }
-#}
-#
-#f_transfer_fluxsum_prop_two <- function(., C, t, from, to, f=2 ) {
-#  #print(from)
-#  #print(to)
-#  #print(unlist(paste0(.super$pars$decomp_outflux,from)))
-#  #print(.super$pars$decomp_outflux1)
-#  #print(f)
-#  #.super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] /
-#  #  .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
-#  total_flux <- .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
-#  if(total_flux==0) {
-#    return(0)
-#  } else {
-#    .super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] / total_flux
-#  }
-#}
-#
-#f_transfer_fluxsum_prop_three <- function(., C, t, from, to, f=3 ) {
-#  #.super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] /
-#  #  .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
-#  total_flux <- .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
-#  if(total_flux==0) {
-#    return(0)
-#  } else {
-#    .super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] / total_flux
-#  }
-#}
-#
-## APW: this function actually calculates CUE as a function of temperature, needs breaking out into a separate CUE function if CUE as functions are common
-#f_transfer_fluxsum_prop_three_cue <- function(., C, t, from, to, f=3 ) {
-#  #print(to)
-#  #print(unlist(paste0(.super$pars$decomp_outflux,from)))
-#  #print(.super$pars$decomp_outflux4)
-#  #print(f)
-#  #(.super$pars$cue[[from]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']])) * 
-#  #.super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] /
-#  #  .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
-#  total_flux <- .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
-#  if(total_flux==0) {
-#    return(0)
-#  } else {
-#    (.super$pars$cue[[from]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']])) * 
-#    .super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] / total_flux
-#  }
-#}
 
 # CUE or carbon transfer efficiency sets transfer from one pool to another
 # MEND15

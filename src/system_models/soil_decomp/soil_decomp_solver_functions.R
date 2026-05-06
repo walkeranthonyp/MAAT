@@ -15,6 +15,64 @@ f_solver_dummy <- function(., t, y, ... ) {
 
 
 
+# lsoda style function to solve CENTURY
+#######################################
+
+# - parms is a dummy argument to work with lsoda
+# Equations from Abramoff et al. 2021 Millennial v2 paper
+f_solver_func_century <- function(., t, y, parms) {
+  #Equation B1 
+  #just use .$tcor(.) instead of t_scalar
+  # t_scalar <- (t2 + (t3 / pi) * atan(pi * t4 * (forc_st - t1))) /
+  #   (t2 + (t3 / pi) * atan(pi * t4 *(30.0 - t1)))
+  
+  #Equation B2
+  #just use .$wcor(.) instead of w_scalar (porosity would need to be set to .39 to match Abramoff et al. 2021)
+  # w_scalar <- 1.0 / (1.0 + w1 * exp(-w2 * forc_sw/0.39))
+  
+  #Equation B3
+  f_TEX = .super$pars$century[['c1']] - .super$pars$century[['c2']]*.super$env$claysilt*.01
+  
+  #Equation B4
+  # f_StrLitter = StrLitter * k_strlitter * t_scalar * w_scalar * exp(-3*LigFrac)
+  f_StrLitter = .$decomp.d1(t = t, C=y, i=1) * .$tcor(.) * .$wcor(.) * exp(-3*.super$env$lignin)
+  
+  #Equation B5
+  # f_MetLitter = MetLitter * k_metlitter * t_scalar * w_scalar  
+  f_MetLitter = .$decomp.d2(t = t, C=y, i=2) * .$tcor(.) * .$wcor(.)
+  
+  #Equation B6
+  # f_ACTIVE <- ACTIVE * k_active * t_scalar * w_scalar * f_TEX
+  f_ACTIVE = .$decomp.d3(t = t, C=y, i=3) * .$tcor(.) * .$wcor(.) *f_TEX
+  
+  #Equation B7 
+  # f_SLOW <- SLOW * k_slow * t_scalar * w_scalar
+  f_SLOW = .$decomp.d4(t = t, C=y, i=4) * .$tcor(.) * .$wcor(.)
+  
+  #Equation B8
+  # f_PASSIVE <- PASSIVE * k_passive * t_scalar * w_scalar
+  f_PASSIVE = .$decomp.d5(t = t, C=y, i=5) * .$tcor(.) * .$wcor(.)
+  
+  #Equation B9
+  dStrLitter = .super$pars$input_coefs[[1]] * .super$env$litter - f_StrLitter
+  
+  #Equation B10
+  dMetLitter = .super$pars$input_coefs[[2]] * .super$env$litter - f_MetLitter
+  
+  #Equation B11
+  dACTIVE <- (1-.super$env$lignin) * .super$pars$century[['strlitter_to_active']] * f_StrLitter + .super$pars$century[['metlitter_to_active']] * f_MetLitter  + f_SLOW * .super$pars$century[['slow_to_active']] + f_PASSIVE * .super$pars$century[['passive_to_active']] - f_ACTIVE
+  
+  #Equation B12
+  dSLOW <-  .super$env$lignin * .super$pars$century[['strlitter_to_slow']] * f_StrLitter + f_ACTIVE * (1-f_TEX-.super$pars$century[['active_to_passive']]) - f_SLOW
+  
+  #Equation B13
+  dPASSIVE <- f_ACTIVE * .super$pars$century[['active_to_passive']] + f_SLOW * .super$pars$century[['slow_to_passive']] - f_PASSIVE
+  
+  list(c(dStrLitter, dMetLitter, dACTIVE, dSLOW, dPASSIVE))
+}
+
+
+
 # lsoda style function to solve MILLENNIALv2
 #############################################
 
@@ -628,64 +686,6 @@ f_solver_func_millennial <- function(., t, y, parms) {
   dA <- Fma + Fpa - Fa
   #print(.$aggform.a1(t=t,C=y,i=1))
   list(c(dP, dB, dM, dD, dA))
-}
-
-
-
-# lsoda style function to solve CENTURY
-#######################################
-
-# - parms is a dummy argument to work with lsoda
-# Equations from Abramoff et al. 2021 Millennial v2 paper
-f_solver_func_century <- function(., t, y, parms) {
-  #Equation B1 
-  #just use .$tcor(.) instead of t_scalar
-  # t_scalar <- (t2 + (t3 / pi) * atan(pi * t4 * (forc_st - t1))) /
-  #   (t2 + (t3 / pi) * atan(pi * t4 *(30.0 - t1)))
-  
-  #Equation B2
-  #just use .$wcor(.) instead of w_scalar (porosity would need to be set to .39 to match Abramoff et al. 2021)
-  # w_scalar <- 1.0 / (1.0 + w1 * exp(-w2 * forc_sw/0.39))
-  
-  #Equation B3
-  f_TEX = .super$pars$century[['c1']] - .super$pars$century[['c2']]*.super$env$claysilt*.01
-  
-  #Equation B4
-  # f_StrLitter = StrLitter * k_strlitter * t_scalar * w_scalar * exp(-3*LigFrac)
-  f_StrLitter = .$decomp.d1(t = t, C=y, i=1) * .$tcor(.) * .$wcor(.) * exp(-3*.super$env$lignin)
-  
-  #Equation B5
-  # f_MetLitter = MetLitter * k_metlitter * t_scalar * w_scalar  
-  f_MetLitter = .$decomp.d2(t = t, C=y, i=2) * .$tcor(.) * .$wcor(.)
-  
-  #Equation B6
-  # f_ACTIVE <- ACTIVE * k_active * t_scalar * w_scalar * f_TEX
-  f_ACTIVE = .$decomp.d3(t = t, C=y, i=3) * .$tcor(.) * .$wcor(.) *f_TEX
-  
-  #Equation B7 
-  # f_SLOW <- SLOW * k_slow * t_scalar * w_scalar
-  f_SLOW = .$decomp.d4(t = t, C=y, i=4) * .$tcor(.) * .$wcor(.)
-  
-  #Equation B8
-  # f_PASSIVE <- PASSIVE * k_passive * t_scalar * w_scalar
-  f_PASSIVE = .$decomp.d5(t = t, C=y, i=5) * .$tcor(.) * .$wcor(.)
-  
-  #Equation B9
-  dStrLitter = .super$pars$input_coefs[[1]] * .super$env$litter - f_StrLitter
-  
-  #Equation B10
-  dMetLitter = .super$pars$input_coefs[[2]] * .super$env$litter - f_MetLitter
-  
-  #Equation B11
-  dACTIVE <- (1-.super$env$lignin) * .super$pars$century[['strlitter_to_active']] * f_StrLitter + .super$pars$century[['metlitter_to_active']] * f_MetLitter  + f_SLOW * .super$pars$century[['slow_to_active']] + f_PASSIVE * .super$pars$century[['passive_to_active']] - f_ACTIVE
-  
-  #Equation B12
-  dSLOW <-  .super$env$lignin * .super$pars$century[['strlitter_to_slow']] * f_StrLitter + f_ACTIVE * (1-f_TEX-.super$pars$century[['active_to_passive']]) - f_SLOW
-  
-  #Equation B13
-  dPASSIVE <- f_ACTIVE * .super$pars$century[['active_to_passive']] + f_SLOW * .super$pars$century[['slow_to_passive']] - f_PASSIVE
-  
-  list(c(dStrLitter, dMetLitter, dACTIVE, dSLOW, dPASSIVE))
 }
 
 
