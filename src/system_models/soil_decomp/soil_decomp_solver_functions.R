@@ -432,20 +432,17 @@ f_solver_func_mimics <- function(., t, y, parms){
   #dynamic parameters
   fmet = .super$pars$mimics[['fmet_p1']] * (.super$pars$mimics[['fmet_p2']] - .super$pars$mimics[['fmet_p3']]*(.super$env$lignin/.super$env$N))
   
-  
   # ensures that tau_mod1 is between two values
   # in Will's script, anpp is multipled by 0 in the manipulation scirpt... which would imply that 
   # tau_mod1 might always be set to 0.6 in the simulations in Ben's paper
-  tau_mod1 = min(max(sqrt(.super$env$anpp/.super$pars$mimics[['tau_mod1_p1']]),.super$pars$mimics[['tau_mod1_p2']]),.super$pars$mimics[['tau_mod1_p3']]) 
+  tau_mod1 = min(max(sqrt(.super$env$anpp/.super$pars$mimics[['tau_mod1_p1']]),.super$pars$mimics[['tau_mod1_p2']]),.super$pars$mimics[['tau_mod1_p3']])
   tau_r = .super$pars$mimics[['tau_r_p1']] * exp(.super$pars$mimics[['tau_r_p2']] * fmet) *tau_mod1 * .super$pars$mimics[['tau_mod2']]
   tau_k = .super$pars$mimics[['tau_k_p1']] * exp(.super$pars$mimics[['tau_k_p2']] * fmet) *tau_mod1 * .super$pars$mimics[['tau_mod2']]
-  
   .super$pars$k[[3]] = tau_r
   .super$pars$k[[4]] = tau_k
   
   #this could be added to decomp functions
   desorb = .super$pars$mimics[['desorb_p1']] * exp(.super$pars$mimics[['desorb_p2']] * .super$env$clay) * 0.1
-  
   .super$pars$k[[5]] = desorb
   
   #total decomp fluxes (for pools with more than one decomp output)
@@ -502,20 +499,17 @@ f_solver_func_mimics_sat <- function(., t, y, parms){
   #dynamic parameters
   fmet = .super$pars$mimics[['fmet_p1']] * (.super$pars$mimics[['fmet_p2']] - .super$pars$mimics[['fmet_p3']]*(.super$env$lignin/.super$env$N))
   
-  
   # ensures that tau_mod1 is between two values
   # in Will's script, anpp is multipled by 0 in the manipulation scirpt... which would imply that 
   # tau_mod1 might always be set to 0.6 in the simulations in Ben's paper
   tau_mod1 = min(max(sqrt(.super$env$anpp/.super$pars$mimics[['tau_mod1_p1']]),.super$pars$mimics[['tau_mod1_p2']]),.super$pars$mimics[['tau_mod1_p3']]) 
   tau_r = .super$pars$mimics[['tau_r_p1']] * exp(.super$pars$mimics[['tau_r_p2']] * fmet) *tau_mod1 * .super$pars$mimics[['tau_mod2']]
   tau_k = .super$pars$mimics[['tau_k_p1']] * exp(.super$pars$mimics[['tau_k_p2']] * fmet) *tau_mod1 * .super$pars$mimics[['tau_mod2']]
-  
   .super$pars$k[[3]] = tau_r
   .super$pars$k[[4]] = tau_k
   
   #this could be added to decomp functions
   desorb = .super$pars$mimics[['desorb_p1']] * exp(.super$pars$mimics[['desorb_p2']] * .super$env$clay) * 0.1
-  
   .super$pars$k[[5]] = desorb
   
   #total decomp fluxes (for pools with more than one decomp output)

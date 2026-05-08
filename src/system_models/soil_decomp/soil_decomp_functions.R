@@ -20,9 +20,19 @@ source('soil_decomp_water_functions.R')
 
 # function for converting ANPP to litter inputs from MIMICS
 f_input_mimics <- function(., t ) {
+  # convert inputs
   EST_LIT_in <- .super$env$anpp / (365*24) # gC/m2/h (from gC/m2/y)
   EST_LIT    <- EST_LIT_in  * 1e3 / 1e4    #mgC/cm2/h(from gC/m2/h)
-  EST_LIT/.super$env$depth 
+  input      <- EST_LIT/.super$env$depth 
+ 
+  # partitioning inputs
+  i_LITm <- input * .super$state_pars$fmet     * (1-.super$pars$mimics[['fi_LITm']])
+  i_LITs <- input * (1-.super$state_pars$fmet) * (1-.super$pars$mimics[['fi_LITs']])
+  i_SOMp <- input * .super$state_pars$fmet     * .super$pars$mimics[['fi_LITm']]
+  i_SOMc <- input * (1-.super$state_pars$fmet) * .super$pars$mimics[['fi_LITs']]
+
+  # input matrix
+  matrix(c(i_LITm, i_LITs, 0, 0, i_SOMp, i_SOMc, 0 ), ncol=1 ) 
 }
 
 
@@ -60,6 +70,8 @@ f_decomp_outflux <- function(., i, ... ) .super$state$outflux[[i]]
 f_decomp_lin <- function(., C, t, i, of=i, k=.super$pars$k[[of]], ... ) 
   C[i]*k
   #if(C[i]>0) C[i]*k else 0
+f_decomp_lin <- function(., C, t, i, of=i, k=.super$state_pars$k[[of]], ... ) 
+  C[i]*k
 
 
 # density-dependent decomp, used for density-dependent turnover as in Georgiou et al. 2017  
@@ -91,14 +103,18 @@ f_decomp_mm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool )
 # - APW: should km be rkm here or does it not matter? 
 #f_decomp_rmm <- function(., C, t, i, cat=4, k=NULL )
 #  (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[cat] + .super$pars$km[[i]])
-f_decomp_rmm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool, ... ) { 
+#f_decomp_rmm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool, ... ) { 
+f_decomp_rmm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]], ... ) { 
   #print("decomp_rmm")
+  #print(i)
   #print(of)
   #print(C[i])
+  #print(cat_pool) 
   #print(C[cat_pool]) 
   #print(.super$pars$vmax[[of]])
-  #print(.super$pars$km[[of]]) 
-  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (.super$pars$km[[of]] + C[cat_pool])
+  #print(.super$state_pars$km[[of]]) 
+  #(.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (.super$pars$km[[of]] + C[cat_pool])
+  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (.super$state_pars$km[[of]] + C[cat_pool])
   #if(C[i]>0 & C[cat_pool]>0) (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (.super$pars$km[[of]] + C[cat_pool]) else 0
 }
 
@@ -256,6 +272,93 @@ f_uptake_lin <- function(., C, t, i, cat )
 # would be ideal to pull these out
 # for now we could define all the parameters with if...then statements in the solver function
 
+calc_state_pars_weider <- function(.) {
+
+  # general parameters
+  .super$state_pars$fmet     <- .$fmet()
+  .super$state_pars$tau_mod1 <- .$tau_mod1()
+  
+  # k parameters
+  # -- as MEC noted when there is a catalyst pool in mm or rmm decomp, Vmax units are per unit time only
+  # -- i.e. they are a specific flux rate per unit mass of the catalyst, so mass units cancel
+  # -- thus vmax is equivalent to k  
+  for(i in c(5:7)) .super$state_pars$k[[i]] <- .[[paste0('k.k',i)]](i=i) 
+  #.super$pars$k[[5]] <- .$k_tau_r()
+  #.super$pars$k[[6]] <- .$k_tau_k()
+  #.super$pars$k[[7]] <- .$k_tau_desorb()
+
+  # km parameters
+  #for(i in 1:.super$pars$n_outfluxes) .super$state_pars$km[[i]] <- .[[paste0('km.km',i)]](i)
+  for(i in c(1:4,8:11)) .super$state_pars$km[[i]] <- .[[paste0('km.km',i)]](i=i) 
+
+  # cue parameters
+  for(i in c(1:6,10:11)) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
+  for(i in 5:6)          .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](i=i) 
+}
+
+
+# dynamic parameters
+
+# km functions
+#Wieder et al. 2015 function for calculating Km using a base Km value and clay content
+#cat_pool can be adjusted: 3 = r_selected microbes, 4 = k_selected microbes
+#in MIMICS this function is applied to pool 7 (SOMa) for both types of microbe (r and k)
+#cat_pool=.super$pars$cat_pool[[i]] ) {
+f_km_wieder_temp_clay <- function(., i ) { 
+  pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+  km1 = .super$pars$km[[i]] * pscalar
+  exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] / km1
+}
+
+#Wieder et al. 2015 function for calculating Km using a base Km value and tuning coefficient (ko_r)
+#This function currently specific to r_selected microbes (cat_pool = 3)
+#in MIMICS this function is applied to pool 6 (SOMc) for both types of microbe (r and k)
+f_km_wieder_temp_tuning1 <- function(., i ) {
+  km1 = .super$pars$km[[i]] *(1/.super$pars$mimics[['ko_r']]) #
+  exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] / km1
+}
+
+#Wieder et al. 2015 function for calculating Km using a base Km value and tuning coefficient (ko_r)
+#This function currently specific to k_selected microbes (cat_pool = 4)
+#in MIMICS this function is applied to pool 6 (SOMc) for both types of microbe (r and k)
+f_km_wieder_temp_tuning2 <- function(., i ) {
+  km1 = .super$pars$km[[i]] *(1/.super$pars$mimics[['ko_k']]) #
+  exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] / km1
+}
+
+f_km_wieder_temp <- function(., i ) {
+  exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /.super$pars$km[[i]]
+}
+
+# k functions
+f_texture_wieder_fmet <- function(.) 
+  .super$pars$mimics[['fmet_p1']] * (.super$pars$mimics[['fmet_p2']] - .super$pars$mimics[['fmet_p3']]*(.super$env$lignin/.super$env$N))
+
+# ensures that tau_mod1 is between two values
+# in Will's script, anpp is multipled by 0 in the manipulation scirpt... which would imply that 
+# tau_mod1 might always be set to 0.6 in the simulations in Ben's paper
+f_k_wieder_tau_mod1 <- function(.) 
+  min(max(sqrt(.super$env$anpp/.super$pars$mimics[['tau_mod1_p1']]),.super$pars$mimics[['tau_mod1_p2']]),.super$pars$mimics[['tau_mod1_p3']])
+f_k_wieder_tau_r <- function(., ... )
+  .super$pars$mimics[['tau_r_p1']] * exp(.super$pars$mimics[['tau_r_p2']] * .super$state_pars$fmet) * .super$state_pars$tau_mod1 * .super$pars$mimics[['tau_mod2']]
+f_k_wieder_tau_k <- function(., ... ) 
+  .super$pars$mimics[['tau_k_p1']] * exp(.super$pars$mimics[['tau_k_p2']] * .super$state_pars$fmet) * .super$state_pars$tau_mod1 * .super$pars$mimics[['tau_mod2']]
+f_k_wieder_desorb <- function(., ... ) 
+  .super$pars$mimics[['desorb_p1']] * exp(.super$pars$mimics[['desorb_p2']] * .super$env$clay) * 0.1
+ 
+f_cue_wieder_texture1 <- function(., ... ) 
+  .super$pars$mimics[['fSOMp_r_p1']] * exp(.super$pars$mimics[['fSOMp_r_p2']]*.super$env$clay) * 0.1 #0.1 manual calibration from Will's script #fSOMp_r
+f_cue_wieder_quality1 <- function(., ... ) 
+  .super$pars$mimics[['fSOMc_r_p1']] * exp(.super$pars$mimics[['fSOMc_r_p2']]*.super$state_pars$fmet)*.super$pars$mimics[['fSOMc_r_p3']]  #fSOMc_r
+#f_transfer_remainder_2cues1 <- function(., ... ) 
+#  1 - .$transfer.t3_to_5() - .$transfer.t3_to_6() 
+f_cue_wieder_texture2 <- function(., ... ) 
+  .super$pars$mimics[['fSOMp_k_p1']] * exp(.super$pars$mimics[['fSOMp_k_p2']]*.super$env$clay) * 0.1 #fSOMp_k
+f_cue_wieder_quality2 <- function(., ... ) 
+  .super$pars$mimics[['fSOMc_k_p1']] * exp(.super$pars$mimics[['fSOMc_k_p2']]*.super$state_pars$fmet)*.super$pars$mimics[['fSOMc_k_p3']]  #fSOMc_k
+#f_transfer_remainder_2cues2 <- function(., ... ) 
+#  1 - .$transfer.t4_to_5() - .$transfer.t4_to_6() 
+
 # APW: WFT?? haha
 f_decomp_rmm_wieder <- function(.,C,t,i,cat_pool = 3){
   if(cat_pool == 3){
@@ -273,6 +376,7 @@ f_decomp_rmm_wieder <- function(.,C,t,i,cat_pool = 3){
     ### RMM equation
     C[i] * .super$pars$vmax[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
     ###
+
   } else {
     if(i==7){
       pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
@@ -378,28 +482,77 @@ f_desorp_millennialv2_nosat <- function(., C, t, i, ... )
 # transfer functions
 ###################
 
+f_cue_constant <- function(., i ) 
+  .super$pars$cue[[i]] 
+
 # transfer all or nothing
-f_transfer_all  <- function(.,C,t,from,to) 1
-f_transfer_zero <- function(.,C,t,from,to) 0
+f_transfer_all  <- function(., ... ) 1
+f_transfer_zero <- function(., ... ) 0
+
+# CUE or carbon transfer efficiency sets transfer from one pool to another
+# MEND15
+f_transfer_cue       <- function(., C, t, from, to ) .super$pars$cue[[from]]    
+f_transfer_cue2      <- function(., C, t, from, to ) .super$pars$cue2[[from]]    
+f_transfer_cue_resp  <- function(., C, t, from, to ) 1 - .super$pars$cue[[from]]    
+f_transfer_cue       <- function(., C, t, from, to ) .super$state_pars$cue[[from]]    
+f_transfer_cue2      <- function(., C, t, from, to ) .super$state_pars$cue2[[from]]    
+f_transfer_cue_resp  <- function(., C, t, from, to ) 1 - .super$state_pars$cue[[from]]    
+
+# transfers remainder of cue function to another pool instead of CO2
+# MEND13
+f_transfer_cue_remainder <- function(.,C,t,from,to) (1-.super$pars$cue[[from]])
+f_transfer_cue_remainder <- function(.,C,t,from,to) (1-.super$state_pars$cue[[from]])
+f_transfer_cue_remainder <- function(.,C,t,from,to) (1-.super$state_pars$cue[[from]])
+
+f_transfer_fluxid_cue <- function(., C, t, from, to ) {
+  # get outflux index
+  of <- unlist(.super$pars[[paste0('decomp_outflux',from)]])[1]
+  .super$state_pars$cue[[of]]
+}
+f_transfer_fluxid_cue2 <- function(., C, t, from, to ) {
+  # get outflux index
+  of <- unlist(.super$pars[[paste0('decomp_outflux',from)]])[1]
+  .super$state_pars$cue2[[of]]
+}
+f_transfer_fluxid_cue_remainder <- function(., C, t, from, to ) {
+  # get outflux index
+  of <- unlist(.super$pars[[paste0('decomp_outflux',from)]])[1]
+  1 - .super$state_pars$cue[[of]]
+}
+f_transfer_fluxid_cue2_remainder <- function(., C, t, from, to ) {
+  # get outflux index
+  of <- unlist(.super$pars[[paste0('decomp_outflux',from)]])[1]
+  1 - .super$state_pars$cue[[of]] - .super$state_pars$cue2[[of]]
+}
 
 # transfer functions that when there are multiple out fluxes, calculate the proportion of each flux of the total flux
 # APW: could turn this into a standard calculation in the SoilR function that calculates proportion for all fluxes 
 # APW problem: when all fluxes are zero these functions create a NaN
-f_transfer_fluxsum_prop <- function(., C, t, from, to, f ) {
+f_transfer_fluxsum_prop <- function(., C, t, from, to, f, cue=F ) {
   #print("transfer fluxsum generic")
   #print(.); print(C); print(t); print(to); print(from)
   
+  # get outflux index
+  of <- unlist(.super$pars[[paste0('decomp_outflux',from)]])[f]
+
+  # if CUE get CUE
+  #cue_val <- if(cue) .super$pars$cue[[of]] else 1    
+  cue_val <- if(cue) .super$state_pars$cue[[of]] else 1    
+ 
   total_flux <- .[[paste0('decomp.d',from)]](C=C, t=t, i=from )
   if(total_flux==0) {
     return(0)
   } else {
-    .super$state$outflux[[unlist(.super$pars[[paste0('decomp_outflux',from)]])[f] ]] / total_flux
+    cue_val * .super$state$outflux[[of]] / total_flux
   }
 }
 
 f_transfer_fluxsum_prop_one   <- function(., ... ) .$transfer_fluxsum_prop(f=1, ... ) 
 f_transfer_fluxsum_prop_two   <- function(., ... ) .$transfer_fluxsum_prop(f=2, ... ) 
 f_transfer_fluxsum_prop_three <- function(., ... ) .$transfer_fluxsum_prop(f=3, ... ) 
+f_transfer_fluxsum_prop_one_cue   <- function(., ... ) .$transfer_fluxsum_prop(f=1, cue=T, ... ) 
+f_transfer_fluxsum_prop_two_cue   <- function(., ... ) .$transfer_fluxsum_prop(f=2, cue=T, ... ) 
+f_transfer_fluxsum_prop_three_cue <- function(., ... ) .$transfer_fluxsum_prop(f=3, cue=T, ... ) 
 
 # APW: this is an issue that needs solved
 #      we don't need n fluxes functions for each transfer coefficient
@@ -409,24 +562,11 @@ f_transfer_fluxsum_prop_three_cue <- function(., from, ... )
   (.super$pars$cue[[from]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']])) * 
   .$transfer_fluxsum_prop(f=3, from=from, ... ) 
 
-f_transfer_fluxsum_prop_one_cue <- function(., from, ... ) 
-  .super$pars$cue[[from]] * .$transfer_fluxsum_prop(f=1, from=from, ... ) 
-
-# CUE or carbon transfer efficiency sets transfer from one pool to another
-# MEND15
-f_transfer_cue       <- function(., C, t, from, to ) .super$pars$cue[[from]]    
-f_transfer_cue2      <- function(., C, t, from, to ) .super$pars$cue2[[from]]    
-f_transfer_cue_resp  <- function(., C, t, from, to ) 1 - .super$pars$cue[[from]]    
-
 # CUE / transfer efficiency sets transfer subject to a maximum pool size 
 # - can be used both for saturating MAOM pool and density dependent microbial growth efficiency
 # APW: should this include a min 0 function in the final term?
 f_transfer_cue_sat <- function(.,C,t,from,to) 
   .super$pars$cue[[from]] * (1-C[to]/.super$pars$poolmax[[to]])
-
-# transfers remainder of cue function to another pool instead of CO2
-# MEND13
-f_transfer_cue_remainder <- function(.,C,t,from,to) (1-.super$pars$cue[[from]])
 
 # CENTURY specific CUE calculations
 f_transfer_century_quality <- function(.,C,t,from,to) 

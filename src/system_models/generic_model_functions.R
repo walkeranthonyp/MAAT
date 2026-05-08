@@ -139,17 +139,18 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
   for(l in .$pool_pars) {
     if(is.list(.$pars[[l]])) {
       print(l)
-      .$pars[[l]] <- list(1)
+      .$pars[[l]] <- list(NA)
       names(.$pars[[l]]) <- paste0(l,1)
       .$pars[[l]][paste0(l,2:n_pools)] <- NA 
     }
   }
   # - for parameters that are indexed by the number of outfluxes
+  print('',quote=F)
   print('Indexing outflux_pars lists ...',quote=F)  
   for(l in .$outflux_pars) { 
     if(is.list(.$pars[[l]])) {
       print(l)
-      .$pars[[l]] <- list(1)
+      .$pars[[l]] <- list(NA)
       names(.$pars[[l]]) <- paste0(l,1)
       .$pars[[l]][paste0(l,2:n_outfluxes)] <- NA 
     }

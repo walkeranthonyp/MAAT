@@ -31,6 +31,7 @@ f_steadystate_npools <- function(.) {
 
   .super$state_pars$kaff_lm <- exp(-.super$pars$millennialV2[['sorp_p1']]*.super$env$pH - 
                                  .super$pars$millennialV2[['sorp_p2']] ) * .super$pars$millennialV2[['kld']]
+  .$calc_state_pars()
 
   #print('here1')
   .super$state_pars$solver_steadystate_out <- 

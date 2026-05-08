@@ -16,24 +16,38 @@ source('soil_decomp_object.R')
 
 #soil_decomp_object$.test.mimics.ss()
 soil_decomp_object$.test()
+soil_decomp_object$state$cpools
 soil_decomp_object$.test(litter=172.8978/365/1000)
 soil_decomp_object$.test(litter=.5/.15/365)
 soil_decomp_object$.test(litter=10)
+
+soil_decomp_object$fns$km.km1
+soil_decomp_object$fns$calc_state_pars
+soil_decomp_object$fns[['outflux.of11']]
+soil_decomp_object$fns$tcor
 
 unlist(soil_decomp_object$state)
 soil_decomp_object$state$cpools
 soil_decomp_object$state$outflux
 soil_decomp_object$fnames
+soil_decomp_object$fnames$cue
 soil_decomp_object$fnames$outflux
 soil_decomp_object$fnames$transfer
 soil_decomp_object$pars
+soil_decomp_object$fnames$k
 soil_decomp_object$pars$k
+soil_decomp_object$state_pars$k
+soil_decomp_object$fnames$km
 soil_decomp_object$pars$km
+soil_decomp_object$state_pars$km
 soil_decomp_object$pars$cue
 soil_decomp_object$pars$cue2
+soil_decomp_object$pars$cat_pool
 soil_decomp_object$pars$cstate0
 soil_decomp_object$pars$input_coefs
 soil_decomp_object$pars$millennialV2
+
+soil_decomp_object$env
 
 names(soil_decomp_object$fns)
 soil_decomp_object$fns$decomp.d1

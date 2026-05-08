@@ -80,7 +80,8 @@ soil_decomp_object$fnames <- list(
   transfermatrix        = 'f_transfermatrix',
   transfer_fluxsum_prop = 'f_transfer_fluxsum_prop',
   outfluxes             = 'f_outfluxes',
-  
+  calc_state_pars       =  'calc_state_pars_weider',
+ 
   # decay/decomposition/flux functions, one per pool
   # - these functions represent the total flux out of a given pool
   # - can be the sum of multipl terms in the "outflux" list
@@ -155,7 +156,8 @@ soil_decomp_object$fnames <- list(
     t7 = 'f_tcor_none',
     t8 = 'f_tcor_arrhenius_millennialv2',
     t9 = 'f_tcor_none',
-    t10 = 'f_tcor_none'
+    t10 = 'f_tcor_none',
+    t11 = 'f_tcor_none'
   ),
 
   # - water scalars 
@@ -170,7 +172,8 @@ soil_decomp_object$fnames <- list(
     w7 = 'f_wcor_ghezzehei_diffusion',
     w8 = 'f_wcor_ghezzehei_biological',
     w9 = 'f_wcor_ghezzehei_diffusion',
-    w10 = 'f_wcor_ghezzehei_diffusion'
+    w10 = 'f_wcor_ghezzehei_diffusion',
+    w11 = 'f_wcor_ghezzehei_diffusion'
   ),
 
   # - soil or litter scalars 
@@ -184,7 +187,8 @@ soil_decomp_object$fnames <- list(
     s7 = 'f_scor_none',
     s8 = 'f_scor_none',
     s9 = 'f_scor_none',
-    s10 = 'f_scor_none'
+    s10 = 'f_scor_none',
+    s11 = 'f_scor_none'
   ),
 
   # transfer list
@@ -234,6 +238,45 @@ soil_decomp_object$fnames <- list(
     # t7_to_5 = 'f_transfer_all'
   ),
 
+  cue = list(
+    cue1 = character(1),
+    cue2 = character(1),
+    cue3 = character(1),
+    cue4 = character(1),
+    cue5 = character(1),
+    cue6 = character(1),
+    cue10 = character(1),
+    cue11 = character(1)
+  ),
+
+  cue2 = list(
+    cue25 = character(1),
+    cue26 = character(1)
+  ),
+
+  k = list(
+    k5 = 'f_k_wieder_tau_r',
+    k6 = 'f_k_wieder_tau_k', 
+    k7 = 'f_k_wieder_desorb' 
+  ),
+
+  km = list(
+    km1 = 'f_km_wieder_temp', # pool 1 cat3
+    km2 = 'f_km_wieder_temp', # pool 1 cat4
+    km3 = 'f_km_wieder_temp', # pool 2 cat4
+    km4 = 'f_km_wieder_temp', # pool 2 cat3
+    km8 = 'f_km_wieder_temp_tuning1', # pool6 cat3 
+    km9 = 'f_km_wieder_temp_tuning2', # pool6 cat4 
+    km10 = 'f_km_wieder_temp_clay',   # pool7 cat3
+    km11 = 'f_km_wieder_temp_clay'    # pool7 cat4
+  ),
+  
+  fmet          = 'f_texture_wieder_fmet',
+  tau_mod1      = 'f_k_wieder_tau_mod1',
+  k_tau_r       = 'f_k_wieder_tau_r',
+  k_tau_k       = 'f_k_wieder_tau_k', 
+  k_tau_desorb  = 'f_k_wieder_desorb',
+
   # individual functions not directly associated with a specific pool or flux  
   growthresp = NA,
   maintresp  = NA,
@@ -266,7 +309,35 @@ soil_decomp_object$env <- list(
 ####################################
 soil_decomp_object$state_pars <- list(
   solver_out             = matrix(1),
-  solver_steadystate_out = matrix(1)
+  solver_steadystate_out = matrix(1),
+  fmet     = numeric(1), 
+  tau_mod1 = numeric(1), 
+  km = list(
+    km1 = numeric(1), 
+    km2 = numeric(1),  
+    km3 = numeric(1),  
+    km4 = numeric(1),  
+    km5 = numeric(1),  
+    km6 = numeric(1),  
+    km7 = numeric(1),  
+    km8 = numeric(1),  
+    km9 = numeric(1),  
+    km10 = numeric(1),  
+    km11 = numeric(1)  
+  ),
+  k = list(
+    k1 = numeric(1), 
+    k2 = numeric(1),  
+    k3 = numeric(1),  
+    k4 = numeric(1),  
+    k5 = numeric(1),  
+    k6 = numeric(1),  
+    k7 = numeric(1),  
+    k8 = numeric(1),  
+    k9 = numeric(1),  
+    k10 = numeric(1),  
+    k11 = numeric(1)  
+  )
 )
 
 
@@ -274,10 +345,11 @@ soil_decomp_object$state_pars <- list(
 ####################################
 # parameter names that have a value per pool
 # APW: decomp_ouflux needs a way to configure each list
-soil_decomp_object$pool_pars <- c('cstate0', 'decomp_outflux', 'cue', 'cue2', 'poolmax', 'input_coefs' )
+#soil_decomp_object$pool_pars <- c('cstate0', 'decomp_outflux', 'cue', 'cue2', 'poolmax', 'input_coefs' )
+soil_decomp_object$pool_pars <- c('cstate0', 'decomp_outflux', 'poolmax', 'input_coefs' )
 
 # parameter names that have a value per outflux
-soil_decomp_object$outflux_pars <- c('k', 'vmax', 'vmax2', 'km', 'km2', 'ea' ) 
+soil_decomp_object$outflux_pars <- c('k', 'vmax', 'vmax2', 'km', 'km2', 'ea', 'cat_pool', 'cue', 'cue2' ) 
 
 # parameters
 soil_decomp_object$pars <- list(
@@ -286,7 +358,7 @@ soil_decomp_object$pars <- list(
   n_pools      = 5,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
   n_outfluxes  = 9,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
   # APW: these might need to be n_outfluxes long
-  cat_pool     = 2,        # pool which catalyses reactions 
+  #cat_pool     = 2,        # pool which catalyses reactions 
   sat_pool     = 3,        # pool which saturates
 
   # general scalar parameters
@@ -312,13 +384,13 @@ soil_decomp_object$pars <- list(
   
   # outfluxes to decomp pool assignment
   # APW: list format didn't work due to nesting lists within a list, configure functions cannot handle 
-  decomp_outflux1 = list(dof11=1, dof12=2),
-  decomp_outflux2 = list(dof21=1, dof22=2),
-  decomp_outflux3 = list(dof31=1, dof32=2),
-  decomp_outflux4 = list(dof41=7),
-  decomp_outflux5 = list(dof51=8),
-  decomp_outflux6 = list(dof61=9),
-  decomp_outflux7 = list(dof71=10),
+  decomp_outflux1 = list(dof11=1, dof12=2 ),
+  decomp_outflux2 = list(dof21=3, dof22=4 ),
+  decomp_outflux3 = list(dof31=5),
+  decomp_outflux4 = list(dof41=6),
+  decomp_outflux5 = list(dof51=7),
+  decomp_outflux6 = list(dof61=8, dof62=9 ),
+  decomp_outflux7 = list(dof71=10, dof72=11 ),
 #  decomp_outflux1 = list(dof11=1),
 #  decomp_outflux2 = list(dof21=3),
 #  decomp_outflux3 = list(dof31=4),
@@ -482,6 +554,19 @@ soil_decomp_object$pars <- list(
     rkm10 = NA
   ),   
 
+  cat_pool = list(
+    cat_pool1 = NA, 
+    cat_pool2 = NA, 
+    cat_pool3 = NA,
+    cat_pool4 = NA,
+    cat_pool5 = NA,
+    cat_pool6 = NA,
+    cat_pool7 = NA,
+    cat_pool8 = NA, 
+    cat_pool9 = NA,
+    cat_pool10 = NA
+  ),
+  
   
   # Transfer parameters 
   # Carbon use or transfer efficiency from pool i to any another 
@@ -675,7 +760,7 @@ f_output_soil_decomp_full <- function(.) {
 # test functions
 #######################################################################        
 
-soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.00016, ntimes=100 ) {
+soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.00016, anpp=500*24, ntimes=100 ) {
 
   if(verbose) str(.)
   .$build(switches=c(F,verbose,F))
@@ -691,6 +776,7 @@ soil_decomp_object$.test <- function(., verbose=F, metdf=F, litter=.00016, ntime
     .$run_met()
   } else {
     .$env$litter  <- litter
+    .$env$anpp    <- anpp 
     signif(.$run(), 3 )
   }
 }
