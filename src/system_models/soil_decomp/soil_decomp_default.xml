@@ -76,25 +76,16 @@
       <transfer>
         <t1_to_3>'f_transfer_fluxsum_prop_one_cue'</t1_to_3>
         <t1_to_4>'f_transfer_fluxsum_prop_two_cue'</t1_to_4>
-        <t2_to_3>'f_transfer_fluxsum_prop_two_cue'</t2_to_3>
-        <t2_to_4>'f_transfer_fluxsum_prop_one_cue'</t2_to_4>
-
+        <t2_to_3>'f_transfer_fluxsum_prop_one_cue'</t2_to_3>
+        <t2_to_4>'f_transfer_fluxsum_prop_two_cue'</t2_to_4>
         <t3_to_5>'f_transfer_fluxid_cue'</t3_to_5>
         <t3_to_6>'f_transfer_fluxid_cue2'</t3_to_6>
         <t3_to_7>'f_transfer_fluxid_cue2_remainder'</t3_to_7>
         <t4_to_5>'f_transfer_fluxid_cue'</t4_to_5>
         <t4_to_6>'f_transfer_fluxid_cue2'</t4_to_6>
         <t4_to_7>'f_transfer_fluxid_cue2_remainder'</t4_to_7>
-        <!--t3_to_5>'f_transfer_cue_wieder_texture1'</t3_to_5>
-        <t3_to_6>'f_transfer_cue_wieder_quality1'</t3_to_6>
-        <t3_to_7>'f_transfer_remainder_2cues1'</t3_to_7>
-        <t4_to_5>'f_transfer_cue_wieder_texture2'</t4_to_5>
-        <t4_to_6>'f_transfer_cue_wieder_quality2'</t4_to_6>
-        <t4_to_7>'f_transfer_remainder_2cues2'</t4_to_7-->
-
         <t5_to_7>'f_transfer_all'</t5_to_7>
         <t6_to_7>'f_transfer_all'</t6_to_7>
-
         <t7_to_3>'f_transfer_fluxsum_prop_one_cue'</t7_to_3>
         <t7_to_4>'f_transfer_fluxsum_prop_two_cue'</t7_to_4>
       </transfer>
@@ -112,10 +103,6 @@
         <cue25>'f_cue_wieder_quality1'</cue25>
         <cue26>'f_cue_wieder_quality2'</cue26>
       </cue2>
-      <!--cue3>
-        <cue35>'f_transfer_remainder_2cues'</cue35>
-        <cue36>'f_transfer_remainder_2cues'</cue36>
-      </cue3-->
       <k> 
         <k5>'f_k_wieder_tau_r'</k5>
         <k6>'f_k_wieder_tau_k'</k6>
@@ -179,8 +166,8 @@
       <cat_pool>
         <cat_pool1>3</cat_pool1>
         <cat_pool2>4</cat_pool2>
-        <cat_pool3>4</cat_pool3>
-        <cat_pool4>3</cat_pool4>
+        <cat_pool3>3</cat_pool3>
+        <cat_pool4>4</cat_pool4>
         <cat_pool8>3</cat_pool8>
         <cat_pool9>4</cat_pool9>
         <cat_pool10>3</cat_pool10>
@@ -189,8 +176,8 @@
       <vmax>
         <vmax1>10</vmax1>
         <vmax2>3</vmax2>
-        <vmax3>3</vmax3>
-        <vmax4>2</vmax4>
+        <vmax3>2</vmax3>
+        <vmax4>3</vmax4>
         <vmax8>2</vmax8>
         <vmax9>3</vmax9>
         <vmax10>10</vmax10>
@@ -199,8 +186,8 @@
       <km>
         <km1>8</km1>
         <km2>2</km2>
-        <km3>4</km3>
-        <km4>2</km4>
+        <km3>2</km3>
+        <km4>4</km4>
         <km8>2</km8>
         <km9>4</km9>
         <km10>4</km10>
@@ -209,8 +196,8 @@
       <cue>
         <cue1>0.5</cue1>
         <cue2>0.7</cue2>
-        <cue3>0.35</cue3>
-        <cue4>0.25</cue4>
+        <cue3>0.25</cue3>
+        <cue4>0.35</cue4>
         <cue10>0.5</cue10>
         <cue11>0.7</cue11>
       </cue>
