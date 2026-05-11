@@ -3,24 +3,48 @@
 # MAAT soil_decomp process representation functions (PRFs)
 # 
 # Matt Craig, AWalker October 2019 
-# Carlos Sierra, Markus Mueller (SoilR developers) 
 #
 ################################
 
+source('soil_decomp_parameter_functions.R')
 source('soil_decomp_temperature_functions.R')
 source('soil_decomp_water_functions.R')
+
 
 
 # FUNCTIONS
 ################################
 
-
-# litter functions 
+# litter input functions 
 ################################
 
+# divides inputs among pools
+# returns input matrix, single column, rows = n_pools
+
+f_input <- function(., t ) {
+  # why is .$env$litter not .super$env$litter??
+  .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 )
+}
+
+
+f_input_clm5 <- function(., t ) {
+  m <- matrix(0, nrow=.super$pars$n_pools, ncol=1 )
+  f_litter_not_cwd <- 1 - .super$pars$input_coefs[[1]]
+  m[1,] <- .super$pars$input_coefs[[1]]
+  m[2,] <- f_litter_not_cwd * .super$pars$input_coefs[[2]]
+  m[3,] <- f_litter_not_cwd * .super$pars$input_coefs[[3]]
+  m[4,] <- f_litter_not_cwd * .super$pars$input_coefs[[4]]
+  
+  # print(.$env$litter * m)
+  .$env$litter * m
+}
+
+
 # function for converting ANPP to litter inputs from MIMICS
+# APW: some of these paramters coudl be calculated in calc_pars
 f_input_mimics <- function(., t ) {
-  # convert inputs
+  # convert anpp to litter inputs
+  # APW: could add this to env$litter
   EST_LIT_in <- .super$env$anpp / (365*24) # gC/m2/h (from gC/m2/y)
   EST_LIT    <- EST_LIT_in  * 1e3 / 1e4    #mgC/cm2/h(from gC/m2/h)
   input      <- EST_LIT/.super$env$depth 
@@ -39,7 +63,7 @@ f_input_mimics <- function(., t ) {
 
 # decomp functions
 # APW: strikes me that we might want a broader class of functions called flux functions given we have uptake, sorption, and other processes that cause a flux from one pool to another 
-###################
+################################
 
 # generic functions
 f_decomp_none <- function(., C, t, i, ... ) 0
@@ -67,9 +91,9 @@ f_decomp_outflux <- function(., i, ... ) .super$state$outflux[[i]]
 #    C[i]*k
 #  }
 #}
-f_decomp_lin <- function(., C, t, i, of=i, k=.super$pars$k[[of]], ... ) 
-  C[i]*k
-  #if(C[i]>0) C[i]*k else 0
+#f_decomp_lin <- function(., C, t, i, of=i, k=.super$pars$k[[of]], ... ) 
+#  C[i]*k
+#  #if(C[i]>0) C[i]*k else 0
 f_decomp_lin <- function(., C, t, i, of=i, k=.super$state_pars$k[[of]], ... ) 
   C[i]*k
 
@@ -93,11 +117,12 @@ f_decomp_MM_microbe <- function(., C, t, i, cat_pool=.super$pars$cat_pool )
 #  (.super$pars$vmax[[i]]*C[cat]*C[i]) / (C[i] + .super$pars$km[[i]])
 # - i refers to pool, of refers to outflux, where n_pools = n_outfluxes of = i 
 f_decomp_mm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool )
-  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[i] + .super$pars$km[[of]])
+  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (.super$pars$km[[of]] + C[i])
   #if(C[i]>0 & C[cat_pool]>0) (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[i] + .super$pars$km[[of]]) else 0
 
 
 # reverse Michaelis-Menten decomp
+# APW: this is the same as above, I guess the cat pool is different
 # - C[4] is microbial biomass in CORPSE
 # - k is dummy argument to get MILLENNIAL to work for mic decay of maom
 # - APW: should km be rkm here or does it not matter? 
@@ -179,6 +204,7 @@ f_decomp_doc_mend <- function(.,C,t,i) {
 # CORPSE-specific functions
 #########
 f_decomp_rmm_sulman <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
+
 f_decomp_rmm_sulman_gen <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool, ... ) 
   (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[cat_pool] + .super$pars$km[[of]]*(C[1]+C[2]+C[3]))
 
@@ -272,161 +298,75 @@ f_uptake_lin <- function(., C, t, i, cat )
 # would be ideal to pull these out
 # for now we could define all the parameters with if...then statements in the solver function
 
-calc_state_pars_weider <- function(.) {
-
-  # general parameters
-  .super$state_pars$fmet     <- .$fmet()
-  .super$state_pars$tau_mod1 <- .$tau_mod1()
-  
-  # k parameters
-  # -- as MEC noted when there is a catalyst pool in mm or rmm decomp, Vmax units are per unit time only
-  # -- i.e. they are a specific flux rate per unit mass of the catalyst, so mass units cancel
-  # -- thus vmax is equivalent to k  
-  for(i in c(5:7)) .super$state_pars$k[[i]] <- .[[paste0('k.k',i)]](i=i) 
-  #.super$pars$k[[5]] <- .$k_tau_r()
-  #.super$pars$k[[6]] <- .$k_tau_k()
-  #.super$pars$k[[7]] <- .$k_tau_desorb()
-
-  # km parameters
-  #for(i in 1:.super$pars$n_outfluxes) .super$state_pars$km[[i]] <- .[[paste0('km.km',i)]](i)
-  for(i in c(1:4,8:11)) .super$state_pars$km[[i]] <- .[[paste0('km.km',i)]](i=i) 
-
-  # cue parameters
-  for(i in c(1:6,10:11)) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
-  for(i in 5:6)          .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](i=i) 
-}
-
-
-# dynamic parameters
-
-# km functions
-#Wieder et al. 2015 function for calculating Km using a base Km value and clay content
-#cat_pool can be adjusted: 3 = r_selected microbes, 4 = k_selected microbes
-#in MIMICS this function is applied to pool 7 (SOMa) for both types of microbe (r and k)
-#cat_pool=.super$pars$cat_pool[[i]] ) {
-f_km_wieder_temp_clay <- function(., i ) { 
-  pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-  km1 = .super$pars$km[[i]] * pscalar
-  exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] / km1
-}
-
-#Wieder et al. 2015 function for calculating Km using a base Km value and tuning coefficient (ko_r)
-#This function currently specific to r_selected microbes (cat_pool = 3)
-#in MIMICS this function is applied to pool 6 (SOMc) for both types of microbe (r and k)
-f_km_wieder_temp_tuning1 <- function(., i ) {
-  km1 = .super$pars$km[[i]] *(1/.super$pars$mimics[['ko_r']]) #
-  exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] / km1
-}
-
-#Wieder et al. 2015 function for calculating Km using a base Km value and tuning coefficient (ko_r)
-#This function currently specific to k_selected microbes (cat_pool = 4)
-#in MIMICS this function is applied to pool 6 (SOMc) for both types of microbe (r and k)
-f_km_wieder_temp_tuning2 <- function(., i ) {
-  km1 = .super$pars$km[[i]] *(1/.super$pars$mimics[['ko_k']]) #
-  exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] / km1
-}
-
-f_km_wieder_temp <- function(., i ) {
-  exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /.super$pars$km[[i]]
-}
-
-# k functions
-f_texture_wieder_fmet <- function(.) 
-  .super$pars$mimics[['fmet_p1']] * (.super$pars$mimics[['fmet_p2']] - .super$pars$mimics[['fmet_p3']]*(.super$env$lignin/.super$env$N))
-
-# ensures that tau_mod1 is between two values
-# in Will's script, anpp is multipled by 0 in the manipulation scirpt... which would imply that 
-# tau_mod1 might always be set to 0.6 in the simulations in Ben's paper
-f_k_wieder_tau_mod1 <- function(.) 
-  min(max(sqrt(.super$env$anpp/.super$pars$mimics[['tau_mod1_p1']]),.super$pars$mimics[['tau_mod1_p2']]),.super$pars$mimics[['tau_mod1_p3']])
-f_k_wieder_tau_r <- function(., ... )
-  .super$pars$mimics[['tau_r_p1']] * exp(.super$pars$mimics[['tau_r_p2']] * .super$state_pars$fmet) * .super$state_pars$tau_mod1 * .super$pars$mimics[['tau_mod2']]
-f_k_wieder_tau_k <- function(., ... ) 
-  .super$pars$mimics[['tau_k_p1']] * exp(.super$pars$mimics[['tau_k_p2']] * .super$state_pars$fmet) * .super$state_pars$tau_mod1 * .super$pars$mimics[['tau_mod2']]
-f_k_wieder_desorb <- function(., ... ) 
-  .super$pars$mimics[['desorb_p1']] * exp(.super$pars$mimics[['desorb_p2']] * .super$env$clay) * 0.1
- 
-f_cue_wieder_texture1 <- function(., ... ) 
-  .super$pars$mimics[['fSOMp_r_p1']] * exp(.super$pars$mimics[['fSOMp_r_p2']]*.super$env$clay) * 0.1 #0.1 manual calibration from Will's script #fSOMp_r
-f_cue_wieder_quality1 <- function(., ... ) 
-  .super$pars$mimics[['fSOMc_r_p1']] * exp(.super$pars$mimics[['fSOMc_r_p2']]*.super$state_pars$fmet)*.super$pars$mimics[['fSOMc_r_p3']]  #fSOMc_r
-#f_transfer_remainder_2cues1 <- function(., ... ) 
-#  1 - .$transfer.t3_to_5() - .$transfer.t3_to_6() 
-f_cue_wieder_texture2 <- function(., ... ) 
-  .super$pars$mimics[['fSOMp_k_p1']] * exp(.super$pars$mimics[['fSOMp_k_p2']]*.super$env$clay) * 0.1 #fSOMp_k
-f_cue_wieder_quality2 <- function(., ... ) 
-  .super$pars$mimics[['fSOMc_k_p1']] * exp(.super$pars$mimics[['fSOMc_k_p2']]*.super$state_pars$fmet)*.super$pars$mimics[['fSOMc_k_p3']]  #fSOMc_k
-#f_transfer_remainder_2cues2 <- function(., ... ) 
-#  1 - .$transfer.t4_to_5() - .$transfer.t4_to_6() 
-
 # APW: WFT?? haha
-f_decomp_rmm_wieder <- function(.,C,t,i,cat_pool = 3){
-  if(cat_pool == 3){
-    if(i==7){
-      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-      Km = .super$pars$km[[7]] * pscalar
-    } else if(i==6) {
-      #km par same as structural litter (km2)
-      Km = .super$pars$km[[2]] *(1/.super$pars$mimics[['ko_r']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
-    }  else {
-      Km = .super$pars$km[[i]]
-    }
-    #correcting Km for temperature
-    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-    ### RMM equation
-    C[i] * .super$pars$vmax[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
-    ###
-
-  } else {
-    if(i==7){
-      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-      Km = .super$pars$km2[[7]] * pscalar
-    } else if(i==6) {
-      Km = .super$pars$km2[[2]] *(1/.super$pars$mimics[['ko_k']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
-    }  else {
-      Km = .super$pars$km2[[i]]
-    }
-    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-    ###RMM equation
-    C[i] * .super$pars$vmax2[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
-    ###
-  }
-}
-
-f_decomp_mm_wieder <- function(.,C,t,i,cat_pool = 3){
-  if(cat_pool == 3){
-    if(i==7){
-      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-      Km = .super$pars$km[[7]] * pscalar
-    } else if(i==6) {
-      #km par same as structural litter (km2)
-      Km = .super$pars$km[[2]] *(1/.super$pars$mimics[['ko_r']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
-    }  else {
-      Km = .super$pars$km[[i]]
-    }
-    #correcting Km for temperature
-    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-    ###MM equation
-    C[i] * .super$pars$vmax[[i]]*10 * C[cat_pool] / (Km_cor*10 + C[i])
-    ###
-  } else {
-    if(i==7){
-      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-      Km = .super$pars$km2[[7]] * pscalar
-    } else if(i==6) {
-      Km = .super$pars$km2[[2]] *(1/.super$pars$mimics[['ko_k']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
-    }  else {
-      Km = .super$pars$km2[[i]]
-    }
-    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-    ###MM equation
-    C[i] * .super$pars$vmax2[[i]]*10 * C[cat_pool] / (Km_cor*10 + C[i])
-    ###
-  }
-}
+#f_decomp_rmm_wieder <- function(.,C,t,i,cat_pool = 3){
+#  if(cat_pool == 3){
+#    if(i==7){
+#      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+#      Km = .super$pars$km[[7]] * pscalar
+#    } else if(i==6) {
+#      #km par same as structural litter (km2)
+#      Km = .super$pars$km[[2]] *(1/.super$pars$mimics[['ko_r']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
+#    }  else {
+#      Km = .super$pars$km[[i]]
+#    }
+#    #correcting Km for temperature
+#    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+#    ### RMM equation
+#    C[i] * .super$pars$vmax[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
+#    ###
+#
+#  } else {
+#    if(i==7){
+#      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+#      Km = .super$pars$km2[[7]] * pscalar
+#    } else if(i==6) {
+#      Km = .super$pars$km2[[2]] *(1/.super$pars$mimics[['ko_k']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
+#    }  else {
+#      Km = .super$pars$km2[[i]]
+#    }
+#    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+#    ###RMM equation
+#    C[i] * .super$pars$vmax2[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
+#    ###
+#  }
+#}
+#
+#f_decomp_mm_wieder <- function(.,C,t,i,cat_pool = 3){
+#  if(cat_pool == 3){
+#    if(i==7){
+#      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+#      Km = .super$pars$km[[7]] * pscalar
+#    } else if(i==6) {
+#      #km par same as structural litter (km2)
+#      Km = .super$pars$km[[2]] *(1/.super$pars$mimics[['ko_r']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
+#    }  else {
+#      Km = .super$pars$km[[i]]
+#    }
+#    #correcting Km for temperature
+#    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+#    ###MM equation
+#    C[i] * .super$pars$vmax[[i]]*10 * C[cat_pool] / (Km_cor*10 + C[i])
+#    ###
+#  } else {
+#    if(i==7){
+#      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
+#      Km = .super$pars$km2[[7]] * pscalar
+#    } else if(i==6) {
+#      Km = .super$pars$km2[[2]] *(1/.super$pars$mimics[['ko_k']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
+#    }  else {
+#      Km = .super$pars$km2[[i]]
+#    }
+#    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
+#    ###MM equation
+#    C[i] * .super$pars$vmax2[[i]]*10 * C[cat_pool] / (Km_cor*10 + C[i])
+#    ###
+#  }
+#}
 
 # alt mimics function
-f_decomp_rmm_twocat <- function(.,C,t,i, cat1 = 3, cat2 = 4) (.super$pars$vmax[[i]]*(C[cat1]+C[cat2])*C[i]) / ((C[cat1]+C[cat2]) + .super$pars$km[[i]])
+f_decomp_rmm_twocat <- function(.,C,t,i, cat1 = 3, cat2 = 4) 
+  (.super$pars$vmax[[i]]*(C[cat1]+C[cat2])*C[i]) / ((C[cat1]+C[cat2]) + .super$pars$km[[i]])
 
 
 
@@ -480,10 +420,7 @@ f_desorp_millennialv2_nosat <- function(., C, t, i, ... )
 
 
 # transfer functions
-###################
-
-f_cue_constant <- function(., i ) 
-  .super$pars$cue[[i]] 
+################################
 
 # transfer all or nothing
 f_transfer_all  <- function(., ... ) 1
@@ -631,65 +568,6 @@ f_transfer_mend54 <- function(.,C,t,from,to){
     (C[5]*((.super$pars$vmax[[from]]+.super$pars$mr)/.super$pars$cue[[from]])*(C[2]/(.super$pars$km[[from]]+C[5])) +  #Fu
        C[5]*((.super$pars$Kads*(.super$pars$poolmax[[4]]-C[4]))/.super$pars$poolmax[[4]]))   #Fa
 }
-
-
-
-# scaling functions 
-# APW: there are more in another file, needs alignment
-#############################
-
-f_tcor_none <- function(...) 1
-f_wcor_none <- function(...) 1
-f_scor_none <- function(...) 1
-
-
-# correct soil protection rates
-f_scor_sulman <- function(.,C,t,i) (.super$env$clay/.super$pars$clayref)^.super$pars$qslope_mayes
-
-# this function not incorporated into the 'water_functions' script because it is not normalized (e.g. 0-1)
-# - thus it is kind of integral to the corpse model under the current parameterization and not substitutable
-f_wcor_sulman <- function(.,C,t,i) {
-  theta <- .super$env$vwc/.super$env$porosity
-  theta^3 * (1-theta)^2.5
-}
-
-f_tcor_wieder <- function(.,C,t,i) {
-  exp(.super$env$temp * .super$pars$mimics[['V_slope']] + .super$pars$mimics[['V_int']]) * .super$pars$mimics[['aV']]
-}
-
-# f_tcor_abramoff <- function(.,C,t,i){
-#   t1 = 15.4
-#   t2 = 11.75
-#   t3 = 29.7
-#   t4 = 0.031
-#   (t2 + (t3/pi)* atan(pi*t4*(.super$env$temp - t1))) / (t2 + (t3/pi)* atan(pi*t4*(.super$pars$reftemp - t1)))
-# }
-
-# f_wcor_abramoff <- function(.,C,t,i){
-#   w1 = 30
-#   w2 = 9
-#   (1 / (1+w1*exp(-w2*.super$env$vwc/.35)))
-#   #.35 is whc I think? this should be specified in env. Perhaps porosity as in sulman.
-# }
-
-# f_tcor_arrhenius <- function(.,C,t,i) {
-#   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
-#   # Arrhenius equation
-#   
-#   # input parameters  
-#   # Ea     -- rate of increase to optimum  (J mol-1)
-#   # R      -- molar gas constant J mol-1 K-1
-#   
-#   # Tr     -- reference temperature (oC) 
-#   # Trk    -- reference temperature (K) 
-#   # Tsk    -- temperature to adjust parameter to (K) 
-#   
-#   #convert to Kelvin
-#   Trk <- .super$pars$reftemp + 273.15
-#   Tsk <- .super$env$temp + 273.15
-#   
-#   exp( .super$pars$ea[[i]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
-# }
 
 
 

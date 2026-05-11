@@ -1,3 +1,26 @@
+################################
+#
+# MAAT soil_decomp process representation functions (PRFs)
+# water and soil/litter environment scaling functions 
+# 
+# Matt Craig, AWalker October 2019 
+#
+################################
+
+f_tcor_none <- function(...) 1
+f_wcor_none <- function(...) 1
+f_scor_none <- function(...) 1
+
+
+# MEC: this function not incorporated into the 'water_functions' script because it is not normalized (e.g. 0-1)
+# - thus it is kind of integral to the corpse model under the current parameterization and not substitutable
+f_wcor_sulman <- function(.,C,t,i) {
+  theta <- .super$env$vwc/.super$env$porosity
+  theta^3 * (1-theta)^2.5
+}
+
+
+
 f_wcor_sulman_normalized <- function(.,C,t,i){
   #volumetric water content
   vwc <- .super$env$vwc
@@ -135,11 +158,11 @@ f_wcor_ghezzehei_biological <- function(.,C,t,i){
 
 f_SWC2SWP_vanGenuchten <- function(.,C,t,i){
   SWC0 = .super$env$vwc
-  SWCres = 0.108 # probably should store these parameters elsewhere, but they are constant in MEND
+  SWCres = 0.108 # MEC: probably should store these parameters elsewhere, but they are constant in MEND
   SWCsat = 0.6 
   alpha = 0.035 
   n = 1.445
-  SWPmin = .super$env$SWP_min   #not sure why this is an argument in MEND code; It's not used in function
+  SWPmin = .super$env$SWP_min   # MEC: not sure why this is an argument in MEND code; It's not used in function
 
     const_cm2MPa = 98e-6
     rlim = 1.01
@@ -178,6 +201,9 @@ f_SWC2SWP_vanGenuchten <- function(.,C,t,i){
 # }
 
 
+# correct soil protection rates
+f_scor_sulman <- function(.,C,t,i) (.super$env$clay/.super$pars$clayref)^.super$pars$qslope_mayes
+
 # Equation B3, Abramoff et al. 2022
 f_scor_century_texture <- function(., ... ) 
   .super$pars$century[['c1']] - .super$pars$century[['c2']]*.super$env$claysilt*.01
@@ -188,4 +214,4 @@ f_scor_century_quality <- function(., ... )
   
   
   
-  
+### END ### 

@@ -1,3 +1,17 @@
+################################
+#
+# MAAT soil_decomp process representation functions (PRFs)
+# temperature scaling functions 
+# 
+# Matt Craig, AWalker October 2019 
+#
+################################
+
+
+f_tcor_wieder <- function(.,C,t,i) {
+  exp(.super$env$temp * .super$pars$mimics[['V_slope']] + .super$pars$mimics[['V_int']]) * .super$pars$mimics[['aV']]
+}
+
 f_tcor_century1 <- function(.,C,t,i){
   #sourced from SoilR and standardized to 20C
   #SoilR::fT.Century1
@@ -93,7 +107,7 @@ f_tcor_standcarb <- function(.,C,t,i){
     (exp(-1 * (.super$pars$reftemp/(Topt + Tlag))^Tshape) * .super$pars$q10^((.super$pars$reftemp - 10)/10))
 }
 
-#all these arrhenius funcs should be the same, but just putting the original equations in from each model right now
+# MEC: all these arrhenius funcs should be the same, but just putting the original equations in from each model right now
 f_tcor_arrhenius <- function(.,C,t,i) {
   #sourced from MAAT leaf model
   # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
@@ -124,3 +138,6 @@ f_tcor_arrhenius_mend <- function(.,C,t,i){
   exp(.super$pars$ea[[i]]*1000/8.314 * (1/TKref - 1/TK))
 }
 
+
+
+### END ### 

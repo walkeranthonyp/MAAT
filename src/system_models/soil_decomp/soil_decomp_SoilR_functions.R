@@ -13,28 +13,6 @@
 # MODIFIED SoilR FUNCTIONS
 ################################
 
-# input matrix, single column, rows = cpools_n
-# - this is where inputs would be divided among pools
-# - APW I'm not sure this needs to be part of the solver
-f_input <- function(., t ) {
-  # why is .$env$litter not .super$env$litter??
-  .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 )
-}
-
-
-f_input_clm5 <- function(., t ) {
-  m <- matrix(0, nrow=.super$pars$n_pools, ncol=1 )
-  f_litter_not_cwd <- 1 - .super$pars$input_coefs[[1]]
-  m[1,] <- .super$pars$input_coefs[[1]]
-  m[2,] <- f_litter_not_cwd * .super$pars$input_coefs[[2]]
-  m[3,] <- f_litter_not_cwd * .super$pars$input_coefs[[3]]
-  m[4,] <- f_litter_not_cwd * .super$pars$input_coefs[[4]]
-  
-  # print(.$env$litter * m)
-  .$env$litter * m
-}
-
-
 ## decomp matrix, single column, rows = n_pools
 f_DotO <- function(., C, t ) {
   
