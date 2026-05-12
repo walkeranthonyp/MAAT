@@ -42,6 +42,19 @@ calc_state_pars_century <- function(.) {
   for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](.=., i=i ) 
 }
 
+calc_state_pars_corpse <- function(.) {
+
+  # k parameters
+  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$k[[i]]    <- .[[paste0('k.k',i)]](i=i) 
+  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$km[[i]]   <- .[[paste0('km.km',i)]](i=i) 
+  #for(i in 1:.super$pars$n_outfluxes) .super$state_pars$vmax[[i]] <- .[[paste0('vmax.vmax',i)]](i=i) 
+  #for(i in 1:.super$pars$n_outfluxes) .super$state_pars$ea[[i]]   <- .[[paste0('ea.ea',i)]](i=i) 
+
+  # cue parameters
+  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
+  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](.=., i=i ) 
+}
+
 
 
 # k functions

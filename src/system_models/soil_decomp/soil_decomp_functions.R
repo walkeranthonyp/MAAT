@@ -203,18 +203,21 @@ f_decomp_doc_mend <- function(.,C,t,i) {
 
 # CORPSE-specific functions
 #########
-f_decomp_rmm_sulman <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
+f_decomp_rmm_sulman <- function(.,C,t,i) 
+  (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
 
-f_decomp_rmm_sulman_gen <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool, ... ) 
-  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[cat_pool] + .super$pars$km[[of]]*(C[1]+C[2]+C[3]))
+f_decomp_rmm_sulman_gen <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]], ... ) 
+  #(.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[cat_pool] + .super$pars$km[[of]]*(C[1]+C[2]+C[3]))
+  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[cat_pool] + .super$state_pars$km[[of]]*(C[1]+C[2]+C[3]))
 
-f_micturn_sulman <- function(., C, t, i, of=i ) {
-  (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[of]] 
-}
+f_micturn_sulman <- function(., C, t, i, of=i ) 
+  #(C[i] - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[of]] 
+  (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$state_pars$k[[of]] 
 
-f_micturn_sulman_mdd <- function(.,C,t,i) {
+
+f_micturn_sulman_mdd <- function(.,C,t,i) 
   (C[i]^.super$pars$beta - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$pars$k[[i]] 
-}
+
 
 
 

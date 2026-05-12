@@ -85,7 +85,7 @@ f_transfermatrix <- function(., C, t ) {
     ss <- idm[i,]
     #print(''); print(paste('transfer', i, '... from pool',ss[1],'to',ss[2],':')) 
     #print(.super$fnames$transfer[[paste0('t',ss[1],'_to_',ss[2])]])
-    #print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]])
+    print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]])
     #print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]](.=.,C=C, t=t, from=ss[1], to=ss[2] )) 
     m[matrix(rev(ss),nrow=1)] <- .[[paste0('transfer.t',ss[1],'_to_',ss[2])]](.=., C=C, t=t, from=ss[1], to=ss[2] )
   }

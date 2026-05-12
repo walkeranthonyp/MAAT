@@ -120,9 +120,9 @@
       </cue2>
       <fmet>'f_texture_wieder_fmet'</fmet>
       <tau_mod1>'f_k_wieder_tau_mod1'</tau_mod1>
-      <k_tau_r>'f_k_wieder_tau_r'</k_tau_r>
+      <!--k_tau_r>'f_k_wieder_tau_r'</k_tau_r>
       <k_tau_k>'f_k_wieder_tau_k'</k_tau_k>
-      <k_tau_desorb>'f_k_wieder_desorb'</k_tau_desorb>
+      <k_tau_desorb>'f_k_wieder_desorb'</k_tau_desorb-->
     </soil_decomp>
   </fnames>
   <pars>

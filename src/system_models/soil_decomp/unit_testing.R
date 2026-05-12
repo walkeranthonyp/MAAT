@@ -17,8 +17,8 @@ source('soil_decomp_object.R')
 #soil_decomp_object$.test.mimics.ss()
 soil_decomp_object$.test()
 soil_decomp_object$.test(litter=172.8978/365/1000)
-soil_decomp_object$state$cpools
 soil_decomp_object$.test(litter=.5/.15/365)
+soil_decomp_object$state$cpools
 soil_decomp_object$.test(litter=10)
 
 soil_decomp_object$fns$outflux.of1

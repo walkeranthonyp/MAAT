@@ -307,24 +307,15 @@ soil_decomp_object$env <- list(
 
 # state parameters (i.e. calculated parameters)
 ####################################
+soil_decomp_object$outflux_state_pars <- c('k', 'km', 'km2', 'cue', 'cue2' ) 
+
 soil_decomp_object$state_pars <- list(
   solver_out             = matrix(1),
   solver_steadystate_out = matrix(1),
   fmet     = numeric(1), 
   tau_mod1 = numeric(1), 
-  km = list(
-    km1 = numeric(1), 
-    km2 = numeric(1),  
-    km3 = numeric(1),  
-    km4 = numeric(1),  
-    km5 = numeric(1),  
-    km6 = numeric(1),  
-    km7 = numeric(1),  
-    km8 = numeric(1),  
-    km9 = numeric(1),  
-    km10 = numeric(1),  
-    km11 = numeric(1)  
-  ),
+  cue  = list(NA),
+  cue2 = list(NA),
   k = list(
     k1 = numeric(1), 
     k2 = numeric(1),  
@@ -337,6 +328,19 @@ soil_decomp_object$state_pars <- list(
     k9 = numeric(1),  
     k10 = numeric(1),  
     k11 = numeric(1)  
+  ),
+  km = list(
+    km1 = numeric(1), 
+    km2 = numeric(1),  
+    km3 = numeric(1),  
+    km4 = numeric(1),  
+    km5 = numeric(1),  
+    km6 = numeric(1),  
+    km7 = numeric(1),  
+    km8 = numeric(1),  
+    km9 = numeric(1),  
+    km10 = numeric(1),  
+    km11 = numeric(1)  
   )
 )
 
@@ -386,11 +390,11 @@ soil_decomp_object$pars <- list(
   # APW: list format didn't work due to nesting lists within a list, configure functions cannot handle 
   decomp_outflux1 = list(dof11=1, dof12=2 ),
   decomp_outflux2 = list(dof21=3, dof22=4 ),
-  decomp_outflux3 = list(dof31=5),
-  decomp_outflux4 = list(dof41=6),
-  decomp_outflux5 = list(dof51=7),
-  decomp_outflux6 = list(dof61=8, dof62=9 ),
-  decomp_outflux7 = list(dof71=10, dof72=11 ),
+  decomp_outflux3 = list(dof31=5, dof32=6 ),
+  decomp_outflux4 = list(dof41=7),
+  decomp_outflux5 = list(dof51=8),
+  decomp_outflux6 = list(dof61=9),
+  decomp_outflux7 = list(dof71=10),
 #  decomp_outflux1 = list(dof11=1),
 #  decomp_outflux2 = list(dof21=3),
 #  decomp_outflux3 = list(dof31=4),
