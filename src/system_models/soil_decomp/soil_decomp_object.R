@@ -96,33 +96,33 @@ soil_decomp_object$fnames <- list(
     d7 = NA
   ),
   
-  desorp = list(
-    ds1 = NA,
-    ds2 = NA,
-    ds3 = 'f_desorp_millennialv2',
-    ds4 = NA,
-    ds5 = NA,
-    ds6 = NA,
-    ds7 = NA
-  ),
-  
-  sorp = list(
-    s1 = NA,
-    s2 = NA,
-    s3 = NA,
-    s4 = 'f_sorp_sat',
-    s5 = NA, 
-    s6 = NA,
-    s7 = NA
-  ),
-  
-  aggform = list( 
-    a1 = 'f_decomp_lin', #Aggregate formation from POM
-    a3 = 'f_decomp_lin'  #Aggregate formation from MAOM
-  ),
- 
-  # DOC uptake, another flux term 
-  docuptake  = 'f_decomp_mm', #MM uptake of DOC
+#  desorp = list(
+#    ds1 = NA,
+#    ds2 = NA,
+#    ds3 = 'f_desorp_millennialv2',
+#    ds4 = NA,
+#    ds5 = NA,
+#    ds6 = NA,
+#    ds7 = NA
+#  ),
+#  
+#  sorp = list(
+#    s1 = NA,
+#    s2 = NA,
+#    s3 = NA,
+#    s4 = 'f_sorp_sat',
+#    s5 = NA, 
+#    s6 = NA,
+#    s7 = NA
+#  ),
+#  
+#  aggform = list( 
+#    a1 = 'f_decomp_lin', #Aggregate formation from POM
+#    a3 = 'f_decomp_lin'  #Aggregate formation from MAOM
+#  ),
+# 
+#  # DOC uptake, another flux term 
+#  docuptake  = 'f_decomp_mm', #MM uptake of DOC
  
  
   # output fluxes from pools functions 
@@ -346,7 +346,7 @@ soil_decomp_object$state_pars <- list(
 # parameter names that have a value per pool
 # APW: decomp_ouflux needs a way to configure each list
 #soil_decomp_object$pool_pars <- c('cstate0', 'decomp_outflux', 'cue', 'cue2', 'poolmax', 'input_coefs' )
-soil_decomp_object$pool_pars <- c('cstate0', 'decomp_outflux', 'poolmax', 'input_coefs' )
+soil_decomp_object$pool_pars <- c('cstate0', 'decomp_outflux', 'poolmax', 'input_coef' )
 
 # parameter names that have a value per outflux
 soil_decomp_object$outflux_pars <- c('k', 'vmax', 'vmax2', 'km', 'km2', 'ea', 'cat_pool', 'cue', 'cue2' ) 
@@ -419,12 +419,12 @@ soil_decomp_object$pars <- list(
   ),
 
   # input coefficients (allocates proportions of inputs into different pools)
-  input_coefs = list(
-    input_coefs1 = .66, 
-    input_coefs2 = 0, 
-    input_coefs3 = 0,
-    input_coefs4 = .34,
-    input_coefs5 = 0
+  input_coef = list(
+    input_coef1 = .66, 
+    input_coef2 = 0, 
+    input_coef3 = 0,
+    input_coef4 = .34,
+    input_coef5 = 0
   ),
   
   # maximum size for pool i 
@@ -990,16 +990,6 @@ soil_decomp_object$.test_ctc <- function(., verbose=F, metdf=F,
       cstate05 = 0.1,
       cstate06 = 0.1,
       cstate07 = 0.1
-    ),
-    
-    input_coefs = list(
-      input_coef1 = 0.1,
-      input_coef2 = 0.2,
-      input_coef3 = 0.5,
-      input_coef4 = 0.3,
-      input_coef5 = 0.5,
-      input_coef6 = 0.5,
-      input_coef7 = 0
     ),
     
     # Carbon use efficiency from pool i r-microbes (cue) or k-microbes (cue2)

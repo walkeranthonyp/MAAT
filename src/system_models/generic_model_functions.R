@@ -89,8 +89,9 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
   print('', quote=F )
   print(paste0('Building ', .$name, ' model pool structure with: ', n_pools, ' pools.'), quote=F )
 
-  # generate decomp list
+  # generate fnames decomp list
   if(!is.null(.$fnames$decomp)) {
+    .$fnames$decomp <- list() 
     lnames <- paste0('d',1:n_pools) # may need a variable maxnpools
     .$fnames$decomp[lnames] <- NA  
     #print('  decomp list:', quote=F )
@@ -111,16 +112,31 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
   
     # generate outfluxes list
     if(!is.null(.$fnames$outflux)) {
+      .$fnames$outflux <- list() 
       lnames <- paste0('of',1:n_outfluxes) 
       .$fnames$outflux[lnames] <- NA  
       #print('  outflux list:', quote=F )
       #print(.$fnames$outfluxes, quote=F )
+  
+      # - for fnames that are indexed by the number of outfluxes
+      print('',quote=F)
+      print('Indexing outflux_fnames lists ...', quote=F ) 
+      outflux_fnames <- c('tcor', 'wcor', 'scor', .$outflux_pars ) 
+      #for(l in .$outflux_fnames) { 
+      for(l in outflux_fnames) { 
+        if(is.list(.$fnames[[l]])) {
+          print(l)
+          .$fnames[[l]] <- list()
+          lnames        <- paste0(l,1:n_outfluxes) 
+          .$fnames[[l]][lnames] <- NA 
+        }
+      }
     } 
   }
 
   # generate transfer list
   if(!is.null(.$fnames$transfer)) {
-    .$fnames$transfer <- list() # allows sequential ordering of the list if list is not empty  
+    .$fnames$transfer <- list() 
     tn     <- expand.grid(1:n_pools,1:n_pools)
     # remove tranfers from/to the same pool
     tn     <- tn[-((1:n_pools -1)*n_pools + 1:n_pools),]
@@ -365,6 +381,7 @@ configure <- function(., vlist, df, init=F, o=T ) {
     # assign all methods to methods list
     if(init) {
       fnslist <- as.list(rapply(.$fnames, function(c) if(is.na(c)) NA else get(c, pos=1 ) ))
+      #fnslist <- as.list(rapply(.$fnames, function(c) if(is.na(c)) NA else {print(c); get(c, pos=1 )} ))
       .$fns   <- as.proto(fnslist, parent=. )
 
       # specific methods assignment (for methods not included in fnames)

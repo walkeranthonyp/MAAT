@@ -32,10 +32,23 @@ calc_state_pars_weider <- function(.) {
   for(i in 5:6)          .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](i=i) 
 }
 
+calc_state_pars_century <- function(.) {
+
+  # k parameters
+  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$k[[i]] <- .[[paste0('k.k',i)]](i=i) 
+
+  # cue parameters
+  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
+  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](.=., i=i ) 
+}
+
 
 
 # k functions
 ################################
+
+f_k_constant <- function(., i ) 
+  .super$pars$k[[i]] 
 
 f_texture_wieder_fmet <- function(.) 
   .super$pars$mimics[['fmet_p1']] * (.super$pars$mimics[['fmet_p2']] - .super$pars$mimics[['fmet_p3']]*(.super$env$lignin/.super$env$N))
@@ -59,6 +72,9 @@ f_k_wieder_desorb <- function(., ... )
 
 # km functions
 ################################
+
+f_km_constant <- function(., i ) 
+  .super$pars$km[[i]] 
 
 #Wieder et al. 2015 function for calculating Km using a base Km value and clay content
 #cat_pool can be adjusted: 3 = r_selected microbes, 4 = k_selected microbes
@@ -98,6 +114,11 @@ f_km_wieder_temp <- function(., i ) {
 f_cue_constant <- function(., i ) 
   .super$pars$cue[[i]] 
 
+f_cue2_constant <- function(., i ) 
+  .super$pars$cue2[[i]] 
+
+
+# MIMICS specific CUE calculations
 f_cue_wieder_texture1 <- function(., ... ) 
   .super$pars$mimics[['fSOMp_r_p1']] * exp(.super$pars$mimics[['fSOMp_r_p2']]*.super$env$clay) * 0.1 #0.1 manual calibration from Will's script #fSOMp_r
 
@@ -109,6 +130,17 @@ f_cue_wieder_texture2 <- function(., ... )
 
 f_cue_wieder_quality2 <- function(., ... ) 
   .super$pars$mimics[['fSOMc_k_p1']] * exp(.super$pars$mimics[['fSOMc_k_p2']]*.super$state_pars$fmet)*.super$pars$mimics[['fSOMc_k_p3']]  #fSOMc_k
+
+
+# CENTURY specific CUE calculations
+f_cue_century_quality <- function(., i )
+  (1-.super$env$lignin) * .super$pars$cue[[i]] 
+
+f_cue_century_quality2 <- function(., i )
+  .super$env$lignin * .super$pars$cue2[[i]] 
+
+f_cue_century_texture <- function(., i ) 
+  (1-.[[paste0('scor.scor',i)]]()-.super$pars$cue[[i]]) 
 
 
 

@@ -13,7 +13,7 @@
 # MODIFIED SoilR FUNCTIONS
 ################################
 
-## decomp matrix, single column, rows = n_pools
+# decomp matrix, single column, rows = n_pools
 f_DotO <- function(., C, t ) {
   
   # search fns proto object for functions named starting with 'decomp.' and use to make dnames 
@@ -49,12 +49,12 @@ f_outfluxes <- function(., C, t ) {
       #print(c(i,of)) 
       .super$state$outflux[[paste0('of',of)]] <- 
         .[[paste0('outflux.of',of)]](C=C, t=t, i=i, of=of ) * 
-        .[[paste0('tcor.t',of)]](i=of) * .[[paste0('wcor.w',of)]](i=of) * .[[paste0('scor.s',of)]](i=of) 
+        .[[paste0('tcor.tcor',of)]](i=of) * .[[paste0('wcor.wcor',of)]](i=of) * .[[paste0('scor.scor',of)]](i=of) 
   }}
 }
 
 
-## transfer matrix, square, n_pools extent
+# transfer matrix, square, n_pools extent
 f_transfermatrix <- function(., C, t ) {
   
   #print('')
@@ -104,7 +104,7 @@ f_solver_func_soilR <- function(., t, y, parms) {
 }
 
 
-# as above but allows calculation of individual fluxes out of pools prior to SoilR function execution
+# as above but calculates individual fluxes out of pools prior to SoilR function execution
 f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
   #print(y)
   .$outfluxes(y,t)

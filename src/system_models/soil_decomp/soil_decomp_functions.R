@@ -23,17 +23,17 @@ source('soil_decomp_water_functions.R')
 
 f_input <- function(., t ) {
   # why is .$env$litter not .super$env$litter??
-  .$env$litter * matrix(unlist(.super$pars$input_coefs)[1:.super$pars$n_pools], ncol=1 )
+  .$env$litter * matrix(unlist(.super$pars$input_coef)[1:.super$pars$n_pools], ncol=1 )
 }
 
 
 f_input_clm5 <- function(., t ) {
   m <- matrix(0, nrow=.super$pars$n_pools, ncol=1 )
-  f_litter_not_cwd <- 1 - .super$pars$input_coefs[[1]]
-  m[1,] <- .super$pars$input_coefs[[1]]
-  m[2,] <- f_litter_not_cwd * .super$pars$input_coefs[[2]]
-  m[3,] <- f_litter_not_cwd * .super$pars$input_coefs[[3]]
-  m[4,] <- f_litter_not_cwd * .super$pars$input_coefs[[4]]
+  f_litter_not_cwd <- 1 - .super$pars$input_coef[[1]]
+  m[1,] <- .super$pars$input_coef[[1]]
+  m[2,] <- f_litter_not_cwd * .super$pars$input_coef[[2]]
+  m[3,] <- f_litter_not_cwd * .super$pars$input_coef[[3]]
+  m[4,] <- f_litter_not_cwd * .super$pars$input_coef[[4]]
   
   # print(.$env$litter * m)
   .$env$litter * m
@@ -504,20 +504,6 @@ f_transfer_fluxsum_prop_three_cue <- function(., from, ... )
 # APW: should this include a min 0 function in the final term?
 f_transfer_cue_sat <- function(.,C,t,from,to) 
   .super$pars$cue[[from]] * (1-C[to]/.super$pars$poolmax[[to]])
-
-# CENTURY specific CUE calculations
-f_transfer_century_quality <- function(.,C,t,from,to) 
-  #(1-.super$env$lignin) * .super$pars$century[['strlitter_to_active']] 
-  (1-.super$env$lignin) * .super$pars$cue[[from]] 
-
-f_transfer_century_quality2 <- function(.,C,t,from,to) 
-  #.super$env$lignin * .super$pars$century[['strlitter_to_slow']] 
-  .super$env$lignin * .super$pars$cue2[[from]] 
-
-f_transfer_century_texture <- function(.,C,t,from,to) 
-  #(1-f_TEX-.super$pars$century[['active_to_passive']]) 
-  (1-.[[paste0('scor.s',from)]]()-.super$pars$cue2[[from]]) 
-
 
 # transfer from mbc to pom in mend: (1-gd)(1-pe)(fe/f_decomp_mbc_mend)
 f_transfer_mend21 <- function(.,C,t,from,to){
