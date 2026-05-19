@@ -45,8 +45,8 @@ f_outfluxes <- function(., C, t ) {
 
     # cycle through outfluxes associated with each pool 
     for(of in unlist(.super$pars[[paste0('decomp_outflux',i)]]) ) {
-      #print('f_outfluxes, i, of:')
-      #print(c(i,of)) 
+      print('f_outfluxes, i, of:')
+      print(c(i,of)) 
       .super$state$outflux[[paste0('of',of)]] <- 
         .[[paste0('outflux.of',of)]](C=C, t=t, i=i, of=of ) * 
         .[[paste0('tcor.tcor',of)]](i=of) * .[[paste0('wcor.wcor',of)]](i=of) * .[[paste0('scor.scor',of)]](i=of) 
@@ -85,7 +85,7 @@ f_transfermatrix <- function(., C, t ) {
     ss <- idm[i,]
     #print(''); print(paste('transfer', i, '... from pool',ss[1],'to',ss[2],':')) 
     #print(.super$fnames$transfer[[paste0('t',ss[1],'_to_',ss[2])]])
-    print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]])
+    #print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]])
     #print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]](.=.,C=C, t=t, from=ss[1], to=ss[2] )) 
     m[matrix(rev(ss),nrow=1)] <- .[[paste0('transfer.t',ss[1],'_to_',ss[2])]](.=., C=C, t=t, from=ss[1], to=ss[2] )
   }

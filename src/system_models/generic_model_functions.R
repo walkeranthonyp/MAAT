@@ -53,6 +53,7 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   # APW: to work with soil_decomp will need to be called after structure build
 
   # build model pool structure
+  # APW: prob can delete n_pools case in latest version
   if(!is.null(.$pars$n_outfluxes)) {
     .$build_pool_structure(init_default$pars[[.$name]]$n_pools, init_default$pars[[.$name]]$n_outfluxes )
   } else if(!is.null(.$pars$n_pools)) 

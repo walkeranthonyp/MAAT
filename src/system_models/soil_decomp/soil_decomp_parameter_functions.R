@@ -34,6 +34,9 @@ calc_state_pars_weider <- function(.) {
 
 calc_state_pars_century <- function(.) {
 
+  # general parameters
+  .super$state_pars$matpot_sat <- .$matpot_sat()
+
   # k parameters
   for(i in 1:.super$pars$n_outfluxes) .super$state_pars$k[[i]] <- .[[paste0('k.k',i)]](i=i) 
 
@@ -153,8 +156,11 @@ f_cue_century_quality2 <- function(., i )
   .super$env$lignin * .super$pars$cue2[[i]] 
 
 f_cue_century_texture <- function(., i ) 
-  (1-.[[paste0('scor.scor',i)]]()-.super$pars$cue[[i]]) 
+  1 - .[[paste0('scor.scor',i)]]() - .super$pars$cue[[i]] 
 
+# APW: this is a the same as above but calls the texture function differently
+f_cue_century_texture_elm <- function(., i ) 
+  1 - .$fmet() - .super$pars$cue[[i]] 
 
 
 

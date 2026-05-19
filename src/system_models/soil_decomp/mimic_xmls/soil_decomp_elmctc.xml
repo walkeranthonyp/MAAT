@@ -1,37 +1,108 @@
 <default>
   <fnames>
     <soil_decomp>
-      <sys>'f_sys_npools'</sys>
+      <sys>'f_steadystate_npools'</sys>
       <solver>'plsoda'</solver>
-      <solver_func>'f_solver_func_elmv2ctc'</solver_func>
-      <input>'f_input'</input>
-      <steadystate>'f_steadystate_null'</steadystate>
+      <solver_func>'f_solver_func_soilR_outfluxes'</solver_func>
+      <steadystate>'f_steadystate_npools'</steadystate>
       <solver_steadystate>'pstode'</solver_steadystate>
+      <input>'f_input_clm5'</input>
+      <DotO>'f_DotO'</DotO>
+      <transfermatrix>'f_transfermatrix'</transfermatrix>
+      <transfer_fluxsum_prop>'f_transfer_fluxsum_prop'</transfer_fluxsum_prop>
+      <outfluxes>'f_outfluxes'</outfluxes>
+      <calc_state_pars>'calc_state_pars_century'</calc_state_pars>
       <decomp>
-        <d1>'f_decomp_lin'</d1>
-        <d2>'f_decomp_lin'</d2>
-        <d3>'f_decomp_lin'</d3>
-        <d4>'f_decomp_lin'</d4>
-        <d5>'f_decomp_lin'</d5>
-        <d6>'f_decomp_lin'</d6>
-        <d7>'f_decomp_lin'</d7>
-        <d7>'f_decomp_lin'</d7>
+        <d1>'f_decomp_outflux'</d1>
+        <d2>'f_decomp_outflux'</d2>
+        <d3>'f_decomp_outflux'</d3>
+        <d4>'f_decomp_outflux'</d4>
+        <d5>'f_decomp_outflux'</d5>
+        <d6>'f_decomp_outflux'</d6>
+        <d7>'f_decomp_outflux'</d7>
+        <d8>'f_decomp_outflux'</d8>
       </decomp>
+      <outflux>
+        <of1>'f_decomp_lin'</of1>
+        <of2>'f_decomp_lin'</of2>
+        <of3>'f_decomp_lin'</of3>
+        <of4>'f_decomp_lin'</of4>
+        <of5>'f_decomp_lin'</of5>
+        <of6>'f_decomp_lin'</of6>
+        <of7>'f_decomp_lin'</of7>
+        <of8>'f_decomp_lin'</of8>
+      </outflux>
+      <tcor>
+        <tcor1>'f_tcor_q10'</tcor1>
+        <tcor2>'f_tcor_q10'</tcor2>
+        <tcor3>'f_tcor_q10'</tcor3>
+        <tcor4>'f_tcor_q10'</tcor4>
+        <tcor5>'f_tcor_q10'</tcor5>
+        <tcor6>'f_tcor_q10'</tcor6>
+        <tcor7>'f_tcor_q10'</tcor7>
+        <tcor8>'f_tcor_q10'</tcor8>
+      </tcor>  
+      <wcor>
+        <wcor1>'f_wcor_andren1987'</wcor1>
+        <wcor2>'f_wcor_andren1987'</wcor2>
+        <wcor3>'f_wcor_andren1987'</wcor3>
+        <wcor4>'f_wcor_andren1987'</wcor4>
+        <wcor5>'f_wcor_andren1987'</wcor5>
+        <wcor6>'f_wcor_andren1987'</wcor6>
+        <wcor7>'f_wcor_andren1987'</wcor7>
+        <wcor8>'f_wcor_andren1987'</wcor8>
+      </wcor>
+      <transfer>
+        <t1_to_3>'f_transfer_fluxid_cue'</t1_to_3> 
+        <t1_to_4>'f_transfer_fluxid_cue_remainder'</t1_to_4> 
+        <t2_to_5>'f_transfer_fluxid_cue'</t2_to_5> 
+        <t3_to_6>'f_transfer_fluxid_cue'</t3_to_6> 
+        <t4_to_7>'f_transfer_fluxid_cue'</t4_to_7> 
+        <t5_to_6>'f_transfer_fluxid_cue'</t5_to_6> 
+        <t6_to_7>'f_transfer_fluxid_cue'</t6_to_7> 
+        <t7_to_8>'f_transfer_fluxid_cue'</t7_to_8> 
+      </transfer>
+      <matpot_sat>'f_matpot_sat_elm_cosby1984_tab5'</matpot_sat> 
     </soil_decomp>
   </fnames>
   <pars>
     <soil_decomp>
       <n_pools>8</n_pools>
-      <input_coefs>
+      <n_outfluxes>8</n_outfluxes>
+      <decomp_outflux1>
+        <dof11>1</dof11>
+      </decomp_outflux1>
+      <decomp_outflux2>
+        <dof21>2</dof21>
+      </decomp_outflux2>
+      <decomp_outflux3>
+        <dof31>3</dof31>
+      </decomp_outflux3>
+      <decomp_outflux4>
+        <dof41>4</dof41>
+      </decomp_outflux4>
+      <decomp_outflux5>
+        <dof51>5</dof51>
+      </decomp_outflux5>
+      <decomp_outflux6>
+        <dof61>6</dof61>
+      </decomp_outflux6>
+      <decomp_outflux7>
+        <dof71>7</dof71>
+      </decomp_outflux7>
+      <decomp_outflux8>
+        <dof81>8</dof81>
+      </decomp_outflux8>
+      <input_coef>
         <input_coef1>0.1</input_coef1>
         <input_coef2>0.2</input_coef2>
         <input_coef3>0.5</input_coef3>
         <input_coef4>0.3</input_coef4>
-        <input_coef5>0.5</input_coef5>
-        <input_coef6>0.5</input_coef6>
-        <input_coef7>NA</input_coef7>
-        <input_coef8>NA</input_coef8>
-      </input_coefs>
+        <input_coef5>0</input_coef5>
+        <input_coef6>0</input_coef6>
+        <input_coef7>0</input_coef7>
+        <input_coef8>0</input_coef8>
+      </input_coef>
       <cstate0>
         <cstate01>0.1</cstate01>
         <cstate02>0.1</cstate02>
@@ -43,15 +114,18 @@
         <cstate08>0.1</cstate08>
       </cstate0>
       <cue>
-        <cue1>1</cue1>
+        <!-- the one below should be the CWD cellulose fraction (and the remainder the lignin fraction)  -->
+        <cue1>0.76</cue1>
+        <!-- from Oleson 2013 CLM4.5 Tech Note --> 
         <cue2>0.61</cue2>
         <cue3>0.45</cue3>
         <cue4>0.71</cue4>
         <cue5>0.72</cue5>
         <cue6>0.54</cue6>
         <cue7>0.45</cue7>
-        <cue7>0</cue7>
+        <cue8>0</cue8>
       </cue>
+      <!-- from Oleson 2013 CLM4.5 Tech Note --> 
       <k>
         <k1>0.001</k1>
         <k2>0.7</k2>
@@ -62,11 +136,18 @@
         <k7>0.0014</k7>
         <k8>0.0001</k8>
       </k>
+      <reftemp>25</reftemp>
+      <q10>1.5</q10>
+      <tcor_mod>1.0</tcor_mod>
     </soil_decomp>
   </pars>
   <env>
     <soil_decomp>
       <litter>1.0</litter>
+      <sand>20.0</sand>
+      <matpot_min>-10.0</matpot_min>
+      <matpot>-0.75</matpot>
+      <temp>20</temp>
     </soil_decomp>
   </env>
 </default>

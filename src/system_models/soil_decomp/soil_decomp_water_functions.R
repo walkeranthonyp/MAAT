@@ -20,7 +20,6 @@ f_wcor_sulman <- function(.,C,t,i) {
 }
 
 
-
 f_wcor_sulman_normalized <- function(.,C,t,i){
   #volumetric water content
   vwc <- .super$env$vwc
@@ -38,6 +37,7 @@ f_wcor_sulman_normalized <- function(.,C,t,i){
   (theta^3 * (1-theta)^2.5)/wcor_max
 }
 
+
 f_wcor_skopp <- function(.,C,t,i){
   #sourced from SoilR 
   #SoilR::fW.Skopp
@@ -52,9 +52,11 @@ f_wcor_skopp <- function(.,C,t,i){
   pmin(alpha * rwc^f, beta * (1 - rwc)^g)
 }
 
+
 f_wcor_daycent2 <- function(.,C,t,i){
   #sourced from SoilR
   #SoilR::fW.Daycent2
+  # APW: this doesn't seem quite right unless vwc is in units of proportion of plant available water, i.e. betweend WP and FC
   W = .super$env$vwc * 100    #volumetric water content (percentage)
   WP = 0       #WP - A scalar representing the wilting point in percentage.
   FC = 100     # FC - A scalar representing the field capacity in percentage.
@@ -63,6 +65,7 @@ f_wcor_daycent2 <- function(.,C,t,i){
   fRWC_max = 5 * (0.287 + (atan(pi * 0.009 * (100 - 17.47)))/pi)
   fRWC/fRWC_max
 }
+
 
 f_wcor_daycent1 <- function(.,C,t,i) {
   #sourced from SoilR
@@ -80,6 +83,7 @@ f_wcor_daycent1 <- function(.,C,t,i) {
   (((wfps-b)/(a-b))^(d*((b-a)/(a-c))))*((wfps-c)/(a-c))^d
 }
 
+
 f_wcor_moyano <- function(.,C,t,i){
   #sourced from SoilR
   #SoilR::fW.Moyano
@@ -88,6 +92,7 @@ f_wcor_moyano <- function(.,C,t,i){
   b = 2.42 #empirical parameter
   a * theta - b * theta^2
 }
+
 
 f_wcor_gompertz <- function(.,C,t,i){
   #sourced from SoilR
@@ -98,6 +103,7 @@ f_wcor_gompertz <- function(.,C,t,i){
   exp(-exp(a-b*theta*100))
 }
 
+
 f_wcor_candy <- function(.,C,t,i){
   #sourced from SoilR
   #SoilR::fW.Candy
@@ -106,6 +112,7 @@ f_wcor_candy <- function(.,C,t,i){
   Mi=theta/PV 
   ifelse(Mi<=0.5, 4*Mi*(1-Mi),1)
 }
+
 
 f_wcor_standcarb <- function(.,C,t,i){
   #sourced from SoilR
@@ -125,6 +132,7 @@ f_wcor_standcarb <- function(.,C,t,i){
   MatricLimit*DiffuseLimit
 }
 
+
 f_wcor_century <- function(.,C,t,i){
   #sourced from SoilR
   #SoilR::fW.Candy
@@ -134,6 +142,7 @@ f_wcor_century <- function(.,C,t,i){
   1/(1+30*exp(-8.5*(PPT/PET)))
 }
 
+
 f_wcor_abramoff <- function(.,C,t,i){
   w1 = 30
   w2 = 9
@@ -141,21 +150,48 @@ f_wcor_abramoff <- function(.,C,t,i){
   #.35 is whc I think? this should be specified in env. Perhaps porosity as in sulman.
 }
 
+
 #used in MillennialV2
 f_wcor_ghezzehei_diffusion <- function(.,C,t,i){
   (.super$env$vwc/.super$env$porosity)^0.5
 }
+
 
 #used in MillennialV2
 f_wcor_ghezzehei_biological <- function(.,C,t,i){
   exp(.super$env$lambda * -.super$env$matpot) * (.super$env$kamin + (1 - .super$env$kamin) * ((.super$env$porosity - .super$env$vwc) / .super$env$porosity)^0.5) * (.super$env$vwc/.super$env$porosity)^0.5    
 }
 
+
+# used in ELM for both CTC & CENTURY 
+f_wcor_andren1987 <- function(., ... ) {
+  soil_matpot <- .super$env$matpot
+  if(soil_matpot >= .super$state_pars$matpot_sat) { 
+    1
+  } else if(soil_matpot <= .super$env$matpot_min) {
+    0 
+  } else 
+    log(.super$env$matpot_min / soil_matpot) / log(.super$env$matpot_min / .super$state_pars$matpot_sat)  
+}
+
+
+# ELM soil saturated matric/water potential
+f_matpot_sat_elm_cosby1984_tab5 <- function(., ... ) {
+  matpot_sat <- 10 * 10^(1.88 - 0.0131*.super$env$sand)
+  # convert from mm to MPa
+  matpot_sat * -9.8e-6
+}
+
+
 #f_wcor_rothc
 #need to add this one which is also in soilR
 #tricky think about this function is that monthly moisture limitation
 #depends on value from previous month.
+# APW: just add that previous month water index as an env variable -- a higher level model that runs a whole ecosystem could calulcte in the future
 
+
+# Calculate matric potential from volumetric soil water content
+# van Genuchten 1980?
 f_SWC2SWP_vanGenuchten <- function(.,C,t,i){
   SWC0 = .super$env$vwc
   SWCres = 0.108 # MEC: probably should store these parameters elsewhere, but they are constant in MEND

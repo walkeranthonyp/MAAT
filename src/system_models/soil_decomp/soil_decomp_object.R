@@ -273,9 +273,10 @@ soil_decomp_object$fnames <- list(
   
   fmet          = 'f_texture_wieder_fmet',
   tau_mod1      = 'f_k_wieder_tau_mod1',
-  k_tau_r       = 'f_k_wieder_tau_r',
-  k_tau_k       = 'f_k_wieder_tau_k', 
-  k_tau_desorb  = 'f_k_wieder_desorb',
+  matpot_sat    = 'f_matpot_sat_elm_cosby1984_tab5',
+#  k_tau_r       = 'f_k_wieder_tau_r',
+#  k_tau_k       = 'f_k_wieder_tau_k', 
+#  k_tau_desorb  = 'f_k_wieder_desorb',
 
   # individual functions not directly associated with a specific pool or flux  
   growthresp = NA,
@@ -287,21 +288,23 @@ soil_decomp_object$fnames <- list(
 # environment
 ####################################
 soil_decomp_object$env <- list(
-  litter   = 172.8978/365, # forc_npp in MILLENNIALv2
-  temp     = 11.21961,     # default for MILLENNIALv2 (sum across mean year)
-  vwc      = .2422044,     # default for MILLENNIALv2 (average across mean year)
-  porosity = 0.6,          # default for MILLENNIALv2
-  clay     = .0, 
-  lignin   = 0,
-  N        = 0,
-  anpp     = 0,
-  depth    = 0,
-  pH       = 7,            # default for MILLENNIALv2
-  BD       = 1000,         # default for MILLENNIALv2   # Bulk density 
-  matpot   = 15,           # default for MILLENNIALv2
-  lambda   = 2.1000e-04,   # default for MILLENNIALv2
-  kamin    = .2,           # default for MILLENNIALv2
-  claysilt = 80            # default for MILLENNIALv2   # MILLENNIAL uses clay+silt% to calculate Qmax
+  litter     = 172.8978/365, # forc_npp in MILLENNIALv2
+  temp       = 11.21961,     # default for MILLENNIALv2 (sum across mean year)
+  vwc        = .2422044,     # default for MILLENNIALv2 (average across mean year)
+  porosity   = 0.6,          # default for MILLENNIALv2
+  clay       = .0, 
+  sand       = 20,           # % Sand
+  claysilt   = 80,           # default for MILLENNIALv2   # MILLENNIAL uses clay+silt% to calculate Qmax
+  lignin     = 0,
+  N          = 0,
+  anpp       = 0,
+  depth      = 0,
+  pH         = 7,            # default for MILLENNIALv2
+  BD         = 1000,         # default for MILLENNIALv2   # Bulk density 
+  matpot     = 15,           # default for MILLENNIALv2   # APW: units? doesn't look like MPa, but that's what I'm using it for for ELM for now 
+  matpot_min = 10,           # MPa 
+  lambda     = 2.1000e-04,   # default for MILLENNIALv2
+  kamin      = .2            # default for MILLENNIALv2
 )
 
 
@@ -312,8 +315,9 @@ soil_decomp_object$outflux_state_pars <- c('k', 'km', 'km2', 'cue', 'cue2' )
 soil_decomp_object$state_pars <- list(
   solver_out             = matrix(1),
   solver_steadystate_out = matrix(1),
-  fmet     = numeric(1), 
-  tau_mod1 = numeric(1), 
+  fmet       = numeric(1), 
+  tau_mod1   = numeric(1), 
+  matpot_sat = numeric(1),                # minimum soil matric potential 
   cue  = list(NA),
   cue2 = list(NA),
   k = list(
@@ -359,10 +363,10 @@ soil_decomp_object$outflux_pars <- c('k', 'vmax', 'vmax2', 'km', 'km2', 'ea', 'c
 soil_decomp_object$pars <- list(
   
   # model structure parameters
-  n_pools      = 5,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
-  n_outfluxes  = 9,        # number of pools in model  #need to change and re-create XMLs when this changes for wrapper runs
+  n_pools      = 5,        # number of pools in model  # need to change and re-create XMLs when this changes for wrapper runs
+  n_outfluxes  = 9,        # number of outfluxes (arrow bases) in model 
   # APW: these might need to be n_outfluxes long
-  #cat_pool     = 2,        # pool which catalyses reactions 
+  #cat_pool     = 2,       # pool which catalyses reactions 
   sat_pool     = 3,        # pool which saturates
 
   # general scalar parameters
@@ -380,6 +384,7 @@ soil_decomp_object$pars <- list(
   R            = 8.31446,  # used in MILLENNIALv2
   minmic       = NA,
   q10          = NA,
+  tcor_mod     = NA,
 
   
   # Pool-specific parameters
@@ -388,18 +393,21 @@ soil_decomp_object$pars <- list(
   
   # outfluxes to decomp pool assignment
   # APW: list format didn't work due to nesting lists within a list, configure functions cannot handle 
-  decomp_outflux1 = list(dof11=1, dof12=2 ),
-  decomp_outflux2 = list(dof21=3, dof22=4 ),
-  decomp_outflux3 = list(dof31=5, dof32=6 ),
-  decomp_outflux4 = list(dof41=7),
-  decomp_outflux5 = list(dof51=8),
+#  decomp_outflux1 = list(dof11=1, dof12=2 ),
+#  decomp_outflux2 = list(dof21=3, dof22=4 ),
+#  decomp_outflux3 = list(dof31=5, dof32=6 ),
+#  decomp_outflux4 = list(dof41=7),
+#  decomp_outflux5 = list(dof51=8),
+#  decomp_outflux6 = list(dof61=9),
+#  decomp_outflux7 = list(dof71=10),
+  decomp_outflux1 = list(dof11=1),
+  decomp_outflux2 = list(dof21=3),
+  decomp_outflux3 = list(dof31=4),
+  decomp_outflux4 = list(dof41=6),
+  decomp_outflux5 = list(dof51=9),
   decomp_outflux6 = list(dof61=9),
   decomp_outflux7 = list(dof71=10),
-#  decomp_outflux1 = list(dof11=1),
-#  decomp_outflux2 = list(dof21=3),
-#  decomp_outflux3 = list(dof31=4),
-#  decomp_outflux4 = list(dof41=6),
-#  decomp_outflux5 = list(dof51=9),
+  decomp_outflux8 = list(dof81=10),
 #  decomp_outflux1 = list(dof11=1, dof12=2),
 #  decomp_outflux2 = list(dof21=3),
 #  decomp_outflux3 = list(dof31=4, dof32=5),
@@ -691,15 +699,15 @@ soil_decomp_object$pars <- list(
   
   # CENTURY-specific parameters
   century = list(
-    c1= 0.85, #century constant in texture function
-    c2= 0.68, #century constant in texture function
-    slow_to_active= 0.42, #century transfer coefficient
-    slow_to_passive= 0.03,#century transfer coefficient
-    passive_to_active= 0.45,#century transfer coefficient
-    active_to_passive= 0.004,#century transfer coefficient
-    metlitter_to_active= 0.45,#century transfer coefficient
-    strlitter_to_active= 0.5,#century transfer coefficient
-    strlitter_to_slow= 0.7#century transfer coefficient
+    c1= 0.85, # century constant in cue as a function of texture
+    c2= 0.68  # century constant in cue as a function of texture
+#    slow_to_active= 0.42, #century transfer coefficient
+#    slow_to_passive= 0.03,#century transfer coefficient
+#    passive_to_active= 0.45,#century transfer coefficient
+#    active_to_passive= 0.004,#century transfer coefficient
+#    metlitter_to_active= 0.45,#century transfer coefficient
+#    strlitter_to_active= 0.5,#century transfer coefficient
+#    strlitter_to_slow= 0.7#century transfer coefficient
   )
 )
 

@@ -45,6 +45,7 @@ f_tcor_daycent2 <- function(.,C,t,i){
     (0.56 + (1.46 * atan(pi * 0.0309 * (.super$pars$reftemp - 15.7)))/pi)
 }
 
+# APW: this is also an option in ELM-CENTURY/BGC and used to normalize the Q10 t_scalar  
 f_tcor_daycent2_abramoff <- function(.,C,t,i){
   #daycent2 function as implemented in millennial model (i.e. different parameters)
   t1 = 15.4
@@ -57,8 +58,9 @@ f_tcor_daycent2_abramoff <- function(.,C,t,i){
 f_tcor_q10 <- function(.,C,t,i){
   #sourced from SoilR and standardized to 20C
   #SoilR::fT.Q10
-  k_ref <- 1
-  k_ref * .super$pars$q10^((.super$env$temp - .super$pars$reftemp)/10)
+#  k_ref <- 1
+#  k_ref * .super$pars$q10^((.super$env$temp - .super$pars$reftemp)/10)
+  .super$pars$tcor_mod * .super$pars$q10^((.super$env$temp - .super$pars$reftemp)/10)
 }
 
 f_tcor_rothc <- function(.,C,t,i){
