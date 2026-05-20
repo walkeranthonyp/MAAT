@@ -96,6 +96,8 @@ soil_decomp_object$fnames <- list(
     d7 = NA
   ),
   
+  poolmax = list(NA),
+
 #  desorp = list(
 #    ds1 = NA,
 #    ds2 = NA,
@@ -147,48 +149,48 @@ soil_decomp_object$fnames <- list(
   # functions that align with each outflux 
   # - temperature scalars 
   tcor = list(             
-    t1 = 'f_tcor_none',
-    t2 = 'f_tcor_arrhenius_millennialv2',
-    t3 = 'f_tcor_none',
-    t4 = 'f_tcor_none',
-    t5 = 'f_tcor_none',
-    t6 = 'f_tcor_none',
-    t7 = 'f_tcor_none',
-    t8 = 'f_tcor_arrhenius_millennialv2',
-    t9 = 'f_tcor_none',
-    t10 = 'f_tcor_none',
-    t11 = 'f_tcor_none'
+    tcor1 = 'f_tcor_none',
+    tcor2 = 'f_tcor_arrhenius_millennialv2',
+    tcor3 = 'f_tcor_none',
+    tcor4 = 'f_tcor_none',
+    tcor5 = 'f_tcor_none',
+    tcor6 = 'f_tcor_none',
+    tcor7 = 'f_tcor_none',
+    tcor8 = 'f_tcor_arrhenius_millennialv2',
+    tcor9 = 'f_tcor_none',
+    tcor10 = 'f_tcor_none',
+    tcor11 = 'f_tcor_none'
   ),
 
   # - water scalars 
   wcor = list(             
-    w1 = 'f_wcor_ghezzehei_diffusion', 
-    w2 = 'f_wcor_ghezzehei_diffusion', 
-    #w2 = 'f_wcor_ghezzehei_biological',
-    w3 = 'f_wcor_none',
-    w4 = 'f_wcor_none', 
-    w5 = 'f_wcor_ghezzehei_diffusion',
-    w6 = 'f_wcor_ghezzehei_diffusion',
-    w7 = 'f_wcor_ghezzehei_diffusion',
-    w8 = 'f_wcor_ghezzehei_biological',
-    w9 = 'f_wcor_ghezzehei_diffusion',
-    w10 = 'f_wcor_ghezzehei_diffusion',
-    w11 = 'f_wcor_ghezzehei_diffusion'
+    wcor1 = 'f_wcor_ghezzehei_diffusion', 
+    wcor2 = 'f_wcor_ghezzehei_diffusion', 
+    #wcor2 = 'f_wcor_ghezzehei_biological',
+    wcor3 = 'f_wcor_none',
+    wcor4 = 'f_wcor_none', 
+    wcor5 = 'f_wcor_ghezzehei_diffusion',
+    wcor6 = 'f_wcor_ghezzehei_diffusion',
+    wcor7 = 'f_wcor_ghezzehei_diffusion',
+    wcor8 = 'f_wcor_ghezzehei_biological',
+    wcor9 = 'f_wcor_ghezzehei_diffusion',
+    wcor10 = 'f_wcor_ghezzehei_diffusion',
+    wcor11 = 'f_wcor_ghezzehei_diffusion'
   ),
 
   # - soil or litter scalars 
   scor = list(             
-    s1 = 'f_scor_none',
-    s2 = 'f_scor_none',
-    s3 = 'f_scor_none',
-    s4 = 'f_scor_none',
-    s5 = 'f_scor_none',
-    s6 = 'f_scor_none',
-    s7 = 'f_scor_none',
-    s8 = 'f_scor_none',
-    s9 = 'f_scor_none',
-    s10 = 'f_scor_none',
-    s11 = 'f_scor_none'
+    scor1 = 'f_scor_none',
+    scor2 = 'f_scor_none',
+    scor3 = 'f_scor_none',
+    scor4 = 'f_scor_none',
+    scor5 = 'f_scor_none',
+    scor6 = 'f_scor_none',
+    scor7 = 'f_scor_none',
+    scor8 = 'f_scor_none',
+    scor9 = 'f_scor_none',
+    scor10 = 'f_scor_none',
+    scor11 = 'f_scor_none'
   ),
 
   # transfer list
@@ -205,37 +207,8 @@ soil_decomp_object$fnames <- list(
     t3_to_5 = 'f_transfer_fluxsum_prop_two', 
     t4_to_2 = 'f_transfer_fluxsum_prop_three_cue', 
     t4_to_3 = 'f_transfer_fluxsum_prop_two',
-    #t4_to_resp = uptake 'frac of three out fluxes from pool 4 * (1- CUE)',
-    #t4_to_leached = leached 'frac of three out fluxes from pool 4',
     t5_to_1 = 'f_transfer_cue', 
     t5_to_3 = 'f_transfer_cue_remainder' 
-    # t1_to_3 = 'f_transfer_cue_remainder',
-    # t1_to_4 = 'f_transfer_cue_remainder',
-    # t2_to_5 = 'f_transfer_mend27',
-    # t3_to_6 = 'f_transfer_all',
-    # t4_to_7 = 'f_transfer_all',
-    # t5_to_6 = 'f_transfer_mend52',
-    # t6_to_7 = 'f_transfer_all',
-    # t7_to_8 = 'f_transfer_all',
-    # t2_to_9 = 'f_transfer_mend27',
-    # t3_to_9 = 'f_transfer_all',
-    # t4_to_9 = 'f_transfer_all',
-    # t5_to_9 = 'f_transfer_mend52',
-    # t6_to_9 = 'f_transfer_all',
-    # t7_to_9 = 'f_transfer_all',
-    # t8_to_9 = 'f_transfer_all'
-    # t1_to_3 = 'f_transfer_cue_remainder',
-    # t1_to_5 = 'f_transfer_cue',
-    # t2_to_1 = 'f_transfer_mend21',
-    # t2_to_5 = 'f_transfer_mend25',
-    # t2_to_6 = 'f_transfer_mend26',
-    # t2_to_7 = 'f_transfer_mend27',
-    # t3_to_5 = 'f_transfer_all',
-    # t4_to_5 = 'f_transfer_all',
-    # t5_to_2 = 'f_transfer_mend52',
-    # t5_to_4 = 'f_transfer_mend54',
-    # t6_to_5 = 'f_transfer_all',
-    # t7_to_5 = 'f_transfer_all'
   ),
 
   cue = list(
@@ -254,11 +227,15 @@ soil_decomp_object$fnames <- list(
     cue26 = character(1)
   ),
 
+  cue3 = list(NA),
+
   k = list(
     k5 = 'f_k_wieder_tau_r',
     k6 = 'f_k_wieder_tau_k', 
     k7 = 'f_k_wieder_desorb' 
   ),
+
+  vmax = list(NA),
 
   km = list(
     km1 = 'f_km_wieder_temp', # pool 1 cat3
@@ -279,8 +256,8 @@ soil_decomp_object$fnames <- list(
 #  k_tau_desorb  = 'f_k_wieder_desorb',
 
   # individual functions not directly associated with a specific pool or flux  
-  growthresp = NA,
-  maintresp  = NA,
+  #growthresp = NA,
+  #maintresp  = NA,
   water_unit_converter = 'f_SWC2SWP_vanGenuchten'
 )
 
@@ -310,7 +287,10 @@ soil_decomp_object$env <- list(
 
 # state parameters (i.e. calculated parameters)
 ####################################
-soil_decomp_object$outflux_state_pars <- c('k', 'km', 'km2', 'cue', 'cue2' ) 
+# state parameter names (& therefore also fnames) that have a value per pool
+soil_decomp_object$pool_state_pars    <- c('poolmax')
+# state parameter names (& therefore also fnames) that have a value per outflux
+soil_decomp_object$outflux_state_pars <- c('k', 'vmax', 'km', 'km2', 'cue', 'cue2', 'cue3' ) 
 
 soil_decomp_object$state_pars <- list(
   solver_out             = matrix(1),
@@ -318,46 +298,23 @@ soil_decomp_object$state_pars <- list(
   fmet       = numeric(1), 
   tau_mod1   = numeric(1), 
   matpot_sat = numeric(1),                # minimum soil matric potential 
-  cue  = list(NA),
-  cue2 = list(NA),
-  k = list(
-    k1 = numeric(1), 
-    k2 = numeric(1),  
-    k3 = numeric(1),  
-    k4 = numeric(1),  
-    k5 = numeric(1),  
-    k6 = numeric(1),  
-    k7 = numeric(1),  
-    k8 = numeric(1),  
-    k9 = numeric(1),  
-    k10 = numeric(1),  
-    k11 = numeric(1)  
-  ),
-  km = list(
-    km1 = numeric(1), 
-    km2 = numeric(1),  
-    km3 = numeric(1),  
-    km4 = numeric(1),  
-    km5 = numeric(1),  
-    km6 = numeric(1),  
-    km7 = numeric(1),  
-    km8 = numeric(1),  
-    km9 = numeric(1),  
-    km10 = numeric(1),  
-    km11 = numeric(1)  
-  )
+  poolmax = list(NA),
+  k       = list(NA),
+  vmax    = list(NA),
+  km      = list(NA),
+  km2     = list(NA),
+  cue     = list(NA),
+  cue2    = list(NA),
+  cue3    = list(NA)
 )
 
 
 # parameters
 ####################################
 # parameter names that have a value per pool
-# APW: decomp_ouflux needs a way to configure each list
-#soil_decomp_object$pool_pars <- c('cstate0', 'decomp_outflux', 'cue', 'cue2', 'poolmax', 'input_coefs' )
-soil_decomp_object$pool_pars <- c('cstate0', 'decomp_outflux', 'poolmax', 'input_coef' )
-
+soil_decomp_object$pool_pars <- c(soil_decomp_object$pool_state_pars, 'cstate0', 'input_coef' )
 # parameter names that have a value per outflux
-soil_decomp_object$outflux_pars <- c('k', 'vmax', 'vmax2', 'km', 'km2', 'ea', 'cat_pool', 'cue', 'cue2' ) 
+soil_decomp_object$outflux_pars <- c(soil_decomp_object$outflux_state_pars, 'vmax2', 'km2', 'ea', 'cat_pool' )
 
 # parameters
 soil_decomp_object$pars <- list(
@@ -393,25 +350,25 @@ soil_decomp_object$pars <- list(
   
   # outfluxes to decomp pool assignment
   # APW: list format didn't work due to nesting lists within a list, configure functions cannot handle 
-#  decomp_outflux1 = list(dof11=1, dof12=2 ),
+  decomp_outflux1 = list(dof11=1, dof12=2 ),
 #  decomp_outflux2 = list(dof21=3, dof22=4 ),
-#  decomp_outflux3 = list(dof31=5, dof32=6 ),
+  decomp_outflux3 = list(dof31=5, dof32=6 ),
 #  decomp_outflux4 = list(dof41=7),
-#  decomp_outflux5 = list(dof51=8),
+  decomp_outflux5 = list(dof51=8),
 #  decomp_outflux6 = list(dof61=9),
 #  decomp_outflux7 = list(dof71=10),
-  decomp_outflux1 = list(dof11=1),
+#  decomp_outflux1 = list(dof11=1),
   decomp_outflux2 = list(dof21=3),
-  decomp_outflux3 = list(dof31=4),
-  decomp_outflux4 = list(dof41=6),
-  decomp_outflux5 = list(dof51=9),
-  decomp_outflux6 = list(dof61=9),
-  decomp_outflux7 = list(dof71=10),
-  decomp_outflux8 = list(dof81=10),
+#  decomp_outflux3 = list(dof31=4),
+#  decomp_outflux4 = list(dof41=6),
+#  decomp_outflux5 = list(dof51=6, dof52=7, dof53=8),
+#  decomp_outflux6 = list(dof61=9),
+#  decomp_outflux7 = list(dof71=10),
+#  decomp_outflux8 = list(dof81=10),
 #  decomp_outflux1 = list(dof11=1, dof12=2),
 #  decomp_outflux2 = list(dof21=3),
 #  decomp_outflux3 = list(dof31=4, dof32=5),
-#  decomp_outflux4 = list(dof41=6, dof42=7, dof43=8),
+  decomp_outflux4 = list(dof41=6, dof42=7, dof43=8),
 #  decomp_outflux5 = list(dof51=9),
 #  decomp_outflux = list(
 #    decomp_outflux1 = list(dof1.1=1, dof1.2=2),
@@ -616,6 +573,8 @@ soil_decomp_object$pars <- list(
     cue9 = NA
   ),  
 
+  cue3 = list(NA), 
+
 
   # Model specific parameters
   ################################################
@@ -660,13 +619,13 @@ soil_decomp_object$pars <- list(
   ),
   
   # MEND-specific parameters
-  mend = list(
-    Mr =  .00028,
-    Pep = .01,
-    Pem = .01,
-    Gd =  .5,
-    Fd =  .5
-  ),
+#  mend = list(
+#    Mr =  .00028,
+#    Pep = .01,
+#    Pem = .01,
+#    Gd =  .5,
+#    Fd =  .5
+#  ),
   
   # MILLENNIAL-specific parameters
   # v1

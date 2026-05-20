@@ -47,17 +47,32 @@ calc_state_pars_century <- function(.) {
 
 calc_state_pars_corpse <- function(.) {
 
+  # pool parameters
+  for(i in 1:.super$pars$n_pools) .super$state_pars$poolmax[[i]]  <- .[[paste0('poolmax.poolmax',i)]](i=i) 
+
   # k parameters
   for(i in 1:.super$pars$n_outfluxes) .super$state_pars$k[[i]]    <- .[[paste0('k.k',i)]](i=i) 
   for(i in 1:.super$pars$n_outfluxes) .super$state_pars$km[[i]]   <- .[[paste0('km.km',i)]](i=i) 
-  #for(i in 1:.super$pars$n_outfluxes) .super$state_pars$vmax[[i]] <- .[[paste0('vmax.vmax',i)]](i=i) 
+  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$vmax[[i]] <- .[[paste0('vmax.vmax',i)]](i=i) 
   #for(i in 1:.super$pars$n_outfluxes) .super$state_pars$ea[[i]]   <- .[[paste0('ea.ea',i)]](i=i) 
 
   # cue parameters
   for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
   for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](.=., i=i ) 
+  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue3[[i]] <- .[[paste0('cue3.cue3',i)]](.=., i=i ) 
 }
 
+
+
+# poolmax functions
+################################
+
+f_poolmax_constant <- function(., i ) 
+  .super$pars$poolmax[[i]] 
+
+f_poolmax_texture_abramoff <- function(., i )
+  #.super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']] (in g m-2 version) 
+  .super$env$claysilt * .super$pars$millennialV2[['param_pc']] 
 
 
 # k functions
@@ -66,11 +81,14 @@ calc_state_pars_corpse <- function(.) {
 f_k_constant <- function(., i ) 
   .super$pars$k[[i]] 
 
+f_vmax_constant <- function(., i ) 
+  .super$pars$vmax[[i]] 
+
 f_texture_wieder_fmet <- function(.) 
   .super$pars$mimics[['fmet_p1']] * (.super$pars$mimics[['fmet_p2']] - .super$pars$mimics[['fmet_p3']]*(.super$env$lignin/.super$env$N))
 
 # ensures that tau_mod1 is between two values
-# in Will's script, anpp is multipled by 0 in the manipulation scirpt... which would imply that 
+# in Will's script, anpp is multipled by 0 in the manipulation script... which would imply that 
 # tau_mod1 might always be set to 0.6 in the simulations in Ben's paper
 f_k_wieder_tau_mod1 <- function(.) 
   min(max(sqrt(.super$env$anpp/.super$pars$mimics[['tau_mod1_p1']]),.super$pars$mimics[['tau_mod1_p2']]),.super$pars$mimics[['tau_mod1_p3']])
@@ -83,8 +101,18 @@ f_k_wieder_tau_k <- function(., ... )
  
 f_k_wieder_desorb <- function(., ... ) 
   .super$pars$mimics[['desorb_p1']] * exp(.super$pars$mimics[['desorb_p2']] * .super$env$clay) * 0.1
+
+f_vmax_wang_cue_inflation <- function(., i )
+  1/.super$pars$cue[[i]] * .super$pars$vmax[[i]]  
  
+f_vmax_wang_k_from_cat_cue_inflation <- function(., i )
+  1/.super$pars$cue[[i]] * .super$pars$k[[.super$pars$cat_pool[[i]] ]]  
  
+f_k_abramoff_sorp_efficiency <- function(., i )
+  # kaff_lm
+  # APW: note kld is used elsewhere and is kld/1000 currently 
+  exp(-.super$pars$millennialV2[['sorp_p1']] * .super$env$pH - .super$pars$millennialV2[['sorp_p2']]) * .super$pars$millennialV2[['kld']]
+
 
 # km functions
 ################################
@@ -133,6 +161,9 @@ f_cue_constant <- function(., i )
 f_cue2_constant <- function(., i ) 
   .super$pars$cue2[[i]] 
 
+f_cue3_constant <- function(., i ) 
+  .super$pars$cue3[[i]] 
+
 
 # MIMICS specific CUE calculations
 f_cue_wieder_texture1 <- function(., ... ) 
@@ -162,6 +193,8 @@ f_cue_century_texture <- function(., i )
 f_cue_century_texture_elm <- function(., i ) 
   1 - .$fmet() - .super$pars$cue[[i]] 
 
+f_cue_temp_mod_abramoff  <- function(., i ) 
+  .super$pars$cue[[i]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']]) 
 
 
 

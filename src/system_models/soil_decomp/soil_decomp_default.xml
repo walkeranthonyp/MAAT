@@ -6,149 +6,248 @@
       <solver_func>'f_solver_func_soilR_outfluxes'</solver_func>
       <steadystate>'f_steadystate_npools'</steadystate>
       <solver_steadystate>'pstode'</solver_steadystate>
-      <input>'f_input_clm5'</input>
+      <input>'f_input'</input>
       <DotO>'f_DotO'</DotO>
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <transfer_fluxsum_prop>'f_transfer_fluxsum_prop'</transfer_fluxsum_prop>
       <outfluxes>'f_outfluxes'</outfluxes>
-      <calc_state_pars>'calc_state_pars_century'</calc_state_pars>
+      <calc_state_pars>'calc_state_pars_corpse'</calc_state_pars>
       <decomp>
-        <d1>'f_decomp_outflux'</d1>
-        <d2>'f_decomp_outflux'</d2>
-        <d3>'f_decomp_outflux'</d3>
-        <d4>'f_decomp_outflux'</d4>
-        <d5>'f_decomp_outflux'</d5>
-        <d6>'f_decomp_outflux'</d6>
-        <d7>'f_decomp_outflux'</d7>
+        <d1>'f_decomp_fluxsum'</d1>
+        <d2>'f_decomp_fluxsum'</d2>
+        <d3>'f_decomp_fluxsum'</d3>
+        <d4>'f_decomp_fluxsum'</d4>
+        <d5>'f_decomp_fluxsum'</d5>
       </decomp>
+      <poolmax>
+        <poolmax3>'f_poolmax_texture_abramoff'</poolmax3>
+      </poolmax>
       <outflux>
         <of1>'f_decomp_lin'</of1>
-        <of2>'f_decomp_lin'</of2>
-        <of3>'f_decomp_lin'</of3>
-        <of4>'f_decomp_lin'</of4>
+        <of2>'f_decomp_rmm'</of2>
+        <of3>'f_decomp_dd_georgiou'</of3>
+        <of4>'f_desorp_millennialv2'</of4>
         <of5>'f_decomp_lin'</of5>
         <of6>'f_decomp_lin'</of6>
-        <of7>'f_decomp_lin'</of7>
+        <of7>'f_sorp_sat'</of7>
+        <of8>'f_decomp_mm'</of8>
+        <of9>'f_decomp_lin'</of9>
       </outflux>
       <tcor>
-        <tcor1>'f_tcor_q10'</tcor1>
-        <tcor2>'f_tcor_q10'</tcor2>
-        <tcor3>'f_tcor_q10'</tcor3>
-        <tcor4>'f_tcor_q10'</tcor4>
-        <tcor5>'f_tcor_q10'</tcor5>
-        <tcor6>'f_tcor_q10'</tcor6>
-        <tcor7>'f_tcor_q10'</tcor7>
-      </tcor>  
+        <tcor1>'f_tcor_none'</tcor1>
+        <tcor2>'f_tcor_arrhenius_millennialv2'</tcor2>
+        <tcor3>'f_tcor_none'</tcor3>
+        <tcor4>'f_tcor_none'</tcor4>
+        <tcor5>'f_tcor_none'</tcor5>
+        <tcor6>'f_tcor_none'</tcor6>
+        <tcor7>'f_tcor_none'</tcor7>
+        <tcor8>'f_tcor_arrhenius_millennialv2'</tcor8>
+        <tcor9>'f_tcor_none'</tcor9>
+      </tcor>
       <wcor>
-        <wcor1>'f_wcor_andren1987'</wcor1>
-        <wcor2>'f_wcor_andren1987'</wcor2>
-        <wcor3>'f_wcor_andren1987'</wcor3>
-        <wcor4>'f_wcor_andren1987'</wcor4>
-        <wcor5>'f_wcor_andren1987'</wcor5>
-        <wcor6>'f_wcor_andren1987'</wcor6>
-        <wcor7>'f_wcor_andren1987'</wcor7>
+        <wcor1>'f_wcor_ghezzehei_diffusion'</wcor1>
+        <wcor2>'f_wcor_ghezzehei_diffusion'</wcor2>
+        <wcor3>'f_wcor_none'</wcor3>
+        <wcor4>'f_wcor_none'</wcor4>
+        <wcor5>'f_wcor_ghezzehei_diffusion'</wcor5>
+        <wcor6>'f_wcor_ghezzehei_diffusion'</wcor6>
+        <wcor7>'f_wcor_ghezzehei_diffusion'</wcor7>
+        <wcor8>'f_wcor_ghezzehei_biological'</wcor8>
+        <wcor9>'f_wcor_ghezzehei_diffusion'</wcor9>
       </wcor>
+      <k>
+        <k7>'f_k_abramoff_sorp_efficiency'</k7>
+      </k>
       <transfer>
-        <t1_to_3>'f_transfer_fluxid_cue'</t1_to_3> 
-        <t1_to_4>'f_transfer_fluxid_cue_remainder'</t1_to_4> 
-        <t2_to_5>'f_transfer_fluxid_cue'</t2_to_5> 
-        <t3_to_5>'f_transfer_fluxid_cue'</t3_to_5> 
-        <t4_to_6>'f_transfer_fluxid_cue'</t4_to_6> 
-        <t5_to_6>'f_transfer_fluxid_cue2'</t5_to_6> 
-        <t5_to_7>'f_transfer_fluxid_cue'</t5_to_7> 
-        <t6_to_5>'f_transfer_fluxid_cue'</t6_to_5> 
-        <t6_to_7>'f_transfer_fluxid_cue2'</t6_to_7> 
-        <t7_to_5>'f_transfer_fluxid_cue'</t7_to_5> 
+        <t1_to_4>'f_transfer_fluxsum_prop_two'</t1_to_4>
+        <t1_to_5>'f_transfer_fluxsum_prop_one'</t1_to_5>
+        <t2_to_3>'f_transfer_fluxid_cue'</t2_to_3>
+        <t2_to_4>'f_transfer_fluxid_cue_remainder'</t2_to_4>
+        <t3_to_4>'f_transfer_fluxsum_prop_one'</t3_to_4>
+        <t3_to_5>'f_transfer_fluxsum_prop_two'</t3_to_5>
+        <t4_to_2>'f_transfer_fluxsum_prop_three_cue'</t4_to_2>
+        <t4_to_3>'f_transfer_fluxsum_prop_two'</t4_to_3>
+        <t5_to_1>'f_transfer_fluxid_cue'</t5_to_1>
+        <t5_to_3>'f_transfer_fluxid_cue_remainder'</t5_to_3>
       </transfer>
-      <cue2>
-        <cue25>'f_cue_century_texture_elm'</cue25>
-      </cue2>
-      <fmet>'f_scor_century_texture'</fmet>
-      <matpot_sat>'f_matpot_sat_elm_cosby1984_tab5'</matpot_sat> 
+      <cue>
+        <cue8>'f_cue_temp_mod_abramoff'</cue8>
+      </cue>
+      <!--water_unit_converter>'f_SWC2SWP_vanGenuchten'</water_unit_converter-->
     </soil_decomp>
   </fnames>
   <pars>
     <soil_decomp>
-      <n_pools>7</n_pools>
-      <n_outfluxes>7</n_outfluxes>
+      <n_pools>5</n_pools>
+      <n_outfluxes>9</n_outfluxes>
+      <sat_pool>3</sat_pool>
+      <beta>2</beta>
+      <!--silt>NA</silt>
+      <clay>NA</clay>
+      <clayref>NA</clayref>
+      <mr>NA</mr>
+      <pep>NA</pep>
+      <pem>NA</pem>
+      <Kads>NA</Kads>
+      <minmic>NA</minmic>
+      <q10>NA</q10>
+      <qslope_mayes>NA</qslope_mayes-->
+      <reftemp>30</reftemp>
+      <R>8.31446</R>
       <decomp_outflux1>
         <dof11>1</dof11>
+        <dof12>2</dof12>
       </decomp_outflux1>
       <decomp_outflux2>
-        <dof21>2</dof21>
+        <dof21>3</dof21>
       </decomp_outflux2>
       <decomp_outflux3>
-        <dof31>3</dof31>
+        <dof31>4</dof31>
+        <dof32>5</dof32>
       </decomp_outflux3>
       <decomp_outflux4>
-        <dof41>4</dof41>
+        <dof41>6</dof41>
+        <dof42>7</dof42>
+        <dof43>8</dof43>
       </decomp_outflux4>
       <decomp_outflux5>
-        <dof51>5</dof51>
+        <dof51>9</dof51>
       </decomp_outflux5>
-      <decomp_outflux6>
-        <dof61>6</dof61>
-      </decomp_outflux6>
-      <decomp_outflux7>
-        <dof71>7</dof71>
-      </decomp_outflux7>
-      <input_coef>
-        <input_coef1>0.1</input_coef1>
-        <input_coef2>0.2</input_coef2>
-        <input_coef3>0.5</input_coef3>
-        <input_coef4>0.3</input_coef4>
-        <input_coef5>0</input_coef5>
-        <input_coef6>0</input_coef6>
-        <input_coef7>0</input_coef7>
-      </input_coef>
       <cstate0>
-        <cstate01>0.1</cstate01>
-        <cstate02>0.1</cstate02>
-        <cstate03>0.1</cstate03>
-        <cstate04>0.1</cstate04>
-        <cstate05>0.1</cstate05>
-        <cstate06>0.1</cstate06>
-        <cstate07>0.1</cstate07>
+        <cstate01>1</cstate01>
+        <cstate02>1</cstate02>
+        <cstate03>1</cstate03>
+        <cstate04>1</cstate04>
+        <cstate05>1</cstate05>
       </cstate0>
-      <cue>
-        <cue1>0.76</cue1>
-        <cue2>0.45</cue2>
-        <cue3>0.5</cue3>
-        <cue4>0.5</cue4>
-        <cue5>0.004</cue5>
-        <cue6>0.42</cue6>
-        <cue7>0.45</cue7>
-      </cue>
-      <cue2>
-        <cue21>NA</cue21>
-        <cue22>NA</cue22>
-        <cue23>NA</cue23>
-        <cue24>NA</cue24>
-        <cue25>NA</cue25>
-        <cue26>0.03</cue26>
-        <cue27>0</cue27>
-      </cue2>
-      <!--turnover time years, tau, converted to k in days-1 1/(tau*365)>
-        <tau1>3.3333333333333</tau1>
-        <tau2>0.054054054054</tau2>
-        <tau3>0.204081632653061</tau3>
-        <tau4>0.204081632653061</tau4>
-        <tau5>0.136986301369863</tau5>
-        <tau6>5</tau6>
-        <tau7>222.222222222222</tau7>
-      </tau-->
+      <input_coef>
+        <input_coef1>0.66</input_coef1>
+        <input_coef2>0</input_coef2>
+        <input_coef3>0</input_coef3>
+        <input_coef4>0.34</input_coef4>
+        <input_coef5>0</input_coef5>
+      </input_coef>
+      <poolmax>
+        <poolmax1>NA</poolmax1>
+        <poolmax2>NA</poolmax2>
+        <poolmax3>NA</poolmax3>
+        <poolmax4>NA</poolmax4>
+        <poolmax5>NA</poolmax5>
+      </poolmax>
       <k>
-        <k1>0.0008219</k1>
-        <k2>0.05068</k2>
-        <k3>0.01342</k3>
-        <k4>0.01342</k4>
-        <k5>0.02</k5>
-        <k6>0.0005479</k6>
-        <k7>0.00001233</k7>
+        <k1>0.018</k1>
+        <k2>NA</k2>
+        <k3>4.5</k3>
+        <k4>1e-3</k4>
+        <k5>0.0048</k5>
+        <k6>0.0015</k6>
+        <k7>NA</k7>
+        <k8>NA</k8>
+        <k9>0.02</k9>
       </k>
-      <reftemp>25</reftemp>
-      <q10>1.5</q10>
-      <tcor_mod>0.8206</tcor_mod>
+      <vmax>
+        <vmax1>NA</vmax1>
+        <vmax2>1.8e+12</vmax2>
+        <vmax3>NA</vmax3>
+        <vmax4>NA</vmax4>
+        <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
+        <vmax8>2.3e+12</vmax8>
+        <vmax9>NA</vmax9>
+      </vmax>
+      <cat_pool>
+        <cat_pool2>2</cat_pool2>
+        <cat_pool8>2</cat_pool8>
+      </cat_pool>
+      <ea>
+        <ea1>NA</ea1>
+        <ea2>63909</ea2>
+        <ea3>NA</ea3>
+        <ea4>NA</ea4>
+        <ea5>NA</ea5>
+        <ea6>NA</ea6>
+        <ea7>NA</ea7>
+        <ea8>57865</ea8>
+        <ea9>NA</ea9>
+      </ea>
+      <km>
+        <km1>NA</km1>
+        <km2>6.443</km2>
+        <km3>NA</km3>
+        <km4>NA</km4>
+        <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
+        <km8>0.7746</km8>
+        <km9>NA</km9>
+      </km>
+      <cue>
+        <cue3>0.5</cue3>
+        <cue8>0.19</cue8>
+        <cue9>0.33</cue9>
+      </cue>
+      <millennialV2>
+        <param_pc>0.86</param_pc>
+        <kld>1</kld>
+        <sorp_p1>0.12</sorp_p1>
+        <sorp_p2>0.216</sorp_p2>
+        <cue_t>0.012</cue_t>
+        <Taeref>15</Taeref>
+        <!--pa>0.33</pa>
+        <param_pb>0.5</param_pb-->
+      </millennialV2>
+      <mimics>
+        <fmet_p1>0.5</fmet_p1>
+        <fmet_p2>0.85</fmet_p2>
+        <fmet_p3>0.013</fmet_p3>
+        <tau_mod1_p1>100</tau_mod1_p1>
+        <tau_mod1_p2>0.6</tau_mod1_p2>
+        <tau_mod1_p3>1.3</tau_mod1_p3>
+        <tau_r_p1>0.00052</tau_r_p1>
+        <tau_r_p2>0.3</tau_r_p2>
+        <tau_mod2>2</tau_mod2>
+        <tau_k_p1>0.00024</tau_k_p1>
+        <tau_k_p2>0.1</tau_k_p2>
+        <desorb_p1>2e-05</desorb_p1>
+        <desorb_p2>-4.5</desorb_p2>
+        <fSOMp_r_p1>0.15</fSOMp_r_p1>
+        <fSOMp_r_p2>1.3</fSOMp_r_p2>
+        <fSOMc_r_p1>0.1</fSOMc_r_p1>
+        <fSOMc_r_p2>-3</fSOMc_r_p2>
+        <fSOMc_r_p3>1</fSOMc_r_p3>
+        <fSOMp_k_p1>0.1</fSOMp_k_p1>
+        <fSOMp_k_p2>0.8</fSOMp_k_p2>
+        <fSOMc_k_p1>0.3</fSOMc_k_p1>
+        <fSOMc_k_p2>-3</fSOMc_k_p2>
+        <fSOMc_k_p3>1</fSOMc_k_p3>
+        <V_slope>0.063</V_slope>
+        <V_int>5.47</V_int>
+        <aV>1.25e-07</aV>
+        <pscalar_p1>3</pscalar_p1>
+        <pscalar_p2>-2</pscalar_p2>
+        <ko_r>6</ko_r>
+        <ko_k>6</ko_k>
+        <K_slope>0.02</K_slope>
+        <K_int>3.19</K_int>
+        <aK>0.15625</aK>
+        <fi_LITm>0.005</fi_LITm>
+        <fi_LITs>0.005</fi_LITs>
+      </mimics>
+      <millennial>
+        <cuet>-0.012</cuet>
+        <Taeref>15</Taeref>
+        <Vpa>0.002</Vpa>
+        <Kpa>50</Kpa>
+        <c1>0.297</c1>
+        <c2>3.355</c2>
+        <Vma>0.07</Vma>
+        <Kma>200</Kma>
+        <Vdm>0.35</Vdm>
+        <Kdb>7.2</Kdb>
+        <kmm>0.025</kmm>
+        <pa>0.333</pa>
+      </millennial>
       <century>
         <c1>0.85</c1>
         <c2>0.68</c2>
@@ -157,12 +256,21 @@
   </pars>
   <env>
     <soil_decomp>
-      <litter>1.0</litter>
-      <sand>20.0</sand>
+      <litter>0.473692602739726</litter>
+      <temp>11.21961</temp>
+      <vwc>0.2422044</vwc>
+      <porosity>0.6</porosity>
+      <clay>0</clay>
+      <lignin>0</lignin>
+      <N>0</N>
+      <anpp>0</anpp>
+      <depth>0</depth>
+      <pH>7</pH>
+      <BD>1000</BD>
+      <matpot>15</matpot>
+      <lambda>0.00021</lambda>
+      <kamin>0.2</kamin>
       <claysilt>80</claysilt>
-      <matpot_min>-10.0</matpot_min>
-      <matpot>-0.75</matpot>
-      <temp>20</temp>
     </soil_decomp>
   </env>
 </default>

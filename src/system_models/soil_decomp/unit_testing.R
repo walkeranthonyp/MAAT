@@ -17,10 +17,21 @@ source('soil_decomp_object.R')
 #soil_decomp_object$.test.mimics.ss()
 soil_decomp_object$.test()
 soil_decomp_object$.test(litter=172.8978/365/1000)
-soil_decomp_object$.test(litter=.5/.15/365)
 soil_decomp_object$state$cpools
 soil_decomp_object$state$outflux
+soil_decomp_object$.test(litter=.5/.15/365)
+soil_decomp_object$.test(litter=0.000228)
 soil_decomp_object$.test(litter=10)
+
+soil_decomp_object$pars$poolmax
+soil_decomp_object$fnames$poolmax
+soil_decomp_object$fns$poolmax.poolmax3()
+soil_decomp_object$state_pars$poolmax
+soil_decomp_object$pars$k
+soil_decomp_object$state_pars$k
+soil_decomp_object$pars$vmax
+soil_decomp_object$state_pars$vmax
+
 
 f_kconvert_cont <- function(kdisc) -log(1-kdisc)
 f_kconvert_disc <- function(kcont, delt_orig=365*24*3600, delt_new=24*3600 )
@@ -48,13 +59,20 @@ soil_decomp_object$configure_test
 
 soil_decomp_object$env
 
+soil_decomp_object$pars$cstate0
+soil_decomp_object$pars$input_coef
+soil_decomp_object$fns$input
 soil_decomp_object$fns$input()
+
+soil_decomp_object$pars$decomp_outflux1
+
 soil_decomp_object$fns$transfermatrix
 soil_decomp_object$fns$transfer.t1_to_4
 soil_decomp_object$fns$transfer.t2_to_4
 soil_decomp_object$fns$transfer.t2_to_6
 soil_decomp_object$fns$transfer.t3_to_4
 soil_decomp_object$fns$transfer.t3_to_7
+soil_decomp_object$fns$transfer.t4_to_2
 soil_decomp_object$fns$transfer.t4_to_3
 soil_decomp_object$fns$transfer.t5_to_1
 soil_decomp_object$fns$transfer.t6_to_2
@@ -90,22 +108,25 @@ soil_decomp_object$pars$cue2
 soil_decomp_object$state_pars$cue
 soil_decomp_object$state_pars$cue2
 soil_decomp_object$pars$cat_pool
-soil_decomp_object$pars$cstate0
-soil_decomp_object$pars$input_coef
 soil_decomp_object$pars$millennialV2
 
 
 names(soil_decomp_object$fns)
 soil_decomp_object$state_pars$matpot_sat
 soil_decomp_object$fns$matpot_sat()
-soil_decomp_object$fns$wcor.wcor1()
-soil_decomp_object$fns$tcor.tcor1()
+soil_decomp_object$fns$wcor.wcor2(i=2)
+soil_decomp_object$fns$tcor.tcor2(i=2)
 soil_decomp_object$fns$decomp.d1
 soil_decomp_object$fns$decomp.d1(soil_decomp_object$state$cpools, i=1 )
 soil_decomp_object$fns$decomp.d2(soil_decomp_object$state$cpools, i=2 )
 soil_decomp_object$fns$transfer_fluxsum_prop(from=2)
 soil_decomp_object$fns[["transfer_fluxsum_prop"]](from=2)
 soil_decomp_object$fns[["transfer_fluxsum_prop"]](.=soil_decomp_object$fns,from=2)
+
+soil_decomp_object$fns$wcor.wcor2(i=2) * 
+  soil_decomp_object$fns$tcor.tcor2(i=2) *
+  soil_decomp_object$state_pars$vmax$vmax2
+
   
 soil_decomp_object$env
 soil_decomp_object$pars$millennialV2

@@ -7,6 +7,7 @@
 #
 ################################
 
+f_tcor_none <- function(...) 1
 
 f_tcor_wieder <- function(.,C,t,i) {
   exp(.super$env$temp * .super$pars$mimics[['V_slope']] + .super$pars$mimics[['V_int']]) * .super$pars$mimics[['aV']]

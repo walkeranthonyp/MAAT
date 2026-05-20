@@ -45,8 +45,8 @@ f_outfluxes <- function(., C, t ) {
 
     # cycle through outfluxes associated with each pool 
     for(of in unlist(.super$pars[[paste0('decomp_outflux',i)]]) ) {
-      print('f_outfluxes, i, of:')
-      print(c(i,of)) 
+      #print('f_outfluxes, i, of:')
+      #print(c(i,of)) 
       .super$state$outflux[[paste0('of',of)]] <- 
         .[[paste0('outflux.of',of)]](C=C, t=t, i=i, of=of ) * 
         .[[paste0('tcor.tcor',of)]](i=of) * .[[paste0('wcor.wcor',of)]](i=of) * .[[paste0('scor.scor',of)]](i=of) 
@@ -108,8 +108,8 @@ f_solver_func_soilR <- function(., t, y, parms) {
 f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
   #print(y)
   .$outfluxes(y,t)
+  print(unlist(.$state$outflux)) 
   YD = .$transfermatrix(y,t) %*% .$DotO(y,t) + .$input(t)
-  #print(.$state$outflux); 
   #print(.$transfermatrix(y,t)); print(.$DotO(y,t)); print(.$input(t)) 
   #print(YD) 
   #print(unlist(.super$state$outflux)) 

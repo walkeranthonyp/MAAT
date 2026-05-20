@@ -76,8 +76,7 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
 # - also creates state matrix and outflux list  
 build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
 
-  #print(.)
-  #print(names(.))
+  # generate lists indexed by pool 
   # number of model pools
   n_pools <- 
     if(!is.null(.$.super[['init_dynamic']][['pars']][[.$name]][['n_pools']])) {
@@ -90,15 +89,64 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
   print('', quote=F )
   print(paste0('Building ', .$name, ' model pool structure with: ', n_pools, ' pools.'), quote=F )
 
-  # generate fnames decomp list
   if(!is.null(.$fnames$decomp)) {
+    print('',quote=F)
+    print('Indexing pool fnames lists ...', quote=F ) 
+
+    # generate fnames decomp list
+    print('decomp')
     .$fnames$decomp <- list() 
     lnames <- paste0('d',1:n_pools) # may need a variable maxnpools
     .$fnames$decomp[lnames] <- NA  
-    #print('  decomp list:', quote=F )
     #print(.$fnames$decomp, quote=F )
+
+    # generate transfer list
+    if(!is.null(.$fnames$transfer)) {
+      print('transfer')
+      .$fnames$transfer <- list() 
+      tn     <- expand.grid(1:n_pools,1:n_pools)
+      # remove transfers from/to the same pool
+      tn     <- tn[-((1:n_pools -1)*n_pools + 1:n_pools),]
+      lnames <- apply(tn, 1, function(v) paste0('t',v[1],'_to_',v[2]) )
+      .$fnames$transfer[lnames] <- NA  
+      #print(.$fnames$transfer, quote=F )
+    }
+
+    print('',quote=F)
+    print('Indexing pool_state_pars lists ...', quote=F ) 
+    for(l in .$pool_state_pars) { 
+      if(is.list(.$fnames[[l]])) {
+        print(paste(l,'fname'))
+        .$fnames[[l]] <- list()
+        lnames        <- paste0(l,1:n_pools) 
+        .$fnames[[l]][lnames] <- paste('f', l, 'constant', sep='_' )  
+      }
+      if(is.list(.$state_pars[[l]])) {
+        print(paste(l,'state_par'))
+        .$state_pars[[l]] <- list()
+        lnames            <- paste0(l,1:n_pools) 
+        .$state_pars[[l]][lnames] <- NA 
+      }
+    }
+
+    # - for parameters that are indexed by the number of pools
+    print('',quote=F)
+    print('Indexing pool_pars lists ...',quote=F)  
+    for(l in .$pool_pars) {
+      if(is.list(.$pars[[l]])) {
+        print(l)
+        .$pars[[l]] <- list()
+        lnames      <- paste0(l,1:n_pools) 
+        .$pars[[l]][lnames] <- NA 
+      }
+    }
+    # assign default values for input_coef & cstate0 lists
+    .$pars$input_coef[] <- 0
+    .$pars$cstate0[]    <- 1
   } 
 
+
+  # generate lists indexed by outflux
   # number of model outfluxes
   if(!is.null(init_n_outfluxes)) {
     n_outfluxes <- 
@@ -109,10 +157,14 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
       #} else .$pars$n_outfluxes 
       } else init_n_outfluxes 
    
+    print('', quote=F )
     print(paste0('Building ', .$name, ' model outflux structure with: ', n_outfluxes, ' fluxes.'), quote=F )
   
-    # generate outfluxes list
     if(!is.null(.$fnames$outflux)) {
+      # - for fnames that are indexed by the number of outfluxes
+      print('',quote=F)
+      print('Indexing outflux_fnames lists ...', quote=F ) 
+      print('outflux')
       .$fnames$outflux <- list() 
       lnames <- paste0('of',1:n_outfluxes) 
       .$fnames$outflux[lnames] <- NA  
@@ -120,8 +172,6 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
       #print(.$fnames$outfluxes, quote=F )
   
       # - for fnames that are indexed by the number of outfluxes
-      print('',quote=F)
-      print('Indexing outflux_fnames lists ...', quote=F ) 
       for(l in c('tcor', 'wcor', 'scor')) { 
         if(is.list(.$fnames[[l]])) {
           print(l)
@@ -150,46 +200,22 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
           .$state_pars[[l]][lnames] <- NA 
         }
       }
+
+      # - for parameters that are indexed by the number of outfluxes
+      print('',quote=F)
+      print('Indexing outflux_pars lists ...',quote=F)  
+      for(l in .$outflux_pars) { 
+        if(is.list(.$pars[[l]])) {
+          print(l)
+          .$pars[[l]] <- list()
+          lnames      <- paste0(l,1:n_outfluxes) 
+          .$pars[[l]][lnames] <- NA 
+        }
+      }
     } 
   }
 
-  # generate transfer list
-  if(!is.null(.$fnames$transfer)) {
-    .$fnames$transfer <- list() 
-    tn     <- expand.grid(1:n_pools,1:n_pools)
-    # remove tranfers from/to the same pool
-    # APW: could remove transfers that are NA, would need to edit tranfer matrix building function
-    tn     <- tn[-((1:n_pools -1)*n_pools + 1:n_pools),]
-    lnames <- apply(tn, 1, function(v) paste0('t',v[1],'_to_',v[2]) )
-    .$fnames$transfer[lnames] <- NA  
-    #print('  transfer list:', quote=F )
-    #print(.$fnames$transfer, quote=F )
-  }
 
-  # generate pars lists
-  # - for parameters that are indexed by the number of pools
-  print('',quote=F)
-  print('Indexing pool_pars lists ...',quote=F)  
-  for(l in .$pool_pars) {
-    if(is.list(.$pars[[l]])) {
-      print(l)
-      .$pars[[l]] <- list()
-      lnames            <- paste0(l,1:n_outfluxes) 
-      .$pars[[l]][lnames] <- NA 
-    }
-  }
-  # - for parameters that are indexed by the number of outfluxes
-  print('',quote=F)
-  print('Indexing outflux_pars lists ...',quote=F)  
-  for(l in .$outflux_pars) { 
-    if(is.list(.$pars[[l]])) {
-      print(l)
-      .$pars[[l]] <- list()
-      lnames            <- paste0(l,1:n_outfluxes) 
-      .$pars[[l]][lnames] <- NA 
-    }
-  }
-  
   # generate state matrix and outflux list
   # APW: this seems redundant with init function in model object 
   .$state$cpools  <- matrix(1.01, ncol=1, nrow=n_pools )

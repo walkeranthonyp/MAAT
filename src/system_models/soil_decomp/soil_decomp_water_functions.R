@@ -7,7 +7,6 @@
 #
 ################################
 
-f_tcor_none <- function(...) 1
 f_wcor_none <- function(...) 1
 f_scor_none <- function(...) 1
 
@@ -192,7 +191,7 @@ f_matpot_sat_elm_cosby1984_tab5 <- function(., ... ) {
 
 # Calculate matric potential from volumetric soil water content
 # van Genuchten 1980?
-f_SWC2SWP_vanGenuchten <- function(.,C,t,i){
+f_SWC2SWP_vanGenuchten <- function(.,C,t,i) {
   SWC0 = .super$env$vwc
   SWCres = 0.108 # MEC: probably should store these parameters elsewhere, but they are constant in MEND
   SWCsat = 0.6 

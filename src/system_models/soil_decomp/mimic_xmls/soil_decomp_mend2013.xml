@@ -1,36 +1,85 @@
-<default>
+<static>
   <fnames>
     <soil_decomp>
-      <sys>'f_sys_npools'</sys>
+      <sys>'f_steadystate_npools'</sys>
       <solver>'plsoda'</solver>
-      <solver_func>'f_solver_func_mend2013'</solver_func>
-      <input>'f_input'</input>
+      <solver_func>'f_solver_func_soilR_outfluxes'</solver_func>
       <steadystate>'f_steadystate_npools'</steadystate>
       <solver_steadystate>'pstode'</solver_steadystate>
+      <input>'f_input'</input>
+      <DotO>'f_DotO'</DotO>
+      <transfermatrix>'f_transfermatrix'</transfermatrix>
+      <transfer_fluxsum_prop>'f_transfer_fluxsum_prop'</transfer_fluxsum_prop>
+      <outfluxes>'f_outfluxes'</outfluxes>
+      <calc_state_pars>'calc_state_pars_corpse'</calc_state_pars>
       <decomp>
-        <d1>'f_decomp_mm'</d1>
-        <d2>'f_decomp_mm'</d2>
-        <d3>'f_zero'</d3>
-        <d4>'f_decomp_lin'</d4>
-        <d5>'f_zero'</d5>
-        <d6>'f_decomp_lin'</d6>
-        <d7>'f_decomp_lin'</d7>
+        <d1>'f_decomp_fluxsum'</d1>
+        <d2>'f_decomp_fluxsum'</d2>
+        <d3>'f_decomp_fluxsum'</d3>
+        <d4>'f_decomp_fluxsum'</d4>
+        <d5>'f_decomp_fluxsum'</d5>
+        <d6>'f_decomp_fluxsum'</d6>
+        <d7>'f_decomp_fluxsum'</d7>
       </decomp>
-      <desorp>
-        <ds3>'f_desorp_mend'</ds3>
-      </desorp>
-      <sorp>
-        <s5>'f_sorp_sat'</s5>
-      </sorp>
-      <docuptake>'f_docuptake_mend'</docuptake>
-      <growthresp>'f_growthresp_mend'</growthresp>
-      <maintresp>'f_maintresp_mend'</maintresp>
+      <outflux>
+        <of1>'f_decomp_mm'</of1>
+        <of2>'f_decomp_mm'</of2>
+        <of3>'f_desorp_mend'</of3>
+        <of4>'f_decomp_lin'</of4>
+        <of5>'f_decomp_mm'</of5>
+        <of6>'f_decomp_mm'</of6>
+        <of7>'f_sorp_sat'</of7>
+        <of8>'f_decomp_lin'</of8>
+        <of9>'f_decomp_lin'</of9>
+      </outflux>
+      <vmax> 
+        <vmax5>'f_vmax_wang_cue_inflation'</vmax5>
+        <vmax6>'f_vmax_wang_k_from_cat_cue_inflation'</vmax6>
+      </vmax> 
+      <transfer>
+        <t1_to_2>'f_transfer_fluxid_cue_remainder'</t1_to_2>
+        <t1_to_5>'f_transfer_fluxid_cue'</t1_to_5>
+        <t2_to_5>'f_transfer_all'</t2_to_5>
+        <t3_to_5>'f_transfer_all'</t3_to_5>
+        <t4_to_1>'f_transfer_fluxid_cue2_remainder_cue3_remainder'</t4_to_1>
+        <t4_to_5>'f_transfer_fluxid_cue2_remainder_cue3'</t4_to_5>
+        <t4_to_6>'f_transfer_fluxid_cue'</t4_to_6>
+        <t4_to_7>'f_transfer_fluxid_cue2'</t4_to_7>
+        <t5_to_3>'f_transfer_fluxsum_prop_three'</t5_to_3>
+        <t5_to_4>'f_transfer_fluxsum_prop_one_two_cue'</t5_to_4>
+        <t6_to_5>'f_transfer_all'</t6_to_5>
+        <t7_to_5>'f_transfer_all'</t7_to_5>
+      </transfer>
     </soil_decomp>
   </fnames>
   <pars>
     <soil_decomp>
       <n_pools>7</n_pools>
-      <input_coefs>
+      <n_outfluxes>9</n_outfluxes>
+      <decomp_outflux1>
+        <dof11>1</dof11>
+      </decomp_outflux1>
+      <decomp_outflux2>
+        <dof21>2</dof21>
+      </decomp_outflux2>
+      <decomp_outflux3>
+        <dof31>3</dof31>
+      </decomp_outflux3>
+      <decomp_outflux4>
+        <dof41>4</dof41>
+      </decomp_outflux4>
+      <decomp_outflux5>
+        <dof51>5</dof51>
+        <dof52>6</dof52>
+        <dof53>7</dof53>
+      </decomp_outflux5>
+      <decomp_outflux6>
+        <dof61>8</dof61>
+      </decomp_outflux6>
+      <decomp_outflux7>
+        <dof71>9</dof71>
+      </decomp_outflux7>
+      <input_coef>
         <input_coef1>0.9375</input_coef1>
         <input_coef2>0</input_coef2>
         <input_coef3>0</input_coef3>
@@ -38,7 +87,7 @@
         <input_coef5>0.0625</input_coef5>
         <input_coef6>0</input_coef6>
         <input_coef7>0</input_coef7>
-      </input_coefs>
+      </input_coef>
       <cstate0>
         <cstate01>0.1</cstate01>
         <cstate02>0.1</cstate02>
@@ -48,61 +97,58 @@
         <cstate06>0.1</cstate06>
         <cstate07>0.1</cstate07>
       </cstate0>
-      <cue>
-        <cue1>0</cue1>
-        <cue2>0</cue2>
-        <cue3>0</cue3>
-        <cue4>0</cue4>
-        <cue5>0.47</cue5>
-        <cue6>0</cue6>
-        <cue7>0</cue7>
-      </cue>
+      <poolmax>
+        <poolmax3>1.7</poolmax3>
+      </poolmax>
+      <cat_pool>
+        <cat_pool1>6</cat_pool1>
+        <cat_pool2>7</cat_pool2>
+        <cat_pool5>4</cat_pool5>
+        <cat_pool6>4</cat_pool6>
+      </cat_pool>
+      <sat_pool>3</sat_pool>
+      <k>
+        <k3>0.001</k3>
+        <k4>0.00028</k4>
+        <k7>0.006</k7>
+        <k8>0.001</k8>
+        <k9>0.001</k9>
+      </k>
       <vmax>
         <vmax1>2.5</vmax1>
         <vmax2>1</vmax2>
-        <vmax3>NA</vmax3>
-        <vmax4>NA</vmax4>
         <vmax5>5e-04</vmax5>
-        <vmax6>NA</vmax6>
-        <vmax7>NA</vmax7>
       </vmax>
       <km>
         <km1>50</km1>
         <km2>250</km2>
-        <km3>NA</km3>
-        <km4>NA</km4>
         <km5>0.26</km5>
-        <km6>NA</km6>
-        <km7>NA</km7>
+        <km6>0.26</km6>
       </km>
-      <k>
-        <k1>0</k1>
-        <k2>0</k2>
-        <k3>0.001</k3>
-        <k4>0.00028</k4>
-        <k5>0.006</k5>
-        <k6>0.001</k6>
-        <k7>0.001</k7>
-      </k>
-      <poolmax>
-        <poolmax1>NA</poolmax1>
-        <poolmax2>NA</poolmax2>
-        <poolmax3>1.7</poolmax3>
-        <poolmax4>NA</poolmax4>
-        <poolmax5>NA</poolmax5>
-      </poolmax>
-      <mend>
+      <cue>
+        <cue1>0.5</cue1>
+        <cue4>0.01</cue4>
+        <cue5>0.47</cue5>
+        <cue6>0.47</cue6>
+      </cue>
+      <cue2>
+        <cue24>0.01</cue24>
+      </cue2>
+      <cue3>
+        <cue34>0.5</cue34>
+      </cue3>
+      <!--mend>
         <Mr>0.00028</Mr>
         <Pep>0.01</Pep>
         <Pem>0.01</Pem>
         <Gd>0.5</Gd>
         <Fd>0.5</Fd>
-      </mend>
+      </mend-->
     </soil_decomp>
   </pars>
   <env>
     <soil_decomp>
-      <litter>0.00016</litter>
+      <litter>0.000228</litter>
     </soil_decomp>
   </env>
-</default>
+</static>
