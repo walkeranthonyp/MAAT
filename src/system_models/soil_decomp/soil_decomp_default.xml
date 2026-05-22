@@ -261,6 +261,7 @@
       <vwc>0.2422044</vwc>
       <porosity>0.6</porosity>
       <clay>0</clay>
+      <sand>20</sand>
       <lignin>0</lignin>
       <N>0</N>
       <anpp>0</anpp>
@@ -270,7 +271,7 @@
       <matpot>15</matpot>
       <lambda>0.00021</lambda>
       <kamin>0.2</kamin>
-      <claysilt>80</claysilt>
+      <!--claysilt>80</claysilt-->
     </soil_decomp>
   </env>
 </default>

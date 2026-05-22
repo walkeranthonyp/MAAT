@@ -271,7 +271,7 @@ soil_decomp_object$env <- list(
   porosity   = 0.6,          # default for MILLENNIALv2
   clay       = .0, 
   sand       = 20,           # % Sand
-  claysilt   = 80,           # default for MILLENNIALv2   # MILLENNIAL uses clay+silt% to calculate Qmax
+  #claysilt   = 80,           # default for MILLENNIALv2   # MILLENNIAL uses clay+silt% to calculate Qmax
   lignin     = 0,
   N          = 0,
   anpp       = 0,
@@ -322,15 +322,14 @@ soil_decomp_object$pars <- list(
   # model structure parameters
   n_pools      = 5,        # number of pools in model  # need to change and re-create XMLs when this changes for wrapper runs
   n_outfluxes  = 9,        # number of outfluxes (arrow bases) in model 
-  # APW: these might need to be n_outfluxes long
-  #cat_pool     = 2,       # pool which catalyses reactions 
+  # APW: this might need to be n_outfluxes long
   sat_pool     = 3,        # pool which saturates
 
   # general scalar parameters
   # APW: looks like some of these might be env vars
   beta         = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
-  silt         = NA,      
-  clay         = NA,        
+#  silt         = NA,      
+#  clay         = NA,        
   clayref      = NA,
   mr           = NA,     
   pep          = NA,        
@@ -349,27 +348,7 @@ soil_decomp_object$pars <- list(
   ################################################
   
   # outfluxes to decomp pool assignment
-  # APW: list format didn't work due to nesting lists within a list, configure functions cannot handle 
-  decomp_outflux1 = list(dof11=1, dof12=2 ),
-#  decomp_outflux2 = list(dof21=3, dof22=4 ),
-  decomp_outflux3 = list(dof31=5, dof32=6 ),
-#  decomp_outflux4 = list(dof41=7),
-  decomp_outflux5 = list(dof51=8),
-#  decomp_outflux6 = list(dof61=9),
-#  decomp_outflux7 = list(dof71=10),
-#  decomp_outflux1 = list(dof11=1),
-  decomp_outflux2 = list(dof21=3),
-#  decomp_outflux3 = list(dof31=4),
-#  decomp_outflux4 = list(dof41=6),
-#  decomp_outflux5 = list(dof51=6, dof52=7, dof53=8),
-#  decomp_outflux6 = list(dof61=9),
-#  decomp_outflux7 = list(dof71=10),
-#  decomp_outflux8 = list(dof81=10),
-#  decomp_outflux1 = list(dof11=1, dof12=2),
-#  decomp_outflux2 = list(dof21=3),
-#  decomp_outflux3 = list(dof31=4, dof32=5),
-  decomp_outflux4 = list(dof41=6, dof42=7, dof43=8),
-#  decomp_outflux5 = list(dof51=9),
+  # APW: single list format didn't work due to list nesting, configure functions cannot handle 
 #  decomp_outflux = list(
 #    decomp_outflux1 = list(dof1.1=1, dof1.2=2),
 #    decomp_outflux2 = list(dof2.1=3),
@@ -377,6 +356,11 @@ soil_decomp_object$pars <- list(
 #    decomp_outflux4 = list(dof4.1=6, dof4.2=7, dof4.3=8),
 #    decomp_outflux5 = list(dof5.1=9),
 #  ),
+  decomp_outflux1 = list(dof11=1, dof12=2 ),
+  decomp_outflux2 = list(dof21=3),
+  decomp_outflux3 = list(dof31=4, dof32=5 ),
+  decomp_outflux4 = list(dof41=6, dof42=7, dof43=8),
+  decomp_outflux5 = list(dof51=8),
   
   # initial pool mass for each pool
   cstate0 = list( 

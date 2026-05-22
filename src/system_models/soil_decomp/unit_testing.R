@@ -23,6 +23,12 @@ soil_decomp_object$.test(litter=.5/.15/365)
 soil_decomp_object$.test(litter=0.000228)
 soil_decomp_object$.test(litter=10)
 
+soil_decomp_object$pars$decomp_outflux1
+soil_decomp_object$pars$decomp_outflux2
+soil_decomp_object$pars$decomp_outflux3
+soil_decomp_object$pars$decomp_outflux4
+soil_decomp_object$pars$decomp_outflux5
+
 soil_decomp_object$pars$poolmax
 soil_decomp_object$fnames$poolmax
 soil_decomp_object$fns$poolmax.poolmax3()

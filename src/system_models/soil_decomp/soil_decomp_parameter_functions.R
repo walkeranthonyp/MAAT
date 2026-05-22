@@ -47,9 +47,10 @@ calc_state_pars_century <- function(.) {
 
 calc_state_pars_corpse <- function(.) {
 
-  # pool parameters
+  # pool-indexed parameters
   for(i in 1:.super$pars$n_pools) .super$state_pars$poolmax[[i]]  <- .[[paste0('poolmax.poolmax',i)]](i=i) 
 
+  # outflux-indexed parameters
   # k parameters
   for(i in 1:.super$pars$n_outfluxes) .super$state_pars$k[[i]]    <- .[[paste0('k.k',i)]](i=i) 
   for(i in 1:.super$pars$n_outfluxes) .super$state_pars$km[[i]]   <- .[[paste0('km.km',i)]](i=i) 
@@ -72,7 +73,7 @@ f_poolmax_constant <- function(., i )
 
 f_poolmax_texture_abramoff <- function(., i )
   #.super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']] (in g m-2 version) 
-  .super$env$claysilt * .super$pars$millennialV2[['param_pc']] 
+  (100 - .super$env$sand) * .super$pars$millennialV2[['param_pc']] 
 
 
 # k functions

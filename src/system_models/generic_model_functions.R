@@ -64,6 +64,12 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   .$configure(vlist='env',    df=unlist(init_default$env))
   .$configure(vlist='fnames', df=unlist(init_default$fnames), init=T )
 
+  # trim decomp_outfluxes lists 
+  if(!is.null(.$pars$n_outfluxes)) {
+    for(l in grep('decomp_outflux', names(.$pars), value=T )) 
+      .$pars[[l]] <- .$pars[[l]][-which(is.na(.$pars[[l]]))]
+  }
+
   # build child objects
   if(!is.null(.$child_list)) vapply(.$child_list, .$build_child, numeric(0), mod_mimic=mod_mimic )
 }
@@ -161,6 +167,19 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
     print(paste0('Building ', .$name, ' model outflux structure with: ', n_outfluxes, ' fluxes.'), quote=F )
   
     if(!is.null(.$fnames$outflux)) {
+  
+      # generate outflux to decomp indexing lists
+      print('',quote=F)
+      print('Indexing decomp_outflux')
+      lnames <- paste0('decomp_outflux',1:n_pools) 
+      .$fnames[lnames] <- NA
+      max_of_per_pool <- n_outfluxes - n_pools + 1
+      for(l in 1:n_pools) {
+        .$pars[[lnames[l]]]        <- as.list(numeric(max_of_per_pool))
+        names(.$pars[[lnames[l]]]) <- paste0('dof',l,1:max_of_per_pool)
+        .$pars[[lnames[l]]][]      <- NA 
+      }  
+  
       # - for fnames that are indexed by the number of outfluxes
       print('',quote=F)
       print('Indexing outflux_fnames lists ...', quote=F ) 
