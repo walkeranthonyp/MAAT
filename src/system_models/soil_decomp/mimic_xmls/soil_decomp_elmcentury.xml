@@ -11,7 +11,9 @@
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <transfer_fluxsum_prop>'f_transfer_fluxsum_prop'</transfer_fluxsum_prop>
       <outfluxes>'f_outfluxes'</outfluxes>
-      <calc_state_pars>'calc_state_pars_century'</calc_state_pars>
+      <calc_state_pars>'f_calc_state_pars_generic'</calc_state_pars>
+      <calc_state_pars_unique>'f_calc_state_pars_century_weider'</calc_state_pars_unique>
+      <calc_loss_fluxes>'f_calc_loss_fluxes'</calc_loss_fluxes>
       <decomp>
         <d1>'f_decomp_outflux'</d1>
         <d2>'f_decomp_outflux'</d2>
@@ -126,7 +128,7 @@
         <cue24>NA</cue24>
         <cue25>NA</cue25>
         <cue26>0.03</cue26>
-        <cue27>0</cue27>
+        <cue27>NA</cue27>
       </cue2>
       <!--turnover time years, tau, converted to k in days-1 1/(tau*365)>
         <tau1>3.3333333333333</tau1>
@@ -159,7 +161,7 @@
     <soil_decomp>
       <litter>1.0</litter>
       <sand>20.0</sand>
-      <claysilt>80</claysilt>
+      <!--claysilt>80</claysilt-->
       <matpot_min>-10.0</matpot_min>
       <matpot>-0.75</matpot>
       <temp>20</temp>

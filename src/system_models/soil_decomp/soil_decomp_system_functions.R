@@ -14,6 +14,10 @@
 # a system of n pools, composed of a single dynamic solver function
 f_sys_npools <- function(.) {
 
+  # calculate state parameters
+  .$calc_state_pars()
+
+  # run solver
   .super$state_pars$solver_out <- 
     tryCatch(
       .$solver(.super$state$cpools, c(0L,1L), .$solver_func ),
@@ -22,18 +26,23 @@ f_sys_npools <- function(.) {
         matrix(ncol=.super$pars$n_pools+1)
       })
   
+  # assign solved values to state
   .super$state$cpools[,1] <- .super$state_pars$solver_out[dim(.super$state_pars$solver_out)[1],2:(.super$pars$n_pools+1)]
+
+  # calculate respiration and other loss fluxes (e.g. leaching)
+  .$calc_loss_fluxes()
+
+  # mass balance check
 }
 
 
 # steady-state solver for a system of n pools
 f_steadystate_npools <- function(.) {
 
-  .super$state_pars$kaff_lm <- exp(-.super$pars$millennialV2[['sorp_p1']]*.super$env$pH - 
-                                 .super$pars$millennialV2[['sorp_p2']] ) * .super$pars$millennialV2[['kld']]
+  # calculate state parameters
   .$calc_state_pars()
 
-  #print('here1')
+  # run solver
   .super$state_pars$solver_steadystate_out <- 
     tryCatch(
       .$solver_steadystate(.super$state$cpools, 0, func=.$solver_func ),
@@ -41,10 +50,17 @@ f_steadystate_npools <- function(.) {
         print(c)
         list(y=rep(NA,.super$pars$n_pools))
       })
-  #print('here2')
-  
+
+  # assign solved values to state
   .super$state$cpools[,1] <- .super$state_pars$solver_steadystate_out$y
+ 
+  # calculate respiration and other loss fluxes (e.g. leaching)
+  .$calc_loss_fluxes()
+
+  # mass balance check 
+  # - at steady state inputs = outputs
 }
+
 
 
 # NULL solver to prevent steady-state initialisation, i.e. to initialise with values specified in input

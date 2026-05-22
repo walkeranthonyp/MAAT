@@ -67,7 +67,7 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   # trim decomp_outfluxes lists 
   if(!is.null(.$pars$n_outfluxes)) {
     for(l in grep('decomp_outflux', names(.$pars), value=T )) 
-      .$pars[[l]] <- .$pars[[l]][-which(is.na(.$pars[[l]]))]
+      if(is.na(sum(unlist(.$pars[[l]])))) .$pars[[l]] <- .$pars[[l]][-which(is.na(.$pars[[l]]))]
   }
 
   # build child objects

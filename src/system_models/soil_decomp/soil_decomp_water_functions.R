@@ -11,7 +11,39 @@ f_wcor_none <- function(...) 1
 f_scor_none <- function(...) 1
 
 
-# MEC: this function not incorporated into the 'water_functions' script because it is not normalized (e.g. 0-1)
+# MillennialV2
+f_wcor_ghezzehei_diffusion <- function(., i ) {
+  (.super$env$vwc/.super$env$porosity)^0.5
+}
+
+f_wcor_ghezzehei_biological <- function(., i ) {
+  exp(.super$env$lambda * -.super$env$matpot) * 
+    (.super$env$kamin + (1 - .super$env$kamin) * ((.super$env$porosity - .super$env$vwc) / .super$env$porosity)^0.5) * 
+    (.super$env$vwc/.super$env$porosity)^0.5    
+}
+
+
+# used in ELM for both CTC & CENTURY 
+f_wcor_andren1987 <- function(., ... ) {
+  soil_matpot <- .super$env$matpot
+  if(soil_matpot >= .super$state_pars$matpot_sat) { 
+    1
+  } else if(soil_matpot <= .super$env$matpot_min) {
+    0 
+  } else 
+    log(.super$env$matpot_min/soil_matpot) / log(.super$env$matpot_min/.super$state_pars$matpot_sat)  
+}
+
+
+# ELM soil saturated matric/water potential
+f_matpot_sat_elm_cosby1984_tab5 <- function(., ... ) {
+  matpot_sat <- 10 * 10^(1.88 - 0.0131*.super$env$sand)
+  # convert from mm to MPa
+  matpot_sat * -9.8e-6
+}
+
+
+# MEC: this function is not normalized (e.g. 0-1)
 # - thus it is kind of integral to the corpse model under the current parameterization and not substitutable
 f_wcor_sulman <- function(.,C,t,i) {
   theta <- .super$env$vwc/.super$env$porosity
@@ -20,9 +52,9 @@ f_wcor_sulman <- function(.,C,t,i) {
 
 
 f_wcor_sulman_normalized <- function(.,C,t,i){
-  #volumetric water content
+  # volumetric water content
   vwc <- .super$env$vwc
-  #porosity could be considered as analogous to water-holding capacity I believe
+  # porosity could be considered as analogous to water-holding capacity I believe
   porosity <- .super$env$porosity
   theta <- vwc/porosity
   
@@ -150,36 +182,6 @@ f_wcor_abramoff <- function(.,C,t,i){
 }
 
 
-#used in MillennialV2
-f_wcor_ghezzehei_diffusion <- function(.,C,t,i){
-  (.super$env$vwc/.super$env$porosity)^0.5
-}
-
-
-#used in MillennialV2
-f_wcor_ghezzehei_biological <- function(.,C,t,i){
-  exp(.super$env$lambda * -.super$env$matpot) * (.super$env$kamin + (1 - .super$env$kamin) * ((.super$env$porosity - .super$env$vwc) / .super$env$porosity)^0.5) * (.super$env$vwc/.super$env$porosity)^0.5    
-}
-
-
-# used in ELM for both CTC & CENTURY 
-f_wcor_andren1987 <- function(., ... ) {
-  soil_matpot <- .super$env$matpot
-  if(soil_matpot >= .super$state_pars$matpot_sat) { 
-    1
-  } else if(soil_matpot <= .super$env$matpot_min) {
-    0 
-  } else 
-    log(.super$env$matpot_min / soil_matpot) / log(.super$env$matpot_min / .super$state_pars$matpot_sat)  
-}
-
-
-# ELM soil saturated matric/water potential
-f_matpot_sat_elm_cosby1984_tab5 <- function(., ... ) {
-  matpot_sat <- 10 * 10^(1.88 - 0.0131*.super$env$sand)
-  # convert from mm to MPa
-  matpot_sat * -9.8e-6
-}
 
 
 #f_wcor_rothc
@@ -240,8 +242,8 @@ f_SWC2SWP_vanGenuchten <- function(.,C,t,i) {
 f_scor_sulman <- function(.,C,t,i) (.super$env$clay/.super$pars$clayref)^.super$pars$qslope_mayes
 
 # Equation B3, Abramoff et al. 2022
-f_scor_century_texture <- function(., ... ) 
-  .super$pars$century[['c1']] - .super$pars$century[['c2']]*.super$env$claysilt*.01
+f_scor_century_texture <- function(., i ) 
+  .super$pars$century[['c1']] - .super$pars$century[['c2']]*(100-.super$env$sand)*.01
   
 # Equation B4, Abramoff et al. 2022
 f_scor_century_quality <- function(., ... ) 

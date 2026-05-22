@@ -11,7 +11,8 @@
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <transfer_fluxsum_prop>'f_transfer_fluxsum_prop'</transfer_fluxsum_prop>
       <outfluxes>'f_outfluxes'</outfluxes>
-      <calc_state_pars>'calc_state_pars_corpse'</calc_state_pars>
+      <calc_state_pars>'f_calc_state_pars_generic'</calc_state_pars>
+      <calc_loss_fluxes>'f_calc_loss_fluxes'</calc_loss_fluxes>
       <decomp>
         <d1>'f_decomp_fluxsum'</d1>
         <d2>'f_decomp_fluxsum'</d2>
@@ -73,7 +74,6 @@
       <cue>
         <cue8>'f_cue_temp_mod_abramoff'</cue8>
       </cue>
-      <!--water_unit_converter>'f_SWC2SWP_vanGenuchten'</water_unit_converter-->
     </soil_decomp>
   </fnames>
   <pars>
@@ -81,17 +81,8 @@
       <n_pools>5</n_pools>
       <n_outfluxes>9</n_outfluxes>
       <sat_pool>3</sat_pool>
+      <leaching_outflux>6</leaching_outflux>
       <beta>2</beta>
-      <!--silt>NA</silt>
-      <clay>NA</clay>
-      <clayref>NA</clayref>
-      <mr>NA</mr>
-      <pep>NA</pep>
-      <pem>NA</pem>
-      <Kads>NA</Kads>
-      <minmic>NA</minmic>
-      <q10>NA</q10>
-      <qslope_mayes>NA</qslope_mayes-->
       <reftemp>30</reftemp>
       <R>8.31446</R>
       <decomp_outflux1>
@@ -113,13 +104,13 @@
       <decomp_outflux5>
         <dof51>9</dof51>
       </decomp_outflux5>
-      <cstate0>
+      <!--cstate0>
         <cstate01>1</cstate01>
         <cstate02>1</cstate02>
         <cstate03>1</cstate03>
         <cstate04>1</cstate04>
         <cstate05>1</cstate05>
-      </cstate0>
+      </cstate0-->
       <input_coef>
         <input_coef1>0.66</input_coef1>
         <input_coef2>0</input_coef2>

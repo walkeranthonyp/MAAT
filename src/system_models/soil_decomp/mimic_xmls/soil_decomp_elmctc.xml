@@ -11,7 +11,9 @@
       <transfermatrix>'f_transfermatrix'</transfermatrix>
       <transfer_fluxsum_prop>'f_transfer_fluxsum_prop'</transfer_fluxsum_prop>
       <outfluxes>'f_outfluxes'</outfluxes>
-      <calc_state_pars>'calc_state_pars_century'</calc_state_pars>
+      <calc_state_pars>'f_calc_state_pars_generic'</calc_state_pars>
+      <calc_state_pars_unique>'f_calc_state_pars_century_weider'</calc_state_pars_unique>
+      <calc_loss_fluxes>'f_calc_loss_fluxes'</calc_loss_fluxes>
       <decomp>
         <d1>'f_decomp_outflux'</d1>
         <d2>'f_decomp_outflux'</d2>

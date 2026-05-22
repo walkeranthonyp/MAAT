@@ -11,57 +11,96 @@
 # calculation of state parameters functions 
 ################################
 
-calc_state_pars_weider <- function(.) {
+f_calc_state_pars_generic <- function(.) {
 
-  # general parameters
-  .super$state_pars$fmet     <- .$fmet()
-  .super$state_pars$tau_mod1 <- .$tau_mod1()
-  
-  # k parameters
-  # -- as MEC noted when there is a catalyst pool in mm or rmm decomp, Vmax units are per unit time only
-  # -- i.e. they are a specific flux rate per unit mass of the catalyst, so mass units cancel
-  # -- thus vmax is equivalent to k  
-  for(i in c(5:7)) .super$state_pars$k[[i]] <- .[[paste0('k.k',i)]](i=i) 
+  # unique parameters 
+  #if(!is.na(.$calc_state_pars_unique)) .$calc_state_pars_unique()  
+  if(!is.na(.super$fnames$calc_state_pars_unique)) .$calc_state_pars_unique()  
 
-  # km parameters
-  #for(i in 1:.super$pars$n_outfluxes) .super$state_pars$km[[i]] <- .[[paste0('km.km',i)]](i)
-  for(i in c(1:4,8:11)) .super$state_pars$km[[i]] <- .[[paste0('km.km',i)]](i=i) 
+  # pool-indexed parameters
+  print(.super$pool_state_pars)
+  for(p in .super$pool_state_pars)
+    for(i in 1:.super$pars$n_pools) {
+      print(paste0(p,'.',p,i)) 
+      print(.[[paste0(p,'.',p,i)]](i=i)) 
+      .super$state_pars[[p]][[i]]  <- .[[paste0(p,'.',p,i)]](i=i) 
+    }
 
-  # cue parameters
-  for(i in c(1:6,10:11)) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
-  for(i in 5:6)          .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](i=i) 
+  # outflux-indexed parameters
+  print(.super$outflux_state_pars)
+  for(p in .super$outflux_state_pars)
+    for(i in 1:.super$pars$n_outfluxes) {
+      print(paste0(p,'.',p,i)) 
+      print(.[[paste0(p,'.',p,i)]](i=i))
+      #print(.[[paste0(p,'.',p,i)]](.=., i=i ))
+      # APW: .=. is only needed here for century cue function that calls scor (or any) function, for some reason . doesn't get automatically passed
+      # APW: matters even when that scor function does not have ... as an argument 
+      .super$state_pars[[p]][[i]]    <- .[[paste0(p,'.',p,i)]](i=i)
+      #.super$state_pars[[p]][[i]]    <- .[[paste0(p,'.',p,i)]](.=., i=i )
+    }
 }
 
-calc_state_pars_century <- function(.) {
+
+f_calc_state_pars_century_weider <- function(.) {
 
   # general parameters
   .super$state_pars$matpot_sat <- .$matpot_sat()
-
-  # k parameters
-  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$k[[i]] <- .[[paste0('k.k',i)]](i=i) 
-
-  # cue parameters
-  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
-  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](.=., i=i ) 
+  .super$state_pars$fmet       <- .$fmet()
+  .super$state_pars$tau_mod1   <- .$tau_mod1()
 }
+  
 
-calc_state_pars_corpse <- function(.) {
-
-  # pool-indexed parameters
-  for(i in 1:.super$pars$n_pools) .super$state_pars$poolmax[[i]]  <- .[[paste0('poolmax.poolmax',i)]](i=i) 
-
-  # outflux-indexed parameters
-  # k parameters
-  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$k[[i]]    <- .[[paste0('k.k',i)]](i=i) 
-  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$km[[i]]   <- .[[paste0('km.km',i)]](i=i) 
-  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$vmax[[i]] <- .[[paste0('vmax.vmax',i)]](i=i) 
-  #for(i in 1:.super$pars$n_outfluxes) .super$state_pars$ea[[i]]   <- .[[paste0('ea.ea',i)]](i=i) 
-
-  # cue parameters
-  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
-  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](.=., i=i ) 
-  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue3[[i]] <- .[[paste0('cue3.cue3',i)]](.=., i=i ) 
-}
+#f_calc_state_pars_weider <- function(.) {
+#
+#  # general parameters
+#  .super$state_pars$fmet     <- .$fmet()
+#  .super$state_pars$tau_mod1 <- .$tau_mod1()
+#  
+#  # k parameters
+#  # -- as MEC noted when there is a catalyst pool in mm or rmm decomp, Vmax units are per unit time only
+#  # -- i.e. they are a specific flux rate per unit mass of the catalyst, so mass units cancel
+#  # -- thus vmax is equivalent to k  
+#  for(i in c(5:7)) .super$state_pars$k[[i]] <- .[[paste0('k.k',i)]](i=i) 
+#
+#  # km parameters
+#  #for(i in 1:.super$pars$n_outfluxes) .super$state_pars$km[[i]] <- .[[paste0('km.km',i)]](i)
+#  for(i in c(1:4,8:11)) .super$state_pars$km[[i]] <- .[[paste0('km.km',i)]](i=i) 
+#
+#  # cue parameters
+#  for(i in c(1:6,10:11)) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
+#  for(i in 5:6)          .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](i=i) 
+#}
+#
+#f_calc_state_pars_century <- function(.) {
+#
+#  # general parameters
+#  .super$state_pars$matpot_sat <- .$matpot_sat()
+#
+#  # k parameters
+#  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$k[[i]] <- .[[paste0('k.k',i)]](i=i) 
+#
+#  # cue parameters
+#  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
+#  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](.=., i=i ) 
+#}
+#
+#f_calc_state_pars_corpse <- function(.) {
+#
+#  # pool-indexed parameters
+#  for(i in 1:.super$pars$n_pools) .super$state_pars$poolmax[[i]]  <- .[[paste0('poolmax.poolmax',i)]](i=i) 
+#
+#  # outflux-indexed parameters
+#  # k parameters
+#  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$k[[i]]    <- .[[paste0('k.k',i)]](i=i) 
+#  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$km[[i]]   <- .[[paste0('km.km',i)]](i=i) 
+#  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$vmax[[i]] <- .[[paste0('vmax.vmax',i)]](i=i) 
+#  #for(i in 1:.super$pars$n_outfluxes) .super$state_pars$ea[[i]]   <- .[[paste0('ea.ea',i)]](i=i) 
+#
+#  # cue parameters
+#  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue[[i]]  <- .[[paste0('cue.cue',i)]](i=i) 
+#  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue2[[i]] <- .[[paste0('cue2.cue2',i)]](.=., i=i ) 
+#  for(i in 1:.super$pars$n_outfluxes) .super$state_pars$cue3[[i]] <- .[[paste0('cue3.cue3',i)]](.=., i=i ) 
+#}
 
 
 
@@ -74,6 +113,7 @@ f_poolmax_constant <- function(., i )
 f_poolmax_texture_abramoff <- function(., i )
   #.super$env$BD * .super$env$claysilt * .super$pars$millennialV2[['param_pc']] (in g m-2 version) 
   (100 - .super$env$sand) * .super$pars$millennialV2[['param_pc']] 
+
 
 
 # k functions
@@ -113,6 +153,7 @@ f_k_abramoff_sorp_efficiency <- function(., i )
   # kaff_lm
   # APW: note kld is used elsewhere and is kld/1000 currently 
   exp(-.super$pars$millennialV2[['sorp_p1']] * .super$env$pH - .super$pars$millennialV2[['sorp_p2']]) * .super$pars$millennialV2[['kld']]
+
 
 
 # km functions
@@ -192,7 +233,8 @@ f_cue_century_texture <- function(., i )
 
 # APW: this is a the same as above but calls the texture function differently
 f_cue_century_texture_elm <- function(., i ) 
-  1 - .$fmet() - .super$pars$cue[[i]] 
+  #1 - .$fmet() - .super$pars$cue[[i]] 
+  1 - .super$state_pars$fmet - .super$pars$cue[[i]] 
 
 f_cue_temp_mod_abramoff  <- function(., i ) 
   .super$pars$cue[[i]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']]) 

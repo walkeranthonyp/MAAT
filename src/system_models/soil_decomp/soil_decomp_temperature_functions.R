@@ -9,9 +9,52 @@
 
 f_tcor_none <- function(...) 1
 
+
+f_tcor_q10 <- function(., i ) {
+  #sourced from SoilR and standardized to 20C
+  #SoilR::fT.Q10
+#  k_ref <- 1
+#  k_ref * .super$pars$q10^((.super$env$temp - .super$pars$reftemp)/10)
+  .super$pars$tcor_mod * .super$pars$q10^((.super$env$temp - .super$pars$reftemp)/10)
+}
+
+
+# MEC: all these arrhenius funcs should be the same, but just putting the original equations in from each model right now
+f_tcor_arrhenius_millennialv2 <- function(., i ) {
+  exp(-.super$pars$ea[[i]] / (.super$pars$R * (.super$env$temp + 273.15)))
+}
+
+f_tcor_arrhenius_mend <- function(., i ) {
+  TKref = .super$pars$reftemp + 273.15
+  TK    = .super$env$temp + 273.15
+  exp(.super$pars$ea[[i]]*1000/8.314 * (1/TKref - 1/TK))
+}
+
+# sourced from MAAT leaf model
+f_tcor_arrhenius <- function(., i ) {
+  # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
+  # Arrhenius equation
+  
+  # input parameters  
+  # Ea     -- rate of increase to optimum  (J mol-1)
+  # R      -- molar gas constant J mol-1 K-1
+  
+  # Tr     -- reference temperature (oC) 
+  # Trk    -- reference temperature (K) 
+  # Tsk    -- temperature to adjust parameter to (K) 
+  
+  # convert to Kelvin
+  Trk <- .super$pars$reftemp + 273.15
+  Tsk <- .super$env$temp + 273.15
+  
+  exp( .super$pars$ea[[i]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
+}
+
+
 f_tcor_wieder <- function(.,C,t,i) {
   exp(.super$env$temp * .super$pars$mimics[['V_slope']] + .super$pars$mimics[['V_int']]) * .super$pars$mimics[['aV']]
 }
+
 
 f_tcor_century1 <- function(.,C,t,i){
   #sourced from SoilR and standardized to 20C
@@ -23,6 +66,7 @@ f_tcor_century1 <- function(.,C,t,i){
 
 }
 
+
 f_tcor_century2 <- function(.,C,t,i){
   #sourced from SoilR and standardized to 20C
   #SoilR::fT.Century2
@@ -32,6 +76,7 @@ f_tcor_century2 <- function(.,C,t,i){
     (3.439423 * exp((0.2/2.63) * (1 - (((Tmax - .super$pars$reftemp)/(Tmax - Topt))^2.63)) * ((Tmax - .super$pars$reftemp)/(Tmax - Topt))^0.2))
 }
 
+
 f_tcor_daycent1 <- function(.,C,t,i){
   #sourced from SoilR and standardized to 20C
   #SoilR::fT.Daycent1
@@ -39,12 +84,14 @@ f_tcor_daycent1 <- function(.,C,t,i){
   (0.08 * exp(0.095 * .super$pars$reftemp))
 }
 
+
 f_tcor_daycent2 <- function(.,C,t,i){
   #sourced from SoilR and standardized to 20C
   #SoilR::fT.Daycent2
   (0.56 + (1.46 * atan(pi * 0.0309 * (.super$env$temp - 15.7)))/pi)/
     (0.56 + (1.46 * atan(pi * 0.0309 * (.super$pars$reftemp - 15.7)))/pi)
 }
+
 
 # APW: this is also an option in ELM-CENTURY/BGC and used to normalize the Q10 t_scalar  
 f_tcor_daycent2_abramoff <- function(.,C,t,i){
@@ -56,13 +103,6 @@ f_tcor_daycent2_abramoff <- function(.,C,t,i){
   (t2 + (t3/pi)* atan(pi*t4*(.super$env$temp - t1))) / (t2 + (t3/pi)* atan(pi*t4*(.super$pars$reftemp - t1)))
 }
 
-f_tcor_q10 <- function(.,C,t,i){
-  #sourced from SoilR and standardized to 20C
-  #SoilR::fT.Q10
-#  k_ref <- 1
-#  k_ref * .super$pars$q10^((.super$env$temp - .super$pars$reftemp)/10)
-  .super$pars$tcor_mod * .super$pars$q10^((.super$env$temp - .super$pars$reftemp)/10)
-}
 
 f_tcor_rothc <- function(.,C,t,i){
   #sourced from SoilR and standardized to 20C
@@ -70,6 +110,7 @@ f_tcor_rothc <- function(.,C,t,i){
   (47.9/(1 + exp(106/(ifelse(.super$env$temp >= -18.3, .super$env$temp, NA) + 18.3))))/
   (47.9/(1 + exp(106/(ifelse(.super$pars$reftemp >= -18.3, .super$pars$reftemp, NA) + 18.3))))
 }
+
 
 f_tcor_lin_adair <- function(.,C,t,i){
   #sourced from SoilR and standardized to 20C
@@ -108,37 +149,6 @@ f_tcor_standcarb <- function(.,C,t,i){
   Tshape = 15
   (exp(-1 * (.super$env$temp/(Topt + Tlag))^Tshape) * .super$pars$q10^((.super$env$temp - 10)/10))/
     (exp(-1 * (.super$pars$reftemp/(Topt + Tlag))^Tshape) * .super$pars$q10^((.super$pars$reftemp - 10)/10))
-}
-
-# MEC: all these arrhenius funcs should be the same, but just putting the original equations in from each model right now
-f_tcor_arrhenius <- function(.,C,t,i) {
-  #sourced from MAAT leaf model
-  # returns a scalar to adjust parameters from reference temp (Tr) to current temp (Ts) 
-  # Arrhenius equation
-  
-  # input parameters  
-  # Ea     -- rate of increase to optimum  (J mol-1)
-  # R      -- molar gas constant J mol-1 K-1
-  
-  # Tr     -- reference temperature (oC) 
-  # Trk    -- reference temperature (K) 
-  # Tsk    -- temperature to adjust parameter to (K) 
-  
-  #convert to Kelvin
-  Trk <- .super$pars$reftemp + 273.15
-  Tsk <- .super$env$temp + 273.15
-  
-  exp( .super$pars$ea[[i]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
-}
-
-f_tcor_arrhenius_millennialv2 <- function(.,C,t,i) {
-  exp(-.super$pars$ea[[i]] / (.super$pars$R * (.super$env$temp + 273.15)))
-}
-
-f_tcor_arrhenius_mend <- function(.,C,t,i){
-  TKref = .super$pars$reftemp + 273.15
-  TK = .super$env$temp + 273.15
-  exp(.super$pars$ea[[i]]*1000/8.314 * (1/TKref - 1/TK))
 }
 
 

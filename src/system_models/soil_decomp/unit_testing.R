@@ -17,10 +17,12 @@ source('soil_decomp_object.R')
 #soil_decomp_object$.test.mimics.ss()
 soil_decomp_object$.test()
 soil_decomp_object$.test(litter=172.8978/365/1000)
-soil_decomp_object$state$cpools
-soil_decomp_object$state$outflux
 soil_decomp_object$.test(litter=.5/.15/365)
 soil_decomp_object$.test(litter=0.000228)
+soil_decomp_object$state$cpools
+soil_decomp_object$state$outflux
+soil_decomp_object$state$respiration
+soil_decomp_object$state$respiration + soil_decomp_object$state$leaching
 soil_decomp_object$.test(litter=10)
 
 soil_decomp_object$pars$decomp_outflux1
@@ -28,11 +30,23 @@ soil_decomp_object$pars$decomp_outflux2
 soil_decomp_object$pars$decomp_outflux3
 soil_decomp_object$pars$decomp_outflux4
 soil_decomp_object$pars$decomp_outflux5
+soil_decomp_object$pars$decomp_outflux6
+soil_decomp_object$pars$decomp_outflux7
+
+soil_decomp_object$fns$calc_state_pars()
+soil_decomp_object$fns$poolmax.poolmax1(1)
+soil_decomp_object$fnames$poolmax$poolmax1
+soil_decomp_object$fnames$km2$km21
+soil_decomp_object$fnames$calc_state_unique
+soil_decomp_object$fns$calc_state_unique
 
 soil_decomp_object$pars$poolmax
 soil_decomp_object$fnames$poolmax
 soil_decomp_object$fns$poolmax.poolmax3()
+soil_decomp_object$fns$fmet
+soil_decomp_object$fns$fmet()
 soil_decomp_object$state_pars$poolmax
+soil_decomp_object$state_pars$fmet
 soil_decomp_object$pars$k
 soil_decomp_object$state_pars$k
 soil_decomp_object$pars$vmax
@@ -83,9 +97,14 @@ soil_decomp_object$fns$transfer.t4_to_3
 soil_decomp_object$fns$transfer.t5_to_1
 soil_decomp_object$fns$transfer.t6_to_2
 soil_decomp_object$fns$transfer.t7_to_3
+
+soil_decomp_object$state$outflux
 soil_decomp_object$fns$outflux.of1
+soil_decomp_object$fns$outflux.of1(
+  C=unlist(soil_decomp_object$pars$cstate0), i=1, of=1 )
 soil_decomp_object$fns$outflux.of10
-soil_decomp_object$fns$outflux.of1()
+soil_decomp_object$fns$outflux.of10
+
 soil_decomp_object$fns$cue.cue3(i=3)
 soil_decomp_object$fns$cue2.cue23(i=3)
 names(soil_decomp_object$fns)

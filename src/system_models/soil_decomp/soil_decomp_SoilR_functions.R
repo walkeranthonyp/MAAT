@@ -89,7 +89,7 @@ f_transfermatrix <- function(., C, t ) {
     #print(.[[paste0('transfer.t',ss[1],'_to_',ss[2])]](.=.,C=C, t=t, from=ss[1], to=ss[2] )) 
     m[matrix(rev(ss),nrow=1)] <- .[[paste0('transfer.t',ss[1],'_to_',ss[2])]](.=., C=C, t=t, from=ss[1], to=ss[2] )
   }
-  print(m)
+  #print(m)
   m
 }
   
@@ -108,7 +108,7 @@ f_solver_func_soilR <- function(., t, y, parms) {
 f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
   #print(y)
   .$outfluxes(y,t)
-  print(unlist(.$state$outflux)) 
+  #print(unlist(.$state$outflux)) 
   YD = .$transfermatrix(y,t) %*% .$DotO(y,t) + .$input(t)
   #print(.$transfermatrix(y,t)); print(.$DotO(y,t)); print(.$input(t)) 
   #print(YD) 
@@ -118,6 +118,37 @@ f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
   list(as.vector(YD))
 }
 
+
+# calculates loss fluxes after solver has rund
+f_calc_loss_fluxes <- function(.) {
+  #print('') 
+  #print('Calculate loss fluxes:') 
+
+  # calculate loss fractions for each pool from transfer matrix
+  # - 1,1 arguments to tm and doto are dummy args, if those functions in C pools would need ot pass that info
+  .super$state_pars$transfer_matrix    <- .$transfermatrix(1,1)
+  pool_loss_frac                       <- abs(apply(.super$state_pars$transfer_matrix, 2, sum ))
+  pool_loss_frac[pool_loss_frac<1e-15] <- 0 
+
+  # sum pool fluxes multiplied by loss fractions
+  pool_loss_total <- pool_loss_frac * as.numeric(.$DotO(1,1)) 
+
+  # assign losses
+  .super$state$leaching    <- 0
+  .super$state$respiration <- sum(pool_loss_total) 
+  if(!is.na(.super$pars$leaching_outflux)) {
+    .super$state$leaching    <- .super$state$outflux[[.super$pars$leaching_outflux]]
+    .super$state$respiration <- .super$state$respiration - .super$state$leaching 
+  } 
+
+  print('transfer matrix:')
+  print(.super$state_pars$transfer_matrix)
+  #print(pool_loss_frac) 
+  #print(as.numeric(.$DotO(1,1) )) 
+  #print(pool_loss_total)
+  #print(.super$state$respiration) 
+  print('') 
+}
 
 
 ### END ###
