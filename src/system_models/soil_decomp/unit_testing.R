@@ -14,17 +14,20 @@
 # soil_decomp
 source('soil_decomp_object.R')
 
-#soil_decomp_object$.test.mimics.ss()
 soil_decomp_object$.test()
 soil_decomp_object$.test(litter=172.8978/365/1000)
-soil_decomp_object$.test(litter=.5/.15/365)
 soil_decomp_object$.test(litter=0.000228)
+soil_decomp_object$.test(litter=.5/.15/365)
+soil_decomp_object$.test(litter=10)
+
+# state
 soil_decomp_object$state$cpools
 soil_decomp_object$state$outflux
 soil_decomp_object$state$respiration
+soil_decomp_object$env$litter
 soil_decomp_object$state$respiration + soil_decomp_object$state$leaching
-soil_decomp_object$.test(litter=10)
 
+# outfluxes associated with each pool
 soil_decomp_object$pars$decomp_outflux1
 soil_decomp_object$pars$decomp_outflux2
 soil_decomp_object$pars$decomp_outflux3
@@ -33,26 +36,7 @@ soil_decomp_object$pars$decomp_outflux5
 soil_decomp_object$pars$decomp_outflux6
 soil_decomp_object$pars$decomp_outflux7
 
-soil_decomp_object$fns$calc_state_pars()
-soil_decomp_object$fns$poolmax.poolmax1(1)
-soil_decomp_object$fnames$poolmax$poolmax1
-soil_decomp_object$fnames$km2$km21
-soil_decomp_object$fnames$calc_state_unique
-soil_decomp_object$fns$calc_state_unique
-
-soil_decomp_object$pars$poolmax
-soil_decomp_object$fnames$poolmax
-soil_decomp_object$fns$poolmax.poolmax3()
-soil_decomp_object$fns$fmet
-soil_decomp_object$fns$fmet()
-soil_decomp_object$state_pars$poolmax
-soil_decomp_object$state_pars$fmet
-soil_decomp_object$pars$k
-soil_decomp_object$state_pars$k
-soil_decomp_object$pars$vmax
-soil_decomp_object$state_pars$vmax
-
-
+# k conversion, doesn't work with tau < 0
 f_kconvert_cont <- function(kdisc) -log(1-kdisc)
 f_kconvert_disc <- function(kcont, delt_orig=365*24*3600, delt_new=24*3600 )
   1-exp(-kcont*delt_orig/delt_new)
@@ -69,102 +53,47 @@ kcont <- f_kconvert_cont(k)
 f_kconvert_simple <- function(k, tratio=365 ) k/tratio 
 f_kconvert_simple(k)
 
-catanf <- function(temp) 11.75 + 29.7/pi * atan(0.031*pi*(temp-15.4))
-catanf(15)
-catanf(30)
-
-soil_decomp_object$run
-soil_decomp_object$init
-soil_decomp_object$configure_test
-
+# model initialisation
 soil_decomp_object$env
-
 soil_decomp_object$pars$cstate0
 soil_decomp_object$pars$input_coef
 soil_decomp_object$fns$input
 soil_decomp_object$fns$input()
 
-soil_decomp_object$pars$decomp_outflux1
-
+# transfer matrix
+soil_decomp_object$state_pars$transfer_matrix
 soil_decomp_object$fns$transfermatrix
 soil_decomp_object$fns$transfer.t1_to_4
-soil_decomp_object$fns$transfer.t2_to_4
-soil_decomp_object$fns$transfer.t2_to_6
-soil_decomp_object$fns$transfer.t3_to_4
-soil_decomp_object$fns$transfer.t3_to_7
-soil_decomp_object$fns$transfer.t4_to_2
-soil_decomp_object$fns$transfer.t4_to_3
-soil_decomp_object$fns$transfer.t5_to_1
-soil_decomp_object$fns$transfer.t6_to_2
-soil_decomp_object$fns$transfer.t7_to_3
-
-soil_decomp_object$state$outflux
-soil_decomp_object$fns$outflux.of1
-soil_decomp_object$fns$outflux.of1(
-  C=unlist(soil_decomp_object$pars$cstate0), i=1, of=1 )
-soil_decomp_object$fns$outflux.of10
-soil_decomp_object$fns$outflux.of10
-
 soil_decomp_object$fns$cue.cue3(i=3)
 soil_decomp_object$fns$cue2.cue23(i=3)
-names(soil_decomp_object$fns)
-soil_decomp_object$fns$calc_state_pars
-soil_decomp_object$fns[['outflux.of11']]
-soil_decomp_object$fns$tcor
-soil_decomp_object$fns$input()
 
-unlist(soil_decomp_object$state)
+# state
 soil_decomp_object$state$cpools
 soil_decomp_object$state$outflux
+soil_decomp_object$fns$outflux.of1(
+  C=unlist(soil_decomp_object$pars$cstate0), i=1, of=1 )
+
+# parameter calculations
 soil_decomp_object$fnames
-soil_decomp_object$fnames$cue
-soil_decomp_object$fnames$outflux
-soil_decomp_object$fnames$transfer
-soil_decomp_object$pars
-soil_decomp_object$pars$cat_pool
 soil_decomp_object$fnames$k
 soil_decomp_object$pars$k
 soil_decomp_object$state_pars$k
 soil_decomp_object$fnames$km
 soil_decomp_object$pars$km
 soil_decomp_object$state_pars$km
-soil_decomp_object$pars$cue
-soil_decomp_object$pars$cue2
-soil_decomp_object$state_pars$cue
-soil_decomp_object$state_pars$cue2
-soil_decomp_object$pars$cat_pool
-soil_decomp_object$pars$millennialV2
 
-
-names(soil_decomp_object$fns)
+# scalars
 soil_decomp_object$state_pars$matpot_sat
 soil_decomp_object$fns$matpot_sat()
 soil_decomp_object$fns$wcor.wcor2(i=2)
 soil_decomp_object$fns$tcor.tcor2(i=2)
-soil_decomp_object$fns$decomp.d1
-soil_decomp_object$fns$decomp.d1(soil_decomp_object$state$cpools, i=1 )
-soil_decomp_object$fns$decomp.d2(soil_decomp_object$state$cpools, i=2 )
-soil_decomp_object$fns$transfer_fluxsum_prop(from=2)
-soil_decomp_object$fns[["transfer_fluxsum_prop"]](from=2)
-soil_decomp_object$fns[["transfer_fluxsum_prop"]](.=soil_decomp_object$fns,from=2)
-
 soil_decomp_object$fns$wcor.wcor2(i=2) * 
   soil_decomp_object$fns$tcor.tcor2(i=2) *
   soil_decomp_object$state_pars$vmax$vmax2
+soil_decomp_object$fns$tcor.t2
+soil_decomp_object$fns$tcor.t2(i=2)
 
-  
-soil_decomp_object$env
-soil_decomp_object$pars$millennialV2
-
-soil_decomp_object$pars$decomp_outflux1
-unlist(soil_decomp_object$pars$decomp_outflux1)[[2]]
-soil_decomp_object$pars$decomp_outflux2
-soil_decomp_object$pars$decomp_outflux3
-soil_decomp_object$pars$decomp_outflux4
-soil_decomp_object$pars$decomp_outflux5
-soil_decomp_object$pars$decomp_outflux6
-soil_decomp_object$pars$decomp_outflux7
-
+# outflux calculation Millennial v2
 soil_decomp_object$state$cpools[] <- 1
 soil_decomp_object$fns$outflux.of1(C=soil_decomp_object$state$cpools, t=1, i=1, of=1 )
 soil_decomp_object$fns$outflux.of2(C=soil_decomp_object$state$cpools, t=1, i=1, of=2 )
@@ -178,52 +107,6 @@ soil_decomp_object$fns$outflux.of9(C=soil_decomp_object$state$cpools, t=1, i=5, 
 soil_decomp_object$fns$outflux.of4
 soil_decomp_object$fnames$outflux
 
-soil_decomp_object$fns$tcor.t2
-soil_decomp_object$fns$tcor.t2(i=2)
-
-soil_decomp_object$fnames$transfer
-soil_decomp_object$state$outflux[] <- 1
-soil_decomp_object$fns$transfer.t
-soil_decomp_object$fns$transfer.t1_to_4
-soil_decomp_object$fns$transfer.t1_to_4(from=1,to=4)
-soil_decomp_object$fns$transfer.t1_to_5(from=1,to=5)
-soil_decomp_object$fns$transfer.t2_to_3(from=2,to=3)
-soil_decomp_object$fns$transfer.t2_to_4(from=2,to=4)
-soil_decomp_object$fns$transfer.t3_to_4(from=3,to=4)
-soil_decomp_object$fns$transfer.t3_to_5(from=3,to=5)
-soil_decomp_object$fns$transfer.t4_to_2(from=4,to=2)
-soil_decomp_object$fns$transfer.t4_to_3(from=4,to=3)
-soil_decomp_object$fns$transfer.t5_to_1(from=5,to=1)
-soil_decomp_object$fns$transfer.t5_to_3(from=5,to=3)
-
-soil_decomp_object$init1
-
-soil_decomp_object$fns$input()
-
-soil_decomp_object$pars$decomp_outflux4
-
-soil_decomp_object$state$cpools
-soil_decomp_object$state$outflux
-soil_decomp_object$state$outflux[[2]]
-soil_decomp_object$state$outflux[[1:2]]
-soil_decomp_object$state$outflux[] <- 1
-
-soil_decomp_object$pars$k
-soil_decomp_object$pars$k[[1]]
-soil_decomp_object$pars$km
-soil_decomp_object$pars$vmax
-soil_decomp_object$pars$cat_pool
-soil_decomp_object$pars$poolmax
-
-soil_decomp_object$pars[[paste0('decomp_outflux',1)]]
-unlist(soil_decomp_object$pars[[paste0('decomp_outflux',1)]])
-soil_decomp_object$state$outflux[
-  unlist(soil_decomp_object$pars[[paste0('decomp_outflux',1)]])
-]
-soil_decomp_object$fns$transfer.t1_to_3
-
-a1 <- unlist(soil_decomp_object$pars[[paste0('decomp_outflux',1)]])
-class(a1)
 
 soil_decomp_object$.test(litter=172.8978/365, ntimes = 1, metdf = T)
 soil_decomp_object$.test(litter=6)

@@ -23,11 +23,11 @@
         <d7>'f_decomp_fluxsum'</d7>
       </decomp>
       <outflux>
-        <of1>'f_decomp_rmm_sulman_gen'</of1>
+        <of1>'f_decomp_rmm_sulman'</of1>
         <of2>'f_decomp_lin'</of2>
-        <of3>'f_decomp_rmm_sulman_gen'</of3>
+        <of3>'f_decomp_rmm_sulman'</of3>
         <of4>'f_decomp_lin'</of4>
-        <of5>'f_decomp_rmm_sulman_gen'</of5>
+        <of5>'f_decomp_rmm_sulman'</of5>
         <of6>'f_decomp_lin'</of6>
         <of7>'f_micturn_sulman'</of7>
         <of8>'f_decomp_lin'</of8>

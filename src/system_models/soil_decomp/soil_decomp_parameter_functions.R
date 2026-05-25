@@ -116,7 +116,8 @@ f_poolmax_texture_abramoff <- function(., i )
 
 
 
-# k functions
+# k & Vmax functions
+# - when a catalyst is involved in M-M dynamics, Vmax units are per unit time only and is therefore equivalent to k
 ################################
 
 f_k_constant <- function(., i ) 
