@@ -26,7 +26,7 @@ f_input <- function(., t ) {
   .$env$litter * matrix(unlist(.super$pars$input_coef)[1:.super$pars$n_pools], ncol=1 )
 }
 
-
+# APW: need to make CWD litter input?
 f_input_clm5 <- function(., t ) {
   m <- matrix(0, nrow=.super$pars$n_pools, ncol=1 )
   f_litter_not_cwd <- 1 - .super$pars$input_coef[[1]]
@@ -66,25 +66,25 @@ f_input_mimics <- function(., t ) {
 #      that cause a flux from one pool to another 
 ################################
 
-# generic functions
-
-# APW: both are not needed
+# APW: not sure this is needed 
 f_decomp_none <- function(., ... ) 0
-f_zero        <- function(., ... ) 0
-# APW: where is this used? 
-f_identity    <- function(., C, t, i ) 1
 
+
+# generic functions that tie outfluxes to decomp pools
+#####
 
 # function where there are multiple fluxes from a single pool
 f_decomp_fluxsum <- function(., i, ... )
   sum(unlist(.super$state$outflux[unlist(.super$pars[[paste0('decomp_outflux',i)]]) ]))
 
 
-# for outfluxes structure when all pools only have one flux
+# for outfluxes structure when all pools only have one flux -- limited use
 f_decomp_outflux <- function(., i, ... ) .super$state$outflux[[i]]
  
 
-# specific decomp functions
+
+# specific decomp/outflux functions
+#####
 
 # linear decomp, Oleson 1963
 # APW: not sure ... is needed
@@ -92,18 +92,11 @@ f_decomp_lin <- function(., C, t, i, of=i, ... )
   C[i]*.super$state_pars$k[[of]]
 
 
-# density-dependent decomp, used for density-dependent turnover as in Georgiou et al. 2017  
-f_decomp_dd_georgiou <- function(., C, t, i, of=i ) 
-  (C[i]^.super$pars$beta) * .super$state_pars$k[[of]] 
-
-
 # non-linear Michaelis-Menten decomp 
 # - typically function of microbial biomass: C[cat_pool]
 # - rate saturates as a function of decomp/substrate pool mass 
 f_decomp_mm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]] )
-  .super$state_pars$vmax[[of]]*C[cat_pool]*C[i] / (.super$pars$km[[of]] + C[i])
-
-f_decomp_MM_microbe <- f_decomp_mm 
+  .super$state_pars$vmax[[of]]*C[cat_pool]*C[i] / (.super$state_pars$km[[of]] + C[i])
 
 
 # reverse Michaelis-Menten decomp
@@ -113,34 +106,42 @@ f_decomp_rmm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]], 
   .super$state_pars$vmax[[of]]*C[cat_pool]*C[i] / (.super$state_pars$km[[of]] + C[cat_pool])
 
 
-# APW: not converted to new structure as yet 
 # double Michaelis-Menten decomp
-# - rate saturates as a function of cat_pool and decomp/substrate pool mass 
-#f_decomp_dmm <- function(., C, t, i )
-#  .super$pars$vmax[[i]] * (C[1]/(.super$pars$km[[1]] + C[1])) * (C[2]/(.super$pars$rkm[[1]]+C[2]))
+# - rate saturates as a function of both cat_pool and decomp/substrate pool mass 
 f_decomp_dmm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]] )
-  .super$pars$vmax[[of]] * (C[i]/(.super$pars$km[[of]] + C[i])) * (C[cat_pool]/(.super$pars$km2[[of]]+C[cat_pool]))
+  .super$state_pars$vmax[[of]] * (C[i]/(.super$state_pars$km[[of]] + C[i])) * (C[cat_pool]/(.super$state_pars$km2[[of]]+C[cat_pool]))
 
 
 # CORPSE reverse M-M with half-saturation a function of the microbial biomass pool relative to the sum of the unprotected pools
-#f_decomp_rmm_sulman <- function(.,C,t,i) 
-#  (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
+# APW: need a method to make indexing of pools flexible 
 f_decomp_rmm_sulman <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]], ... ) 
-  (.super$pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[cat_pool] + .super$state_pars$km[[of]]*(C[1]+C[2]+C[3]))
+  (.super$state_pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[cat_pool] + .super$state_pars$km[[of]]*(C[1]+C[2]+C[3]))
 
-# michaelis-menten version of decomp function
+# as above but protected pools as multiplier on Km
+# APW: need a way to pass multiple pools
+f_decomp_rmm_sulman_protected <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]], ... ) 
+  (.super$state_pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[cat_pool] + .super$state_pars$km[[of]]*(C[5]+C[6]+C[7]))
+
+
+# michaelis-menten version of above decomp function
+# APW: f_decomp_rmm_sulman_moore was this type of func 
 f_decomp_mm_sulman <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]], ... ) 
-  (.super$pars$vmax[[i]]*C[cat_pool]*C[i]) / (C[i] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
+  (.super$state_pars$vmax[[i]]*C[cat_pool]*C[i]) / (C[i] + .super$state_pars$km[[i]]*(C[1]+C[2]+C[3]))
+
+
+# density-dependent turnover, often for microbes, e.g. Georgiou et al. 2017  
+f_decomp_dd_georgiou <- function(., C, t, i, of=i ) 
+  (C[i]^.super$pars$beta) * .super$state_pars$k[[of]] 
 
 
 # CORPSE microbial turnover
-# APW: why divide by k? Is this a MRT rather than k? Value is currently 54.75
+# APW: CAUTION: used to be divide by k as it was really an MRT 
 f_micturn_sulman <- function(., C, t, i, of=i ) 
-  (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$state_pars$k[[of]] 
+  (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3])) * .super$state_pars$k[[of]] 
 
 # as above but with density dependence
 f_micturn_sulman_dd <- function(., C, t, i, of=i ) 
-  (C[i]^.super$pars$beta - .super$pars$minmic * (C[1]+C[2]+C[3]))/.super$state_pars$k[[of]] 
+  (C[i]^.super$pars$beta - .super$pars$minmic * (C[1]+C[2]+C[3])) * .super$state_pars$k[[of]] 
 
 
 # saturating sorption
@@ -153,96 +154,6 @@ f_sorp_sat <- function(., C, t, i, of=i, sat_pool=.super$pars$sat_pool )
 # - because this is desorption from the pool that saturates
 f_desorp_sat <- function(., C, t, i, of=i, ... ) 
   .super$state_pars$k[[of]]*(C[i]/.super$state_pars$poolmax[[i]])
-#f_desorp_millennialv2 <- function(., C, t, i, of=i, ... )
-#  .super$state_pars$k[[of]]*(C[i]/.super$state_pars$poolmax[[i]])
-
-
-
-
-
-
-# alternative CORPSE hypotheses
-#########
-
-# adding a decomp function that saturates and returns excess to unprotected pool
-# APW: can make part of this a poolmax function and combine with f_sorp_sat, but need a way to specify more than one sat pool
-f_decomp_lin_sat_corpse        <- function(.,C,t,i) {
-  #match millennialv2 for ESA2022 sims
-  if(.super$env$clay == 27){ 
-    protected_max = 6.837
-  } else protected_max = 10.32
-  # protected_max = .super$pars$poolmax[[5]] + .super$pars$poolmax[[6]] + .super$pars$poolmax[[7]] #this is how to set it generally
-    C[i]*.super$pars$k[[i]]* (1-(C[5] + C[6] + C[7])/protected_max)
-}
-
-# Improvement to CORPSE described in Moore et al. 2019, scales microbial biomass to each specific substrate type
-# This type of function would be more general to protected pools. 
-# APW: this appears the same as f_decomp_mm_sulman
-f_decomp_rmm_sulman_moore <- function(.,C,t,i) 
-  .super$pars$vmax[[i]]*C[i] * C[4] / (C[i] + .super$pars$km[[i]]*(C[1]+C[2]+C[3]))
-	
-# decay of protected pool
-# APW: this is the same as f_decomp_rmm_sulman but with different summed pools in denominator
-# APW: need a way to pass multiple pools
-f_decomp_rmm_sulman_protected <- function(.,C,t,i) 
-  (.super$pars$vmax[[i]]*C[4]*C[i]) / (C[4] + .super$pars$km[[i]]*(C[5]+C[6]+C[7]))
-
-
-
-# MILLENNIAL-specific functions
-#########
-
-# aggregate formation
-f_aggform_abramoff <- function(.,C,t,i, agg_pool = 5){
-  if(i==1){
-     # print(C[i])
-     # print(.super$pars$millennial[['Vpa']])
-     # print(.super$pars$millennial[['Kpa']])
-     # print(.super$pars$poolmax[[5]])
-    ( .super$pars$millennial[['Vpa']] * C[i]) / (.super$pars$millennial[['Kpa']] + C[i])*(1 - C[agg_pool] / .super$pars$poolmax[[5]])
-  }
-  else if(i==3){
-    ( .super$pars$millennial[['Vma']] * C[i]) / (.super$pars$millennial[['Kma']] + C[i])*(1 - C[agg_pool] / .super$pars$poolmax[[5]])  
-  }
-}
-
-# sorption of DOC to soil minerals
-f_docsorp_abramoff <- function(.,C,t,i){
-  Qmax = (.super$env$BD * 10^(.super$pars$millennial[['c1']]*log10(.super$env$clay) + .super$pars$millennial[['c2']]))/1000
-  Kdm = 10^(-.186*.super$env$pH - .216)
-  C[i] * ((Kdm*Qmax*C[i])/(1+Kdm*C[i]) - C[3]) / Qmax
-}
-
-# uptake of DOC by micropbes
-# reverse michaelis-menten equation so could potentially use a f_decomp_rmm function instead
-# APW: can use f_decomp_rmm with cat_pool = 2
-#f_docuptake_abramoff <- function(., C, t, i )
-#  .super$pars$millennial[['Vdm']] * C[i] * C[2]/(C[2]+.super$pars$millennial[['Kdb']])
-
-
-# linear
-# APW: one pool's gain is anothers loss
-#f_uptake_lin <- function(., C, t, i, cat )
-#  .super$pars$vmax[[i]] * C[i]
-
-
-
-# MIMICS-specific functions
-#########
-# alt mimics function
-# APW: this can be converted if needed
-f_decomp_rmm_twocat <- function(.,C,t,i, cat1 = 3, cat2 = 4) 
-  (.super$pars$vmax[[i]]*(C[cat1]+C[cat2])*C[i]) / ((C[cat1]+C[cat2]) + .super$pars$km[[i]])
-
-
-# MILLENNIALV2-specific functions 
-#########
-
-# APW: f_decomp_lin
-#f_desorp_millennialv2_nosat <- function(., C, t, i, ... ) 
-#  .super$pars$millennialV2[['kld']] * C[i]
-
-
 
 
 
@@ -271,16 +182,19 @@ f_transfer_fluxid_cue <- function(., C, t, from, to ) {
   of <- unlist(.super$pars[[paste0('decomp_outflux',from)]])[1]
   .super$state_pars$cue[[of]]
 }
+
 f_transfer_fluxid_cue2 <- function(., C, t, from, to ) {
   # get outflux index
   of <- unlist(.super$pars[[paste0('decomp_outflux',from)]])[1]
   .super$state_pars$cue2[[of]]
 }
+
 f_transfer_fluxid_cue_remainder <- function(., C, t, from, to ) {
   # get outflux index
   of <- unlist(.super$pars[[paste0('decomp_outflux',from)]])[1]
   1 - .super$state_pars$cue[[of]]
 }
+
 f_transfer_fluxid_cue2_remainder <- function(., C, t, from, to ) {
   # get outflux index
   of <- unlist(.super$pars[[paste0('decomp_outflux',from)]])[1]
@@ -327,6 +241,7 @@ f_transfer_fluxsum_prop <- function(., C, t, from, to, f, cue=F ) {
   }
 }
 
+
 # wrapper functions for above
 # APW: it's probably possible to combine these with above and create a case where total flux is not calculated if of extent is 1
 f_transfer_fluxsum_prop_one       <- function(., ... ) .$transfer_fluxsum_prop(f=1, ... ) 
@@ -335,6 +250,7 @@ f_transfer_fluxsum_prop_three     <- function(., ... ) .$transfer_fluxsum_prop(f
 f_transfer_fluxsum_prop_one_cue   <- function(., ... ) .$transfer_fluxsum_prop(f=1, cue=T, ... ) 
 f_transfer_fluxsum_prop_two_cue   <- function(., ... ) .$transfer_fluxsum_prop(f=2, cue=T, ... ) 
 f_transfer_fluxsum_prop_three_cue <- function(., ... ) .$transfer_fluxsum_prop(f=3, cue=T, ... ) 
+
 
 # wrapper of above, for MEND where there are two fluxes going to one pool and both have the same CUE
 # APW: could also modify above to handle two outfluxes
@@ -351,34 +267,61 @@ f_transfer_cue_sat <- function(.,C,t,from,to)
 
 
 
+# APW: decomp functions not yet converted to outfluxes methods and state_pars lists 
+###############################
+
+# alternative CORPSE hypotheses
+#########
+
+## adding a decomp function that saturates and returns excess to unprotected pool
+## APW: can make part of this a poolmax function and combine with f_sorp_sat, but need a way to specify more than one sat pool
+#f_decomp_lin_sat_corpse        <- function(.,C,t,i) {
+#  #match millennialv2 for ESA2022 sims
+#  if(.super$env$clay == 27){ 
+#    protected_max = 6.837
+#  } else protected_max = 10.32
+#  # protected_max = .super$pars$poolmax[[5]] + .super$pars$poolmax[[6]] + .super$pars$poolmax[[7]] #this is how to set it generally
+#    C[i]*.super$pars$k[[i]]* (1-(C[5] + C[6] + C[7])/protected_max)
+#}
 
 
-###########################
-# functions not yet updated (or maybe even needed) for new code
 
-# MEND 2020? specific functions
+# MILLENNIAL-specific functions
+#########
 
-# non-linear Michaelis-Menten decomp of POM, a function of POM-specific enzymes
-# MEND O1
-# APW: why is this needed instead of f_decomp_mm with cat=6?
-f_decomp_MM_enzpom <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[6]*C[i]) / (.super$pars$km[[i]]+C[i])
+# aggregate formation
+f_aggform_abramoff <- function(.,C,t,i, agg_pool = 5){
+  if(i==1){
+     # print(C[i])
+     # print(.super$pars$millennial[['Vpa']])
+     # print(.super$pars$millennial[['Kpa']])
+     # print(.super$pars$poolmax[[5]])
+    ( .super$pars$millennial[['Vpa']] * C[i]) / (.super$pars$millennial[['Kpa']] + C[i])*(1 - C[agg_pool] / .super$pars$poolmax[[5]])
+  }
+  else if(i==3){
+    ( .super$pars$millennial[['Vma']] * C[i]) / (.super$pars$millennial[['Kma']] + C[i])*(1 - C[agg_pool] / .super$pars$poolmax[[5]])  
+  }
+}
+
+# sorption of DOC to soil minerals
+f_docsorp_abramoff <- function(.,C,t,i){
+  Qmax = (.super$env$BD * 10^(.super$pars$millennial[['c1']]*log10(.super$env$clay) + .super$pars$millennial[['c2']]))/1000
+  Kdm = 10^(-.186*.super$env$pH - .216)
+  C[i] * ((Kdm*Qmax*C[i])/(1+Kdm*C[i]) - C[3]) / Qmax
+}
+
+
+
+# MEND 2020 specific functions
+#########
 
 # MEND losses of microbial biomass toward CO2 (Fr) and toward other pools (Fe)
 # MEND O2
-# APW: seems to include CO2 transfer coeffcient, why can't that be specified in transfer matrix?
+# APW: similar to MEND 2013 respiraton, but different so keeping for now 
 f_decomp_mbc_mend <- function(.,C,t,i) {
   ( C[2]*((1/.super$pars$cue[[5]])-1)*((C[5]*(.super$pars$vmax[[5]]+.super$pars$mr))/(.super$pars$km[[5]]+C[5]))) + #Fr
     C[2]*.super$pars$mr #Fe
 }
-
-# non-linear Michaelis-Menten decomp of MAOM, a function of MAOM-specific enzymes
-# MEND O3
-# APW: why is this needed instead of f_decomp_mm with cat=7?
-f_decomp_MM_enzmaom <- function(.,C,t,i) (.super$pars$vmax[[i]]*C[7]*C[i]) / (.super$pars$km[[i]]+C[7])
-
-# density-dependent decomp, as used in MEND for desorption from the Q pool
-# MEND O4
-f_decomp_dd_mend <- function(.,C,t,i) .super$pars$k[[i]]*(C[i]/.super$pars$poolmax[[i]])
 
 # MEND losses of dissolved organic matter toward mbc uptake (Fu) and adsorption to mineral surfaces (Fa)
 # MEND O5
@@ -388,159 +331,14 @@ f_decomp_doc_mend <- function(.,C,t,i) {
 }
 
 
+# MIMICS-specific functions
+#########
+# alt mimics function
+# APW: this can be converted if needed
+# APW: can be broken into two fluxes that have a different cat pool but share the same parameters 
+#f_decomp_rmm_twocat <- function(.,C,t,i, cat1 = 3, cat2 = 4) 
+#  (.super$pars$vmax[[i]]*(C[cat1]+C[cat2])*C[i]) / ((C[cat1]+C[cat2]) + .super$pars$km[[i]])
 
-
-
-
-
-
-
-# APW: not sure where these MEND-speciifc transfer functions have been used
-# transfer from mbc to pom in mend: (1-gd)(1-pe)(fe/f_decomp_mbc_mend)
-f_transfer_mend21 <- function(.,C,t,from,to){
-  (1-.super$pars$cue[[from]])*
-  (1-(.super$pars$pep+.super$pars$pem))*
-  ((C[2]*.super$pars$mr)/
-     (( C[2]*((1/.super$pars$cue[[5]])-1)*((C[5]*(.super$pars$vmax[[5]]+.super$pars$mr))/(.super$pars$km[[5]]+C[5]))) + #Fr
-     C[2]*.super$pars$mr)) #Fe)
-}
-
-f_transfer_mend25 <- function(.,C,t,from,to){
-  (.super$pars$cue[[from]])*
-    (1-(.super$pars$pep+.super$pars$pem))*
-    ((C[2]*.super$pars$mr)/
-       (( C[2]*((1/.super$pars$cue[[5]])-1)*((C[5]*(.super$pars$vmax[[5]]+.super$pars$mr))/(.super$pars$km[[5]]+C[5]))) + #Fr
-       C[2]*.super$pars$mr)) #Fe)
-}
-
-f_transfer_mend26 <- function(.,C,t,from,to) {
-  .super$pars$pep * 
-    ((C[2]*.super$pars$mr)/
-       (( C[2]*((1/.super$pars$cue[[5]])-1)*((C[5]*(.super$pars$vmax[[5]]+.super$pars$mr))/(.super$pars$km[[5]]+C[5]))) + #Fr
-       C[2]*.super$pars$mr)) #Fe)
-}
-
-f_transfer_mend27 <- function(.,C,t,from,to) {
-  .super$pars$pem * 
-    ((C[2]*.super$pars$mr)/
-       (( C[2]*((1/.super$pars$cue[[5]])-1)*((C[5]*(.super$pars$vmax[[5]]+.super$pars$mr))/(.super$pars$km[[5]]+C[5]))) + #Fr
-       C[2]*.super$pars$mr)) #Fe)
-}
-
-f_transfer_mend52 <- function(.,C,t,from,to){
- # print(C)
-  #print(from)
-  #print(to)
-  #print(t)
-  #print(.super$pars$poolmax[[4]])
-  #print(C[5])
-  #print(C[4])
-  (C[5]*((.super$pars$vmax[[from]]+.super$pars$mr)/.super$pars$cue[[from]])*(C[2]/(.super$pars$km[[from]]+C[5]))) / #Fu
-  (C[5]*((.super$pars$vmax[[from]]+.super$pars$mr)/.super$pars$cue[[from]])*(C[2]/(.super$pars$km[[from]]+C[5])) +  #Fu
-    C[5]*((.super$pars$Kads*(.super$pars$poolmax[[4]]-C[4]))/.super$pars$poolmax[[4]]))   #Fa
-}
-
-f_transfer_mend54 <- function(.,C,t,from,to){
-  (C[5]*((.super$pars$Kads*(.super$pars$poolmax[[4]]-C[4]))/.super$pars$poolmax[[4]]))/ #Fu
-    (C[5]*((.super$pars$vmax[[from]]+.super$pars$mr)/.super$pars$cue[[from]])*(C[2]/(.super$pars$km[[from]]+C[5])) +  #Fu
-       C[5]*((.super$pars$Kads*(.super$pars$poolmax[[4]]-C[4]))/.super$pars$poolmax[[4]]))   #Fa
-}
-
-
-
-
-
-# APW: these have all been replaced by more generic functions in the new code
-
-# doc uptake 
-# APW: some kind of MM
-#f_docuptake_mend <- function(., C, t, i )
-#  (.super$pars$vmax[[i]]+.super$pars$mend[['Mr']])*C[i]*C[4] / (C[i]+.super$pars$km[[i]])
-
-# micrbial growth respiration
-# APW: some kind of MM
-#f_growthresp_mend <- function(., C, t, i )
-  #.super$pars$vmax[[5]]*C[i]*C[5] / (C[5]+.super$pars$km[[5]])
-  # APW: 5 is the DOC pool, and DOC uptake is the 9th of
-  # APW: i should be 4, the Microbial pool
-  #.super$pars$vmax[[9]]*C[i]*C[5] / (C[5]+.super$pars$km[[9]])
-
-
-# micrbial maintenance respiration
-# APW: some kind of MM
-#f_maintresp_mend <- function(., C, t, i )
-  #.super$pars$k[[4]]*C[i]*C[5] / (C[5]+.super$pars$km[[5]])
-  # APW: 5 is the DOC pool, and DOC uptake is the 9th olooks f
-  # APW: i should be 4, the Microbial pool
-  # APW: k[[4]] is total microbial turnover inc. enzyme production, which is of 6,7,8
-  #.super$pars$k[[6]]*C[i]*C[5] / (C[5]+.super$pars$km[[9]])
-
-
-# APW: WFT?? haha
-#f_decomp_rmm_wieder <- function(.,C,t,i,cat_pool = 3){
-#  if(cat_pool == 3){
-#    if(i==7){
-#      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-#      Km = .super$pars$km[[7]] * pscalar
-#    } else if(i==6) {
-#      #km par same as structural litter (km2)
-#      Km = .super$pars$km[[2]] *(1/.super$pars$mimics[['ko_r']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
-#    }  else {
-#      Km = .super$pars$km[[i]]
-#    }
-#    #correcting Km for temperature
-#    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-#    ### RMM equation
-#    C[i] * .super$pars$vmax[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
-#    ###
-#
-#  } else {
-#    if(i==7){
-#      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-#      Km = .super$pars$km2[[7]] * pscalar
-#    } else if(i==6) {
-#      Km = .super$pars$km2[[2]] *(1/.super$pars$mimics[['ko_k']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
-#    }  else {
-#      Km = .super$pars$km2[[i]]
-#    }
-#    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-#    ###RMM equation
-#    C[i] * .super$pars$vmax2[[i]] * C[cat_pool] / (Km_cor + C[cat_pool])
-#    ###
-#  }
-#}
-#
-#f_decomp_mm_wieder <- function(.,C,t,i,cat_pool = 3){
-#  if(cat_pool == 3){
-#    if(i==7){
-#      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-#      Km = .super$pars$km[[7]] * pscalar
-#    } else if(i==6) {
-#      #km par same as structural litter (km2)
-#      Km = .super$pars$km[[2]] *(1/.super$pars$mimics[['ko_r']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
-#    }  else {
-#      Km = .super$pars$km[[i]]
-#    }
-#    #correcting Km for temperature
-#    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-#    ###MM equation
-#    C[i] * .super$pars$vmax[[i]]*10 * C[cat_pool] / (Km_cor*10 + C[i])
-#    ###
-#  } else {
-#    if(i==7){
-#      pscalar = .super$pars$mimics[['pscalar_p1']] * exp(.super$pars$mimics[['pscalar_p2']]*sqrt(.super$env$clay))
-#      Km = .super$pars$km2[[7]] * pscalar
-#    } else if(i==6) {
-#      Km = .super$pars$km2[[2]] *(1/.super$pars$mimics[['ko_k']]) #this is 1/ko_r bc initial km value is in the denomitor of km_cor calc
-#    }  else {
-#      Km = .super$pars$km2[[i]]
-#    }
-#    Km_cor = exp(.super$env$temp * .super$pars$mimics[['K_slope']] + .super$pars$mimics[['K_int']]) * .super$pars$mimics[['aK']] /Km
-#    ###MM equation
-#    C[i] * .super$pars$vmax2[[i]]*10 * C[cat_pool] / (Km_cor*10 + C[i])
-#    ###
-#  }
-#}
 
 
 ### END ###

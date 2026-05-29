@@ -125,7 +125,7 @@ f_calc_loss_fluxes <- function(.) {
   #print('Calculate loss fluxes:') 
 
   # calculate loss fractions for each pool from transfer matrix
-  # - 1,1 arguments to tm and doto are dummy args, if those functions in C pools would need ot pass that info
+  # - 1,1 arguments to tm and doto are dummy args, if those functions use C pools as arguments would need to pass that info
   .super$state_pars$transfer_matrix    <- .$transfermatrix(1,1)
   pool_loss_frac                       <- abs(apply(.super$state_pars$transfer_matrix, 2, sum ))
   pool_loss_frac[pool_loss_frac<1e-15] <- 0 
