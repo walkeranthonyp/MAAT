@@ -141,6 +141,7 @@
       <reftemp>25</reftemp>
       <q10>1.5</q10>
       <tcor_mod>1.0</tcor_mod>
+      <conv_mm_to_MPa>-9.8e-6</conv_mm_to_MPa>
     </soil_decomp>
   </pars>
   <env>

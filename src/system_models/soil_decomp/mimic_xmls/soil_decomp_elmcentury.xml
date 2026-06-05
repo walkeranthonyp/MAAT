@@ -151,17 +151,16 @@
       <reftemp>25</reftemp>
       <q10>1.5</q10>
       <tcor_mod>0.8206</tcor_mod>
-      <century>
-        <c1>0.85</c1>
-        <c2>0.68</c2>
-      </century>
+      <conv_mm_to_MPa>-9.8e-6</conv_mm_to_MPa>
+      <scor_texture_int>0.85</scor_texture_int>
+      <scor_texture_slope>-0.68</scor_texture_slope>
+      <scor_quality_exp>-3</scor_quality_exp>
     </soil_decomp>
   </pars>
   <env>
     <soil_decomp>
       <litter>1.0</litter>
       <sand>20.0</sand>
-      <!--claysilt>80</claysilt-->
       <matpot_min>-10.0</matpot_min>
       <matpot>-0.75</matpot>
       <temp>20</temp>

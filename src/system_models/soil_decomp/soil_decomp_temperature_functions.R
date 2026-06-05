@@ -10,24 +10,31 @@
 f_tcor_none <- function(...) 1
 
 
-f_tcor_q10 <- function(., i ) {
-  #sourced from SoilR and standardized to 20C
-  #SoilR::fT.Q10
-#  k_ref <- 1
-#  k_ref * .super$pars$q10^((.super$env$temp - .super$pars$reftemp)/10)
-  .super$pars$tcor_mod * .super$pars$q10^((.super$env$temp - .super$pars$reftemp)/10)
+# Q10 with a modifier
+# APW: modifier could be added to outfluxes calc function 
+f_tcor_q10 <- function(., i ) { 
+  .super$pars$tcor_mod * .super$pars$q10 ^ ((.super$env$temp - .super$pars$reftemp)/10)
 }
+
+
+# logistic/saturating exponential type function
+# daycent2 function as implemented in millennial model (i.e. different parameters)
+# APW: this is also an option in ELM-CENTURY/BGC and used to normalize the Q10 t_scalar  
+f_tcor_daycent2_abramoff <- function(., i ) {
+  (.super$pars$tcor_century2 + (.super$pars$tcor_century3/pi)* atan(pi*.super$pars$tcor_century4*(.super$env$temp - .super$pars$tcor_century1))) / 
+  (.super$pars$tcor_century2 + (.super$pars$tcor_century3/pi)* atan(pi*.super$pars$tcor_century4*(.super$pars$reftemp - .super$pars$tcor_century1)))
+}
+
+
+# exponential with exponent a linear function of temp
+# APW: not explicitly normalized, gives extremely low values: 5e-4:3.5e-3 for temp -5:25, value of 1 @ ~115 oC 
+f_tcor_wieder <- function(., i ) 
+ .super$pars$tcor_exp_norm * exp(.super$pars$tcor_exp_exp_int + .super$pars$tcor_exp_exp_slope*.super$env$temp)
 
 
 # MEC: all these arrhenius funcs should be the same, but just putting the original equations in from each model right now
 f_tcor_arrhenius_millennialv2 <- function(., i ) {
   exp(-.super$pars$ea[[i]] / (.super$pars$R * (.super$env$temp + 273.15)))
-}
-
-f_tcor_arrhenius_mend <- function(., i ) {
-  TKref = .super$pars$reftemp + 273.15
-  TK    = .super$env$temp + 273.15
-  exp(.super$pars$ea[[i]]*1000/8.314 * (1/TKref - 1/TK))
 }
 
 # sourced from MAAT leaf model
@@ -50,11 +57,16 @@ f_tcor_arrhenius <- function(., i ) {
   exp( .super$pars$ea[[i]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
 }
 
-
-f_tcor_wieder <- function(.,C,t,i) {
-  exp(.super$env$temp * .super$pars$mimics[['V_slope']] + .super$pars$mimics[['V_int']]) * .super$pars$mimics[['aV']]
+f_tcor_arrhenius_mend <- function(., i ) {
+  TKref = .super$pars$reftemp + 273.15
+  TK    = .super$env$temp + 273.15
+  exp(.super$pars$ea[[i]]*1000/8.314 * (1/TKref - 1/TK))
 }
 
+
+
+###################################
+# APW: currently the temp functions below this line are not used 
 
 f_tcor_century1 <- function(.,C,t,i){
   #sourced from SoilR and standardized to 20C
@@ -63,7 +75,6 @@ f_tcor_century1 <- function(.,C,t,i){
   Topt <- 35
   ((((Tmax - .super$env$temp)/(Tmax - Topt))^0.2) * exp((0.2/2.63) * (1 - ((Tmax - .super$env$temp)/(Tmax - Topt))^2.63)))/
     ((((Tmax - .super$pars$reftemp)/(Tmax - Topt))^0.2) * exp((0.2/2.63) * (1 - ((Tmax - .super$pars$reftemp)/(Tmax - Topt))^2.63)))
-
 }
 
 
@@ -92,16 +103,6 @@ f_tcor_daycent2 <- function(.,C,t,i){
     (0.56 + (1.46 * atan(pi * 0.0309 * (.super$pars$reftemp - 15.7)))/pi)
 }
 
-
-# APW: this is also an option in ELM-CENTURY/BGC and used to normalize the Q10 t_scalar  
-f_tcor_daycent2_abramoff <- function(.,C,t,i){
-  #daycent2 function as implemented in millennial model (i.e. different parameters)
-  t1 = 15.4
-  t2 = 11.75
-  t3 = 29.7
-  t4 = 0.031
-  (t2 + (t3/pi)* atan(pi*t4*(.super$env$temp - t1))) / (t2 + (t3/pi)* atan(pi*t4*(.super$pars$reftemp - t1)))
-}
 
 
 f_tcor_rothc <- function(.,C,t,i){

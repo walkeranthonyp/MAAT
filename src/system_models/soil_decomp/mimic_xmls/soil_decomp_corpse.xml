@@ -97,6 +97,8 @@
       <reftemp>20</reftemp>
       <R>8.314472</R>
       <minmic>0.001</minmic>
+      <wcor_unimodal_exp>3</wcor_unimodal_exp>
+      <wcor_unimodal_exp_diff>-0.5</wcor_unimodal_exp_diff>
       <decomp_outflux1>
         <dof11>1</dof11>
         <dof12>2</dof12>

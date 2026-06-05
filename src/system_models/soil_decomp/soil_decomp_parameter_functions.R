@@ -18,20 +18,20 @@ f_calc_state_pars_generic <- function(.) {
   if(!is.na(.super$fnames$calc_state_pars_unique)) .$calc_state_pars_unique()  
 
   # pool-indexed parameters
-  print(.super$pool_state_pars)
+  #print(.super$pool_state_pars)
   for(p in .super$pool_state_pars)
     for(i in 1:.super$pars$n_pools) {
-      print(paste0(p,'.',p,i)) 
-      print(.[[paste0(p,'.',p,i)]](i=i)) 
+      #print(paste0(p,'.',p,i)) 
+      #print(.[[paste0(p,'.',p,i)]](i=i)) 
       .super$state_pars[[p]][[i]]  <- .[[paste0(p,'.',p,i)]](i=i) 
     }
 
   # outflux-indexed parameters
-  print(.super$outflux_state_pars)
+  #print(.super$outflux_state_pars)
   for(p in .super$outflux_state_pars)
     for(i in 1:.super$pars$n_outfluxes) {
-      print(paste0(p,'.',p,i)) 
-      print(.[[paste0(p,'.',p,i)]](i=i))
+      #print(paste0(p,'.',p,i)) 
+      #print(.[[paste0(p,'.',p,i)]](i=i))
       #print(.[[paste0(p,'.',p,i)]](.=., i=i ))
       # APW: .=. is only needed here for century cue function that calls scor (or any) function, for some reason . doesn't get automatically passed
       # APW: matters even when that scor function does not have ... as an argument 
@@ -238,7 +238,7 @@ f_cue_century_texture_elm <- function(., i )
   1 - .super$state_pars$fmet - .super$pars$cue[[i]] 
 
 f_cue_temp_mod_abramoff  <- function(., i ) 
-  .super$pars$cue[[i]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['Taeref']]) 
+  .super$pars$cue[[i]] - .super$pars$millennialV2[['cue_t']] * (.super$env$temp - .super$pars$millennialV2[['reftemp_cue']]) 
 
 
 

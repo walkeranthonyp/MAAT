@@ -138,10 +138,15 @@
         <cue24>0.03</cue24>
         <cue25>NA</cue25>
       </cue2>
-      <century>
-        <c1>0.85</c1>
-        <c2>0.68</c2>
-      </century>
+      <tcor_century1>15.4</tcor_century1>
+      <tcor_century2>11.75</tcor_century2>
+      <tcor_century3>29.7</tcor_century3>
+      <tcor_century4>0.031</tcor_century4>
+      <wcor_century1>30</wcor_century1>
+      <wcor_century2>9</wcor_century2>
+      <scor_texture_int>0.85</scor_texture_int>
+      <scor_texture_slope>-0.68</scor_texture_slope>
+      <scor_quality_exp>-3</scor_quality_exp>
     </soil_decomp>
   </pars>
   <env>

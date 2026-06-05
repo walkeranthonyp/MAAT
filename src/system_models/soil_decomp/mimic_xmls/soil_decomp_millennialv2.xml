@@ -85,6 +85,10 @@
       <beta>2</beta>
       <reftemp>30</reftemp>
       <R>8.31446</R>
+      <wcor_diffusion_exp>0.5</wcor_diffusion_exp>
+      <wcor_bio_exp>0.5</wcor_bio_exp>
+      <wcor_bio_lambda>2.1e-4</wcor_bio_lambda>
+      <wcor_bio_kamin>0.2</wcor_bio_kamin>
       <decomp_outflux1>
         <dof11>1</dof11>
         <dof12>2</dof12>
@@ -104,13 +108,6 @@
       <decomp_outflux5>
         <dof51>9</dof51>
       </decomp_outflux5>
-      <!--cstate0>
-        <cstate01>1</cstate01>
-        <cstate02>1</cstate02>
-        <cstate03>1</cstate03>
-        <cstate04>1</cstate04>
-        <cstate05>1</cstate05>
-      </cstate0-->
       <input_coef>
         <input_coef1>0.66</input_coef1>
         <input_coef2>0</input_coef2>
@@ -184,65 +181,8 @@
         <sorp_p1>0.12</sorp_p1>
         <sorp_p2>0.216</sorp_p2>
         <cue_t>0.012</cue_t>
-        <Taeref>15</Taeref>
-        <!--pa>0.33</pa>
-        <param_pb>0.5</param_pb-->
+        <reftemp_cue>15</reftemp_cue>
       </millennialV2>
-      <mimics>
-        <fmet_p1>0.5</fmet_p1>
-        <fmet_p2>0.85</fmet_p2>
-        <fmet_p3>0.013</fmet_p3>
-        <tau_mod1_p1>100</tau_mod1_p1>
-        <tau_mod1_p2>0.6</tau_mod1_p2>
-        <tau_mod1_p3>1.3</tau_mod1_p3>
-        <tau_r_p1>0.00052</tau_r_p1>
-        <tau_r_p2>0.3</tau_r_p2>
-        <tau_mod2>2</tau_mod2>
-        <tau_k_p1>0.00024</tau_k_p1>
-        <tau_k_p2>0.1</tau_k_p2>
-        <desorb_p1>2e-05</desorb_p1>
-        <desorb_p2>-4.5</desorb_p2>
-        <fSOMp_r_p1>0.15</fSOMp_r_p1>
-        <fSOMp_r_p2>1.3</fSOMp_r_p2>
-        <fSOMc_r_p1>0.1</fSOMc_r_p1>
-        <fSOMc_r_p2>-3</fSOMc_r_p2>
-        <fSOMc_r_p3>1</fSOMc_r_p3>
-        <fSOMp_k_p1>0.1</fSOMp_k_p1>
-        <fSOMp_k_p2>0.8</fSOMp_k_p2>
-        <fSOMc_k_p1>0.3</fSOMc_k_p1>
-        <fSOMc_k_p2>-3</fSOMc_k_p2>
-        <fSOMc_k_p3>1</fSOMc_k_p3>
-        <V_slope>0.063</V_slope>
-        <V_int>5.47</V_int>
-        <aV>1.25e-07</aV>
-        <pscalar_p1>3</pscalar_p1>
-        <pscalar_p2>-2</pscalar_p2>
-        <ko_r>6</ko_r>
-        <ko_k>6</ko_k>
-        <K_slope>0.02</K_slope>
-        <K_int>3.19</K_int>
-        <aK>0.15625</aK>
-        <fi_LITm>0.005</fi_LITm>
-        <fi_LITs>0.005</fi_LITs>
-      </mimics>
-      <millennial>
-        <cuet>-0.012</cuet>
-        <Taeref>15</Taeref>
-        <Vpa>0.002</Vpa>
-        <Kpa>50</Kpa>
-        <c1>0.297</c1>
-        <c2>3.355</c2>
-        <Vma>0.07</Vma>
-        <Kma>200</Kma>
-        <Vdm>0.35</Vdm>
-        <Kdb>7.2</Kdb>
-        <kmm>0.025</kmm>
-        <pa>0.333</pa>
-      </millennial>
-      <century>
-        <c1>0.85</c1>
-        <c2>0.68</c2>
-      </century>
     </soil_decomp>
   </pars>
   <env>
@@ -250,19 +190,15 @@
       <litter>0.473692602739726</litter>
       <temp>11.21961</temp>
       <vwc>0.2422044</vwc>
+      <matpot>15</matpot>
       <porosity>0.6</porosity>
+      <depth>0</depth>
+      <BD>1000</BD>
       <clay>0</clay>
       <sand>20</sand>
+      <pH>7</pH>
       <lignin>0</lignin>
       <N>0</N>
-      <anpp>0</anpp>
-      <depth>0</depth>
-      <pH>7</pH>
-      <BD>1000</BD>
-      <matpot>15</matpot>
-      <lambda>0.00021</lambda>
-      <kamin>0.2</kamin>
-      <!--claysilt>80</claysilt-->
     </soil_decomp>
   </env>
 </default>

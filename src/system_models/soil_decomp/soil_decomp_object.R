@@ -217,22 +217,21 @@ soil_decomp_object$fnames <- list(
 # environment
 ####################################
 soil_decomp_object$env <- list(
-  litter     = 172.8978/365, # forc_npp in MILLENNIALv2
-  temp       = 11.21961,     # default for MILLENNIALv2 (sum across mean year)
-  vwc        = .2422044,     # default for MILLENNIALv2 (average across mean year)
-  porosity   = 0.6,          # default for MILLENNIALv2
-  clay       = .0, 
-  sand       = 20,           # % Sand
-  lignin     = 0,
-  N          = 0,
-  anpp       = 0,
-  depth      = 0,
-  pH         = 7,            # default for MILLENNIALv2
-  BD         = 1000,         # default for MILLENNIALv2   # Bulk density 
-  matpot     = 15,           # default for MILLENNIALv2   # APW: units? doesn't look like MPa, but that's what I'm using it for for ELM for now 
-  matpot_min = 10,           # MPa 
-  lambda     = 2.1000e-04,   # default for MILLENNIALv2
-  kamin      = .2            # default for MILLENNIALv2
+  # litter input, ANPP, and litter quality  
+  litter     = 172.8978/365, # litter input     (g C cm-3 soil)   
+  anpp       = 0,            # aboveground NPP  (??)
+  lignin     = 0,            # litter lignin fraction (proportion)
+  N          = 0,            # litter N content (g N per ???)   
+  temp       = 11.21961,     # soil temperature (oC) 
+  vwc        = 0.2422044,    # soil volumetric water content (proportion)
+  porosity   = 0.6,          # soil volumetric water content at saturation (proportion)
+  matpot     = 15,           # soil matric potential, should be linked to vwc default for MILLENNIALv2   # APW: units? doesn't look like MPa, but that's what I'm using it for for ELM for now 
+  matpot_min = 10,           # minimum matric potential, i.e. wilting point (MPa maybe?) 
+  depth      = 0,            # soil (layer?) depth (cm/mm??)
+  BD         = 1000,         # bulk density (mg cm-3) 
+  pH         = 7,            # soil pH (pH units) 
+  clay       =  0,           # clay (% ??)
+  sand       = 20,           # sand (%)
 )
 
 
@@ -248,15 +247,16 @@ soil_decomp_object$state_pars <- list(
   solver_out             = matrix(1),
   solver_steadystate_out = matrix(1),
   transfer_matrix        = matrix(1),
-  # state pars lists of calculated paramters
+
+  # state pars lists of calculated parameters
   poolmax    = list(NA),
   k          = list(NA),
   vmax       = list(NA),
   km         = list(NA),
-  #km2        = list(NA),
   cue        = list(NA),
   cue2       = list(NA),
   cue3       = list(NA),
+
   # additional calculated parameters
   fmet       = numeric(1),          # intermediate for litter quality functions for k in MIMICs, Wieder et al. DATE 
   tau_mod1   = numeric(1),          # intermediate for litter quality functions for k in MIMICs, Wieder et al. DATE  
@@ -268,6 +268,7 @@ soil_decomp_object$state_pars <- list(
 ####################################
 # parameter names that have a value per pool
 soil_decomp_object$pool_pars <- c(soil_decomp_object$pool_state_pars, 'cstate0', 'input_coef' )
+
 # parameter names that have a value per outflux
 soil_decomp_object$outflux_pars <- c(soil_decomp_object$outflux_state_pars, 'vmax2', 'km2', 'ea', 'cat_pool' )
 
@@ -275,27 +276,51 @@ soil_decomp_object$outflux_pars <- c(soil_decomp_object$outflux_state_pars, 'vma
 soil_decomp_object$pars <- list(
   
   # model structure parameters
-  n_pools      = 5,        # number of pools in model  # need to change and re-create XMLs when this changes for wrapper runs
-  n_outfluxes  = 9,        # number of outfluxes (arrow bases) in model 
-  # APW: this might need to be n_outfluxes long
-  sat_pool     = 3,        # pool which saturates
-  leaching_outflux = NA,    # ouflux which goes to leaching 
+  n_pools          = 5,        # number of pools in model  # need to change and re-create XMLs when this changes for wrapper runs
+  n_outfluxes      = 9,        # number of outfluxes (arrow bases) in model 
+  # APW: sat_pool might need to be n_outfluxes long if there are several
+  sat_pool         = 3,        # pool which saturates
+  leaching_outflux = NA,       # ouflux which goes to leaching 
 
   # general scalar parameters
-  # APW: looks like some of these might be env vars
-  beta         = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
-  clayref      = NA,
-  mr           = NA,     
-  pep          = NA,        
-  pem          = NA,        
-  Kads         = NA,       
-  qslope_mayes = NA,
-  reftemp      = 30,       # CENTURY
-  R            = 8.31446,  # used in MILLENNIALv2
-  minmic       = NA,
-  q10          = NA,
-  tcor_mod     = NA,
+  beta             = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)
+  clayref          = NA,
+  minmic           = NA,
+  mr               = NA,     
+  pep              = NA,        
+  pem              = NA,        
+  Kads             = NA,       
+  qslope_mayes     = NA,
+  R                = 8.31446,  # universal gas constant ()
+  conv_mm_to_MPa   = -9.8e-6,  # convert water pressure from mm to MPa (MPa mm-1)
 
+  # temperature correction parameters
+  reftemp                = 30,      # reference temperature for paramter to be scaled (oC) 
+  q10                    = NA,      # Q10 (factor of increase per 10 oC)
+  tcor_mod               = 1,       # modifier on the scalar returned from the Q10 function (0-1, unitless), APW: could be moved into outflux calc function
+  tcor_exp_norm          = 3e-06,   # normalisation constant for exponential scaling, MIMICS values (unitless)
+  tcor_exp_exp_int       = 5.47,    # intercept linear relationship to temp in exponenet for exponential scaling, MIMICS values (unitless) 
+  tcor_exp_exp_slope     = 0.063,   # slope linear relationship to temp in exponenet for exponential scaling, MIMICS values (oC-1) 
+  tcor_century1          = 15.4,    # parameter 1 for CENTURY type logistic/saturating exponential scaling (oC) 
+  tcor_century2          = 11.75,   # parameter 2 for CENTURY type logistic/saturating exponential scaling (unitless) 
+  tcor_century3          = 29.7,    # parameter 3 for CENTURY type logistic/saturating exponential scaling (unitless) 
+  tcor_century4          = 0.031,   # parameter 4 for CENTURY type logistic/saturating exponential scaling (unitless) 
+  
+  # water correction parameters
+  wcor_century1          = 30,      # parameter 1 for CENTURY type inverse exponential scaling (oC) 
+  wcor_century2          = 9,       # parameter 2 for CENTURY type inverse exponential scaling (unitless) 
+  wcor_unimodal_exp      = 3,       # exponent for Sulman unimodal function
+  wcor_unimodal_exp_diff = -0.5,    # difference in exponents for Sulman unimodal function
+  wcor_diffusion_exp     = 0.5,     # exponent for Ghezzehei et al. 2018 diffusion power law 
+  wcor_bio_exp           = 0.5,     # exponent for Ghezzehei et al. 2018 biological water limitation 
+  wcor_bio_lambda        = 2.1e-4,  # dependence of rate on matric potential for Ghezzehei et al. 2018 biological water limitation 
+  wcor_bio_kamin         = 0.2,     # minimum relative rate in saturated soil for Ghezzehei et al. 2018 biological water limitation 
+
+  # soil property correction parameters
+  scor_texture_int       = 0.85,    # intercept linear relationship to sand, from CENTURY (unitless)    
+  scor_texture_slope     = -0.68,   # slope linear relationship to sand, from CENTURY (unitless)    
+  scor_quality_exp       = -3,      # exponent exponential relationship to lignin, from CENTURY (unitless)    
+  
   
   # Pool-specific parameters
   # - lists 1:n_pools long 
@@ -521,9 +546,6 @@ soil_decomp_object$pars <- list(
     fSOMc_k_p1 = .3,
     fSOMc_k_p2 = -3,
     fSOMc_k_p3 = 1,
-    V_slope = .063,
-    V_int = 5.47,
-    aV = .000000125,
     pscalar_p1 = 3,
     pscalar_p2 = -2,
     ko_r = 6,
@@ -536,39 +558,30 @@ soil_decomp_object$pars <- list(
   ),
   
   # MILLENNIAL-specific parameters
-  # v1
-  millennial = list(
-    cuet = -0.012, #slope relating assimilation efficiency to temperature
-    Taeref = 15,   #ref temp for CUE temp-dependence equation
-    Vpa = 0.002,   #max aggregation rate of POM
-    Kpa = 50,      #half-saturation constant for aggregation of POM
-    c1 = 0.297,    #parameter relating clay to Qmax (i.e. MAOM poolmax)
-    c2 = 3.355,    #parameter relating clay to Qmax (i.e. MAOM poolmax)
-    Vma = 0.07,    #max aggregation rate of MAOM
-    Kma = 200,     #half-saturation constant for aggregation of MAOM
-    Vdm = 0.35,    #max DOC turnover rate (for microbial uptake, not leaching or sorption)
-    Kdb = 7.2,     #half-saturation constant for microbial uptake of doc
-    kmm = 0.025,   #rate constant for microbial turnover (and sorption in published eq version)
-    pa = 0.333
-  ),
-  
   # v2
   millennialV2 = list(
-    param_pc = .86, # slope of mineral C - clay relationship from Georgiou et al. in review
-    kld = 1,        # desorption coefficient
-    sorp_p1 = .12,  # sorption affinity parameter
-    sorp_p2 = .216, # sorption affinity parameter
-    cue_t = 0.012,  # slope of CUE temp sensitivity
-    Taeref = 15,    # ref temp for CUE temp-dependence equation
-    pa = 0.33,      # proportion agg breakdown into pom
-    param_pb = .5   # fraction of mb turnover to maom vs doc
-  ),
-  
-  # CENTURY-specific parameters
-  century = list(
-    c1= 0.85, # century constant in cue as a function of texture
-    c2= 0.68  # century constant in cue as a function of texture
+    param_pc    = .86,     # slope of mineral C - clay relationship from Georgiou et al. in review
+    kld         = 1,       # desorption coefficient
+    sorp_p1     = .12,     # sorption affinity parameter
+    sorp_p2     = .216,    # sorption affinity parameter
+    cue_t       = 0.012,   # slope of CUE temp sensitivity
+    reftemp_cue = 15       # ref temp for CUE temp-dependence equation
   )
+#  # v1
+#  millennial = list(
+#    cuet = -0.012, #slope relating assimilation efficiency to temperature
+#    Taeref = 15,   #ref temp for CUE temp-dependence equation
+#    Vpa = 0.002,   #max aggregation rate of POM
+#    Kpa = 50,      #half-saturation constant for aggregation of POM
+#    c1 = 0.297,    #parameter relating clay to Qmax (i.e. MAOM poolmax)
+#    c2 = 3.355,    #parameter relating clay to Qmax (i.e. MAOM poolmax)
+#    Vma = 0.07,    #max aggregation rate of MAOM
+#    Kma = 200,     #half-saturation constant for aggregation of MAOM
+#    Vdm = 0.35,    #max DOC turnover rate (for microbial uptake, not leaching or sorption)
+#    Kdb = 7.2,     #half-saturation constant for microbial uptake of doc
+#    kmm = 0.025,   #rate constant for microbial turnover (and sorption in published eq version)
+#    pa = 0.333
+#  ),
 )
 
 

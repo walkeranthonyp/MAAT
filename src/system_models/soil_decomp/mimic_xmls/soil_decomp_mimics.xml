@@ -203,6 +203,9 @@
         <cue10>0.5</cue10>
         <cue11>0.7</cue11>
       </cue>
+      <tcor_exp_norm>3e-06</tcor_exp_norm>
+      <tcor_exp_exp_int>5.47</tcor_exp_exp_int>
+      <tcor_exp_exp_slope>0.063</tcor_exp_exp_slope>
       <mimics>
         <fmet_p1>0.5</fmet_p1>
         <fmet_p2>0.85</fmet_p2>
@@ -227,9 +230,6 @@
         <fSOMc_k_p1>0.3</fSOMc_k_p1>
         <fSOMc_k_p2>-3</fSOMc_k_p2>
         <fSOMc_k_p3>1</fSOMc_k_p3>
-        <V_slope>0.063</V_slope>
-        <V_int>5.47</V_int>
-        <aV>3e-06</aV>
         <pscalar_p1>3</pscalar_p1>
         <pscalar_p2>-2</pscalar_p2>
         <ko_r>6</ko_r>

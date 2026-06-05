@@ -11,15 +11,45 @@ f_wcor_none <- function(...) 1
 f_scor_none <- function(...) 1
 
 
-# MillennialV2
+################################
+# soil/litter trait scalar functions
+ 
+# power function of clay % (APW: I think) 
+f_scor_sulman <- function(., i ) (.super$env$clay/.super$pars$clayref) ^ .super$pars$qslope_mayes
+
+
+# linear function of sand %
+# Equation B3, Abramoff et al. 2022
+f_scor_century_texture <- function(., i ) 
+  .super$pars$scor_texture_int + .super$pars$scor_texture_slope*(100-.super$env$sand)*.01
+
+
+# exponential function of litter lignin proportion  
+# Equation B4, Abramoff et al. 2022
+f_scor_century_quality <- function(., i ) 
+  exp(.super$pars$scor_quality_exp*.super$env$lignin)
+
+
+
+################################
+# water scalar functions
+
+# diffusion limitation power law 
+# Ghezzehei et al. 2018, MillennialV2
 f_wcor_ghezzehei_diffusion <- function(., i ) {
-  (.super$env$vwc/.super$env$porosity)^0.5
+  (.super$env$vwc/.super$env$porosity) ^ .super$pars$wcor_diffusion_exp
 }
 
+
+# diffusion limitation power law 
+# Ghezzehei et al. 2018, MillennialV2
+# APW: assumes matpot is abs(matpot), inconsistent with ELM which is expressed <1
+# APW: inconsistent in using VWC and matpot as independent env vars, one should be calculated from other 
 f_wcor_ghezzehei_biological <- function(., i ) {
-  exp(.super$env$lambda * -.super$env$matpot) * 
-    (.super$env$kamin + (1 - .super$env$kamin) * ((.super$env$porosity - .super$env$vwc) / .super$env$porosity)^0.5) * 
-    (.super$env$vwc/.super$env$porosity)^0.5    
+  exp(.super$pars$wcor_bio_lambda*-.super$env$matpot) * 
+    (.super$pars$wcor_bio_kamin + (1-.super$pars$wcor_bio_kamin) * 
+    ((.super$env$porosity-.super$env$vwc)/.super$env$porosity) ^ .super$pars$wcor_bio_exp) * 
+    (.super$env$vwc/.super$env$porosity) ^ .super$pars$wcor_bio_exp
 }
 
 
@@ -38,19 +68,23 @@ f_wcor_andren1987 <- function(., ... ) {
 # ELM soil saturated matric/water potential
 f_matpot_sat_elm_cosby1984_tab5 <- function(., ... ) {
   matpot_sat <- 10 * 10^(1.88 - 0.0131*.super$env$sand)
+
   # convert from mm to MPa
-  matpot_sat * -9.8e-6
+  matpot_sat * .super$pars$conv_mm_to_MPa -9.8e-6
 }
 
 
+# Unimodal function
 # MEC: this function is not normalized (e.g. 0-1)
-# - thus it is kind of integral to the corpse model under the current parameterization and not substitutable
-f_wcor_sulman <- function(.,C,t,i) {
+# APW: function gives 0-0.02 for values of theta 0-1  
+# APW: I assume porosity is saturated VWC and in the same units as VWC?
+f_wcor_sulman <- function(., i ) {
   theta <- .super$env$vwc/.super$env$porosity
   theta^3 * (1-theta)^2.5
+  theta^.super$pars$wcor_unimodal_exp * (1-theta)^(.super$pars$wcor_unimodal_exp+.super$pars$wcor_unimodal_exp_diff)
 }
 
-
+# APW: this puts above on scale 0-1
 f_wcor_sulman_normalized <- function(.,C,t,i){
   # volumetric water content
   vwc <- .super$env$vwc
@@ -68,6 +102,17 @@ f_wcor_sulman_normalized <- function(.,C,t,i){
   (theta^3 * (1-theta)^2.5)/wcor_max
 }
 
+
+# inverse exponential
+# APW: I assume porosity is saturated VWC
+f_wcor_abramoff <- function(., i )
+  1 / (1 + .super$pars$wcor_century1*exp(-.super$pars$wcor_century2*.super$env$vwc/.super$env$porosity))
+
+
+
+
+###########################################
+# APW: functions below this line not currently used
 
 f_wcor_skopp <- function(.,C,t,i){
   #sourced from SoilR 
@@ -174,14 +219,6 @@ f_wcor_century <- function(.,C,t,i){
 }
 
 
-f_wcor_abramoff <- function(.,C,t,i){
-  w1 = 30
-  w2 = 9
-  (1 / (1+w1*exp(-w2*.super$env$vwc/.super$env$porosity)))
-  #.35 is whc I think? this should be specified in env. Perhaps porosity as in sulman.
-}
-
-
 
 
 #f_wcor_rothc
@@ -236,18 +273,6 @@ f_SWC2SWP_vanGenuchten <- function(.,C,t,i) {
 #   }
 #   fSWC2SWP
 # }
-
-
-# correct soil protection rates
-f_scor_sulman <- function(.,C,t,i) (.super$env$clay/.super$pars$clayref)^.super$pars$qslope_mayes
-
-# Equation B3, Abramoff et al. 2022
-f_scor_century_texture <- function(., i ) 
-  .super$pars$century[['c1']] - .super$pars$century[['c2']]*(100-.super$env$sand)*.01
-  
-# Equation B4, Abramoff et al. 2022
-f_scor_century_quality <- function(., ... ) 
-  exp(-3*.super$env$lignin)
   
   
   
