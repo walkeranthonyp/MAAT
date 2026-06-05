@@ -107,6 +107,11 @@ soil_decomp_object$fns$outflux.of9(C=soil_decomp_object$state$cpools, t=1, i=5, 
 soil_decomp_object$fns$outflux.of4
 soil_decomp_object$fnames$outflux
 
+of <- 6
+soil_decomp_object$state_pars$vmax[[of]]
+soil_decomp_object$pars$cat_pool[[of]]
+soil_decomp_object$state_pars$km[[of]]
+soil_decomp_object
 
 soil_decomp_object$.test(litter=172.8978/365, ntimes = 1, metdf = T)
 soil_decomp_object$.test(litter=6)

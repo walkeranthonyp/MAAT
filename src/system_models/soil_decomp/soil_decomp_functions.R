@@ -257,6 +257,9 @@ f_transfer_fluxsum_prop_three_cue <- function(., ... ) .$transfer_fluxsum_prop(f
 f_transfer_fluxsum_prop_one_two_cue <- function(., ... ) 
   .$transfer_fluxsum_prop(f=1, cue=T, ... ) + .$transfer_fluxsum_prop(f=2, cue=T, ... )  
 
+f_transfer_fluxsum_prop_two_three_cue <- function(., ... ) 
+  .$transfer_fluxsum_prop(f=2, cue=T, ... ) + .$transfer_fluxsum_prop(f=3, cue=T, ... )  
+
 
 # CUE / transfer efficiency sets transfer subject to a maximum pool size 
 # - can be used both for saturating MAOM pool and density dependent microbial growth efficiency

@@ -231,7 +231,7 @@ soil_decomp_object$env <- list(
   BD         = 1000,         # bulk density (mg cm-3) 
   pH         = 7,            # soil pH (pH units) 
   clay       =  0,           # clay (% ??)
-  sand       = 20,           # sand (%)
+  sand       = 20            # sand (%)
 )
 
 

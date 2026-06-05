@@ -24,26 +24,23 @@
         <poolmax3>'f_poolmax_texture_abramoff'</poolmax3>
       </poolmax>
       <outflux>
-        <of1>'f_decomp_lin'</of1>
-        <of2>'f_decomp_rmm'</of2>
+        <of1>'f_decomp_rmm'</of1>
+        <of2>'f_decomp_lin'</of2>
         <of3>'f_decomp_dd_georgiou'</of3>
         <of4>'f_desorp_sat'</of4>
         <of5>'f_decomp_lin'</of5>
-        <of6>'f_decomp_lin'</of6>
+        <of6>'f_decomp_mm'</of6>
         <of7>'f_sorp_sat'</of7>
-        <of8>'f_decomp_mm'</of8>
+        <of8>'f_decomp_lin'</of8>
         <of9>'f_decomp_lin'</of9>
       </outflux>
       <tcor>
-        <tcor1>'f_tcor_none'</tcor1>
-        <tcor2>'f_tcor_arrhenius_millennialv2'</tcor2>
+        <tcor1>'f_tcor_arrhenius_millennialv2'</tcor1>
+        <tcor2>'f_tcor_none'</tcor2>
         <tcor3>'f_tcor_none'</tcor3>
         <tcor4>'f_tcor_none'</tcor4>
         <tcor5>'f_tcor_none'</tcor5>
-        <tcor6>'f_tcor_none'</tcor6>
-        <tcor7>'f_tcor_none'</tcor7>
-        <tcor8>'f_tcor_arrhenius_millennialv2'</tcor8>
-        <tcor9>'f_tcor_none'</tcor9>
+        <tcor6>'f_tcor_arrhenius_millennialv2'</tcor6>
       </tcor>
       <wcor>
         <wcor1>'f_wcor_ghezzehei_diffusion'</wcor1>
@@ -51,28 +48,28 @@
         <wcor3>'f_wcor_none'</wcor3>
         <wcor4>'f_wcor_none'</wcor4>
         <wcor5>'f_wcor_ghezzehei_diffusion'</wcor5>
-        <wcor6>'f_wcor_ghezzehei_diffusion'</wcor6>
+        <wcor6>'f_wcor_ghezzehei_biological'</wcor6>
         <wcor7>'f_wcor_ghezzehei_diffusion'</wcor7>
-        <wcor8>'f_wcor_ghezzehei_biological'</wcor8>
+        <wcor8>'f_wcor_ghezzehei_diffusion'</wcor8>
         <wcor9>'f_wcor_ghezzehei_diffusion'</wcor9>
       </wcor>
       <k>
         <k7>'f_k_abramoff_sorp_efficiency'</k7>
       </k>
       <transfer>
-        <t1_to_4>'f_transfer_fluxsum_prop_two'</t1_to_4>
-        <t1_to_5>'f_transfer_fluxsum_prop_one'</t1_to_5>
+        <t1_to_4>'f_transfer_fluxsum_prop_one'</t1_to_4>
+        <t1_to_5>'f_transfer_fluxsum_prop_two'</t1_to_5>
         <t2_to_3>'f_transfer_fluxid_cue'</t2_to_3>
         <t2_to_4>'f_transfer_fluxid_cue_remainder'</t2_to_4>
         <t3_to_4>'f_transfer_fluxsum_prop_one'</t3_to_4>
         <t3_to_5>'f_transfer_fluxsum_prop_two'</t3_to_5>
-        <t4_to_2>'f_transfer_fluxsum_prop_three_cue'</t4_to_2>
+        <t4_to_2>'f_transfer_fluxsum_prop_one_cue'</t4_to_2>
         <t4_to_3>'f_transfer_fluxsum_prop_two'</t4_to_3>
         <t5_to_1>'f_transfer_fluxid_cue'</t5_to_1>
         <t5_to_3>'f_transfer_fluxid_cue_remainder'</t5_to_3>
       </transfer>
       <cue>
-        <cue8>'f_cue_temp_mod_abramoff'</cue8>
+        <cue6>'f_cue_temp_mod_abramoff'</cue6>
       </cue>
     </soil_decomp>
   </fnames>
@@ -81,7 +78,7 @@
       <n_pools>5</n_pools>
       <n_outfluxes>9</n_outfluxes>
       <sat_pool>3</sat_pool>
-      <leaching_outflux>6</leaching_outflux>
+      <leaching_outflux>8</leaching_outflux>
       <beta>2</beta>
       <reftemp>30</reftemp>
       <R>8.31446</R>
@@ -115,64 +112,57 @@
         <input_coef4>0.34</input_coef4>
         <input_coef5>0</input_coef5>
       </input_coef>
-      <poolmax>
-        <poolmax1>NA</poolmax1>
-        <poolmax2>NA</poolmax2>
-        <poolmax3>NA</poolmax3>
-        <poolmax4>NA</poolmax4>
-        <poolmax5>NA</poolmax5>
-      </poolmax>
       <k>
-        <k1>0.018</k1>
-        <k2>NA</k2>
+        <k1>NA</k1>
+        <k2>0.018</k2>
         <k3>4.5</k3>
         <k4>1e-3</k4>
         <k5>0.0048</k5>
-        <k6>0.0015</k6>
+        <k6>NA</k6>
         <k7>NA</k7>
-        <k8>NA</k8>
+        <k8>0.0015</k8>
         <k9>0.02</k9>
       </k>
       <vmax>
-        <vmax1>NA</vmax1>
-        <vmax2>1.8e+12</vmax2>
+        <vmax1>1.8e+12</vmax1>
+        <vmax2>NA</vmax2>
         <vmax3>NA</vmax3>
         <vmax4>NA</vmax4>
         <vmax5>NA</vmax5>
-        <vmax6>NA</vmax6>
+        <vmax6>2.3e+12</vmax6>
         <vmax7>NA</vmax7>
-        <vmax8>2.3e+12</vmax8>
+        <vmax8>NA</vmax8>
         <vmax9>NA</vmax9>
       </vmax>
       <cat_pool>
-        <cat_pool2>2</cat_pool2>
-        <cat_pool8>2</cat_pool8>
+        <cat_pool1>2</cat_pool1>
+        <cat_pool6>2</cat_pool6>
       </cat_pool>
       <ea>
-        <ea1>NA</ea1>
-        <ea2>63909</ea2>
+        <ea1>63909</ea1>
+        <ea2>NA</ea2>
         <ea3>NA</ea3>
         <ea4>NA</ea4>
         <ea5>NA</ea5>
-        <ea6>NA</ea6>
+        <ea6>57865</ea6>
         <ea7>NA</ea7>
-        <ea8>57865</ea8>
+        <ea8>NA</ea8>
         <ea9>NA</ea9>
       </ea>
       <km>
-        <km1>NA</km1>
-        <km2>6.443</km2>
+        <km1>6.443</km1>
+        <km2>NA</km2>
         <km3>NA</km3>
         <km4>NA</km4>
         <km5>NA</km5>
-        <km6>NA</km6>
+        <km6>0.7746</km6>
         <km7>NA</km7>
-        <km8>0.7746</km8>
+        <km8>NA</km8>
         <km9>NA</km9>
       </km>
       <cue>
         <cue3>0.5</cue3>
-        <cue8>0.19</cue8>
+        <cue6>0.19</cue6>
         <cue9>0.33</cue9>
       </cue>
       <millennialV2>
