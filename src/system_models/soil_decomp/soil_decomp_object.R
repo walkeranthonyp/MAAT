@@ -84,6 +84,7 @@ soil_decomp_object$fnames <- list(
   calc_state_pars        = 'f_calc_state_pars_generic',
   calc_state_pars_unique = NA, 
   calc_loss_fluxes       = 'f_calc_loss_fluxes',
+  mass_balance           = 'f_mass_balance',
  
   # decay/decomposition/flux functions, one per pool
   # - these functions represent the total flux out of a given pool
@@ -243,10 +244,13 @@ soil_decomp_object$pool_state_pars    <- c('poolmax')
 soil_decomp_object$outflux_state_pars <- c('k', 'vmax', 'km', 'cue', 'cue2', 'cue3' ) 
 
 soil_decomp_object$state_pars <- list(
+
   # various solver outputs
-  solver_out             = matrix(1),
-  solver_steadystate_out = matrix(1),
-  transfer_matrix        = matrix(1),
+  solver_out             = matrix(1),           # 
+  solver_steadystate_out = matrix(1),           # 
+  transfer_matrix        = matrix(1),           # 
+  previous_state         = matrix(1),           # 
+  mass_balance           = numeric(1),          # 
 
   # state pars lists of calculated parameters
   poolmax    = list(NA),
@@ -281,6 +285,7 @@ soil_decomp_object$pars <- list(
   # APW: sat_pool might need to be n_outfluxes long if there are several
   sat_pool         = 3,        # pool which saturates
   leaching_outflux = NA,       # ouflux which goes to leaching 
+  error_tolerance  = 1e-6,     # error tolerance for mass balance check (same units as pools, mg C g-1 soil) 
 
   # general scalar parameters
   beta             = 2,        # density dependent turnover, biomass exponent (can range between 1 and 2)

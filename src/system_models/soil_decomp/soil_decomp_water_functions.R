@@ -80,7 +80,7 @@ f_matpot_sat_elm_cosby1984_tab5 <- function(., ... ) {
 # APW: I assume porosity is saturated VWC and in the same units as VWC?
 f_wcor_sulman <- function(., i ) {
   theta <- .super$env$vwc/.super$env$porosity
-  theta^3 * (1-theta)^2.5
+  #theta^3 * (1-theta)^2.5
   theta^.super$pars$wcor_unimodal_exp * (1-theta)^(.super$pars$wcor_unimodal_exp+.super$pars$wcor_unimodal_exp_diff)
 }
 

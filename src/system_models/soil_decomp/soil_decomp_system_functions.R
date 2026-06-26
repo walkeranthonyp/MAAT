@@ -14,6 +14,9 @@
 # a system of n pools, composed of a single dynamic solver function
 f_sys_npools <- function(.) {
 
+  # save current state for balance check  
+  .super$state_pars$previous_state <- .super$state$cpools  
+
   # calculate state parameters
   .$calc_state_pars()
 
@@ -33,6 +36,7 @@ f_sys_npools <- function(.) {
   .$calc_loss_fluxes()
 
   # mass balance check
+  .$mass_balance()
 }
 
 
@@ -59,6 +63,7 @@ f_steadystate_npools <- function(.) {
 
   # mass balance check 
   # - at steady state inputs = outputs
+  .$mass_balance(steadystate=T)
 }
 
 

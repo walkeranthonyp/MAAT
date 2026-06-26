@@ -117,6 +117,7 @@ f_decomp_dmm <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]] )
 f_decomp_rmm_sulman <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]], ... ) 
   (.super$state_pars$vmax[[of]]*C[cat_pool]*C[i]) / (C[cat_pool] + .super$state_pars$km[[of]]*(C[1]+C[2]+C[3]))
 
+
 # as above but protected pools as multiplier on Km
 # APW: need a way to pass multiple pools
 f_decomp_rmm_sulman_protected <- function(., C, t, i, of=i, cat_pool=.super$pars$cat_pool[[of]], ... ) 
@@ -135,9 +136,10 @@ f_decomp_dd_georgiou <- function(., C, t, i, of=i )
 
 
 # CORPSE microbial turnover
-# APW: CAUTION: used to be divide by k as it was really an MRT 
+# APW: CAUTION: used to be divide by k as k was really a mean residence time 
 f_micturn_sulman <- function(., C, t, i, of=i ) 
   (C[i] - .super$pars$minmic * (C[1]+C[2]+C[3])) * .super$state_pars$k[[of]] 
+
 
 # as above but with density dependence
 f_micturn_sulman_dd <- function(., C, t, i, of=i ) 
@@ -153,7 +155,7 @@ f_sorp_sat <- function(., C, t, i, of=i, sat_pool=.super$pars$sat_pool )
 # - i in this case should be the same as sat_pool in the above
 # - because this is desorption from the pool that saturates
 f_desorp_sat <- function(., C, t, i, of=i, ... ) 
-  .super$state_pars$k[[of]]*(C[i]/.super$state_pars$poolmax[[i]])
+  .super$state_pars$k[[of]] * (C[i]/.super$state_pars$poolmax[[i]])
 
 
 

@@ -151,4 +151,22 @@ f_calc_loss_fluxes <- function(.) {
 }
 
 
+f_mass_balance <- function(., steadystate=F ) {
+
+  input    <- .super$env$litter # + .super$env$cwd_input
+  output   <- .super$state$respiration + .super$state$leaching 
+  previous <- sum(.super$state_pars$previous_cpools)
+  current  <- sum(.super$state$cpools)
+
+  mass_balance <- .super$state_pars$mass_balance <-  
+    if(steadystate) input - output
+    else            input - output - (current - previous)
+
+  if(abs(mass_balance) > .super$pars$error_tolerance) {
+    stop(paste('ERROR:: mass balance (should be zero) = ', mass_balance )) 
+  }
+}
+
+
+
 ### END ###
