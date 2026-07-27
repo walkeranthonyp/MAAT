@@ -147,7 +147,7 @@
   <env>
     <soil_decomp>
       <litter>1.0</litter>
-      <sand>20.0</sand>
+      <sand>0.2</sand>
       <matpot_min>-10.0</matpot_min>
       <matpot>-0.75</matpot>
       <temp>20</temp>

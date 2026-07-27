@@ -119,7 +119,7 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
     }
 
     print('',quote=F)
-    print('Indexing pool_state_pars lists ...', quote=F ) 
+    print('Indexing pool state_pars lists ...', quote=F ) 
     for(l in .$pool_state_pars) { 
       if(is.list(.$fnames[[l]])) {
         print(paste(l,'fname'))
@@ -137,7 +137,7 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
 
     # - for parameters that are indexed by the number of pools
     print('',quote=F)
-    print('Indexing pool_pars lists ...',quote=F)  
+    print('Indexing pool pars lists ...',quote=F)  
     for(l in .$pool_pars) {
       if(is.list(.$pars[[l]])) {
         print(l)
@@ -148,7 +148,7 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
     }
     # assign default values for input_coef & cstate0 lists
     .$pars$input_coef[] <- 0
-    .$pars$cstate0[]    <- 1
+    .$pars$cstate0[]    <- .$pars$pool_init_value
   } 
 
 
@@ -172,7 +172,7 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
       print('',quote=F)
       print('Indexing decomp_outflux')
       lnames <- paste0('decomp_outflux',1:n_pools) 
-      .$fnames[lnames] <- NA
+      .$pars[lnames] <- NA
       max_of_per_pool <- n_outfluxes - n_pools + 1
       for(l in 1:n_pools) {
         .$pars[[lnames[l]]]        <- as.list(numeric(max_of_per_pool))
@@ -182,7 +182,7 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
   
       # - for fnames that are indexed by the number of outfluxes
       print('',quote=F)
-      print('Indexing outflux_fnames lists ...', quote=F ) 
+      print('Indexing outflux fnames lists ...', quote=F ) 
       print('outflux')
       .$fnames$outflux <- list() 
       lnames <- paste0('of',1:n_outfluxes) 
@@ -210,7 +210,7 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
   
       # - for state_pars that are indexed by the number of outfluxes
       print('',quote=F)
-      print('Indexing outflux_state_pars lists ...', quote=F ) 
+      print('Indexing outflux state_pars lists ...', quote=F ) 
       for(l in .$outflux_state_pars) { 
         if(is.list(.$state_pars[[l]])) {
           print(l)
@@ -222,7 +222,7 @@ build_pool_structure <- function(., init_n_pools, init_n_outfluxes=NULL ) {
 
       # - for parameters that are indexed by the number of outfluxes
       print('',quote=F)
-      print('Indexing outflux_pars lists ...',quote=F)  
+      print('Indexing outflux pars lists ...',quote=F)  
       for(l in .$outflux_pars) { 
         if(is.list(.$pars[[l]])) {
           print(l)
@@ -268,9 +268,9 @@ build_child <- function(., child_obj, mod_mimic=NULL, ... ) {
 
 run <- function(.) {
 
-  print('')
-  print(.$env) 
-  print(.$state) 
+  #print('')
+  #print(.$env) 
+  #print(.$state) 
 
   # call system model
   .$fns$sys()

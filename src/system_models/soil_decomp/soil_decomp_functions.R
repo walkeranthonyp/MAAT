@@ -22,7 +22,7 @@ source('soil_decomp_water_functions.R')
 # returns input matrix, single column, rows = n_pools
 
 f_input <- function(., t ) {
-  # why is .$env$litter not .super$env$litter??
+  # APW: why is .$env$litter not .super$env$litter??
   .$env$litter * matrix(unlist(.super$pars$input_coef)[1:.super$pars$n_pools], ncol=1 )
 }
 
@@ -43,6 +43,7 @@ f_input_clm5 <- function(., t ) {
 # function for converting ANPP to litter inputs from MIMICS
 # APW: some of these paramters could be calculated in calc_pars
 # APW: I'd like to make this calculate litter and put the in the env list, and then do the partitioning as per the other models 
+# APW: input a function of depth
 f_input_mimics <- function(., t ) {
   # convert anpp to litter inputs
   EST_LIT_in <- .super$env$anpp / (365*24) # gC/m2/h (from gC/m2/y)
@@ -50,10 +51,10 @@ f_input_mimics <- function(., t ) {
   input      <- .super$env$litter <- EST_LIT/.super$env$depth 
  
   # partitioning inputs
-  i_LITm <- input * .super$state_pars$fmet     * (1-.super$pars$mimics[['fi_LITm']])
-  i_LITs <- input * (1-.super$state_pars$fmet) * (1-.super$pars$mimics[['fi_LITs']])
-  i_SOMp <- input * .super$state_pars$fmet     * .super$pars$mimics[['fi_LITm']]
-  i_SOMc <- input * (1-.super$state_pars$fmet) * .super$pars$mimics[['fi_LITs']]
+  i_LITm <- input * .super$state_pars$quality_mod     * (1-.super$pars$input_coef[[5]])
+  i_LITs <- input * (1-.super$state_pars$quality_mod) * (1-.super$pars$input_coef[[6]])
+  i_SOMp <- input * .super$state_pars$quality_mod     * .super$pars$input_coef[[5]]
+  i_SOMc <- input * (1-.super$state_pars$quality_mod) * .super$pars$input_coef[[6]]
 
   # input matrix
   matrix(c(i_LITm, i_LITs, 0, 0, i_SOMp, i_SOMc, 0 ), ncol=1 ) 

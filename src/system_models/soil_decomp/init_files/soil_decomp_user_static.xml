@@ -11,38 +11,20 @@
       <transfermatrix>NA</transfermatrix>
       <transfer_fluxsum_prop>NA</transfer_fluxsum_prop>
       <outfluxes>NA</outfluxes>
+      <calc_state_pars>NA</calc_state_pars>
+      <calc_state_pars_unique>NA</calc_state_pars_unique>
+      <calc_loss_fluxes>NA</calc_loss_fluxes>
+      <mass_balance>NA</mass_balance>
       <decomp>
         <d1>NA</d1>
         <d2>NA</d2>
         <d3>NA</d3>
         <d4>NA</d4>
         <d5>NA</d5>
-        <d6>NA</d6>
-        <d7>NA</d7>
       </decomp>
-      <desorp>
-        <ds1>NA</ds1>
-        <ds2>NA</ds2>
-        <ds3>NA</ds3>
-        <ds4>NA</ds4>
-        <ds5>NA</ds5>
-        <ds6>NA</ds6>
-        <ds7>NA</ds7>
-      </desorp>
-      <sorp>
-        <s1>NA</s1>
-        <s2>NA</s2>
-        <s3>NA</s3>
-        <s4>NA</s4>
-        <s5>NA</s5>
-        <s6>NA</s6>
-        <s7>NA</s7>
-      </sorp>
-      <aggform>
-        <a1>NA</a1>
-        <a3>NA</a3>
-      </aggform>
-      <docuptake>NA</docuptake>
+      <poolmax>
+        <poolmax3>NA</poolmax3>
+      </poolmax>
       <outflux>
         <of1>NA</of1>
         <of2>NA</of2>
@@ -55,27 +37,39 @@
         <of9>NA</of9>
       </outflux>
       <tcor>
-        <t1>NA</t1>
-        <t2>NA</t2>
-        <t3>NA</t3>
-        <t4>NA</t4>
-        <t5>NA</t5>
-        <t6>NA</t6>
-        <t7>NA</t7>
-        <t8>NA</t8>
-        <t9>NA</t9>
+        <tcor1>NA</tcor1>
+        <tcor2>NA</tcor2>
+        <tcor3>NA</tcor3>
+        <tcor4>NA</tcor4>
+        <tcor5>NA</tcor5>
+        <tcor6>NA</tcor6>
+        <tcor7>NA</tcor7>
+        <tcor8>NA</tcor8>
+        <tcor9>NA</tcor9>
       </tcor>
       <wcor>
-        <w1>NA</w1>
-        <w2>NA</w2>
-        <w3>NA</w3>
-        <w4>NA</w4>
-        <w5>NA</w5>
-        <w6>NA</w6>
-        <w7>NA</w7>
-        <w8>NA</w8>
-        <w9>NA</w9>
+        <wcor1>NA</wcor1>
+        <wcor2>NA</wcor2>
+        <wcor3>NA</wcor3>
+        <wcor4>NA</wcor4>
+        <wcor5>NA</wcor5>
+        <wcor6>NA</wcor6>
+        <wcor7>NA</wcor7>
+        <wcor8>NA</wcor8>
+        <wcor9>NA</wcor9>
       </wcor>
+      <scor>
+        <scor1>NA</scor1>
+      </scor>
+      <k>
+        <k7>NA</k7>
+      </k>
+      <vmax>
+        <nada>NA</nada>
+      </vmax>
+      <km>
+        <nada>NA</nada>
+      </km>
       <transfer>
         <t1_to_4>NA</t1_to_4>
         <t1_to_5>NA</t1_to_5>
@@ -88,31 +82,79 @@
         <t5_to_1>NA</t5_to_1>
         <t5_to_3>NA</t5_to_3>
       </transfer>
-      <growthresp>NA</growthresp>
-      <maintresp>NA</maintresp>
-      <scor>NA</scor>
-      <water_unit_converter>NA</water_unit_converter>
+      <cue>
+        <cue6>NA</cue6>
+      </cue>
+      <cue2>
+        <nada>NA</nada>
+      </cue2>
+      <cue3>
+        <nada>NA</nada>
+      </cue3>
+      <texture_mod>NA</texture_mod>
+      <quality_mod>NA</quality_mod>
+      <anpp_mod>NA</anpp_mod>
+      <matpot_sat>NA</matpot_sat>
+      <conv_water_vwc_to_mp>NA</conv_water_vwc_to_mp>
     </soil_decomp>
   </fnames>
   <pars>
     <soil_decomp>
+      <pool_init_value>NA</pool_init_value>
       <n_pools>NA</n_pools>
       <n_outfluxes>NA</n_outfluxes>
-      <cat_pool>NA</cat_pool>
       <sat_pool>NA</sat_pool>
-      <beta>NA</beta>
-      <silt>NA</silt>
-      <clay>NA</clay>
-      <clayref>NA</clayref>
-      <mr>NA</mr>
-      <pep>NA</pep>
-      <pem>NA</pem>
-      <Kads>NA</Kads>
-      <qslope_mayes>NA</qslope_mayes>
-      <reftemp>NA</reftemp>
+      <leaching_outflux>NA</leaching_outflux>
+      <error_tolerance>NA</error_tolerance>
       <R>NA</R>
+      <conv_mm_to_MPa>NA</conv_mm_to_MPa>
+      <beta>NA</beta>
+      <clayref>NA</clayref>
       <minmic>NA</minmic>
+      <qslope_exp>NA</qslope_exp>
+      <mr>NA</mr>
+      <Kads>NA</Kads>
+      <max_poolmax>NA</max_poolmax>
+      <sorp_exp_a>NA</sorp_exp_a>
+      <sorp_exp_b>NA</sorp_exp_b>
+      <quality_a>NA</quality_a>
+      <quality_b>NA</quality_b>
+      <quality_c>NA</quality_c>
+      <anpp_mod_p1>NA</anpp_mod_p1>
+      <anpp_mod_p2>NA</anpp_mod_p2>
+      <anpp_mod_p3>NA</anpp_mod_p3>
+      <anpp_mod_p4>NA</anpp_mod_p4>
+      <km_temp_slope>NA</km_temp_slope>
+      <km_temp_int>NA</km_temp_int>
+      <km_texture_norm>NA</km_texture_norm>
+      <km_texture_exp>NA</km_texture_exp>
+      <k_desorp_tuning>NA</k_desorp_tuning>
+      <km_tuning>NA</km_tuning>
+      <cue_texture_tuning>NA</cue_texture_tuning>
+      <cue_quality_tuning>NA</cue_quality_tuning>
+      <reftemp>NA</reftemp>
+      <reftemp_cue>NA</reftemp_cue>
       <q10>NA</q10>
+      <cue_temp_scalar>NA</cue_temp_scalar>
+      <tcor_mod>NA</tcor_mod>
+      <tcor_exp_norm>NA</tcor_exp_norm>
+      <tcor_exp_exp_int>NA</tcor_exp_exp_int>
+      <tcor_exp_exp_slope>NA</tcor_exp_exp_slope>
+      <tcor_century1>NA</tcor_century1>
+      <tcor_century2>NA</tcor_century2>
+      <tcor_century3>NA</tcor_century3>
+      <tcor_century4>NA</tcor_century4>
+      <wcor_century1>NA</wcor_century1>
+      <wcor_century2>NA</wcor_century2>
+      <wcor_unimodal_exp>NA</wcor_unimodal_exp>
+      <wcor_unimodal_exp_diff>NA</wcor_unimodal_exp_diff>
+      <wcor_diffusion_exp>NA</wcor_diffusion_exp>
+      <wcor_bio_exp>NA</wcor_bio_exp>
+      <wcor_bio_lambda>NA</wcor_bio_lambda>
+      <wcor_bio_kamin>NA</wcor_bio_kamin>
+      <scor_texture_int>NA</scor_texture_int>
+      <scor_texture_slope>NA</scor_texture_slope>
+      <scor_quality_exp>NA</scor_quality_exp>
       <decomp_outflux1>
         <dof11>NA</dof11>
         <dof12>NA</dof12>
@@ -133,25 +175,17 @@
         <dof51>NA</dof51>
       </decomp_outflux5>
       <cstate0>
-        <cstate01>NA</cstate01>
-        <cstate02>NA</cstate02>
-        <cstate03>NA</cstate03>
-        <cstate04>NA</cstate04>
-        <cstate05>NA</cstate05>
+        <nada>NA</nada>
       </cstate0>
-      <input_coefs>
+      <input_coef>
         <input_coef1>NA</input_coef1>
         <input_coef2>NA</input_coef2>
         <input_coef3>NA</input_coef3>
         <input_coef4>NA</input_coef4>
         <input_coef5>NA</input_coef5>
-      </input_coefs>
+      </input_coef>
       <poolmax>
-        <poolmax1>NA</poolmax1>
-        <poolmax2>NA</poolmax2>
-        <poolmax3>NA</poolmax3>
-        <poolmax4>NA</poolmax4>
-        <poolmax5>NA</poolmax5>
+        <nada>NA</nada>
       </poolmax>
       <k>
         <k1>NA</k1>
@@ -164,6 +198,17 @@
         <k8>NA</k8>
         <k9>NA</k9>
       </k>
+      <cat_pool>
+        <cat_pool1>NA</cat_pool1>
+        <cat_pool2>NA</cat_pool2>
+        <cat_pool3>NA</cat_pool3>
+        <cat_pool4>NA</cat_pool4>
+        <cat_pool5>NA</cat_pool5>
+        <cat_pool6>NA</cat_pool6>
+        <cat_pool7>NA</cat_pool7>
+        <cat_pool8>NA</cat_pool8>
+        <cat_pool9>NA</cat_pool9>
+      </cat_pool>
       <vmax>
         <vmax1>NA</vmax1>
         <vmax2>NA</vmax2>
@@ -176,15 +221,7 @@
         <vmax9>NA</vmax9>
       </vmax>
       <vmax2>
-        <vmax1>NA</vmax1>
-        <vmax2>NA</vmax2>
-        <vmax3>NA</vmax3>
-        <vmax4>NA</vmax4>
-        <vmax5>NA</vmax5>
-        <vmax6>NA</vmax6>
-        <vmax7>NA</vmax7>
-        <vmax8>NA</vmax8>
-        <vmax9>NA</vmax9>
+        <nada>NA</nada>
       </vmax2>
       <ea>
         <ea1>NA</ea1>
@@ -209,33 +246,18 @@
         <km9>NA</km9>
       </km>
       <km2>
-        <km1>NA</km1>
-        <km2>NA</km2>
-        <km3>NA</km3>
-        <km4>NA</km4>
-        <km5>NA</km5>
-        <km6>NA</km6>
-        <km7>NA</km7>
-        <km8>NA</km8>
-        <km9>NA</km9>
+        <nada>NA</nada>
       </km2>
-      <rkm>
-        <rkm1>NA</rkm1>
-        <rkm2>NA</rkm2>
-        <rkm3>NA</rkm3>
-        <rkm4>NA</rkm4>
-        <rkm5>NA</rkm5>
-        <rkm6>NA</rkm6>
-        <rkm7>NA</rkm7>
-        <rkm8>NA</rkm8>
-        <rkm9>NA</rkm9>
-      </rkm>
       <cue>
         <cue1>NA</cue1>
         <cue2>NA</cue2>
         <cue3>NA</cue3>
         <cue4>NA</cue4>
         <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
+        <cue8>NA</cue8>
+        <cue9>NA</cue9>
       </cue>
       <cue2>
         <cue1>NA</cue1>
@@ -248,104 +270,32 @@
         <cue8>NA</cue8>
         <cue9>NA</cue9>
       </cue2>
-      <mimics>
-        <fmet_p1>NA</fmet_p1>
-        <fmet_p2>NA</fmet_p2>
-        <fmet_p3>NA</fmet_p3>
-        <tau_mod1_p1>NA</tau_mod1_p1>
-        <tau_mod1_p2>NA</tau_mod1_p2>
-        <tau_mod1_p3>NA</tau_mod1_p3>
-        <tau_r_p1>NA</tau_r_p1>
-        <tau_r_p2>NA</tau_r_p2>
-        <tau_mod2>NA</tau_mod2>
-        <tau_k_p1>NA</tau_k_p1>
-        <tau_k_p2>NA</tau_k_p2>
-        <desorb_p1>NA</desorb_p1>
-        <desorb_p2>NA</desorb_p2>
-        <fSOMp_r_p1>NA</fSOMp_r_p1>
-        <fSOMp_r_p2>NA</fSOMp_r_p2>
-        <fSOMc_r_p1>NA</fSOMc_r_p1>
-        <fSOMc_r_p2>NA</fSOMc_r_p2>
-        <fSOMc_r_p3>NA</fSOMc_r_p3>
-        <fSOMp_k_p1>NA</fSOMp_k_p1>
-        <fSOMp_k_p2>NA</fSOMp_k_p2>
-        <fSOMc_k_p1>NA</fSOMc_k_p1>
-        <fSOMc_k_p2>NA</fSOMc_k_p2>
-        <fSOMc_k_p3>NA</fSOMc_k_p3>
-        <V_slope>NA</V_slope>
-        <V_int>NA</V_int>
-        <aV>NA</aV>
-        <pscalar_p1>NA</pscalar_p1>
-        <pscalar_p2>NA</pscalar_p2>
-        <ko_r>NA</ko_r>
-        <ko_k>NA</ko_k>
-        <K_slope>NA</K_slope>
-        <K_int>NA</K_int>
-        <aK>NA</aK>
-        <fi_LITm>NA</fi_LITm>
-        <fi_LITs>NA</fi_LITs>
-      </mimics>
-      <mend>
-        <Mr>NA</Mr>
-        <Pep>NA</Pep>
-        <Pem>NA</Pem>
-        <Gd>NA</Gd>
-        <Fd>NA</Fd>
-      </mend>
-      <millennial>
-        <cuet>NA</cuet>
-        <Taeref>NA</Taeref>
-        <Vpa>NA</Vpa>
-        <Kpa>NA</Kpa>
-        <c1>NA</c1>
-        <c2>NA</c2>
-        <Vma>NA</Vma>
-        <Kma>NA</Kma>
-        <Vdm>NA</Vdm>
-        <Kdb>NA</Kdb>
-        <kmm>NA</kmm>
-        <pa>NA</pa>
-      </millennial>
-      <millennialV2>
-        <param_pc>NA</param_pc>
-        <kld>NA</kld>
-        <sorp_p1>NA</sorp_p1>
-        <sorp_p2>NA</sorp_p2>
-        <cue_t>NA</cue_t>
-        <Taeref>NA</Taeref>
-        <pa>NA</pa>
-        <param_pb>NA</param_pb>
-      </millennialV2>
-      <century>
-        <c1>NA</c1>
-        <c2>NA</c2>
-        <slow_to_active>NA</slow_to_active>
-        <slow_to_passive>NA</slow_to_passive>
-        <passive_to_active>NA</passive_to_active>
-        <active_to_passive>NA</active_to_passive>
-        <metlitter_to_active>NA</metlitter_to_active>
-        <strlitter_to_active>NA</strlitter_to_active>
-        <strlitter_to_slow>NA</strlitter_to_slow>
-      </century>
+      <cue3>
+        <nada>NA</nada>
+      </cue3>
+      <cue_texture_exp>
+        <nada>NA</nada>
+      </cue_texture_exp>
+      <cue_quality_exp>
+        <nada>NA</nada>
+      </cue_quality_exp>
     </soil_decomp>
   </pars>
   <env>
     <soil_decomp>
       <litter>NA</litter>
-      <temp>NA</temp>
-      <vwc>NA</vwc>
-      <porosity>NA</porosity>
-      <clay>NA</clay>
+      <anpp>NA</anpp>
       <lignin>NA</lignin>
       <N>NA</N>
-      <anpp>NA</anpp>
-      <depth>NA</depth>
-      <pH>NA</pH>
-      <BD>NA</BD>
+      <temp>NA</temp>
+      <vwc>NA</vwc>
       <matpot>NA</matpot>
-      <lambda>NA</lambda>
-      <kamin>NA</kamin>
-      <claysilt>NA</claysilt>
+      <clay>NA</clay>
+      <sand>NA</sand>
+      <porosity>NA</porosity>
+      <matpot_min>NA</matpot_min>
+      <pH>NA</pH>
+      <depth>NA</depth>
     </soil_decomp>
   </env>
 </static>

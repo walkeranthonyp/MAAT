@@ -35,12 +35,12 @@
         <of9>'f_decomp_lin'</of9>
       </outflux>
       <tcor>
-        <tcor1>'f_tcor_arrhenius_millennialv2'</tcor1>
+        <tcor1>'f_tcor_arrhenius'</tcor1>
         <tcor2>'f_tcor_none'</tcor2>
         <tcor3>'f_tcor_none'</tcor3>
         <tcor4>'f_tcor_none'</tcor4>
         <tcor5>'f_tcor_none'</tcor5>
-        <tcor6>'f_tcor_arrhenius_millennialv2'</tcor6>
+        <tcor6>'f_tcor_arrhenius'</tcor6>
       </tcor>
       <wcor>
         <wcor1>'f_wcor_ghezzehei_diffusion'</wcor1>
@@ -80,12 +80,16 @@
       <sat_pool>3</sat_pool>
       <leaching_outflux>8</leaching_outflux>
       <beta>2</beta>
-      <reftemp>30</reftemp>
-      <R>8.31446</R>
+      <reftemp>15</reftemp>
       <wcor_diffusion_exp>0.5</wcor_diffusion_exp>
       <wcor_bio_exp>0.5</wcor_bio_exp>
       <wcor_bio_lambda>2.1e-4</wcor_bio_lambda>
       <wcor_bio_kamin>0.2</wcor_bio_kamin>
+      <max_poolmax>86.0</max_poolmax>
+      <sorp_exp_a>-0.216</sorp_exp_a>
+      <sorp_exp_b>-0.12</sorp_exp_b>
+      <cue_temp_scalar>0.012</cue_temp_scalar>
+      <reftemp_cue>15</reftemp_cue>
       <decomp_outflux1>
         <dof11>1</dof11>
         <dof12>2</dof12>
@@ -117,19 +121,19 @@
         <k2>0.018</k2>
         <k3>4.5</k3>
         <k4>1e-3</k4>
-        <k5>0.0048</k5>
+        <k5>4.8e-3</k5>
         <k6>NA</k6>
-        <k7>NA</k7>
-        <k8>0.0015</k8>
+        <k7>1.0</k7>
+        <k8>1.5e-3</k8>
         <k9>0.02</k9>
       </k>
       <vmax>
-        <vmax1>1.8e+12</vmax1>
+        <vmax1>4.680971</vmax1>
         <vmax2>NA</vmax2>
         <vmax3>NA</vmax3>
         <vmax4>NA</vmax4>
         <vmax5>NA</vmax5>
-        <vmax6>2.3e+12</vmax6>
+        <vmax6>74.54208</vmax6>
         <vmax7>NA</vmax7>
         <vmax8>NA</vmax8>
         <vmax9>NA</vmax9>
@@ -165,30 +169,16 @@
         <cue6>0.19</cue6>
         <cue9>0.33</cue9>
       </cue>
-      <millennialV2>
-        <param_pc>0.86</param_pc>
-        <kld>1</kld>
-        <sorp_p1>0.12</sorp_p1>
-        <sorp_p2>0.216</sorp_p2>
-        <cue_t>0.012</cue_t>
-        <reftemp_cue>15</reftemp_cue>
-      </millennialV2>
     </soil_decomp>
   </pars>
   <env>
     <soil_decomp>
-      <litter>0.473692602739726</litter>
       <temp>11.21961</temp>
       <vwc>0.2422044</vwc>
       <matpot>15</matpot>
       <porosity>0.6</porosity>
-      <depth>0</depth>
-      <BD>1000</BD>
-      <clay>0</clay>
-      <sand>20</sand>
+      <sand>0.2</sand>
       <pH>7</pH>
-      <lignin>0</lignin>
-      <N>0</N>
     </soil_decomp>
   </env>
 </default>

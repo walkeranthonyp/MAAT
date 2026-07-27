@@ -92,8 +92,8 @@
     <soil_decomp>
       <n_pools>7</n_pools>
       <n_outfluxes>10</n_outfluxes>
-      <clayref>5</clayref>
-      <qslope_mayes>0.4833</qslope_mayes>
+      <clayref>0.05</clayref>
+      <qslope_exp>0.4833</qslope_exp>
       <reftemp>20</reftemp>
       <R>8.314472</R>
       <minmic>0.001</minmic>
@@ -216,7 +216,7 @@
       <temp>20</temp>
       <vwc>0.25</vwc>
       <porosity>0.5</porosity>
-      <clay>5</clay>
+      <clay>0.05</clay>
     </soil_decomp>
   </env>
 </static>

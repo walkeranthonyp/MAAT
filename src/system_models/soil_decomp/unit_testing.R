@@ -15,17 +15,43 @@
 source('soil_decomp_object.R')
 
 soil_decomp_object$.test()
+soil_decomp_object$.test(steadystate=T)
+soil_decomp_object$.test(verbose=T)
 soil_decomp_object$.test(litter=172.8978/365/1000)
+# Matt -- running the below line you should find a near identical result to the init file you gave me
+soil_decomp_object$.test(litter=172.8978/365/1000, steadystate=T )
+soil_decomp_object$.test(litter=172.8978/365/1000, metdf=T, ntimes=2 )
+soil_decomp_object$.test(litter=172.8978/365/1000, metdf=T, ntimes=100 )
+soil_decomp_object$state$cpools
+soil_decomp_object$.test(litter=2)
+soil_decomp_object$.test(litter=2, metdf=T, ntimes=2 )
+soil_decomp_object$.test(litter=0.1)
+soil_decomp_object$.test(litter=0.1, metdf=T, ntimes=2 )
+
 soil_decomp_object$.test(litter=0.000228)
 soil_decomp_object$.test(litter=.5/.15/365)
 soil_decomp_object$.test(litter=10)
 
-# state
-soil_decomp_object$state$cpools
-soil_decomp_object$state$outflux
-soil_decomp_object$state$respiration
 soil_decomp_object$env$litter
+soil_decomp_object$fnames
+soil_decomp_object$fnames$sys
+soil_decomp_object$run
+soil_decomp_object$run_met
+
+# state
+soil_decomp_object$state_pars$previous_state
+soil_decomp_object$env$litter
+soil_decomp_object$state$outflux
+soil_decomp_object$state$cpools
+sum(unlist(soil_decomp_object$pars$cstate0))
+sum(as.numeric(soil_decomp_object$state$cpools)) 
+sum(as.numeric(soil_decomp_object$state$cpools) - unlist(soil_decomp_object$pars$cstate0))
+soil_decomp_object$state$respiration
+soil_decomp_object$state$leaching
 soil_decomp_object$state$respiration + soil_decomp_object$state$leaching
+soil_decomp_object$env$litter - 
+  sum(as.numeric(soil_decomp_object$state$cpools) - unlist(soil_decomp_object$state_pars$previous_state)) - 
+  (soil_decomp_object$state$respiration + soil_decomp_object$state$leaching)
 
 # outfluxes associated with each pool
 soil_decomp_object$pars$decomp_outflux1
@@ -35,6 +61,25 @@ soil_decomp_object$pars$decomp_outflux4
 soil_decomp_object$pars$decomp_outflux5
 soil_decomp_object$pars$decomp_outflux6
 soil_decomp_object$pars$decomp_outflux7
+
+
+soil_decomp_object$state_pars$vmax
+soil_decomp_object$state_pars$vmax[[1]] * soil_decomp_object$fns$tcor.tcor1(i=1)
+soil_decomp_object$state_pars$vmax[[6]] * soil_decomp_object$fns$tcor.tcor6(i=6)
+soil_decomp_object$pars$reftemp
+soil_decomp_object$pars$R
+soil_decomp_object$pars$cstate0
+soil_decomp_object$env$temp
+soil_decomp_object$pars$km_texture_norm
+soil_decomp_object$fns$input()
+soil_decomp_object$fns$km.km10(11)
+soil_decomp_object$state_pars$cue
+soil_decomp_object$state_pars$anpp_mod
+soil_decomp_object$state_pars$quality_mod
+soil_decomp_object$state_pars$texture_mod
+exp(0.1*soil_decomp_object$state_pars$fmet)
+exp(0.3*soil_decomp_object$state_pars$fmet)
+
 
 # k conversion, doesn't work with tau < 0
 f_kconvert_cont <- function(kdisc) -log(1-kdisc)
@@ -104,10 +149,21 @@ soil_decomp_object$fns$outflux.of6(C=soil_decomp_object$state$cpools, t=1, i=4, 
 soil_decomp_object$fns$outflux.of7(C=soil_decomp_object$state$cpools, t=1, i=4, of=7 )
 soil_decomp_object$fns$outflux.of8(C=soil_decomp_object$state$cpools, t=1, i=4, of=8 )
 soil_decomp_object$fns$outflux.of9(C=soil_decomp_object$state$cpools, t=1, i=5, of=9 )
-soil_decomp_object$fns$outflux.of4
+soil_decomp_object$fns$outflux.of1(C=rep(0.1,5), t=1, i=1, of=1 )
+soil_decomp_object$fns$outflux.of2(C=rep(0.1,5), t=1, i=1, of=2 )
+soil_decomp_object$fns$outflux.of3(C=rep(0.1,5), t=1, i=2, of=3 )
+soil_decomp_object$fns$outflux.of4(C=rep(0.1,5), t=1, i=3, of=4 )
+soil_decomp_object$fns$outflux.of5(C=rep(0.1,5), t=1, i=3, of=5 )
+soil_decomp_object$fns$outflux.of6(C=rep(0.1,5), t=1, i=4, of=6 )
+soil_decomp_object$fns$outflux.of7(C=rep(0.1,5), t=1, i=4, of=7 )
+soil_decomp_object$fns$outflux.of8(C=rep(0.1,5), t=1, i=4, of=8 )
+soil_decomp_object$fns$outflux.of9(C=rep(0.1,5), t=1, i=5, of=9 )
 soil_decomp_object$fnames$outflux
+soil_decomp_object$fns$outflux.of2
+soil_decomp_object$fns$outflux.of6
 
-of <- 6
+of <- 2
+soil_decomp_object$state_pars$k[[of]]
 soil_decomp_object$state_pars$vmax[[of]]
 soil_decomp_object$pars$cat_pool[[of]]
 soil_decomp_object$state_pars$km[[of]]
@@ -145,6 +201,9 @@ soil_decomp_object$fns$decomp.d2
 soil_decomp_object$fns$decomp.d3
 
 soil_decomp_object$fns$transfer.t1_to_2
+soil_decomp_object$fns$transfer.t5_to_1
+soil_decomp_object$fns$transfer.t5_to_1(from=5)
+soil_decomp_object$fns$transfer.t5_to_3
 soil_decomp_object$fns[["transfer.t1_to_2"]]
 
 soil_decomp_object$fns$input

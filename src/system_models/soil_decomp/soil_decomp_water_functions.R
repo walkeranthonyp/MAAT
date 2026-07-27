@@ -15,19 +15,29 @@ f_scor_none <- function(...) 1
 # soil/litter trait scalar functions
  
 # power function of clay % (APW: I think) 
-f_scor_sulman <- function(., i ) (.super$env$clay/.super$pars$clayref) ^ .super$pars$qslope_mayes
+f_scor_sulman <- function(., i ) (.super$env$clay/.super$pars$clayref) ^ .super$pars$qslope_exp
 
 
 # linear function of sand %
 # Equation B3, Abramoff et al. 2022
 f_scor_century_texture <- function(., i ) 
-  .super$pars$scor_texture_int + .super$pars$scor_texture_slope*(100-.super$env$sand)*.01
+  .super$pars$scor_texture_int + .super$pars$scor_texture_slope*(1.0-.super$env$sand)
 
 
 # exponential function of litter lignin proportion  
 # Equation B4, Abramoff et al. 2022
 f_scor_century_quality <- function(., i ) 
   exp(.super$pars$scor_quality_exp*.super$env$lignin)
+
+
+# exponential function of litter quality 
+f_scor_wieder_quality <- function(., i )
+  .super$state_pars$anpp_mod * exp(.super$pars$k_exp[[i]]*.super$state_pars$quality_mod) 
+ 
+ 
+# exponential function of soil clay 
+f_scor_wieder_texture <- function(., i )
+  .super$pars$k_desorp_tuning * exp(.super$pars$k_exp[[i]]*.super$env$clay) 
 
 
 
@@ -67,10 +77,12 @@ f_wcor_andren1987 <- function(., ... ) {
 
 # ELM soil saturated matric/water potential
 f_matpot_sat_elm_cosby1984_tab5 <- function(., ... ) {
-  matpot_sat <- 10 * 10^(1.88 - 0.0131*.super$env$sand)
+  #matpot_sat <- 10 * 10^(1.88 - 0.0131*.super$env$sand)
+  # APW: sonvert sand to proportion
+  matpot_sat <- 10 * 10^(1.88 - 1.31*.super$env$sand)
 
   # convert from mm to MPa
-  matpot_sat * .super$pars$conv_mm_to_MPa -9.8e-6
+  matpot_sat * .super$pars$conv_mm_to_MPa 
 }
 
 
@@ -230,7 +242,7 @@ f_wcor_century <- function(.,C,t,i){
 
 # Calculate matric potential from volumetric soil water content
 # van Genuchten 1980?
-f_SWC2SWP_vanGenuchten <- function(.,C,t,i) {
+f_conv_water_vwc_to_mp_vanGenuchten <- function(.,C,t,i) {
   SWC0 = .super$env$vwc
   SWCres = 0.108 # MEC: probably should store these parameters elsewhere, but they are constant in MEND
   SWCsat = 0.6 

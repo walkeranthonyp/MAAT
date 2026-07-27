@@ -119,14 +119,13 @@ f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
 }
 
 
-# calculates loss fluxes after solver has rund
+# calculates loss fluxes after solver has run
 f_calc_loss_fluxes <- function(.) {
-  #print('') 
-  #print('Calculate loss fluxes:') 
 
   # calculate loss fractions for each pool from transfer matrix
   # - 1,1 arguments to tm and doto are dummy args, if those functions use C pools as arguments would need to pass that info
   .super$state_pars$transfer_matrix    <- .$transfermatrix(1,1)
+  .super$state_pars$flux_matrix        <- t(as.numeric(.$DotO(1,1))*t(.super$state_pars$transfer_matrix))
   pool_loss_frac                       <- abs(apply(.super$state_pars$transfer_matrix, 2, sum ))
   pool_loss_frac[pool_loss_frac<1e-15] <- 0 
 
@@ -141,13 +140,22 @@ f_calc_loss_fluxes <- function(.) {
     .super$state$respiration <- .super$state$respiration - .super$state$leaching 
   } 
 
-  print('transfer matrix:')
-  print(.super$state_pars$transfer_matrix)
-  #print(pool_loss_frac) 
-  #print(as.numeric(.$DotO(1,1) )) 
-  #print(pool_loss_total)
-  #print(.super$state$respiration) 
-  print('') 
+  if(.super$cpars$verbose) {
+    print('') 
+    print('Calculate loss fluxes:') 
+    print('transfer matrix:')
+    print(.super$state_pars$transfer_matrix)
+    print('pool loss frac.:')
+    print(pool_loss_frac) 
+    print('pool summed outflux:')
+    print(as.numeric(.$DotO(1,1) )) 
+    print('pool loss abs.:')
+    print(pool_loss_total)
+    print('leaching:')
+    print(.super$state$leaching) 
+    print('respiration:')
+    print(.super$state$respiration) 
+  }
 }
 
 
@@ -155,15 +163,40 @@ f_mass_balance <- function(., steadystate=F ) {
 
   input    <- .super$env$litter # + .super$env$cwd_input
   output   <- .super$state$respiration + .super$state$leaching 
-  previous <- sum(.super$state_pars$previous_cpools)
+  previous <- sum(.super$state_pars$previous_state)
   current  <- sum(.super$state$cpools)
 
   mass_balance <- .super$state_pars$mass_balance <-  
     if(steadystate) input - output
     else            input - output - (current - previous)
 
-  if(abs(mass_balance) > .super$pars$error_tolerance) {
-    stop(paste('ERROR:: mass balance (should be zero) = ', mass_balance )) 
+  error <- abs(mass_balance) > .super$pars$error_tolerance
+
+  if(error|.super$cpars$verbose) {
+    print('') 
+    print('Calculate mass balance:') 
+    print('input:') 
+    print(input) 
+    print('output:') 
+    print(output) 
+    print('current state sum:') 
+    print(current) 
+    print('previous state sum:') 
+    print(previous) 
+    print('delta state sum:') 
+    print(current-previous) 
+    print('delta state sum + input:') 
+    print(current-previous+input) 
+    print('flux matrix:')
+    print(.super$state_pars$flux_matrix)
+    print('flux matrix pools delta:')
+    print(apply(.super$state_pars$flux_matrix,1,sum))
+    print('actual pools delta:')
+    print(as.numeric(.super$state$cpools-.super$state_pars$previous_state))
+    print('mass balance:') 
+    print(mass_balance) 
+
+    if(error) stop(paste('ERROR:: mass balance (should be zero) = ', mass_balance )) 
   }
 }
 

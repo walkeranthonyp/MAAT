@@ -2,20 +2,18 @@
   <env>
     <soil_decomp>
       <litter>'column name of variable in metdata file'</litter>
-      <temp>'column name of variable in metdata file'</temp>
-      <vwc>'column name of variable in metdata file'</vwc>
-      <porosity>'column name of variable in metdata file'</porosity>
-      <clay>'column name of variable in metdata file'</clay>
+      <anpp>'column name of variable in metdata file'</anpp>
       <lignin>'column name of variable in metdata file'</lignin>
       <N>'column name of variable in metdata file'</N>
-      <anpp>'column name of variable in metdata file'</anpp>
-      <depth>'column name of variable in metdata file'</depth>
-      <pH>'column name of variable in metdata file'</pH>
-      <BD>'column name of variable in metdata file'</BD>
+      <temp>'column name of variable in metdata file'</temp>
+      <vwc>'column name of variable in metdata file'</vwc>
       <matpot>'column name of variable in metdata file'</matpot>
-      <lambda>'column name of variable in metdata file'</lambda>
-      <kamin>'column name of variable in metdata file'</kamin>
-      <claysilt>'column name of variable in metdata file'</claysilt>
+      <clay>'column name of variable in metdata file'</clay>
+      <sand>'column name of variable in metdata file'</sand>
+      <porosity>'column name of variable in metdata file'</porosity>
+      <matpot_min>'column name of variable in metdata file'</matpot_min>
+      <pH>'column name of variable in metdata file'</pH>
+      <depth>'column name of variable in metdata file'</depth>
     </soil_decomp>
   </env>
 </met_data_translator>

@@ -1,21 +1,10 @@
 <eval_data_translator>
   <state>
     <soil_decomp>
-      <cpools1>'column name of variable in evaldata file'</cpools1>
-      <cpools2>'column name of variable in evaldata file'</cpools2>
-      <cpools3>'column name of variable in evaldata file'</cpools3>
-      <cpools4>'column name of variable in evaldata file'</cpools4>
-      <cpools5>'column name of variable in evaldata file'</cpools5>
+      <cpools>'column name of variable in evaldata file'</cpools>
+      <outflux>'column name of variable in evaldata file'</outflux>
       <respiration>'column name of variable in evaldata file'</respiration>
-      <outflux.of1>'column name of variable in evaldata file'</outflux.of1>
-      <outflux.of2>'column name of variable in evaldata file'</outflux.of2>
-      <outflux.of3>'column name of variable in evaldata file'</outflux.of3>
-      <outflux.of4>'column name of variable in evaldata file'</outflux.of4>
-      <outflux.of5>'column name of variable in evaldata file'</outflux.of5>
-      <outflux.of6>'column name of variable in evaldata file'</outflux.of6>
-      <outflux.of7>'column name of variable in evaldata file'</outflux.of7>
-      <outflux.of8>'column name of variable in evaldata file'</outflux.of8>
-      <outflux.of9>'column name of variable in evaldata file'</outflux.of9>
+      <leaching>'column name of variable in evaldata file'</leaching>
     </soil_decomp>
   </state>
 </eval_data_translator>

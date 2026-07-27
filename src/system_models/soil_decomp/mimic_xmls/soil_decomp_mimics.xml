@@ -12,7 +12,7 @@
       <transfer_fluxsum_prop>'f_transfer_fluxsum_prop'</transfer_fluxsum_prop>
       <outfluxes>'f_outfluxes'</outfluxes>
       <calc_state_pars>'f_calc_state_pars_generic'</calc_state_pars>
-      <calc_state_pars_unique>'f_calc_state_pars_century_weider'</calc_state_pars_unique>
+      <calc_state_pars_unique>'f_calc_state_pars_weider'</calc_state_pars_unique>
       <calc_loss_fluxes>'f_calc_loss_fluxes'</calc_loss_fluxes>
       <decomp>
         <d1>'f_decomp_fluxsum'</d1>
@@ -36,18 +36,13 @@
         <of10>'f_decomp_rmm'</of10>
         <of11>'f_decomp_rmm'</of11>
       </outflux>
-      <k> 
-        <k5>'f_k_wieder_tau_r'</k5>
-        <k6>'f_k_wieder_tau_k'</k6>
-        <k7>'f_k_wieder_desorb'</k7>
-      </k> 
       <km> 
         <km1>'f_km_wieder_temp'</km1>
         <km2>'f_km_wieder_temp'</km2>
         <km3>'f_km_wieder_temp'</km3>
         <km4>'f_km_wieder_temp'</km4>
-        <km8>'f_km_wieder_temp_tuning1'</km8>
-        <km9>'f_km_wieder_temp_tuning2'</km9>
+        <km8>'f_km_wieder_temp'</km8>
+        <km9>'f_km_wieder_temp'</km9>
         <km10>'f_km_wieder_temp_clay'</km10>
         <km11>'f_km_wieder_temp_clay'</km11>
       </km> 
@@ -56,39 +51,15 @@
         <tcor2>'f_tcor_wieder'</tcor2>
         <tcor3>'f_tcor_wieder'</tcor3>
         <tcor4>'f_tcor_wieder'</tcor4>
-        <tcor5>'f_tcor_none'</tcor5>
-        <tcor6>'f_tcor_none'</tcor6>
-        <tcor7>'f_tcor_none'</tcor7>
         <tcor8>'f_tcor_wieder'</tcor8>
         <tcor9>'f_tcor_wieder'</tcor9>
         <tcor10>'f_tcor_wieder'</tcor10>
         <tcor11>'f_tcor_wieder'</tcor11>
       </tcor>
-      <wcor>
-        <wcor1>'f_wcor_none'</wcor1>
-        <wcor2>'f_wcor_none'</wcor2>
-        <wcor3>'f_wcor_none'</wcor3>
-        <wcor4>'f_wcor_none'</wcor4>
-        <wcor5>'f_wcor_none'</wcor5>
-        <wcor6>'f_wcor_none'</wcor6>
-        <wcor7>'f_wcor_none'</wcor7>
-        <wcor8>'f_wcor_none'</wcor8>
-        <wcor9>'f_wcor_none'</wcor9>
-        <wcor10>'f_wcor_none'</wcor10>
-        <wcor11>'f_wcor_none'</wcor11>
-      </wcor>
       <scor>
-        <scor1>'f_scor_none'</scor1>
-        <scor2>'f_scor_none'</scor2>
-        <scor3>'f_scor_none'</scor3>
-        <scor4>'f_scor_none'</scor4>
-        <scor5>'f_scor_none'</scor5>
-        <scor6>'f_scor_none'</scor6>
-        <scor7>'f_scor_none'</scor7>
-        <scor8>'f_scor_none'</scor8>
-        <scor9>'f_scor_none'</scor9>
-        <scor10>'f_scor_none'</scor10>
-        <scor11>'f_scor_none'</scor11>
+        <scor5>'f_scor_wieder_quality'</scor5>
+        <scor6>'f_scor_wieder_quality'</scor6>
+        <scor7>'f_scor_wieder_texture'</scor7>
       </scor>
       <transfer>
         <t1_to_3>'f_transfer_fluxsum_prop_one_cue'</t1_to_3>
@@ -111,20 +82,17 @@
         <cue2>'f_cue_constant'</cue2>
         <cue3>'f_cue_constant'</cue3>
         <cue4>'f_cue_constant'</cue4>
-        <cue5>'f_cue_wieder_texture1'</cue5>
-        <cue6>'f_cue_wieder_texture2'</cue6>
+        <cue5>'f_cue_wieder_texture'</cue5>
+        <cue6>'f_cue_wieder_texture'</cue6>
         <cue10>'f_cue_constant'</cue10>
         <cue11>'f_cue_constant'</cue11>
       </cue>
       <cue2>
-        <cue25>'f_cue_wieder_quality1'</cue25>
-        <cue26>'f_cue_wieder_quality2'</cue26>
+        <cue25>'f_cue_wieder_quality'</cue25>
+        <cue26>'f_cue_wieder_quality'</cue26>
       </cue2>
-      <fmet>'f_texture_wieder_fmet'</fmet>
-      <tau_mod1>'f_k_wieder_tau_mod1'</tau_mod1>
-      <!--k_tau_r>'f_k_wieder_tau_r'</k_tau_r>
-      <k_tau_k>'f_k_wieder_tau_k'</k_tau_k>
-      <k_tau_desorb>'f_k_wieder_desorb'</k_tau_desorb-->
+      <quality_mod>'f_quality_mod_wieder'</quality_mod>
+      <anpp_mod>'f_anpp_mod_wieder'</anpp_mod>
     </soil_decomp>
   </fnames>
   <pars>
@@ -156,15 +124,15 @@
         <dof71>10</dof71>
         <dof72>11</dof72>
       </decomp_outflux7>
-      <cstate0>
-        <cstate01>0.1</cstate01>
-        <cstate02>0.1</cstate02>
-        <cstate03>0.1</cstate03>
-        <cstate04>0.1</cstate04>
-        <cstate05>0.1</cstate05>
-        <cstate06>0.1</cstate06>
-        <cstate07>0.1</cstate07>
-      </cstate0>
+      <input_coef>
+        <input_coef1>0</input_coef1>
+        <input_coef2>0</input_coef2>
+        <input_coef3>0</input_coef3>
+        <input_coef4>0</input_coef4>
+        <input_coef5>0.005</input_coef5>
+        <input_coef6>0.005</input_coef6>
+        <input_coef7>0</input_coef7>
+      </input_coef>
       <cat_pool>
         <cat_pool1>3</cat_pool1>
         <cat_pool2>4</cat_pool2>
@@ -175,6 +143,16 @@
         <cat_pool10>3</cat_pool10>
         <cat_pool11>4</cat_pool11>
       </cat_pool>
+      <k> 
+        <k5>0.00052</k5>
+        <k6>0.00024</k6>
+        <k7>0.00048</k7>
+      </k> 
+      <k_exp> 
+        <k_exp5>0.3</k_exp5>
+        <k_exp6>0.1</k_exp6>
+        <k_exp7>-4.5</k_exp7>
+      </k_exp> 
       <vmax>
         <vmax1>10</vmax1>
         <vmax2>3</vmax2>
@@ -190,8 +168,8 @@
         <km2>2</km2>
         <km3>2</km3>
         <km4>4</km4>
-        <km8>2</km8>
-        <km9>4</km9>
+        <km8>2/6</km8>
+        <km9>4/6</km9>
         <km10>4</km10>
         <km11>6</km11>
       </km>
@@ -200,46 +178,41 @@
         <cue2>0.7</cue2>
         <cue3>0.25</cue3>
         <cue4>0.35</cue4>
+        <cue5>0.15</cue5>
+        <cue6>0.1</cue6>
         <cue10>0.5</cue10>
         <cue11>0.7</cue11>
       </cue>
+      <cue2>
+        <cue25>0.1</cue25>
+        <cue26>0.3</cue26>
+      </cue2>
+      <cue_texture_exp>
+        <cue_texture_exp5>1.3</cue_texture_exp5>
+        <cue_texture_exp6>0.8</cue_texture_exp6>
+      </cue_texture_exp>
+      <cue_quality_exp>
+        <cue_quality_exp5>-3</cue_quality_exp5>
+        <cue_quality_exp6>-3</cue_quality_exp6>
+      </cue_quality_exp>
+      <quality_a>0.85</quality_a>
+      <quality_b>0.013</quality_b>
+      <quality_c>0.5</quality_c>
+      <anpp_mod_p1>100</anpp_mod_p1>
+      <anpp_mod_p2>0.6</anpp_mod_p2>
+      <anpp_mod_p3>1.3</anpp_mod_p3>
+      <anpp_mod_p4>48</anpp_mod_p4>
+      <km_temp_slope>0.02</km_temp_slope>
+      <km_temp_int>3.19</km_temp_int>
+      <km_texture_norm>3</km_texture_norm>
+      <km_texture_exp>-2</km_texture_exp>
+      <k_desorp_tuning>0.1</k_desorp_tuning>
+      <km_tuning>0.15625</km_tuning>
+      <cue_texture_tuning>0.1</cue_texture_tuning>
+      <cue_quality_tuning>1</cue_quality_tuning>
       <tcor_exp_norm>3e-06</tcor_exp_norm>
       <tcor_exp_exp_int>5.47</tcor_exp_exp_int>
       <tcor_exp_exp_slope>0.063</tcor_exp_exp_slope>
-      <mimics>
-        <fmet_p1>0.5</fmet_p1>
-        <fmet_p2>0.85</fmet_p2>
-        <fmet_p3>0.013</fmet_p3>
-        <tau_mod1_p1>100</tau_mod1_p1>
-        <tau_mod1_p2>0.6</tau_mod1_p2>
-        <tau_mod1_p3>1.3</tau_mod1_p3>
-        <tau_r_p1>0.00052</tau_r_p1>
-        <tau_r_p2>0.3</tau_r_p2>
-        <tau_mod2>48</tau_mod2>
-        <tau_k_p1>0.00024</tau_k_p1>
-        <tau_k_p2>0.1</tau_k_p2>
-        <desorb_p1>0.00048</desorb_p1>
-        <desorb_p2>-4.5</desorb_p2>
-        <fSOMp_r_p1>0.15</fSOMp_r_p1>
-        <fSOMp_r_p2>1.3</fSOMp_r_p2>
-        <fSOMc_r_p1>0.1</fSOMc_r_p1>
-        <fSOMc_r_p2>-3</fSOMc_r_p2>
-        <fSOMc_r_p3>1</fSOMc_r_p3>
-        <fSOMp_k_p1>0.1</fSOMp_k_p1>
-        <fSOMp_k_p2>0.8</fSOMp_k_p2>
-        <fSOMc_k_p1>0.3</fSOMc_k_p1>
-        <fSOMc_k_p2>-3</fSOMc_k_p2>
-        <fSOMc_k_p3>1</fSOMc_k_p3>
-        <pscalar_p1>3</pscalar_p1>
-        <pscalar_p2>-2</pscalar_p2>
-        <ko_r>6</ko_r>
-        <ko_k>6</ko_k>
-        <K_slope>0.02</K_slope>
-        <K_int>3.19</K_int>
-        <aK>0.15625</aK>
-        <fi_LITm>0.005</fi_LITm>
-        <fi_LITs>0.005</fi_LITs>
-      </mimics>
     </soil_decomp>
   </pars>
   <env>

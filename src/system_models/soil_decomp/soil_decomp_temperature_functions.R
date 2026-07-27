@@ -57,6 +57,8 @@ f_tcor_arrhenius <- function(., i ) {
   exp( .super$pars$ea[[i]]*(Tsk-Trk) / (.super$pars$R*Tsk*Trk) )
 }
 
+# APW: similar to above except ea is in different units, 
+#      I think the (1/TKref - 1/TK) makes it equivalent to above
 f_tcor_arrhenius_mend <- function(., i ) {
   TKref = .super$pars$reftemp + 273.15
   TK    = .super$env$temp + 273.15
