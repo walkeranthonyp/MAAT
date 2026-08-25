@@ -118,43 +118,71 @@ f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
   list(as.vector(YD))
 }
 
-
+                  
 # calculates loss fluxes after solver has run
 f_calc_loss_fluxes <- function(.) {
-
+  
   # calculate loss fractions for each pool from transfer matrix
   # - 1,1 arguments to tm and doto are dummy args, if those functions use C pools as arguments would need to pass that info
-  .super$state_pars$transfer_matrix    <- .$transfermatrix(1,1)
-  .super$state_pars$flux_matrix        <- t(as.numeric(.$DotO(1,1))*t(.super$state_pars$transfer_matrix))
-  pool_loss_frac                       <- abs(apply(.super$state_pars$transfer_matrix, 2, sum ))
-  pool_loss_frac[pool_loss_frac<1e-15] <- 0 
-
+  .super$state_pars$transfer_matrix <- 
+    .$transfermatrix(
+      C = .super$state$cpools[,1],
+      t = 1
+    )
+  .super$state_pars$flux_matrix <-
+    t(
+      as.numeric(
+        .$DotO(
+          C = .super$state$cpools[,1],
+          t = 1
+        )
+      ) *
+        t(.super$state_pars$transfer_matrix)
+    )
+  
+  pool_loss_frac <- abs(
+    apply(.super$state_pars$transfer_matrix, 2, sum)
+  )
+  
+  pool_loss_frac[pool_loss_frac < 1e-15] <- 0
+  
   # sum pool fluxes multiplied by loss fractions
-  pool_loss_total <- pool_loss_frac * as.numeric(.$DotO(1,1)) 
-
+  pool_loss_total <-
+    pool_loss_frac *
+    as.numeric(
+      .$DotO(
+        C = .super$state$cpools[,1],
+        t = 1
+      )
+    )
+  
   # assign losses
-  .super$state$leaching    <- 0
-  .super$state$respiration <- sum(pool_loss_total) 
+  .super$state$leaching <- 0
+  .super$state$respiration <- sum(pool_loss_total)
+  
   if(!is.na(.super$pars$leaching_outflux)) {
-    .super$state$leaching    <- .super$state$outflux[[.super$pars$leaching_outflux]]
-    .super$state$respiration <- .super$state$respiration - .super$state$leaching 
-  } 
-
+    .super$state$leaching <-
+      .super$state$outflux[[.super$pars$leaching_outflux]]
+    
+    .super$state$respiration <-
+      .super$state$respiration - .super$state$leaching
+  }
+  
   if(.super$cpars$verbose) {
-    print('') 
-    print('Calculate loss fluxes:') 
+    print('')
+    print('Calculate loss fluxes:')
     print('transfer matrix:')
     print(.super$state_pars$transfer_matrix)
     print('pool loss frac.:')
-    print(pool_loss_frac) 
+    print(pool_loss_frac)
     print('pool summed outflux:')
-    print(as.numeric(.$DotO(1,1) )) 
+    print(as.numeric(.$DotO(1,1)))
     print('pool loss abs.:')
     print(pool_loss_total)
     print('leaching:')
-    print(.super$state$leaching) 
+    print(.super$state$leaching)
     print('respiration:')
-    print(.super$state$respiration) 
+    print(.super$state$respiration)
   }
 }
 
