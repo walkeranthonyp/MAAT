@@ -139,7 +139,7 @@ f_calc_loss_fluxes <- function(.) {
       ) *
         t(.super$state_pars$transfer_matrix)
     )
-  
+ 
   pool_loss_frac <- abs(
     apply(.super$state_pars$transfer_matrix, 2, sum)
   )
@@ -155,7 +155,7 @@ f_calc_loss_fluxes <- function(.) {
         t = 1
       )
     )
-  
+
   # assign losses
   .super$state$leaching <- 0
   .super$state$respiration <- sum(pool_loss_total)
@@ -189,43 +189,73 @@ f_calc_loss_fluxes <- function(.) {
 
 
 f_mass_balance <- function(., steadystate=F ) {
-
-  input    <- .super$env$litter # + .super$env$cwd_input
-  output   <- .super$state$respiration + .super$state$leaching 
+  
+  input <- .super$env$litter
+  
+  if(steadystate) {
+    
+    output <- .super$state$respiration +
+      .super$state$leaching
+    
+  } else {
+    
+    output <- .super$state_pars$integrated_respiration +
+      .super$state_pars$integrated_leaching
+    
+  }
+  
   previous <- sum(.super$state_pars$previous_state)
   current  <- sum(.super$state$cpools)
-
-  mass_balance <- .super$state_pars$mass_balance <-  
-    if(steadystate) input - output
-    else            input - output - (current - previous)
-
+  
+  mass_balance <- .super$state_pars$mass_balance <-
+    if(steadystate)
+      input - output
+  else
+    input - output - (current - previous)
+  
   error <- abs(mass_balance) > .super$pars$error_tolerance
-
-  if(error|.super$cpars$verbose) {
-    print('') 
-    print('Calculate mass balance:') 
-    print('input:') 
-    print(input) 
-    print('output:') 
-    print(output) 
-    print('current state sum:') 
-    print(current) 
-    print('previous state sum:') 
-    print(previous) 
-    print('delta state sum:') 
-    print(current-previous) 
-    print('delta state sum + input:') 
-    print(current-previous+input) 
+  
+  if(error | .super$cpars$verbose) {
+    
+    print('')
+    print('Calculate mass balance:')
+    print('input:')
+    print(input)
+    print('output:')
+    print(output)
+    print('current state sum:')
+    print(current)
+    print('previous state sum:')
+    print(previous)
+    print('delta state sum:')
+    print(current - previous)
+    print('delta state sum + input:')
+    print(current - previous + input)
+    print('integrated loss:')
+    print(.super$state_pars$integrated_loss)
+    print('integrated respiration:')
+    print(.super$state_pars$integrated_respiration)
+    print('integrated leaching:')
+    print(.super$state_pars$integrated_leaching)
     print('flux matrix:')
     print(.super$state_pars$flux_matrix)
     print('flux matrix pools delta:')
-    print(apply(.super$state_pars$flux_matrix,1,sum))
+    print(apply(.super$state_pars$flux_matrix, 1, sum))
     print('actual pools delta:')
-    print(as.numeric(.super$state$cpools-.super$state_pars$previous_state))
-    print('mass balance:') 
-    print(mass_balance) 
-
-    if(error) stop(paste('ERROR:: mass balance (should be zero) = ', mass_balance )) 
+    print(as.numeric(
+      .super$state$cpools -
+        .super$state_pars$previous_state
+    ))
+    print('mass balance:')
+    print(mass_balance)
+    
+    if(error)
+      stop(
+        paste(
+          'ERROR:: mass balance (should be zero) = ',
+          mass_balance
+        )
+      )
   }
 }
 
