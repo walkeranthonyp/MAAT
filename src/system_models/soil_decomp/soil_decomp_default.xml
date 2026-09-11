@@ -1,10 +1,9 @@
 <default>
   <fnames>
     <soil_decomp>
-      <sys>'f_sys_npools'</sys>
-      <!--sys>'f_steadystate_npools'</sys-->
+      <sys>'f_sys_npools_lossfluxes'</sys>
       <solver>'plsoda'</solver>
-      <solver_func>'f_solver_func_soilR_outfluxes'</solver_func>
+      <solver_func>'f_solver_func_soilR_outfluxes_lossfluxes'</solver_func>
       <steadystate>'f_steadystate_npools'</steadystate>
       <solver_steadystate>'pstode'</solver_steadystate>
       <input>'f_input'</input>
@@ -199,6 +198,9 @@
         <k8>0.0015</k8>
         <k9>0.02</k9>
       </k>
+      <k_exp> 
+        <nada>NA</nada>
+      </k_exp> 
       <cat_pool>
         <cat_pool1>2</cat_pool1>
         <cat_pool2>NA</cat_pool2>
@@ -261,15 +263,15 @@
         <cue9>0.33</cue9>
       </cue>
       <cue2>
-        <cue1>NA</cue1>
-        <cue2>NA</cue2>
-        <cue3>NA</cue3>
-        <cue4>NA</cue4>
-        <cue5>NA</cue5>
-        <cue6>NA</cue6>
-        <cue7>NA</cue7>
-        <cue8>NA</cue8>
-        <cue9>NA</cue9>
+        <cue21>NA</cue21>
+        <cue22>NA</cue22>
+        <cue23>NA</cue23>
+        <cue24>NA</cue24>
+        <cue25>NA</cue25>
+        <cue26>NA</cue26>
+        <cue27>NA</cue27>
+        <cue28>NA</cue28>
+        <cue29>NA</cue29>
       </cue2>
       <cue3>
         <nada>NA</nada>
@@ -284,8 +286,8 @@
   </pars>
   <env>
     <soil_decomp>
-      <litter>0.000473692602739726</litter>
-      <anpp>0</anpp>
+      <litter>0.000474</litter>
+      <anpp>12000</anpp>
       <lignin>0</lignin>
       <N>0</N>
       <temp>11.21961</temp>

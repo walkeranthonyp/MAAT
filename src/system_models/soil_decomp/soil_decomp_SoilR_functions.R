@@ -4,7 +4,7 @@
 # - based entirely on functions in SoilR package functions modifed to work with proto objects and MAAT    
 # 
 # Carlos Sierra, Markus Mueller (SoilR developers) 
-# AWalker, Matt Craig, October 2019 
+# AWalker, Matt Craig, October 2019 onwards; Hannah DeHetre, August 2026  
 #
 ################################
 
@@ -119,18 +119,85 @@ f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
 }
 
 
-# calculates loss fluxes after solver has run
+# as above but calculates respiration and other loss fluxes
+# - by temporarily assigning them a pool to accumulate the loss fluxes 
+f_solver_func_soilR_outfluxes_lossfluxes <- function(., t, y, parms ) {
+  #print(y)
+  
+  # calculate outfluxes
+  .$outfluxes(y,t)
+  #print(unlist(.super$state$outflux)) 
+ 
+  # calculate soilR terms
+  tm    <- .$transfermatrix(y,t)
+  do    <- .$DotO(y,t) 
+  input <- .$input(t)
+  #print('Initial soilR terms:')
+  #print(tm); print(do); print(input) 
+
+  # incorporate loss fluxes in soilR terms
+  if(!parms$steadystate) { 
+    n_loss_fluxes <- .super$state_pars$n_loss_fluxes 
+    lfm           <- .super$state_pars$lfm 
+    # - simple add zeros for do and input 
+    do    <- rbind(do, lfm )
+    input <- rbind(input, lfm ) 
+    # - add rows and cols to transfer matrix
+    tm_add_cols    <- matrix(0, nrow=.super$pars$n_pools+n_loss_fluxes , ncol=n_loss_fluxes ) 
+    pool_loss_frac <- abs(apply(tm, 2, sum ))
+    tm_add_rows    <- matrix(pool_loss_frac, nrow=1 )
+    if(n_loss_fluxes!=1) {
+      tm_add_rows0   <- tm_add_rows 
+      tm_add_rows0[] <- 0 
+      for(i in 1:.super$pars$n_pools) { 
+        flux_from_pool_ids <- unlist(.super$pars[[paste0('decomp_outflux',i)]])
+        for(of in flux_from_pool_ids) { 
+          if(of==.super$pars$leaching_outflux) {
+            target_flux_prop <- 
+              if(length(flux_from_pool_ids)==1) 1
+              else {
+                fluxes_from_pool <- unlist(.super$state$outflux)[flux_from_pool_ids] 
+                fluxes_from_pool[which(flux_from_pool_ids==of)] / sum(fluxes_from_pool) 
+              } 
+            #print(fluxes_from_pool)
+            #print(target_flux_prop)
+            tm_add_rows      <- rbind(tm_add_rows,tm_add_rows0) 
+            tm_add_rows[1,i] <- tm_add_rows[1,i] - target_flux_prop 
+            tm_add_rows[dim(tm_add_rows)[1],i] <- target_flux_prop 
+          }  
+      }}
+    } 
+    tm_add_rows[tm_add_rows<1e-15] <- 0 
+    tm <- rbind(tm,tm_add_rows )
+    tm <- cbind(tm,tm_add_cols )
+    #print('Augmented soilR terms:')
+    #print(tm); print(do); print(input) 
+  }
+ 
+  # cacluate soilR function 
+  YD = tm %*% do + input 
+  #print(YD) 
+  #print(list(as.vector(YD)))
+  if(is.na(sum(as.vector(YD)))) stop('NAs in SoilR solver function.')
+  list(as.vector(YD))
+}
+
+
+
+# calculates instantaneous loss fluxes after steadystate solver has run
+# - good for steady-state mass balance check but not dynamic which needs integrated loss fluxes 
 f_calc_loss_fluxes <- function(.) {
 
   # calculate loss fractions for each pool from transfer matrix
-  # - 1,1 arguments to tm and doto are dummy args, if those functions use C pools as arguments would need to pass that info
+  # - 1,1 arguments to tm and ,1 doto are dummy args
   .super$state_pars$transfer_matrix    <- .$transfermatrix(1,1)
-  .super$state_pars$flux_matrix        <- t(as.numeric(.$DotO(1,1))*t(.super$state_pars$transfer_matrix))
+  .super$state_pars$total_fluxes       <- as.numeric(.$DotO(.super$state$cpools[,1], 1 ))
+  .super$state_pars$flux_matrix        <- t(.super$state_pars$total_fluxes*t(.super$state_pars$transfer_matrix))
   pool_loss_frac                       <- abs(apply(.super$state_pars$transfer_matrix, 2, sum ))
   pool_loss_frac[pool_loss_frac<1e-15] <- 0 
 
   # sum pool fluxes multiplied by loss fractions
-  pool_loss_total <- pool_loss_frac * as.numeric(.$DotO(1,1)) 
+  pool_loss_total <- pool_loss_frac * .super$state_pars$total_fluxes
 
   # assign losses
   .super$state$leaching    <- 0
@@ -147,29 +214,27 @@ f_calc_loss_fluxes <- function(.) {
     print(.super$state_pars$transfer_matrix)
     print('pool loss frac.:')
     print(pool_loss_frac) 
-    print('pool summed outflux:')
-    print(as.numeric(.$DotO(1,1) )) 
     print('pool loss abs.:')
     print(pool_loss_total)
-    print('leaching:')
-    print(.super$state$leaching) 
     print('respiration:')
     print(.super$state$respiration) 
+    print('leaching:')
+    print(.super$state$leaching) 
   }
 }
 
 
-f_mass_balance <- function(., steadystate=F ) {
+f_mass_balance <- function(., steadystate=T ) {
 
-  input    <- .super$env$litter # + .super$env$cwd_input
+  input    <- sum(.$input()) 
   output   <- .super$state$respiration + .super$state$leaching 
   previous <- sum(.super$state_pars$previous_state)
   current  <- sum(.super$state$cpools)
 
+  # at steady state inputs = outputs
   mass_balance <- .super$state_pars$mass_balance <-  
     if(steadystate) input - output
     else            input - output - (current - previous)
-
   error <- abs(mass_balance) > .super$pars$error_tolerance
 
   if(error|.super$cpars$verbose) {
@@ -185,19 +250,10 @@ f_mass_balance <- function(., steadystate=F ) {
     print(previous) 
     print('delta state sum:') 
     print(current-previous) 
-    print('delta state sum + input:') 
-    print(current-previous+input) 
-    print('flux matrix:')
-    print(.super$state_pars$flux_matrix)
-    print('flux matrix pools delta:')
-    print(apply(.super$state_pars$flux_matrix,1,sum))
-    print('actual pools delta:')
-    print(as.numeric(.super$state$cpools-.super$state_pars$previous_state))
     print('mass balance:') 
     print(mass_balance) 
-
-    if(error) stop(paste('ERROR:: mass balance (should be zero) = ', mass_balance )) 
   }
+  if(error) stop(paste('ERROR:: mass balance (should be zero) = ', mass_balance )) 
 }
 
 

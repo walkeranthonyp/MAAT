@@ -1,19 +1,8 @@
 <default>
   <fnames>
     <soil_decomp>
-      <sys>'f_steadystate_npools'</sys>
-      <solver>'plsoda'</solver>
-      <solver_func>'f_solver_func_soilR_outfluxes'</solver_func>
-      <steadystate>'f_steadystate_npools'</steadystate>
-      <solver_steadystate>'pstode'</solver_steadystate>
       <input>'f_input_clm5'</input>
-      <DotO>'f_DotO'</DotO>
-      <transfermatrix>'f_transfermatrix'</transfermatrix>
-      <transfer_fluxsum_prop>'f_transfer_fluxsum_prop'</transfer_fluxsum_prop>
-      <outfluxes>'f_outfluxes'</outfluxes>
-      <calc_state_pars>'f_calc_state_pars_generic'</calc_state_pars>
       <calc_state_pars_unique>'f_calc_state_pars_century'</calc_state_pars_unique>
-      <calc_loss_fluxes>'f_calc_loss_fluxes'</calc_loss_fluxes>
       <decomp>
         <d1>'f_decomp_outflux'</d1>
         <d2>'f_decomp_outflux'</d2>
@@ -73,6 +62,7 @@
     <soil_decomp>
       <n_pools>7</n_pools>
       <n_outfluxes>7</n_outfluxes>
+      <leaching_outflux>NA</leaching_outflux>
       <decomp_outflux1>
         <dof11>1</dof11>
       </decomp_outflux1>
@@ -103,15 +93,6 @@
         <input_coef6>0</input_coef6>
         <input_coef7>0</input_coef7>
       </input_coef>
-      <cstate0>
-        <cstate01>0.1</cstate01>
-        <cstate02>0.1</cstate02>
-        <cstate03>0.1</cstate03>
-        <cstate04>0.1</cstate04>
-        <cstate05>0.1</cstate05>
-        <cstate06>0.1</cstate06>
-        <cstate07>0.1</cstate07>
-      </cstate0>
       <cue>
         <cue1>0.76</cue1>
         <cue2>0.45</cue2>

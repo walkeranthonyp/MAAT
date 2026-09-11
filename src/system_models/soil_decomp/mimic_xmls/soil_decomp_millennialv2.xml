@@ -1,18 +1,6 @@
 <default>
   <fnames>
     <soil_decomp>
-      <sys>'f_steadystate_npools'</sys>
-      <solver>'plsoda'</solver>
-      <solver_func>'f_solver_func_soilR_outfluxes'</solver_func>
-      <steadystate>'f_steadystate_npools'</steadystate>
-      <solver_steadystate>'pstode'</solver_steadystate>
-      <input>'f_input'</input>
-      <DotO>'f_DotO'</DotO>
-      <transfermatrix>'f_transfermatrix'</transfermatrix>
-      <transfer_fluxsum_prop>'f_transfer_fluxsum_prop'</transfer_fluxsum_prop>
-      <outfluxes>'f_outfluxes'</outfluxes>
-      <calc_state_pars>'f_calc_state_pars_generic'</calc_state_pars>
-      <calc_loss_fluxes>'f_calc_loss_fluxes'</calc_loss_fluxes>
       <decomp>
         <d1>'f_decomp_fluxsum'</d1>
         <d2>'f_decomp_fluxsum'</d2>
@@ -173,6 +161,7 @@
   </pars>
   <env>
     <soil_decomp>
+      <litter>0.000473692602739726</litter>
       <temp>11.21961</temp>
       <vwc>0.2422044</vwc>
       <matpot>15</matpot>

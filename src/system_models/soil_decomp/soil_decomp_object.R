@@ -9,7 +9,6 @@
 library(proto)
 source('soil_decomp_functions.R')
 source('soil_decomp_SoilR_functions.R')
-#source('soil_decomp_solver_functions.R')
 source('soil_decomp_system_functions.R')
 source('../../functions/packagemod_functions_deSolve.R')
 source('../../functions/packagemod_functions_rootSolve.R')
@@ -70,20 +69,20 @@ soil_decomp_object$init  <- function(.) {
 soil_decomp_object$fnames <- list(
 
   # generic functions
-  sys                    = 'f_sys_npools',                    # if f_steadystate_npools selected, solver_steadystate automatically used  
-  solver                 = 'plsoda',                          # solver to use for below solver function 
-  solver_func            = 'f_solver_func_soilR_outfluxes',   # solver function to solve matrix equations
-  steadystate            = 'f_steadystate_npools',            # solver function to solve for steady state, options: 'f_steadystate_null','f_steadystate_npools',
-  solver_steadystate     = 'pstode',                          # solver to use for steady state solution 
-  input                  = 'f_input',                         # input function
-  DotO                   = 'f_DotO',                          # pool decomp matrix  
-  transfermatrix         = 'f_transfermatrix',                # transfer matrix
-  transfer_fluxsum_prop  = 'f_transfer_fluxsum_prop',         # generic function to calculate flux proportions
-  outfluxes              = 'f_outfluxes',                     # generic function to calculate each outflux
-  calc_state_pars        = 'f_calc_state_pars_generic',       # generic function to calculate state paramters
-  calc_state_pars_unique = NA,                                # function to calculate model-specific state parameters 
-  calc_loss_fluxes       = 'f_calc_loss_fluxes',              # function to calculate loss fluxes, i.e. respiration & leaching currently
-  mass_balance           = 'f_mass_balance',                  # function to calculate mass balance error
+  sys                     = 'f_sys_npools',                               # if f_steadystate_npools selected, solver_steadystate automatically used  
+  solver                  = 'plsoda',                                     # solver to use for dynamic solution 
+  solver_func             = 'f_solver_func_soilR_outfluxes_lossfluxes',   # solver function to solve matrix equations
+  steadystate             = 'f_steadystate_npools',                       # system function to solve for steady state, options: 'f_steadystate_null','f_steadystate_npools',
+  solver_steadystate      = 'pstode',                                     # solver to use for steady state solution 
+  input                   = 'f_input',                         # input function
+  DotO                    = 'f_DotO',                          # pool decomp matrix  
+  transfermatrix          = 'f_transfermatrix',                # transfer matrix
+  transfer_fluxsum_prop   = 'f_transfer_fluxsum_prop',         # generic function to calculate flux proportions
+  outfluxes               = 'f_outfluxes',                     # generic function to calculate each outflux
+  calc_state_pars         = 'f_calc_state_pars_generic',       # generic function to calculate state paramters
+  calc_state_pars_unique  = NA,                                # function to calculate model-specific state parameters 
+  calc_loss_fluxes        = 'f_calc_loss_fluxes',              # function to calculate loss fluxes, i.e. respiration & leaching currently
+  mass_balance            = 'f_mass_balance',                  # function to calculate mass balance error
  
   # decay/decomposition/flux functions, one per pool
   # - these functions represent the total flux out of a given pool
@@ -198,8 +197,8 @@ soil_decomp_object$fnames <- list(
 ####################################
 soil_decomp_object$env <- list(
   # litter input, ANPP, and litter quality  
-  litter     = 172.8978/365/1000, # litter input     (g C cm-3 soil)   
-  anpp       = 0,            # aboveground NPP  (??)
+  litter     = 0.000474,     # litter input     (g C cm-3 soil)  approx. 172.8978/365/1000 from testing Millennial v2 
+  anpp       = 12000,        # aboveground NPP, for MIMICS  (??)
   lignin     = 0,            # litter lignin fraction (proportion)
   N          = 0,            # litter N content (g N per ???)   
   # physical environment
@@ -212,7 +211,6 @@ soil_decomp_object$env <- list(
   matpot_min = 10,           # minimum matric potential, i.e. wilting point (MPa maybe?) 
   pH         = 7,            # soil pH (pH units) 
   depth      = 0             # soil layer depth (cm) APW: increment? lower bound?
-  #BD         = 1000,         # bulk density (mg cm-3) 
 )
 
 
@@ -232,8 +230,11 @@ soil_decomp_object$state_pars <- list(
   solver_steadystate_out = matrix(1),           # output from steady state solver
   transfer_matrix        = matrix(1),           # transfer matrix
   flux_matrix            = matrix(1),           # matrix of internal fluxes from/to pools (diagonal is gross loss from pool, off-diag is flux from col pool to row pool, row-sums are net change in pool from internal fluxes i.e. not including inputs but including outputs) 
+  total_fluxes           = numeric(1),          # gross fluxes from each pool, a vector npools long 
   previous_state         = matrix(1),           # previous timestep state
   mass_balance           = numeric(1),          # result from mass balance calculation
+  n_loss_fluxes          = numeric(1),          # number of loss fluxes (respiration, leaching, ... ) 
+  lfm                    = matrix(1),           # loss flux matrix, one col matrix of zeros
 
   # state pars lists of calculated parameters
   # - see above fnames lists of the same name for description
@@ -387,7 +388,7 @@ soil_decomp_object$pars <- list(
   ),
 
   # exponent in k calculation Wieder
-  k_exp = list(),  
+  k_exp = list(NA),  
 
   # catalyst pool for a given outflux
   cat_pool = list(
@@ -465,15 +466,15 @@ soil_decomp_object$pars <- list(
   
   # additional carbon use or transfer efficiency for outflux 
   cue2 = list( 
-    cue1 = NA,       
-    cue2 = NA,       
-    cue3 = NA,
-    cue4 = NA,
-    cue5 = NA,
-    cue6 = NA,
-    cue7 = NA,
-    cue8 = NA,
-    cue9 = NA
+    cue21 = NA,       
+    cue22 = NA,       
+    cue23 = NA,
+    cue24 = NA,
+    cue25 = NA,
+    cue26 = NA,
+    cue27 = NA,
+    cue28 = NA,
+    cue29 = NA
   ),  
 
   # another additional carbon use or transfer efficiency for outflux 
@@ -535,14 +536,14 @@ f_output_soil_decomp_full <- function(.) {
 
 soil_decomp_object$.test <- function(., 
   verbose=F, metdf=F, ntimes=100, sigfig=3,
-  steadystate=F, 
-  litter=.00016, anpp=500*24 
+  steadystate=F, mod_mimic=NULL, 
+  litter=NA, anpp=500*24 
   ) {
 
   if(verbose) str(.)
-  .$build(switches=c(F,verbose,F))
+  .$build(switches=c(F,verbose,F), mod_mimic=mod_mimic )
   if(steadystate) .$fnames$sys <- 'f_steadystate_npools'
-  .$configure_test() # if only used in test functions should begin with a .
+  .$configure_test() # APW: if only used in test functions should begin with a .
 
   if(metdf) {
     .$dataf       <- list()
@@ -554,8 +555,8 @@ soil_decomp_object$.test <- function(.,
     print('')  
     signif(.$run_met(), sigfig )
   } else {
-    .$env$litter  <- litter
-    .$env$anpp    <- anpp 
+    if(!is.na(litter)) .$env$litter <- litter
+    .$env$anpp <- anpp 
     print('')  
     signif(.$run(), sigfig )
   }
@@ -563,412 +564,270 @@ soil_decomp_object$.test <- function(.,
 
 
 
-soil_decomp_object$.test.mimics.ss <- function(., verbose=F, metdf=F, litter=172/365, ntimes=100 ) {
-  
-  if(verbose) str(.)
-  .$build(switches=c(F,verbose,F))
-  .$configure_test() # if only used in test functions should begin with a .
-  
-    .$fnames <- list(
-        sys            = 'f_sys_npools',
-        solver         = 'plsoda',
-        solver_func    = 'f_solver_func_mimics',
-        input          = 'f_input_mimics',
-        steadystate        = 'f_steadystate_npools',
-        solver_steadystate = 'pstode',
-        decomp = list(
-          d1 = 'f_decomp_rmm_wieder', #reverse michaelis menten (function accounts for two potential catalyst pools)
-          d2 = 'f_decomp_rmm_wieder', 
-          d3 = 'f_decomp_lin', #linear turnover of r-selected microbial biomass 
-          d4 = 'f_decomp_lin', #linear turnover of k-selected microbial biomass
-          d6 = 'f_decomp_rmm_wieder',
-          d7 = 'f_decomp_rmm_wieder'
-        ),
-        desorp = list(
-          ds5 = 'f_decomp_lin'
-        ),
-        tcor = list(
-          t1 = 'f_tcor_wieder'
-        )
-      )
-    .$pars <- list(
-      n_pools = 7,          # number of pools in model  
-      
-      # initial pool mass for each pool
-      # values are equilibrium calculated with stode function in DeSolve script
-      cstate0 = list(
-        cstate01 = 0.7, 
-        cstate02 = 4,          
-        cstate03 = .09,      
-        cstate04 = .2,       
-        cstate05 = 2.54,
-        cstate06 = 2.32,
-        cstate07 = 1.5
-      ),
-      
-      # Carbon use efficiency from pool i r-microbes (cue) or k-microbes (cue2)
-      cue = list(
-        cue1 = .5,       
-        cue2 = .25,  
-        cue3 = 0,
-        cue4 = 0,
-        cue5 = 0,
-        cue6 = 0,
-        cue7 = .5
-      ),  
-      
-      cue2 = list(
-        cue1 = .7,       
-        cue2 = .35, 
-        cue3 = 0,
-        cue4 = 0,
-        cue5 = 0,
-        cue6 = 0,
-        cue7 = .7
-      ),  
-      
-      # max turnover rate per unit r-(vmax) or k-(vmax) microbial biomass for pool i
-      vmax = list(
-        vmax1 = 10, 
-        vmax2 = 2,
-        vmax3 = 0,
-        vmax4 = 0,
-        vmax5 = 0,
-        vmax6 = 0,
-        vmax7 = 10
-      ),
-      
-      vmax2 = list( #vmax for second catalyst (i.e. k-selected microbes)
-        vmax1 = 3, 
-        vmax2 = 3,
-        vmax3 = 0,
-        vmax4 = 0,
-        vmax5 = 0,
-        vmax6 = 0,
-        vmax7 = 2
-      ),
-      
-      # michaelis-menten half-saturation constant for microbial decomp of pool i for r-(km) and
-      # k-(km2) selected microbes
-      km = list(   
-        km1 = 8,   
-        km2 = 2,
-        km3 = 0,
-        km4 = 0,
-        km5 = 0,
-        km6 = 0,
-        km7 = 4
-      ),
-      
-      km2 = list(   #km for second catalyst (i.e. k-selected microbes)
-        km1 = 2,   
-        km2 = 4,
-        km3 = 0,
-        km4 = 0,
-        km5 = 0,
-        km5 = 0,
-        km7 = 6
-      ),
-      
-      # turnover rate for linear decomposition
-      k = list(
-        k1 = 0,
-        k2 = 0,
-        k3 = NULL, #calculated by MIMICS solver function 
-        k4 = NULL, #calculated by MIMICS solver function 
-        k5 = NULL,  #calculated by MIMICS solver function 
-        k6 = 0,
-        k7 = 0
-      ),
-      
-      #mimics-specific parameters
-      mimics = list(
-        fmet_p1 = .5,       # These three parameters used to calculate fmet 
-        fmet_p2 = .85,      # fmet partitions litter between structural and metabolic pools
-        fmet_p3 = .013,     # These parameters relate lignin/N of litter to fmet
-        tau_mod1_p1 = 100,  # "tau_" parameters used to calculate turnover of microbial biomass pools
-        tau_mod1_p2 = .6,   #
-        tau_mod1_p3 = 1.3,  #
-        tau_r_p1 = .00052,  #
-        tau_r_p2 = .3,      #
-        tau_mod2 = 2*24,       #
-        tau_k_p1 = .00024,  #
-        tau_k_p2 = .1,      #
-        desorb_p1 = .00002*24, # "desorb_" parmeters caluclate desorption of SOMp pool based on clay content 
-        desorb_p2 = -4.5,   #
-        fSOMp_r_p1 = .15,   # "fSOM..." parameters control transfers of microbial necromass to the three SOM pools
-        fSOMp_r_p2 = 1.3,   # based on clay or fmet parameter
-        fSOMc_r_p1 = .1,    #
-        fSOMc_r_p2 = -3,    #
-        fSOMc_r_p3 = 1,     #
-        fSOMp_k_p1 = .1,    #
-        fSOMp_k_p2 = .8,    #
-        fSOMc_k_p1 = .3,    #
-        fSOMc_k_p2 = -3,    #
-        fSOMc_k_p3 = 1,     #
-        V_slope = .063,     # Vmax temp sensitivity--slope of relationship between temp and ln(Vmax)
-        V_int = 5.47,       # Vmax temp sensitivity--intercept of relationship between temp and ln(Vmax)
-        aV = .000000125*24,    # Tuning coefficient for Vmax 
-        pscalar_p1 = 3,     # "pscalar" determines effect of clay on Km for decomp of SOMa pool
-        pscalar_p2 = -2,    #
-        ko_r = 6,           # tunes Km for decomp of SOMc pool
-        ko_k = 6,           #
-        K_slope = .02,      # temp sensitivity of Km parameter (slope)
-        K_int = 3.19,       # temp sensitivity of Km parameter (intercept)
-        aK = .15625,        # temp sensitivity of Km parameter (tuning coefficient)
-        fi_LITm = .005,     # fraction of metabolic litter input transferred to SOMp
-        fi_LITs = .005      # fraction of structural litter input transferred to SOMc
-      )
-    )
-    .$env <- list(
-      temp   = 20,          # soil temperature
-      clay = .05,            # proportion clay (i.e. .4 = 40%) #default = .4, changed to .05 to match CORPSE
-      lignin = 16.6,        # Lignin concentration of litter inputs (units must be same as N (%))
-      N = 1.37,             # N concentration of litter inputs (units must be same as lignin (%))
-      anpp = 500*24,           # ANPP (gC / m^2 / y) 
-      depth = 20           # depth (cm)
-    )
-    
-    .$run()
-}
-
-
-soil_decomp_object$.test_ctc <- function(., verbose=F, metdf=F, 
-                                         litter=1, ntimes=1 ) {
-  
-  if(verbose) str(.)
-  .$build(switches=c(F,verbose,F))
-  
-  .$fnames <- list(
-    sys                = 'f_sys_npools',
-    solver             = 'plsoda',
-    solver_func        = 'f_solver_func_elmv2ctc',
-    # input              = 'f_input_mimics',
-    steadystate        = 'f_steadystate_npools',
-    solver_steadystate = 'pstode',
-    decomp = list(
-      d1 = 'f_decomp_lin', 
-      d2 = 'f_decomp_lin', 
-      d3 = 'f_decomp_lin', 
-      d4 = 'f_decomp_lin', 
-      d5 = 'f_decomp_lin',
-      d6 = 'f_decomp_lin',
-      d7 = 'f_decomp_lin'
-    )
-  )
-  
-  .$pars <- list(
-    n_pools = 7,          # number of pools in model  
-    
-    # initial pool mass for each pool
-    # values are equilibrium calculated with stode function in DeSolve script
-    cstate0 = list(
-      cstate01 = 0.1, 
-      cstate02 = 0.1,          
-      cstate03 = 0.1,      
-      cstate04 = 0.1,       
-      cstate05 = 0.1,
-      cstate06 = 0.1,
-      cstate07 = 0.1
-    ),
-    
-    # Carbon use efficiency from pool i r-microbes (cue) or k-microbes (cue2)
-    cue = list(
-      cue1 = 1.0,       
-      cue2 = 0.61,  
-      cue3 = 0.45,
-      cue4 = 0.71,
-      cue5 = 0.72,
-      cue6 = 0.54,
-      cue7 = 0
-    ),  
-
-    # turnover rate for linear decomposition
-    k = list(
-      k1 = .001,
-      k2 = .7,
-      k3 = .07,
-      k4 = .014,
-      k5 = .07,
-      k6 = .014,
-      k7 = .0005
-    )
-  )
-  
-  .$env <- list(
-    litter = 1
-  )
-  
-  .$configure_test() # if only used in test functions should begin with a .
-  
-  .$run()
-}
-
-
-
-soil_decomp_object$.test_corpse <- function(., verbose=F, metdf=F, litter=.001369863, ntimes=100 ) {
-  
-  if(verbose) str(.)
-  .$build(switches=c(F,verbose,F))
-  .$configure_test() # if only used in test functions should begin with a .
-
-  
-  if(metdf) {
-    .$dataf       <- list()
-    if(length(litter)==1) litter <- rep(litter, ntimes )   
-    .$dataf$metdf <- matrix(litter, nrow=1 )
-    rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-    .$dataf$lm    <- length(.$dataf$metdf[1,])
-    .$dataf$mout  <- .$output()
-    .$run_met()
-  } else {
-    .$env$litter  <- litter
-    .$run()
-  }
-}
-
-# soil_decomp_object$.test_changepool <- function(., verbose=F, metdf=F, litter=.00016, ntimes=100, n_pool=3) {
-#   
-#   if(verbose) str(.)
-#   .$build(switches=c(F,verbose,F))
-#   .$pars$n_pools = n_pool #.$build_pool_structure 
-#   .$fnames$transfer$t1_to_2 <- 'f_transfer_cue'
-#   .$fnames$transfer$t1_to_3 <- 'f_transfer_zero'
-#   .$fnames$transfer$t2_to_1 <- 'f_transfer_zero'
-#   .$fnames$transfer$t2_to_3 <- 'f_transfer_all'
-#   .$fnames$transfer$t3_to_1 <- 'f_transfer_zero'
-#   .$fnames$transfer$t3_to_2 <- 'f_transfer_cue'
-#   .$fnames$decomp$d1 <- 'f_decomp_MM_microbe'
-#   .$fnames$decomp$d2 <- 'f_decomp_lin'
-#   .$fnames$decomp$d3 <- 'f_decomp_MM_microbe'
-#   .$configure_test() # if only used in test functions should begin with a .
-#   
-#   if(metdf) {
-#     .$dataf       <- list()
-#     if(length(litter)==1) litter <- rep(litter, ntimes )   
-#     .$dataf$metdf <- matrix(litter, nrow=1 )
-#     rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-#     .$dataf$lm    <- length(.$dataf$metdf[1,])
-#     .$dataf$mout  <- .$output()
-#     .$run_met()
-#   } else {
-#     .$env$litter  <- litter
-#     .$run()
-#   }
-# }
-
-
-# soil_decomp_object$.test_3pool <- function(., verbose=F, metdf=F, litter=0.00384, ntimes=365, time=T ) {
-# 
-#   if(verbose) str(.)
-#   .$build(switches=c(F,verbose,F))
-#   soil_decomp_object$pars$n_pools = 3 
-# 
-#   .$configure_test() # if only used in test functions should begin with a .
-# 
-#   # initialise boundary data 
-#   .$dataf       <- list()
-#   if(length(litter)==1) litter <- rep(litter, ntimes )   
-#   .$dataf$metdf <- matrix(litter, nrow=1 )
-#   rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-#   .$dataf$lm    <- length(.$dataf$metdf[1,])
-#   .$dataf$mout  <- .$output()
-# 
-#   ### Run models
-#   olist <- list()
-#   # run default no saturation or DD model
-#   print('')
-#   print('')
-#   print('Config: 1')
-#   print('')
-#   olist$noSaturation  <- .$run_met()
-# 
-#   # saturating MAOM
-#   print('')
-#   print('')
-#   print('Config: 2')
-#   print('')
-#   .$fnames$transfer$t2_to_3 <- 'f_transfer_cue_sat'
-#   .$configure_test() 
-#   olist$MaomMax       <- .$run_met()
-# 
-#   # denisty dependent microbial turnover 
-#   print('')
-#   print('')
-#   print('Config: 3')
-#   print('')
-#   .$fnames$transfer$t2_to_3 <- 'f_transfer_cue'
-#   .$fnames$decomp$d2        <- 'f_decomp_dd_georgiou'
-#   .$configure_test() 
-#   olist$DDturnover    <- .$run_met()
-# 
-#   # denisty dependent microbial cue 
-#   print('')
-#   print('')
-#   print('Config: 4')
-#   print('')
-#   .$fnames$transfer$t1_to_2 <- 'f_transfer_cue_sat'
-#   .$fnames$transfer$t3_to_2 <- 'f_transfer_cue_sat'
-#   .$fnames$decomp$d2        <- 'f_decomp_lin'
-#   .$configure_test() 
-#   olist$DDcue         <- .$run_met()
-# 
-#   # denisty dependent microbial turnover and cue 
-#   print('')
-#   print('')
-#   print('Config: 5')
-#   print('')
-#   .$fnames$decomp$d2        <- 'f_decomp_dd_georgiou'
-#   .$configure_test() 
-#   olist$DDturnover.DDcue <- .$run_met()
-# 
-#   # denisty dependent microbial turnover and cue and MAOM saturation 
-#   print('')
-#   print('')
-#   print('Config: 6')
-#   print('')
-#   .$fnames$transfer$t2_to_3 <- 'f_transfer_cue_sat'
-#   .$configure_test() 
-#   olist$DDturnover.DDcue.MaomMax <- .$run_met()
-# 
-# 
-#   # plotting functions
-#   thp_plot_time <- function(mod) {
-#     ylab <- expression('Pool C mass ['*gC*' '*m^-2*']')
-#     matplot(1:dim(mod)[1], mod[,1:3], type='l', ylab=ylab, xlab='Days', lty=1,
-#             ylim=c(0,max(mod)*1.2), col=1:3,main=deparse(substitute(mod)) )
-#     legend('topleft', c('POM','MB','MAOM'), lty=1, col=1:3, bty='n')
-#   }
+#soil_decomp_object$.test.mimics.ss <- function(., verbose=F, metdf=F, litter=172/365, ntimes=100 ) {
 #  
-#   thp_plot_MBC <- function(mod) {
-#     matplot(mod[,2], mod[,c(1,3)], type='l', ylab=ylab, xlab='MB C mass', lty=1,
-#             xlim=c(0,max(mod[,2])),
-#             ylim=c(0,max(mod)*1.2), col=1:2, main=deparse(substitute(mod)) )
-#     legend('topleft', c('POM','MAOM'), lty=1, col=1:2, bty='n')
-#   }
-#   
-#   par(mfrow = c(2,3))
-#   if(time) { 
-#     ## plotting versus time
-#     thp_plot_time(olist$noSaturation)
-#     thp_plot_time(olist$MaomMax)
-#     thp_plot_time(olist$DDturnover)
-#     thp_plot_time(olist$DDcue)
-#     thp_plot_time(olist$DDturnover.DDcue)
-#     thp_plot_time(olist$DDturnover.DDcue.MaomMax)
-#   } else {  
-#     # plotting pools vs MBC
-#     thp_plot_MBC(olist$noSaturation)
-#     thp_plot_MBC(olist$MaomMax)
-#     thp_plot_MBC(olist$DDturnover)
-#     thp_plot_MBC(olist$DDcue)
-#     thp_plot_MBC(olist$DDturnover.DDcue)
-#     thp_plot_MBC(olist$DDturnover.DDcue.MaomMax)
-#   }
-# 
-#   olist
-# }
-#   
-# 
+#  if(verbose) str(.)
+#  .$build(switches=c(F,verbose,F))
+#  .$configure_test() # if only used in test functions should begin with a .
+#  
+#    .$fnames <- list(
+#        sys            = 'f_sys_npools',
+#        solver         = 'plsoda',
+#        solver_func    = 'f_solver_func_mimics',
+#        input          = 'f_input_mimics',
+#        steadystate        = 'f_steadystate_npools',
+#        solver_steadystate = 'pstode',
+#        decomp = list(
+#          d1 = 'f_decomp_rmm_wieder', #reverse michaelis menten (function accounts for two potential catalyst pools)
+#          d2 = 'f_decomp_rmm_wieder', 
+#          d3 = 'f_decomp_lin', #linear turnover of r-selected microbial biomass 
+#          d4 = 'f_decomp_lin', #linear turnover of k-selected microbial biomass
+#          d6 = 'f_decomp_rmm_wieder',
+#          d7 = 'f_decomp_rmm_wieder'
+#        ),
+#        desorp = list(
+#          ds5 = 'f_decomp_lin'
+#        ),
+#        tcor = list(
+#          t1 = 'f_tcor_wieder'
+#        )
+#      )
+#    .$pars <- list(
+#      n_pools = 7,          # number of pools in model  
+#      
+#      # initial pool mass for each pool
+#      # values are equilibrium calculated with stode function in DeSolve script
+#      cstate0 = list(
+#        cstate01 = 0.7, 
+#        cstate02 = 4,          
+#        cstate03 = .09,      
+#        cstate04 = .2,       
+#        cstate05 = 2.54,
+#        cstate06 = 2.32,
+#        cstate07 = 1.5
+#      ),
+#      
+#      # Carbon use efficiency from pool i r-microbes (cue) or k-microbes (cue2)
+#      cue = list(
+#        cue1 = .5,       
+#        cue2 = .25,  
+#        cue3 = 0,
+#        cue4 = 0,
+#        cue5 = 0,
+#        cue6 = 0,
+#        cue7 = .5
+#      ),  
+#      
+#      cue2 = list(
+#        cue1 = .7,       
+#        cue2 = .35, 
+#        cue3 = 0,
+#        cue4 = 0,
+#        cue5 = 0,
+#        cue6 = 0,
+#        cue7 = .7
+#      ),  
+#      
+#      # max turnover rate per unit r-(vmax) or k-(vmax) microbial biomass for pool i
+#      vmax = list(
+#        vmax1 = 10, 
+#        vmax2 = 2,
+#        vmax3 = 0,
+#        vmax4 = 0,
+#        vmax5 = 0,
+#        vmax6 = 0,
+#        vmax7 = 10
+#      ),
+#      
+#      vmax2 = list( #vmax for second catalyst (i.e. k-selected microbes)
+#        vmax1 = 3, 
+#        vmax2 = 3,
+#        vmax3 = 0,
+#        vmax4 = 0,
+#        vmax5 = 0,
+#        vmax6 = 0,
+#        vmax7 = 2
+#      ),
+#      
+#      # michaelis-menten half-saturation constant for microbial decomp of pool i for r-(km) and
+#      # k-(km2) selected microbes
+#      km = list(   
+#        km1 = 8,   
+#        km2 = 2,
+#        km3 = 0,
+#        km4 = 0,
+#        km5 = 0,
+#        km6 = 0,
+#        km7 = 4
+#      ),
+#      
+#      km2 = list(   #km for second catalyst (i.e. k-selected microbes)
+#        km1 = 2,   
+#        km2 = 4,
+#        km3 = 0,
+#        km4 = 0,
+#        km5 = 0,
+#        km5 = 0,
+#        km7 = 6
+#      ),
+#      
+#      # turnover rate for linear decomposition
+#      k = list(
+#        k1 = 0,
+#        k2 = 0,
+#        k3 = NULL, #calculated by MIMICS solver function 
+#        k4 = NULL, #calculated by MIMICS solver function 
+#        k5 = NULL,  #calculated by MIMICS solver function 
+#        k6 = 0,
+#        k7 = 0
+#      ),
+#      
+#      #mimics-specific parameters
+#      mimics = list(
+#        fmet_p1 = .5,       # These three parameters used to calculate fmet 
+#        fmet_p2 = .85,      # fmet partitions litter between structural and metabolic pools
+#        fmet_p3 = .013,     # These parameters relate lignin/N of litter to fmet
+#        tau_mod1_p1 = 100,  # "tau_" parameters used to calculate turnover of microbial biomass pools
+#        tau_mod1_p2 = .6,   #
+#        tau_mod1_p3 = 1.3,  #
+#        tau_r_p1 = .00052,  #
+#        tau_r_p2 = .3,      #
+#        tau_mod2 = 2*24,       #
+#        tau_k_p1 = .00024,  #
+#        tau_k_p2 = .1,      #
+#        desorb_p1 = .00002*24, # "desorb_" parmeters caluclate desorption of SOMp pool based on clay content 
+#        desorb_p2 = -4.5,   #
+#        fSOMp_r_p1 = .15,   # "fSOM..." parameters control transfers of microbial necromass to the three SOM pools
+#        fSOMp_r_p2 = 1.3,   # based on clay or fmet parameter
+#        fSOMc_r_p1 = .1,    #
+#        fSOMc_r_p2 = -3,    #
+#        fSOMc_r_p3 = 1,     #
+#        fSOMp_k_p1 = .1,    #
+#        fSOMp_k_p2 = .8,    #
+#        fSOMc_k_p1 = .3,    #
+#        fSOMc_k_p2 = -3,    #
+#        fSOMc_k_p3 = 1,     #
+#        V_slope = .063,     # Vmax temp sensitivity--slope of relationship between temp and ln(Vmax)
+#        V_int = 5.47,       # Vmax temp sensitivity--intercept of relationship between temp and ln(Vmax)
+#        aV = .000000125*24,    # Tuning coefficient for Vmax 
+#        pscalar_p1 = 3,     # "pscalar" determines effect of clay on Km for decomp of SOMa pool
+#        pscalar_p2 = -2,    #
+#        ko_r = 6,           # tunes Km for decomp of SOMc pool
+#        ko_k = 6,           #
+#        K_slope = .02,      # temp sensitivity of Km parameter (slope)
+#        K_int = 3.19,       # temp sensitivity of Km parameter (intercept)
+#        aK = .15625,        # temp sensitivity of Km parameter (tuning coefficient)
+#        fi_LITm = .005,     # fraction of metabolic litter input transferred to SOMp
+#        fi_LITs = .005      # fraction of structural litter input transferred to SOMc
+#      )
+#    )
+#    .$env <- list(
+#      temp   = 20,          # soil temperature
+#      clay = .05,            # proportion clay (i.e. .4 = 40%) #default = .4, changed to .05 to match CORPSE
+#      lignin = 16.6,        # Lignin concentration of litter inputs (units must be same as N (%))
+#      N = 1.37,             # N concentration of litter inputs (units must be same as lignin (%))
+#      anpp = 500*24,           # ANPP (gC / m^2 / y) 
+#      depth = 20           # depth (cm)
+#    )
+#    
+#    .$run()
+#}
+#
+#
+#soil_decomp_object$.test_ctc <- function(., verbose=F, metdf=F, 
+#                                         litter=1, ntimes=1 ) {
+#  
+#  if(verbose) str(.)
+#  .$build(switches=c(F,verbose,F))
+#  
+#  .$fnames <- list(
+#    sys                = 'f_sys_npools',
+#    solver             = 'plsoda',
+#    solver_func        = 'f_solver_func_elmv2ctc',
+#    # input              = 'f_input_mimics',
+#    steadystate        = 'f_steadystate_npools',
+#    solver_steadystate = 'pstode',
+#    decomp = list(
+#      d1 = 'f_decomp_lin', 
+#      d2 = 'f_decomp_lin', 
+#      d3 = 'f_decomp_lin', 
+#      d4 = 'f_decomp_lin', 
+#      d5 = 'f_decomp_lin',
+#      d6 = 'f_decomp_lin',
+#      d7 = 'f_decomp_lin'
+#    )
+#  )
+#  
+#  .$pars <- list(
+#    n_pools = 7,          # number of pools in model  
+#    
+#    # initial pool mass for each pool
+#    # values are equilibrium calculated with stode function in DeSolve script
+#    cstate0 = list(
+#      cstate01 = 0.1, 
+#      cstate02 = 0.1,          
+#      cstate03 = 0.1,      
+#      cstate04 = 0.1,       
+#      cstate05 = 0.1,
+#      cstate06 = 0.1,
+#      cstate07 = 0.1
+#    ),
+#    
+#    # Carbon use efficiency from pool i r-microbes (cue) or k-microbes (cue2)
+#    cue = list(
+#      cue1 = 1.0,       
+#      cue2 = 0.61,  
+#      cue3 = 0.45,
+#      cue4 = 0.71,
+#      cue5 = 0.72,
+#      cue6 = 0.54,
+#      cue7 = 0
+#    ),  
+#
+#    # turnover rate for linear decomposition
+#    k = list(
+#      k1 = .001,
+#      k2 = .7,
+#      k3 = .07,
+#      k4 = .014,
+#      k5 = .07,
+#      k6 = .014,
+#      k7 = .0005
+#    )
+#  )
+#  
+#  .$env <- list(
+#    litter = 1
+#  )
+#  
+#  .$configure_test() # if only used in test functions should begin with a .
+#  
+#  .$run()
+#}
+#
+#
+#
+#soil_decomp_object$.test_corpse <- function(., verbose=F, metdf=F, litter=.001369863, ntimes=100 ) {
+#  
+#  if(verbose) str(.)
+#  .$build(switches=c(F,verbose,F))
+#  .$configure_test() # if only used in test functions should begin with a .
+#
+#  
+#  if(metdf) {
+#    .$dataf       <- list()
+#    if(length(litter)==1) litter <- rep(litter, ntimes )   
+#    .$dataf$metdf <- matrix(litter, nrow=1 )
+#    rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
+#    .$dataf$lm    <- length(.$dataf$metdf[1,])
+#    .$dataf$mout  <- .$output()
+#    .$run_met()
+#  } else {
+#    .$env$litter  <- litter
+#    .$run()
+#  }
+#}
+
+
 
 ### END ###
