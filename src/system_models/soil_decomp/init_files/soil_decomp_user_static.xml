@@ -4,63 +4,298 @@
       <sys>NA</sys>
       <solver>NA</solver>
       <solver_func>NA</solver_func>
+      <steadystate>NA</steadystate>
+      <solver_steadystate>NA</solver_steadystate>
       <input>NA</input>
       <DotO>NA</DotO>
       <transfermatrix>NA</transfermatrix>
+      <transfer_fluxsum_prop>NA</transfer_fluxsum_prop>
+      <outfluxes>NA</outfluxes>
+      <calc_state_pars>NA</calc_state_pars>
+      <calc_state_pars_unique>NA</calc_state_pars_unique>
+      <calc_loss_fluxes>NA</calc_loss_fluxes>
+      <mass_balance>NA</mass_balance>
       <decomp>
         <d1>NA</d1>
         <d2>NA</d2>
         <d3>NA</d3>
+        <d4>NA</d4>
+        <d5>NA</d5>
       </decomp>
+      <poolmax>
+        <poolmax3>NA</poolmax3>
+      </poolmax>
+      <outflux>
+        <of1>NA</of1>
+        <of2>NA</of2>
+        <of3>NA</of3>
+        <of4>NA</of4>
+        <of5>NA</of5>
+        <of6>NA</of6>
+        <of7>NA</of7>
+        <of8>NA</of8>
+        <of9>NA</of9>
+      </outflux>
+      <tcor>
+        <tcor1>NA</tcor1>
+        <tcor2>NA</tcor2>
+        <tcor3>NA</tcor3>
+        <tcor4>NA</tcor4>
+        <tcor5>NA</tcor5>
+        <tcor6>NA</tcor6>
+        <tcor7>NA</tcor7>
+        <tcor8>NA</tcor8>
+        <tcor9>NA</tcor9>
+      </tcor>
+      <wcor>
+        <wcor1>NA</wcor1>
+        <wcor2>NA</wcor2>
+        <wcor3>NA</wcor3>
+        <wcor4>NA</wcor4>
+        <wcor5>NA</wcor5>
+        <wcor6>NA</wcor6>
+        <wcor7>NA</wcor7>
+        <wcor8>NA</wcor8>
+        <wcor9>NA</wcor9>
+      </wcor>
+      <scor>
+        <scor1>NA</scor1>
+      </scor>
+      <k>
+        <k7>NA</k7>
+      </k>
+      <vmax>
+        <nada>NA</nada>
+      </vmax>
+      <km>
+        <nada>NA</nada>
+      </km>
       <transfer>
-        <t1_to_2>NA</t1_to_2>
+        <t1_to_4>NA</t1_to_4>
+        <t1_to_5>NA</t1_to_5>
         <t2_to_3>NA</t2_to_3>
-        <t3_to_2>NA</t3_to_2>
+        <t2_to_4>NA</t2_to_4>
+        <t3_to_4>NA</t3_to_4>
+        <t3_to_5>NA</t3_to_5>
+        <t4_to_2>NA</t4_to_2>
+        <t4_to_3>NA</t4_to_3>
+        <t5_to_1>NA</t5_to_1>
+        <t5_to_3>NA</t5_to_3>
       </transfer>
+      <cue>
+        <cue6>NA</cue6>
+      </cue>
+      <cue2>
+        <nada>NA</nada>
+      </cue2>
+      <cue3>
+        <nada>NA</nada>
+      </cue3>
+      <texture_mod>NA</texture_mod>
+      <quality_mod>NA</quality_mod>
+      <anpp_mod>NA</anpp_mod>
+      <matpot_sat>NA</matpot_sat>
+      <conv_water_vwc_to_mp>NA</conv_water_vwc_to_mp>
     </soil_decomp>
   </fnames>
   <pars>
     <soil_decomp>
+      <pool_init_value>NA</pool_init_value>
+      <n_pools>NA</n_pools>
+      <n_outfluxes>NA</n_outfluxes>
+      <sat_pool>NA</sat_pool>
+      <leaching_outflux>NA</leaching_outflux>
+      <error_tolerance>NA</error_tolerance>
+      <R>NA</R>
+      <conv_mm_to_MPa>NA</conv_mm_to_MPa>
       <beta>NA</beta>
-      <silt>NA</silt>
-      <clay>NA</clay>
+      <clayref>NA</clayref>
+      <minmic>NA</minmic>
+      <qslope_exp>NA</qslope_exp>
+      <mr>NA</mr>
+      <Kads>NA</Kads>
+      <max_poolmax>NA</max_poolmax>
+      <sorp_exp_a>NA</sorp_exp_a>
+      <sorp_exp_b>NA</sorp_exp_b>
+      <quality_a>NA</quality_a>
+      <quality_b>NA</quality_b>
+      <quality_c>NA</quality_c>
+      <anpp_mod_p1>NA</anpp_mod_p1>
+      <anpp_mod_p2>NA</anpp_mod_p2>
+      <anpp_mod_p3>NA</anpp_mod_p3>
+      <anpp_mod_p4>NA</anpp_mod_p4>
+      <km_temp_slope>NA</km_temp_slope>
+      <km_temp_int>NA</km_temp_int>
+      <km_texture_norm>NA</km_texture_norm>
+      <km_texture_exp>NA</km_texture_exp>
+      <k_desorp_tuning>NA</k_desorp_tuning>
+      <km_tuning>NA</km_tuning>
+      <cue_texture_tuning>NA</cue_texture_tuning>
+      <cue_quality_tuning>NA</cue_quality_tuning>
+      <reftemp>NA</reftemp>
+      <reftemp_cue>NA</reftemp_cue>
+      <q10>NA</q10>
+      <cue_temp_scalar>NA</cue_temp_scalar>
+      <tcor_mod>NA</tcor_mod>
+      <tcor_exp_norm>NA</tcor_exp_norm>
+      <tcor_exp_exp_int>NA</tcor_exp_exp_int>
+      <tcor_exp_exp_slope>NA</tcor_exp_exp_slope>
+      <tcor_century1>NA</tcor_century1>
+      <tcor_century2>NA</tcor_century2>
+      <tcor_century3>NA</tcor_century3>
+      <tcor_century4>NA</tcor_century4>
+      <wcor_century1>NA</wcor_century1>
+      <wcor_century2>NA</wcor_century2>
+      <wcor_unimodal_exp>NA</wcor_unimodal_exp>
+      <wcor_unimodal_exp_diff>NA</wcor_unimodal_exp_diff>
+      <wcor_diffusion_exp>NA</wcor_diffusion_exp>
+      <wcor_bio_exp>NA</wcor_bio_exp>
+      <wcor_bio_lambda>NA</wcor_bio_lambda>
+      <wcor_bio_kamin>NA</wcor_bio_kamin>
+      <scor_texture_int>NA</scor_texture_int>
+      <scor_texture_slope>NA</scor_texture_slope>
+      <scor_quality_exp>NA</scor_quality_exp>
+      <decomp_outflux1>
+        <dof11>NA</dof11>
+        <dof12>NA</dof12>
+      </decomp_outflux1>
+      <decomp_outflux2>
+        <dof21>NA</dof21>
+      </decomp_outflux2>
+      <decomp_outflux3>
+        <dof31>NA</dof31>
+        <dof32>NA</dof32>
+      </decomp_outflux3>
+      <decomp_outflux4>
+        <dof41>NA</dof41>
+        <dof42>NA</dof42>
+        <dof43>NA</dof43>
+      </decomp_outflux4>
+      <decomp_outflux5>
+        <dof51>NA</dof51>
+      </decomp_outflux5>
       <cstate0>
-        <c1>NA</c1>
-        <c2>NA</c2>
-        <c3>NA</c3>
+        <nada>NA</nada>
       </cstate0>
-      <cue>
-        <cue1>NA</cue1>
-        <cue2>NA</cue2>
-        <cue3>NA</cue3>
-      </cue>
-      <vmax>
-        <vmax1>NA</vmax1>
-        <vmax2>NA</vmax2>
-        <vmax3>NA</vmax3>
-      </vmax>
-      <km>
-        <km1>NA</km1>
-        <km2>NA</km2>
-        <km3>NA</km3>
-      </km>
+      <input_coef>
+        <input_coef1>NA</input_coef1>
+        <input_coef2>NA</input_coef2>
+        <input_coef3>NA</input_coef3>
+        <input_coef4>NA</input_coef4>
+        <input_coef5>NA</input_coef5>
+      </input_coef>
+      <poolmax>
+        <nada>NA</nada>
+      </poolmax>
       <k>
         <k1>NA</k1>
         <k2>NA</k2>
         <k3>NA</k3>
+        <k4>NA</k4>
+        <k5>NA</k5>
+        <k6>NA</k6>
+        <k7>NA</k7>
+        <k8>NA</k8>
+        <k9>NA</k9>
       </k>
-      <poolmax>
-        <pmax1>NA</pmax1>
-        <pmax2>NA</pmax2>
-        <pmax3>NA</pmax3>
-      </poolmax>
+      <cat_pool>
+        <cat_pool1>NA</cat_pool1>
+        <cat_pool2>NA</cat_pool2>
+        <cat_pool3>NA</cat_pool3>
+        <cat_pool4>NA</cat_pool4>
+        <cat_pool5>NA</cat_pool5>
+        <cat_pool6>NA</cat_pool6>
+        <cat_pool7>NA</cat_pool7>
+        <cat_pool8>NA</cat_pool8>
+        <cat_pool9>NA</cat_pool9>
+      </cat_pool>
+      <vmax>
+        <vmax1>NA</vmax1>
+        <vmax2>NA</vmax2>
+        <vmax3>NA</vmax3>
+        <vmax4>NA</vmax4>
+        <vmax5>NA</vmax5>
+        <vmax6>NA</vmax6>
+        <vmax7>NA</vmax7>
+        <vmax8>NA</vmax8>
+        <vmax9>NA</vmax9>
+      </vmax>
+      <vmax2>
+        <nada>NA</nada>
+      </vmax2>
+      <ea>
+        <ea1>NA</ea1>
+        <ea2>NA</ea2>
+        <ea3>NA</ea3>
+        <ea4>NA</ea4>
+        <ea5>NA</ea5>
+        <ea6>NA</ea6>
+        <ea7>NA</ea7>
+        <ea8>NA</ea8>
+        <ea9>NA</ea9>
+      </ea>
+      <km>
+        <km1>NA</km1>
+        <km2>NA</km2>
+        <km3>NA</km3>
+        <km4>NA</km4>
+        <km5>NA</km5>
+        <km6>NA</km6>
+        <km7>NA</km7>
+        <km8>NA</km8>
+        <km9>NA</km9>
+      </km>
+      <km2>
+        <nada>NA</nada>
+      </km2>
+      <cue>
+        <cue1>NA</cue1>
+        <cue2>NA</cue2>
+        <cue3>NA</cue3>
+        <cue4>NA</cue4>
+        <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
+        <cue8>NA</cue8>
+        <cue9>NA</cue9>
+      </cue>
+      <cue2>
+        <cue1>NA</cue1>
+        <cue2>NA</cue2>
+        <cue3>NA</cue3>
+        <cue4>NA</cue4>
+        <cue5>NA</cue5>
+        <cue6>NA</cue6>
+        <cue7>NA</cue7>
+        <cue8>NA</cue8>
+        <cue9>NA</cue9>
+      </cue2>
+      <cue3>
+        <nada>NA</nada>
+      </cue3>
+      <cue_texture_exp>
+        <nada>NA</nada>
+      </cue_texture_exp>
+      <cue_quality_exp>
+        <nada>NA</nada>
+      </cue_quality_exp>
     </soil_decomp>
   </pars>
   <env>
     <soil_decomp>
       <litter>NA</litter>
+      <anpp>NA</anpp>
+      <lignin>NA</lignin>
+      <N>NA</N>
       <temp>NA</temp>
-      <swc>NA</swc>
+      <vwc>NA</vwc>
+      <matpot>NA</matpot>
+      <clay>NA</clay>
+      <sand>NA</sand>
+      <porosity>NA</porosity>
+      <matpot_min>NA</matpot_min>
+      <pH>NA</pH>
+      <depth>NA</depth>
     </soil_decomp>
   </env>
 </static>

@@ -65,6 +65,9 @@ wrapper_object$init_static
 class(wrapper_object$static)
 wrapper_object$static
 
+source('wrapper_object.R')
+out <- wrapper_object$.test_init_npools()
+
 
 source('wrapper_object.R')
 out <- wrapper_object$.test_mimic()

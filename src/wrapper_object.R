@@ -116,6 +116,10 @@ wrapper_object$run   <- function(.,verbose=T) {
   if(!is.null(.$static$env))    .$model$configure(vlist='env',    df=.$static$env    )
   if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=.$static$fnames )
 
+  # initilize model if required 
+  # - usually at steadystate 
+  if(!is.null(.$model$init)) .$model$init()
+
   # create matrices of dynamic runtime variables
   .$generate_ensemble()
 
@@ -614,12 +618,12 @@ wrapper_object$.test_init <- function(.,
                       ) {
 
   # Define the static model functions, parameters, and environment
-  .$init_static <- c(sfnames, spars, senv )
+  .$init_static  <- c(sfnames, spars, senv )
   print('init_static')
   print(.$init_static)
 
   # Define the dynamic model functions, parameters, and environment
-  .$init_dynamic$leaf <- c(dfnames, dpars, denv )
+  .$init_dynamic <- c(dfnames, dpars, denv )
   print('init_dynamic')
   print(.$init_dynamic)
 
@@ -630,6 +634,47 @@ wrapper_object$.test_init <- function(.,
   print('dynamic')
   print(.$dynamic)
 
+}
+
+
+# test initialisation of pool structure 
+wrapper_object$.test_init_npools <- function(.,
+                      #metd=list(leaf.par = seq(800,1000,100), leaf.ca_conc = 400 ),
+                      sfnames=NULL,
+                      spars=NULL,
+                      senv=NULL,
+                      dfnames=NULL,
+                      dpars=list(pars=list(soil_decomp=list(n_pools=c(3,6)))),
+                      denv=NULL
+                      ) {
+
+  # Define the static model functions, parameters, and environment
+  .$init_static <- c(sfnames, spars, senv )
+  print('init_static')
+  print(.$init_static)
+
+  # Define the dynamic model functions, parameters, and environment
+  .$init_dynamic <- c(dfnames, dpars, denv )
+  print('init_dynamic')
+  print(.$init_dynamic)
+
+  # build wrapper and the model object
+  .$wpars$UQ      <- F           # run a fully factorial ensemble
+  .$wpars$runtype <- 'factorial'
+  .$wpars$mod_obj <- 'soil_decomp'
+  .$build()
+
+  print('')
+  print(.$model$fnames$decomp)
+  print(.$model$fnames$transfer)
+  print(.$model$pars$vmax)
+
+  # Run init function
+  #.$init()
+  #print('static')
+  #print(.$static)
+  #print('dynamic')
+  #print(.$dynamic)
 }
 
 

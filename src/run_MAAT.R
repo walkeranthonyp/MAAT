@@ -263,7 +263,7 @@ if((uq|mcmc)&of_format!='rds') {
 
 
 ##################################
-# Clone and build the maat wrapper and model object
+# Clone and assign arguments to the maat wrapper
 
 setwd(srcdir)
 source('wrapper_object.R')
@@ -356,7 +356,25 @@ if(xml) {
 } else source(initf)
 
 
+# add init lists to wrapper
+maat$init_static  <- init_static
+maat$init_dynamic <- init_dynamic
+
+
+# output static & dynamic values used in simulation 
+# - need to move to build to get complete record of model setup (perhaps just need to move static output)
+# - could move static config to build function 
+print('',quote=F)
+print('Write record of static & dynamic run variables:',quote=F)
+setwd(odir)
+listtoXML(paste(ofname,'setup_static.xml',sep='_'),  'static',  sublist=init_static)
+listtoXML(paste(ofname,'setup_dynamic.xml',sep='_'), 'dynamic', sublist=init_dynamic)
+
+
+
+##################################
 # check process representation functions specified in input exist
+
 search_fnames <-  function(v, ln ) {
   for( c1 in v ) if(!(c1 %in% ls(pos=1)))
     stop(paste('The function: ',c1,' , specified in init', ln ,'does not exist')) else 'exists'
@@ -381,6 +399,7 @@ if(runtype=='rbind' & !rbind_identical) {
   dl <- rapply(init_dynamic, length )
   if(length(unique(dl))!=1) stop("FATAL ERROR: rbind ensemble specified but dynamic vars unequal lengths, set rbind_identical to F to override")
 }
+
 
 # add init lists to wrapper
 maat$init_static  <- init_static
@@ -540,14 +559,14 @@ if(!mcmc_restart & !is.null(metdata)) {
   if(file.exists(metdata)&!kill) {
     print(metdata, quote=F )
     metdffull <- read.csv(metdata,strip.white=T)
-
-#    # ALJ: if doing a Sphagnum simulation
-#    #      screen out night-time values from met data file
-#    #      subset it to remove 0's and negative values
-#    # APW: thinking of a flexible way to do this, it's not that easy. Long term might need to do this in the met data itself
-#    sub_idx   <- which(metdffull$EM_PAR_8100_x > 0)
-#    metdffull <- metdffull[sub_idx, ]
-#    #print(head(metdffull), quote=F )
+    print(head(metdffull), quote=F )
+    # ALJ: if doing a Sphagnum simulation
+    #      screen out night-time values from met data file
+    #      subset it to remove 0's and negative values
+    # APW: thinking of a flexible way to do this, it's not that easy. Long term might need to do this in the met data itself
+    # sub_idx   <- which(metdffull$EM_PAR_8100_x > 0)
+    # metdffull <- metdffull[sub_idx, ]
+    #print(head(metdffull), quote=F )
 
     # order met data in metfile according to that specified in the <mod_obj>_user_met.XML
     # - need to add a trap to catch met data files that do not contain all the data specified in <mod_obj>_user_met.XML
@@ -555,7 +574,7 @@ if(!mcmc_restart & !is.null(metdata)) {
     metdf     <- metdffull[,cols, drop=F ]
     print('', quote=F )
     print(met_trans, quote=F )
-
+    print(head(metdf), quote=F )
     # if time variable specified put it first and don't rename it
     if('time'%in%names(met_trans)) {
       tcol  <- which(names(met_trans)=='time')
@@ -574,7 +593,7 @@ if(!mcmc_restart & !is.null(metdata)) {
     }
 
     # add to MAAT object
-    #print(head(metdf), quote=F )
+    print(head(metdf), quote=F )
     maat$dataf$met <- t(as.matrix(metdf))
 
     # remove met data file
