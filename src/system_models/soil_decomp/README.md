@@ -10,7 +10,18 @@ The soil decomposition model object uses modified versions of the [SoilR package
 A matrix model approach is used by SoilR and is solved using a function in the deSolve R package.
 These functions represent a substantial amount of effort on the part of the SoilR designers - Carlos Sierra and Markus Müller - at the Max Planck Institute for Biogeochemistry.
 We thank them for their open-access approach to science that has allowed us to use these functions and to modify them to work within MAAT.
+
+
+We have substantially developed and extended these functions to allow full operation within the MAAT framework and for a suite of models to be run within MAAT using the mod_mimics argument.
+These models include: MILLENNIALv2, ELM (both CTC and CENTURY versions), CENTURY, CORPSE, MEND (2013), and MIMICS.
+Respiration and other losses (currently only leaching) are calculated within the genral functions.
+This code has seen substantial development by Matt Craig and Anthony Walker, with additonal input from Rose Abramoff and Hannah DeHetre.    
+
+
 If using output from this model object in any publication, please cite the following papers: 
+
+
+Craig, M.E., Mayes, M.A., Sulman, B.N., Walker, A.P., 2021. Biological mechanisms may contribute to soil carbon saturation patterns. Global Change Biology 27, 2633–2644. [https://doi.org/10.1111/gcb.15584](https://onlinelibrary.wiley.com/doi/abs/10.1111/gcb.15584)
 
 
 Sierra, C.A., Müller, M., 2015. A general mathematical framework for representing soil organic matter dynamics. Ecological Monographs 85, 505–524. [doi.org/10.1890/15-0361.1](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1890/15-0361.1)
