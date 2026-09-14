@@ -44,13 +44,8 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
     print('Build, init_default',quote=F)
     print(init_default,quote=F)
   }
-
-  # assign model output function
-  if(.$cpars$diag) mod_out <- 'full' ### this will assign full to all child objects too could add a child switch
-  .$output <- get(paste('f', 'output', .$name, .$cpars$mod_out, sep='_' ))
-  # APW: could add a catch here to test that requested eval variables exist.
-  # APW: will need to be done once latest soil model development has been merged
-  # APW: to work with soil_decomp will need to be called after structure build
+  #print(init_default,quote=F)
+  #print(init_default[['pars']],quote=F)
 
   # build model pool structure
   # APW: prob can delete n_pools case in latest version
@@ -64,11 +59,17 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
   .$configure(vlist='env',    df=unlist(init_default$env))
   .$configure(vlist='fnames', df=unlist(init_default$fnames), init=T )
 
-  # trim decomp_outfluxes lists 
+  # once values are assigned, trim outflux to decomp indexing lists
   if(!is.null(.$pars$n_outfluxes)) {
     for(l in grep('decomp_outflux', names(.$pars), value=T )) 
       if(is.na(sum(unlist(.$pars[[l]])))) .$pars[[l]] <- .$pars[[l]][-which(is.na(.$pars[[l]]))]
   }
+
+  # assign model output function
+  if(.$cpars$diag) mod_out <- 'full' ### this will assign full to all child objects too could add a child switch
+  .$output <- get(paste('f', 'output', .$name, .$cpars$mod_out, sep='_' ))
+  # APW: could add a catch here to test that requested eval variables exist.
+  # APW: will need to be done once latest soil model development has been merged
 
   # build child objects
   if(!is.null(.$child_list)) vapply(.$child_list, .$build_child, numeric(0), mod_mimic=mod_mimic )

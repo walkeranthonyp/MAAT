@@ -119,36 +119,66 @@ listtoXML <- function(fname,name,...) {
 
 #####################################################
 # This function recursively fuses two lists
-# by overwriting any named entries in mainlist with the same names as those in the sublist
-# the overwriting occurs within the equivalent hierarchy of each list
-# i.e. a named element in the mainlist will not be overwritten by the same named element in the sublist if the elements are in different levels of the lists
-fuselists <- function(mainlist,sublist) {
+# - by overwriting any named entries in mainlist with the same names as those in the sublist
+# - the overwriting occurs within the equivalent hierarchy of each list
+# - i.e. a named element in the mainlist will not be overwritten by the same named element in the sublist if the elements are in different levels of the lists
+fuselists <- function(mainlist, sublist ) {
   # length of sublist
   l <- length(sublist)
   n <- 0
 
+  # test special case where exact sublist names do not exist in mainlist but are an extension of an existing variable list for pool and flux models 
+  # - detected from all names in sublist ending in a number
+  # - replace default list with sublist 
+  sublistnames  <- names(sublist)
+  sublistl      <- substr(sublistnames, nchar(sublistnames), nchar(sublistnames) )
+  sublistln     <- suppressWarnings(as.numeric(sublistl))
+  speshcase     <- sum(!is.na(sublistln)) == l
+  if(speshcase) mainlist <- sublist
+
   # loop over sublist
   for(i in 1:l) {
-    mlsub <- which(names(mainlist)==names(sublist)[i])
-    if(length(mlsub)==1) {
+    mlsub          <- which(names(mainlist)==names(sublist)[i])
+    decomp_outflux <- grepl('decomp_outflux',names(sublist)[i])
+ 
+    # special case for pars decomp_outflux lists 
+    if(decomp_outflux) {
+      n <- n + 1
+      mainlist[[names(sublist)[i]]] <- list(NA)
+      mlsub <- which(names(mainlist)==names(sublist)[i])
+      mainlist[[mlsub]] <- fuselists(mainlist[[mlsub]],sublist[[i]])
+      #mainlist[[mlsub]] <- mainlist[[mlsub]][-which(is.na(mainlist[[mlsub]]))] 
+ 
+    # standard case where if name in sublist exists in mainlist
+    # - assign sublist value unless sublist is a list, then recurse function
+    } else if(length(mlsub)==1) {
       n <- n + 1
       mainlist[[mlsub]] <-
         if(typeof(sublist[[i]]) == "list") fuselists(mainlist[[mlsub]],sublist[[i]])
           else if(is.null(sublist[[i]]))  mainlist[[mlsub]]
           else                            sublist[[i]]
+          
+    # special case defined above - add to counter 
+    } else if(speshcase) {
+      n <- n + 1
+      #mainlist[[names(sublist)[i]]] <- sublist[[i]]
+
+    # else add index to error vector
     } else {
       error_i <- if(exists('error_i')) c(error_i,i) else i
     }
-    # print(c(n,l))
-    # print(names(sublist)[i])
   }
 
   # if mlsub != 1 then stop
   # i.e. if a name is found in sublist that does not occur in mainlist
-  #      or if a names is found multiple times in the mainlist
+  #      or if a name is found multiple times in the mainlist
   if(n!=l) {
     print(c(l,n))
-    # stop(paste("\n names mismatch when fusing initialisation lists:",names(mainlist)[mlsub],names(sublist)[i]))
+    print(sublist)
+    print(sublistnames)
+    print(sublistl)
+    print(sublistln)
+    print(speshcase)
     stop(paste('\n names mismatch when fusing initialisation lists, sublist element:', names(sublist)[error_i],
                '; not found in mainlist \n This is likely a mis-spelling of a variable name in the input file'))
   }
