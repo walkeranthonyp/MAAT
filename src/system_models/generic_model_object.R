@@ -21,18 +21,24 @@ system_model_object <-
     # Object name, expected child objects & build function
     
     name <- character(1)
-    
+
     # child objects 
-    child_list  <- NULL 
+    child_list     <- NULL 
+  
+    # for objects with state pools, parameter names that have a value per pool
+    pool_pars      <- NULL
+  
+    # for objects with state pools, parameter names that have a value per outflux 
+    outflux_pars   <- NULL
+  
+    # build function 
+    build          <- build
     
     # build function 
-    build       <- build
-    
-    # build function 
-    build_child <- NULL 
+    build_child    <- NULL 
 
     # read/compile configuration list
-    read_config <- read_config
+    read_config    <- read_config
 
     
     ###########################################################################

@@ -14,16 +14,15 @@ library(deSolve)
 
 plsoda <- 
   # function (., y, times, func, parms, rtol = 1e-06, atol = 1e-06, 
-  function (., y, times, func, parms=NULL, rtol = 1e-06, atol = 1e-06, 
-            jacfunc = NULL, jactype = "fullint", rootfunc = NULL, verbose = FALSE, 
-            nroot = 0, tcrit = NULL, hmin = 0, hmax = NULL, hini = 0, 
-            # ynames = TRUE, maxordn = 12, maxords = 5, bandup = NULL, 
-            ynames = FALSE, maxordn = 12, maxords = 5, bandup = NULL, 
-            banddown = NULL, maxsteps = 5000, dllname = NULL, initfunc = dllname, 
-            initpar = parms, rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, 
-            forcings = NULL, initforc = NULL, fcontrol = NULL, events = NULL, 
-            lags = NULL, ...) 
-  {
+  function(., y, times, func, parms=NULL, rtol=1e-06, atol=1e-06, 
+           jacfunc=NULL, jactype="fullint", rootfunc=NULL, verbose=FALSE, 
+           nroot=0, tcrit=NULL, hmin=0, hmax=NULL, hini=0, 
+           # ynames=TRUE, maxordn=12, maxords=5, bandup=NULL, 
+           ynames=FALSE, maxordn=12, maxords=5, bandup=NULL, 
+           banddown=NULL, maxsteps=5000, dllname=NULL, initfunc=dllname, 
+           initpar=parms, rpar=NULL, ipar=NULL, nout=0, outnames=NULL, 
+           forcings=NULL, initforc=NULL, fcontrol=NULL, events=NULL, 
+           lags=NULL, ... ) {
     # if (!is.null(rootfunc)) 
     #   return(lsodar(y, times, func, parms, rtol, atol, jacfunc, 
     #                 jactype, rootfunc, verbose, nroot, tcrit, hmin, hmax, 

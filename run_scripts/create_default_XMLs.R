@@ -1,18 +1,19 @@
 ################################
 #
 # Script to generate default and option XMLs from a newly created MAAT model object 
-# call this from the command line inside the run_scripts directory with RScript   
+# call this from the command line inside the head directory with RScript   
 #
 # AWalker November 2017
 #
 ################################
 
 mod_obj <- NULL
+options_only <- F 
 
 # parse command line arguments   
 # - any one of the above objects can be specified as a command line argument using the syntax:
-# - Rscript <nameofthisscript> "<object1> <- <value1>" 
-# - e.g. Rscript create_default_XMLs.R "mod_obj <- 'template'" 
+# - Rscript ./run_scripts/<nameofthisscript> "<object1><-<value1>" 
+# - e.g. Rscript ./run_scripts/create_default_XMLs.R "mod_obj<-'template'" 
 
 if(length(commandArgs(T))>=1) {
   for( ca in 1:length(commandArgs(T)) ) {
@@ -25,7 +26,7 @@ if(is.null(mod_obj)) {
 } 
 
 # load function to create XMLs from lists
-setwd('../src/functions/')
+setwd('./src/functions/')
 source('general_functions.R')
 
 # open the newly created model object
@@ -71,19 +72,23 @@ l1opt[['fnames']][[mod_obj]] <-
     out <- substr(out, 1, nchar(out)-1)
     paste('c(',out,')')
   })
+print('', quote=F )
+print(' ... all representations listed.', quote=F )
 
 # replace all entires in l1 with NA for init static and dynamic
 l1n <- rapply(l1, function(x) NA, how='replace' )  
 
 # convert list to XMLs
 print('', quote=F )
-listtoXML(paste(mod_obj,'default.xml',sep='_'), 'default',  sublist=l1 )
+if(!options_only) {
+  listtoXML(paste(mod_obj,'default.xml',sep='_'), 'default',  sublist=l1 )
+  setwd('init_files')
+  listtoXML(paste(mod_obj,'user_static.xml',sep='_'),  'static',               sublist=l1n )
+  listtoXML(paste(mod_obj,'user_dynamic.xml',sep='_'), 'dynamic',              sublist=l1n )
+  listtoXML(paste(mod_obj,'user_met.xml',sep='_'),     'met_data_translator',  sublist=l2 )
+  listtoXML(paste(mod_obj,'user_eval.xml',sep='_'),    'eval_data_translator', sublist=l3 )
+}
 listtoXML(paste(mod_obj,'options.xml',sep='_'), 'options',  sublist=l1opt )
-setwd('init_files')
-listtoXML(paste(mod_obj,'user_static.xml',sep='_'),  'static',               sublist=l1n )
-listtoXML(paste(mod_obj,'user_dynamic.xml',sep='_'), 'dynamic',              sublist=l1n )
-listtoXML(paste(mod_obj,'user_met.xml',sep='_'),     'met_data_translator',  sublist=l2 )
-listtoXML(paste(mod_obj,'user_eval.xml',sep='_'),    'eval_data_translator', sublist=l3 )
 
 # open options XML to add labels by hand 
 setwd('..')
