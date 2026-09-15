@@ -57,7 +57,7 @@ f_sys_npools_lossfluxes <- function(.) {
       .$solver(rbind(.super$state$cpools,lfm), c(0L,1L), .$solver_func, parms=parmslist ),
       error = function(c) {
         print(c)
-        matrix(ncol=.super$pars$n_pools+1)
+        matrix(nrow=2, ncol=.super$pars$n_pools+n_loss_fluxes+1 )
       })
   
   # assign solved values to state
@@ -80,6 +80,9 @@ f_sys_npools_lossfluxes <- function(.) {
 
 # steady-state solver for a system of n pools
 f_steadystate_npools <- function(.) {
+
+  # save current state 
+  .super$state_pars$previous_state <- .super$state$cpools  
 
   # calculate state parameters
   .$calc_state_pars()

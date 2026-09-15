@@ -25,6 +25,9 @@
         <of10>'f_decomp_rmm'</of10>
         <of11>'f_decomp_rmm'</of11>
       </outflux>
+      <k>
+        <k1>'f_k_constant'</k1>
+      </k>
       <km> 
         <km1>'f_km_wieder_temp'</km1>
         <km2>'f_km_wieder_temp'</km2>

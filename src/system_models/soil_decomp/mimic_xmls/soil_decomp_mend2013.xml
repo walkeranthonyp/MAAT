@@ -21,10 +21,28 @@
         <of8>'f_decomp_lin'</of8>
         <of9>'f_decomp_lin'</of9>
       </outflux>
+      <k>
+        <k1>'f_k_constant'</k1>
+      </k>
       <vmax> 
         <vmax6>'f_vmax_wang_cue_inflation'</vmax6>
         <vmax7>'f_vmax_wang_k_from_cat_cue_inflation'</vmax7>
       </vmax> 
+      <km>
+        <km1>'f_km_constant'</km1>
+      </km>
+      <poolmax>
+        <poolmax1>'f_poolmax_constant'</poolmax1>
+      </poolmax>
+      <tcor>
+        <tcor1>'f_tcor_none'</tcor1>
+      </tcor>
+      <wcor>
+        <wcor1>'f_wcor_none'</wcor1>
+      </wcor>
+      <scor>
+        <scor1>'f_scor_none'</scor1>
+      </scor>
       <transfer>
         <t1_to_2>'f_transfer_fluxid_cue_remainder'</t1_to_2>
         <t1_to_5>'f_transfer_fluxid_cue'</t1_to_5>
@@ -39,6 +57,15 @@
         <t6_to_5>'f_transfer_all'</t6_to_5>
         <t7_to_5>'f_transfer_all'</t7_to_5>
       </transfer>
+      <cue>
+        <cue1>'f_cue_constant'</cue1>
+      </cue>
+      <cue2>
+        <cue21>'f_cue_constant'</cue21>
+      </cue2>
+      <cue3>
+        <cue31>'f_cue_constant'</cue31>
+      </cue3>
     </soil_decomp>
   </fnames>
   <pars>

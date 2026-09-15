@@ -232,7 +232,8 @@ soil_decomp_object$state_pars <- list(
   flux_matrix            = matrix(1),           # matrix of internal fluxes from/to pools (diagonal is gross loss from pool, off-diag is flux from col pool to row pool, row-sums are net change in pool from internal fluxes i.e. not including inputs but including outputs) 
   total_fluxes           = numeric(1),          # gross fluxes from each pool, a vector npools long 
   previous_state         = matrix(1),           # previous timestep state
-  mass_balance           = numeric(1),          # result from mass balance calculation
+  mass_imbalance         = numeric(1),          # result from mass balance calculation
+  pool_balance           = numeric(1),          # mass balance calculation for each pool, input - output
   n_loss_fluxes          = numeric(1),          # number of loss fluxes (respiration, leaching, ... ) 
   lfm                    = matrix(1),           # loss flux matrix, one col matrix of zeros
 
@@ -276,7 +277,7 @@ soil_decomp_object$pars <- list(
   # APW: sat_pool might need to be n_outfluxes long if there are several
   sat_pool         = 3,        # pool which saturates
   leaching_outflux = 8,        # ouflux which goes to leaching 
-  error_tolerance  = 1e-6,     # error tolerance for mass balance check (same units as pools, mg C g-1 soil) 
+  error_tolerance  = 1e-5,     # error tolerance for mass balance check (as a proportion of summed input)
 
   # general scalar parameters
   R                = 8.31446,  # universal gas constant (J K-1 mol-1)
@@ -535,7 +536,7 @@ f_output_soil_decomp_full <- function(.) {
 #######################################################################        
 
 soil_decomp_object$.test <- function(., 
-  verbose=F, metdf=F, ntimes=100, sigfig=3,
+  verbose=F, metdf=F, ntimes=10, sigfig=3,
   steadystate=F, mod_mimic=NULL, 
   litter=NA, anpp=500*24 
   ) {
@@ -547,7 +548,7 @@ soil_decomp_object$.test <- function(.,
 
   if(metdf) {
     .$dataf       <- list()
-    if(length(litter)==1) litter <- rep(litter, ntimes ) 
+    if(length(litter)==1) litter <- if(is.na(litter)) rep(.$env$litter, ntimes ) else rep(litter, ntimes ) 
     .$dataf$metdf <- matrix(litter, nrow=1 )
     rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
     .$dataf$lm    <- dim(.$dataf$met)[2]

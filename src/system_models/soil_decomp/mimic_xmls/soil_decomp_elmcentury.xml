@@ -21,6 +21,9 @@
         <of6>'f_decomp_lin'</of6>
         <of7>'f_decomp_lin'</of7>
       </outflux>
+      <k>
+        <k1>'f_k_constant'</k1>
+      </k>
       <tcor>
         <tcor1>'f_tcor_q10'</tcor1>
         <tcor2>'f_tcor_q10'</tcor2>
@@ -39,6 +42,9 @@
         <wcor6>'f_wcor_andren1987'</wcor6>
         <wcor7>'f_wcor_andren1987'</wcor7>
       </wcor>
+      <scor>
+        <scor1>'f_scor_none'</scor1>
+      </scor>
       <transfer>
         <t1_to_3>'f_transfer_fluxid_cue'</t1_to_3> 
         <t1_to_4>'f_transfer_fluxid_cue_remainder'</t1_to_4> 
@@ -51,6 +57,9 @@
         <t6_to_7>'f_transfer_fluxid_cue2'</t6_to_7> 
         <t7_to_5>'f_transfer_fluxid_cue'</t7_to_5> 
       </transfer>
+      <cue>
+        <cue1>'f_cue_constant'</cue1>
+      </cue>
       <cue2>
         <cue25>'f_cue_century_texture_elm'</cue25>
       </cue2>
@@ -140,7 +149,6 @@
   </pars>
   <env>
     <soil_decomp>
-      <litter>1.0</litter>
       <sand>0.2</sand>
       <matpot_min>-10.0</matpot_min>
       <matpot>-0.75</matpot>

@@ -22,6 +22,9 @@
         <of9>'f_decomp_lin'</of9>
         <of10>'f_decomp_lin'</of10>
       </outflux>
+      <k>
+        <k1>'f_k_constant'</k1>
+      </k>
       <tcor>
         <tcor1>'f_tcor_arrhenius'</tcor1>
         <tcor2>'f_tcor_none'</tcor2>
@@ -127,11 +130,11 @@
         <cat_pool5>4</cat_pool5>
       </cat_pool>
       <vmax>
-        <vmax1>4.10958904109589</vmax1>
+        <vmax1>4.1095890</vmax1>
         <vmax2>NA</vmax2>
-        <vmax3>0.136986301369863</vmax3>
+        <vmax3>0.1369863</vmax3>
         <vmax4>NA</vmax4>
-        <vmax5>1.64383561643836</vmax5>
+        <vmax5>1.6438356</vmax5>
         <vmax6>NA</vmax6>
         <vmax7>NA</vmax7>
         <vmax8>NA</vmax8>
@@ -191,7 +194,7 @@
   </pars>
   <env>
     <soil_decomp>
-      <litter>0.0091324200913242</litter>
+      <litter>0.00913242</litter>
       <temp>20</temp>
       <vwc>0.25</vwc>
       <porosity>0.5</porosity>

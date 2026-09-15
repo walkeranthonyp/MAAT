@@ -105,7 +105,7 @@
       <n_outfluxes>9</n_outfluxes>
       <sat_pool>3</sat_pool>
       <leaching_outflux>8</leaching_outflux>
-      <error_tolerance>1e-06</error_tolerance>
+      <error_tolerance>1e-05</error_tolerance>
       <R>8.31446</R>
       <conv_mm_to_MPa>-9.8e-06</conv_mm_to_MPa>
       <beta>2</beta>

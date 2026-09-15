@@ -41,6 +41,9 @@
         <wcor8>'f_wcor_ghezzehei_diffusion'</wcor8>
         <wcor9>'f_wcor_ghezzehei_diffusion'</wcor9>
       </wcor>
+      <scor>
+        <scor1>'f_scor_none'</scor1>
+      </scor>
       <k>
         <k7>'f_k_abramoff_sorp_efficiency'</k7>
       </k>

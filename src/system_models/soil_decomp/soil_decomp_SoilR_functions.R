@@ -122,18 +122,21 @@ f_solver_func_soilR_outfluxes <- function(., t, y, parms) {
 # as above but calculates respiration and other loss fluxes
 # - by temporarily assigning them a pool to accumulate the loss fluxes 
 f_solver_func_soilR_outfluxes_lossfluxes <- function(., t, y, parms ) {
-  #print(y)
   
   # calculate outfluxes
   .$outfluxes(y,t)
-  #print(unlist(.super$state$outflux)) 
  
   # calculate soilR terms
   tm    <- .$transfermatrix(y,t)
   do    <- .$DotO(y,t) 
   input <- .$input(t)
-  #print('Initial soilR terms:')
-  #print(tm); print(do); print(input) 
+  if(.super$cpars$verbose) {
+    print('')
+    print('Dynamic solver function')
+    print('initial state:'); print(y)
+    print('outfluxes:'); print(unlist(.super$state$outflux)) 
+    print('initial soilR terms:'); print(input); print(do); print(tm)
+  }
 
   # incorporate loss fluxes in soilR terms
   if(!parms$steadystate) { 
@@ -207,6 +210,10 @@ f_calc_loss_fluxes <- function(.) {
     .super$state$respiration <- .super$state$respiration - .super$state$leaching 
   } 
 
+  # pool imbalance
+  # - at steady state pool inputs and output should sum to zero
+  .super$state_pars$pool_balance <- apply(cbind(.$input(),.super$state_pars$flux_matrix), 1, sum )
+
   if(.super$cpars$verbose) {
     print('') 
     print('Calculate loss fluxes:') 
@@ -232,30 +239,34 @@ f_mass_balance <- function(., steadystate=T ) {
   current  <- sum(.super$state$cpools)
 
   # at steady state inputs = outputs
-  mass_balance <- .super$state_pars$mass_balance <-  
+  mass_imbalance <- .super$state_pars$mass_imbalance <-  
     if(steadystate) input - output
     else            input - output - (current - previous)
-  error <- abs(mass_balance) > .super$pars$error_tolerance
+  # error tolerance determined as proportion of input sum
+  error <- abs(mass_imbalance)/input > .super$pars$error_tolerance
 
-  if(error|.super$cpars$verbose) {
-    print('') 
-    print('Calculate mass balance:') 
-    print('input:') 
-    print(input) 
-    print('output:') 
-    print(output) 
-    print('current state sum:') 
-    print(current) 
-    print('previous state sum:') 
-    print(previous) 
-    print('delta state sum:') 
-    print(current-previous) 
-    print('mass balance:') 
-    print(mass_balance) 
+  if(!is.na(error)) {
+    if(error|.super$cpars$verbose) {
+      print('') 
+      print('Calculate mass balance:') 
+      print('input:') 
+      print(input) 
+      print('output:') 
+      print(output) 
+      print('current state sum:') 
+      print(current) 
+      print('previous state sum:') 
+      print(previous) 
+      print('delta state sum:') 
+      print(current-previous) 
+      print('mass imbalance (absolute):') 
+      print(mass_imbalance) 
+      print('mass imbalance (proportion of input):') 
+      print(mass_imbalance/input) 
+    }
+    if(error) stop(paste('ERROR:: mass imbalance (should be zero) = ', mass_imbalance )) 
   }
-  if(error) stop(paste('ERROR:: mass balance (should be zero) = ', mass_balance )) 
 }
-
 
 
 ### END ###
