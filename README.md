@@ -1,5 +1,5 @@
 # The Multi-Assumption Architecture and Testbed (MAAT) modelling system. #
-![MAAT logo](images/MAAT Logo Color.png)
+![MAAT logo](<images/MAAT Logo Color.png>)
 
 
 The multi-assumption architecture and testbed (MAAT) is a modelling framework designed to facilitate simple and rapid comparison of multiple modelling hypotheses and assumptions, i.e. ways in which to represent processes, in a systems context.
