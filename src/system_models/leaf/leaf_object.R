@@ -407,13 +407,9 @@ leaf_object$pars   <- list(
 
 # run control parameters
 ####################################
-leaf_object$cpars <- list(
-  diag      = F,          # calculate diagnostic output during runtime and add to output, such as cc transition point and non-stomatal limited assimilation rate 
-  verbose   = F,          # write diagnostic output during runtime 
-  cverbose  = F,          # write diagnostic output on the solver during runtime 
-  cverbose  = F,          # write configuration output during runtime 
-  output    = 'slim'      # type of output from run function
-)
+leaf_object$cpars$sverbose  <- F          # write diagnostic output on the solver during runtime 
+leaf_object$cpars$output    <- 'slim'     # type of output from run function
+
 
 
 # output functions

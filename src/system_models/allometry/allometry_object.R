@@ -145,11 +145,7 @@ allometry_object$pars   <- list(
 
 # run control parameters
 ####################################
-allometry_object$cpars <- list(
-  verbose  = F,          # write diagnostic output during runtime 
-  cverbose = F,          # write diagnostic output from configure function 
-  output   = 'run'       # type of output from run function
-)
+# none different from default in generic_model_object.R
 
 
 

@@ -43,8 +43,8 @@ generate_ensemble <- function(.) {
   }
 
   # environment matrix and met matrix
-  .$dataf$le <- if(is.null(.$dataf$env)) 1 else dim(.$dataf$env)[2]
-  .$dataf$lm <- if(is.null(.$dataf$met)) 1 else dim(.$dataf$met)[2]
+  .$dataf$le  <- if(is.null(.$dataf$env)) 1 else dim(.$dataf$env)[2]
+  .$dataf$lm  <- if(is.null(.$dataf$met)) 1 else dim(.$dataf$met)[2] 
 }
 
 
@@ -62,8 +62,8 @@ generate_ensemble_rbind <- function(.) {
   if(!is.null(.$dataf$met)) .$model$configure_check(vlist='env', df=.$dataf$met[,1] )
 
   # calculate input dataframe length
-  .$dataf$lf <- if(!is.null(.$dataf$fnames)) dim(.$dataf$fnames)[2]
-  .$dataf$lm <- if(is.null(.$dataf$met)) 1 else dim(.$dataf$met)[2]
+  .$dataf$lf  <- if(!is.null(.$dataf$fnames)) dim(.$dataf$fnames)[2]
+  .$dataf$lm  <- if(is.null(.$dataf$met)) 1 else dim(.$dataf$met)[2]
 }
 
 
@@ -276,6 +276,11 @@ init_output_matrix_mcmc <- function(.) {
       if(.$wpars$mcmc$maxiter%%.$wpars$mcmc$check_iter!=0) cin <- cin + 1
       cin
     }
+  if(check_iter_n<=0) {
+    print('Insufficient number of iterations, increase maxiter:',quote=F)
+    print(.$wpars$mcmc$maxiter) 
+    stop()
+  }
   .$dataf$omega         <- matrix(NA, .$wpars$mcmc$chains, check_iter_n )
   .$dataf$conv_check    <- matrix(0, ncol=check_iter_n, nrow=(dim(.$dataf$pars)[1]+3) )
 
@@ -625,6 +630,7 @@ run1_SAprocess_ye <- function(.,f) {
   .$init_output_matrix()
 
   # call run2 function
+  #options(digits.secs=0)
   print('',quote=F)
   print(paste('started process:', colnames(.$dataf$fnames), Sys.time()), quote=F )
 
@@ -775,7 +781,10 @@ run1_mcmc <- function(.,i) {
 
     # add to pars array and calculate likelihood of initial proposal
     .$dataf$pars_array[,,1]   <- .$mcmc$prior_sample <- .$dataf$pars
-    .$dataf$pars_lklihood[,1] <- .$proposal_lklihood()
+    modout <- 
+      if(.$model$cpars$init_steadystate & !is.null(.$dataf$met)) .$dataf$out[,-1]
+      else                                                       .$dataf$out
+    .$dataf$pars_lklihood[,1] <- .$proposal_lklihood(modout)
     .$dataf$out_mcmc[,,1]     <- t(.$dataf$out[,]) 
   }
 
@@ -806,7 +815,17 @@ run2_mcmc <- function(.,j) {
     })
 
   # calculate likelihood of proposals on each chain, accept/reject proposals
-  prop_lklihood <- .$proposal_lklihood()
+  # - if model initialised in steadystate, remove steadystate column(s) of model data
+  # APW: assumes .$dataf$out rows are chains, cols are met timesteps
+  # APW: what to do if model output is more than one variable?  
+  modout <- 
+    if(.$model$cpars$init_steadystate & !is.null(.$dataf$met)) {
+      sscols <- 1 
+      .$dataf$out[,-sscols]
+    } else {   
+      .$dataf$out
+    } 
+  prop_lklihood <- .$proposal_lklihood(modout)
   curr_lklihood <- .$dataf$pars_lklihood[,j-1]
   accept        <- .$proposal_accept(prop_lklihood, curr_lklihood )
 
@@ -999,13 +1018,13 @@ output_factorial  <- function(.) {
     # if at least one of fnames, pars, and env are varied
     if(is.null(.$dataf$env)+is.null(.$dataf$pars)+is.null(.$dataf$fnames) < 3) {
 
-      if(.$runtype=='factorial') {
+      if(.$wpars$runtype=='factorial') {
         vfnames <- if(is.null(.$dataf$fnames))  NULL else .$dynamic$fnames
         vpars   <- if(is.null(.$dataf$pars))    NULL else .$dynamic$pars
         venv    <- if(is.null(.$dataf$env))     NULL else .$dynamic$env
         vardf   <- expand.grid(c(venv,vpars,vfnames), stringsAsFactors=F )
 
-      } else if(.$runtype=='rbind') {
+      } else if(.$wpars$runtype=='rbind') {
         vfnames <- if(is.null(.$dataf$fnames))  NULL else as.data.frame(t(.$dataf$fnames))
         vpars   <- if(is.null(.$dataf$pars))    NULL else as.data.frame(t(.$dataf$pars))
         venv    <- if(is.null(.$dataf$env))     NULL else as.data.frame(t(.$dataf$env))
@@ -1032,6 +1051,12 @@ output_factorial  <- function(.) {
       # if met data
       # - so far will only work for factorial simulations
       } else {
+        #print('vardf')
+        #print(vardf)
+        #print('.$dataf$out')
+        #print(.$dataf$out)
+        #print('lapply(1:length(vardf[,1]), .$combine, df=vardf )')
+        #print(lapply(1:length(vardf[,1]), .$combine, df=vardf ))
         odf <- cbind(do.call('rbind', lapply(1:length(vardf[,1]), .$combine, df=vardf )), .$dataf$out )
         if(dim(vardf)[2]==1) names(odf)[which(names(odf)=='df.i...')] <- names(vardf)
         rm(vardf)

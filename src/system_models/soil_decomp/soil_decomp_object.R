@@ -500,11 +500,7 @@ soil_decomp_object$state <- list(
 
 # run control parameters
 ####################################
-soil_decomp_object$cpars <- list(
-  verbose  = F,          # write diagnostic output during runtime 
-  cverbose = F,          # write diagnostic output from configure function 
-  output   = 'pools'     # type of output from run function
-)
+soil_decomp_object$cpars$init_steadystate <- T  
 
 
 
@@ -537,23 +533,29 @@ f_output_soil_decomp_full <- function(.) {
 
 soil_decomp_object$.test <- function(., 
   verbose=F, metdf=F, ntimes=10, sigfig=3,
-  steadystate=F, mod_mimic=NULL, 
+  steadystate=F, init_steadystate=T, 
+  mod_mimic=NULL, 
   litter=NA, anpp=500*24 
   ) {
 
   if(verbose) str(.)
-  .$build(switches=c(F,verbose,F), mod_mimic=mod_mimic )
   if(steadystate) .$fnames$sys <- 'f_steadystate_npools'
+  .$build(switches=c(F,verbose,F), mod_mimic=mod_mimic, iss=init_steadystate  )
   .$configure_test() # APW: if only used in test functions should begin with a .
 
   if(metdf) {
-    .$dataf       <- list()
+    .$dataf      <- list()
     if(length(litter)==1) litter <- if(is.na(litter)) rep(.$env$litter, ntimes ) else rep(litter, ntimes ) 
-    .$dataf$metdf <- matrix(litter, nrow=1 )
-    rownames(.$dataf$metdf) <- 'soil_decomp.litter'  
-    .$dataf$lm    <- dim(.$dataf$met)[2]
-    .$dataf$mout  <- .$output()
-    print('')  
+    .$dataf$met  <- matrix(litter, nrow=1 )
+    rownames(.$dataf$met) <- 'soil_decomp.litter'  
+    # add mean if init_steadystate
+    if(.$cpars$init_steadystate) {
+      metdfx      <- apply(.$dataf$met, 1, mean )
+      .$dataf$met <- cbind(metdfx, .$dataf$met, deparse.level=0 )
+    }
+    .$dataf$lm   <- dim(.$dataf$met)[2]
+    .$dataf$mout <- .$output()
+    print('') 
     signif(.$run_met(), sigfig )
   } else {
     if(!is.na(litter)) .$env$litter <- litter

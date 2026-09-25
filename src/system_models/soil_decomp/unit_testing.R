@@ -15,11 +15,15 @@
 source('soil_decomp_object.R')
 soil_decomp_object$.test()
 soil_decomp_object$state$cpools
+unlist(soil_decomp_object$state)
 soil_decomp_object$.test(steadystate=T)
 soil_decomp_object$.test(verbose=T)
 soil_decomp_object$.test(litter=2)
 soil_decomp_object$.test(metdf=T, ntimes=2 )
+soil_decomp_object$.test(metdf=T, ntimes=2, init_steadystate=F )
 soil_decomp_object$.test(metdf=T, litter=c(0.005, 0.006 ) )
+soil_decomp_object$.test(metdf=T, litter=c(0.005, 0.006, 0.007, 0.06 ) )
+soil_decomp_object$.test(metdf=T, litter=c(0.005, 0.006, 0.007, 0.06 ), init_steadystate=F )
 soil_decomp_object$.test(metdf=T, ntimes=100 )
 soil_decomp_object$.test(metdf=T, ntimes=100, litter=0.0075 )
 
@@ -46,6 +50,7 @@ soil_decomp_object$.test(mod_mimic='millennialv2_original', steadystate=T )
 # model output
 soil_decomp_object$state
 soil_decomp_object$state_pars
+soil_decomp_object$state_pars$solver_steadystate_out
 
 # model configuration
 soil_decomp_object$env
@@ -54,9 +59,10 @@ soil_decomp_object$pars$pool_init_value
 soil_decomp_object$pars$cstate0
 soil_decomp_object$fnames
 soil_decomp_object$fns$input
-soil_decomp_object$fns$input()
-sum(soil_decomp_object$fns$input())
-soil_decomp_object$state_pars$mass_imbalance / sum(soil_decomp_object$fns$input())
+soil_decomp_object$fns$steadystate
+soil_decomp_object$fns$steadystate()
+soil_decomp_object$fns$init
+soil_decomp_object$fns$init1
 
 # outfluxes associated with each pool
 soil_decomp_object$fnames$decomp
@@ -73,7 +79,9 @@ soil_decomp_object$env
 soil_decomp_object$pars$cstate0
 soil_decomp_object$pars$input_coef
 soil_decomp_object$fns$input
+soil_decomp_object$fns$output
 soil_decomp_object$fns$input()
+soil_decomp_object$fns$output()
 soil_decomp_object$state_pars$flux_matrix
 
 # transfer matrix

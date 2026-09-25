@@ -13,7 +13,6 @@ source('functions/calc_functions.R')
 source('wrapper_functions_mcmc.R')
 
 
-
 ### HIGH LEVEL WRAPPER FUNCTION
 #####################################
 wrapper_object <- proto(expr={})
@@ -82,20 +81,23 @@ wrapper_object$clean <- function(.) {
 ###########################################################################
 wrapper_object$run   <- function(.,verbose=T) {
 
-  # Initialise
+  # Initialise wrapper
   if(!.$wpars$unit_testing) {
     if(.$wpars$runtype=='SAprocess_ye' | .$wpars$runtype=='mcmc')  .$wpars$eval_strings <- T
     .$init()
   } else {
     hd <- getwd()
-    .$wpars$of_dir       <- '~/tmp'
-    .$wpars$of_type      <- 'csv'
+    .$wpars$of_dir  <- '~/tmp'
+    setwd(.$wpars$of_dir)
+    .$wpars$of_type <- 'csv'
     if(.$wpars$of_name_stem=='MAAT_output') .$wpars$of_name_stem <- 'unit_test'
 
     # remove history files -- unit test not designed to work with an MCMC restart 
-    print('Remove history files since unit_testing not compatible with MCMC restart')
-    setwd(.$wpars$of_dir)
-    system(paste0('rm ',.$wpars$of_name, '_history_*'))  
+    if(.$wpars$runtype=='mcmc') { 
+      if(sum(grepl(paste0(.$wpars$of_name, '_history_*'),list.files()))) {  
+        print('Remove history files since unit_testing not compatible with MCMC restart')
+        system(paste0('rm ',.$wpars$of_name, '_history_*'))  
+    }}
   }
 
 
@@ -103,7 +105,7 @@ wrapper_object$run   <- function(.,verbose=T) {
   # need to add a check for equal par vector lengths if this is a UQ run and not eval_strings
   # for Ye et al SA method
   # - due to different parameter sample numbers in process A and B loops,
-  # - parameters samples must be generated from code snippets as strings
+  # - parameter's samples must be generated from code snippets as strings
   if(.$wpars$eval_strings & is.null(.$dynamic$pars_eval)) {
     stop(paste('wrapper: eval_strings = T but dynamic$pars_eval not set. \n
           vars$pars_eval:,\n',.$dynamic$pars_eval,'\n
@@ -117,7 +119,8 @@ wrapper_object$run   <- function(.,verbose=T) {
   if(!is.null(.$static$fnames)) .$model$configure(vlist='fnames', df=.$static$fnames )
 
   # initilize model if required 
-  # - usually at steadystate 
+  # - typically initilizes pool & of structure, this is also done in run_met
+  # - may be unnecessary here aside from non-metdf runs  
   if(!is.null(.$model$init)) .$model$init()
 
   # create matrices of dynamic runtime variables
@@ -281,7 +284,7 @@ wrapper_object$dataf  <- list(
   lpB     = NULL,
   lps     = NULL,         # number of usable columns in MCMC past_states matrix
   le      = NULL,
-  lm      = NULL,
+  lm      = NULL,         # metdata length
   # output matrices / arrays
   mcmc_input   = NULL,    # list of output matrices and arrays from a previous MCMC run
   mout         = NULL,    # example model output vector, for setting up vapply functions
@@ -446,8 +449,11 @@ wrapper_object$print_data <- function(., otype='data' ) {
     print(paste(.$wpars$runtype,' ensemble'), quote=F )
     print(paste('ensemble number ::',ens_n), quote=F )
     if(!is.null(.$dataf$met)) {
-      print(paste('timesteps in met data ::',.$dataf$lm), quote=F )
-      print(paste('total number of model calls ::',ens_n*.$dataf$lm), quote=F )
+      iss <- as.numeric(.$model$cpars$init_steadystate)
+      print(paste('timesteps in met data ::',.$dataf$lm-iss), quote=F )
+      if(.$model$cpars$init_steadystate) print('  + 1 for steadystate calculation', quote=F )
+      print(paste('total number of model calls ::',ens_n*(.$dataf$lm-iss)), quote=F )
+      if(.$model$cpars$init_steadystate) print(paste('  +',ens_n,'for steadystate calculation(s)'), quote=F )
     }
     print('',quote=F)
 
@@ -459,12 +465,14 @@ wrapper_object$print_data <- function(., otype='data' ) {
 
 
 wrapper_object$print_output <- function(.) {
+  print("",quote=F)
   print("output ::",quote=F)
   print(paste('length ::', length(.$dataf$out[,1])), quote=F)
   if(is.null(.$dataf$met)) {
     print(head(.$dataf$out), quote=F)
   } else {
-    print(head(t(.$dataf$out)), quote=F)
+    #print(head(t(.$dataf$out)), quote=F)
+    print(head(.$dataf$out), quote=F)
   }
   print('', quote=F)
   print('', quote=F)
@@ -494,10 +502,11 @@ wrapper_object$.test_simple <- function(., gen_metd=F, mc=F, pr=4, oconf=F ) {
   .$wpars$runtype <- 'factorial'
   .$wpars$mod_obj <- 'leaf'
   .$build()
+  print(.$model$cpars) 
 
   # verbose params
-  .$model$pars$verbose  <- F
-  .$model$pars$cverbose <- oconf
+  .$model$cpars$verbose  <- F
+  .$model$cpars$cverbose <- oconf
 
   # define parameters for the wrapper
   .$wpars$multic       <- mc  # multicore the ensemble
@@ -793,6 +802,66 @@ wrapper_object$.test_can <- function(., metd=T, mc=T, pr=4, verbose=F ) {
   library(lattice)
   p1 <- xyplot(A~canopy.ca_conc|canopy.can_scale_light*leaf.rs,df,groups=canopy.lai,type='l',abline=5,auto.key=T)
   list(df,p1)
+}
+
+
+# general factorial test with soil object, with or without metdata
+wrapper_object$.test_soil <- function(., metd=T, mc=T, pr=4, verbose=F ) {
+
+  # build wrapper and the model object
+  .$wpars$UQ      <- F           # run a fully factorial ensemble
+  .$wpars$runtype <- 'factorial'
+  .$wpars$mod_obj <- 'soil_decomp'
+  .$build()
+
+  # define parameters for the model
+  .$model$pars$verbose       <- verbose
+  #.$model$leaf$pars$cverbose <- verbose
+  #.$model$state$mass_a       <- 175
+  #.$model$state$C_to_N       <- 40
+
+  # define parameters for the wrapper
+  .$wpars$multic       <- mc  # multicore the ensemble
+  .$wpars$procs        <- pr  # number of cores to use if above is true
+  .$wpars$UQ           <- F   # run a UQ style ensemble, or if faslse a fully factorial ensemble
+  .$wpars$unit_testing <- T   # tell the wrapper unit testing is happening
+
+  # define meteorological and environment dataset
+  #metdata <- t(as.matrix(expand.grid(list(soil_decomp.litter=c(4e-4, 5e-4, 5.5e-4, 7.2e-4 )))))
+  metdata              <- matrix(c(4e-4, 5e-4, 5.5e-4, 7.2e-4 ), nrow=1 )
+  rownames(metdata)    <- 'soil_decomp.litter'
+  if(metd) .$dataf$met <- metdata
+
+  # Define the parameters and model functions that are to be varied
+#  .$dynamic$fnames <- list(
+#    canopy.can_scale_light = c('f_canlight_beerslaw_wrong','f_canlight_beerslaw'),
+#    leaf.etrans            = c('f_etrans_farquhar1980','f_etrans_collatz1991'),
+#    leaf.rs                = c('f_rs_medlyn2011','f_r_zero')
+#  )
+
+  .$dynamic$env <- list(
+    soil_decomp.clay   = c(0.1,0.6),
+    soil_decomp.lignin = c(0.3)
+  )
+
+#  .$dynamic$pars <- list(
+#    soil_decomp.k.k1 = seq(2,6,2),
+#    soil_decomp.vmax.vmax3 = seq(0.4,0.6,0.1)
+#  )
+
+  # Run model
+  st <- system.time(.$run())
+  print('',quote=F)
+  print('Run time:',quote=F)
+  print(st)
+  print('',quote=F)
+
+  # process & record output
+  df <- .$output()
+  df
+#  library(lattice)
+#  p1 <- xyplot(A~canopy.ca_conc|canopy.can_scale_light*leaf.rs,df,groups=canopy.lai,type='l',abline=5,auto.key=T)
+#  list(df,p1)
 }
 
 

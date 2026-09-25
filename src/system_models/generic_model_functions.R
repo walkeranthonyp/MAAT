@@ -14,18 +14,21 @@
 # build functions
 ###########################################################################
 
-# build function that initialises the object and calls build functions of all child objects
-build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,verbose=F,cverbose=F), ... ) {
+# build function that initialises the model object and calls build functions of all child objects
+build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,verbose=F,cverbose=F), iss=NULL, ... ) {
 
   # read default model setup for highest level model
   source('../../functions/general_functions.R')
   init_default <- readXML(paste(.$name,'default.xml',sep='_'))
 
   # set switches
-  .$cpars$diag     <- switches[1] & !child
-  .$cpars$verbose  <- switches[2]
-  .$cpars$cverbose <- switches[3]
-  .$cpars$mod_out  <- mod_out
+  .$cpars$diag     <- switches[[1]] & !child
+  .$cpars$verbose  <- switches[[2]]
+  .$cpars$cverbose <- switches[[3]]
+  .$cpars$output   <- mod_out
+  
+  # flag to initialize model at steadystate, otherwise use model default
+  if(!is.null(iss)) .$cpars$init_steadystate <- iss 
 
   # read model mimic setup
   if(!is.null(mod_mimic)) {
@@ -65,9 +68,24 @@ build <- function(., mod_mimic=NULL, mod_out='run', child=F, switches=c(diag=F,v
       if(is.na(sum(unlist(.$pars[[l]])))) .$pars[[l]] <- .$pars[[l]][-which(is.na(.$pars[[l]]))]
   }
 
+  # determine if to initialise the model at steady state if requested, the option exists, and not always steadystate 
+  # - to turn this off can set fnames$steadystate to f_steadystate_null (a dummy function that just returns NULL)
+  if(.$cpars$init_steadystate & 
+    sum(grepl('steadystate', names(.$fns) )) &
+    !grepl('steadystate', .$fnames$sys )) {
+      .$cpars$init_steadystate <- T 
+  } else {
+      .$cpars$init_steadystate <- F
+      if(.$cpars$init_steadystate) { 
+        print('', quote=F ) 
+        print('init_steadystate requested but not appropriate for model or model configuration,', quote=F ) 
+        print('turning init_steadystate to FALSE.', quote=F ) 
+      }
+  }
+
   # assign model output function
-  if(.$cpars$diag) mod_out <- 'full' ### this will assign full to all child objects too could add a child switch
-  .$output <- get(paste('f', 'output', .$name, .$cpars$mod_out, sep='_' ))
+  if(.$cpars$diag) .$cpars$output <- 'full' 
+  .$output <- get(paste('f', 'output', .$name, .$cpars$output, sep='_' ))
   # APW: could add a catch here to test that requested eval variables exist.
   # APW: will need to be done once latest soil model development has been merged
 
@@ -334,24 +352,28 @@ init_state <- function(.) {
 # - maybe a result of being called from the wrapper and maybe . represents the object within which the function is called rather than to which it belongs
 run_met <- function(.,l) {
 
-  #print('')
-  #print(.$fnames$decomp)
-  #lapply( grep('decomp\\.',names(.$fns),value=T), function(char) {print(char); print(.$fns[[char]])} )
-  #print(.$fnames$transfer)
-  #lapply( grep('transfer\\.',names(.$fns),value=T), function(char) {print(char); print(.$fns[[char]])} )
-  #print('')
-
   # initialize: pool structure etc
   if(!is.null(.$init)) .$init()
   
-  # call steady state system model if it exists and doesn't return a null value
-  # APW Matt: this is the additional function call to initialise the model at steady state
-  #           if you want to turn this off just set the fnames$steadystate value to f_steadystate_null (a dummy function that just returns NULL)
-  # APW : need to add this as an option to run_MAAT, if !init_steady then fnames$steady <- null
-  if(!is.null(.$fns$steadystate)) if(!is.null(.$fns$steadystate() )) .$fns$steadystate()  
+  # initialise the model at steady state if requested, the option exists, and not always steadystate 
+  # - to turn this off can set fnames$steadystate to f_steadystate_null (a dummy function that just returns NULL)
+  if(.$cpars$init_steadystate) { 
+    # for steadystate configure model with mean of metdf 
+    #.$configure_met(df=apply(.$dataf$met, 1, mean ))
+    .$configure_met(df=.$dataf$met[,1])
+    .$fns$steadystate()
+    steadystate_out <- .$output()
+    .$dataf$sm      <- 2  
+    print('Model initialized to steady state')
+  } else {
+    steadystate_out <- NULL 
+    .$dataf$sm      <- 1  
+  } 
 
   # run over an input/meteorological dataset 
-  t(vapply(1:.$dataf$lm, .$run_met1, .$dataf$mout )) 
+  outmatrix <- t(vapply(.$dataf$sm:.$dataf$lm, .$run_met1, .$dataf$mout ))
+  if(!is.null(steadystate_out)) outmatrix <- rbind(steadystate_out, outmatrix )
+  outmatrix 
 }
 
 

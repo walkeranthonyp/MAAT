@@ -92,10 +92,11 @@ system_model_object <-
     
     # run control parameters
     cpars      <- list(
-      output   = 'run', # output function
-      verbose  = F,     # standard verbose output for debugging
-      cverbose = F,     # more in-depth verbose output from configure function
-      diag     = F      # model specific diagnostic output - written to state list
+      output           = 'run', # output function
+      init_steadystate = F,     # initialize the model at steady state, currently only if metdf supplied 
+      verbose          = F,     # standard verbose output for debugging
+      cverbose         = F,     # more in-depth verbose output from configure function
+      diag             = F      # model specific diagnostic output - written to state list
     )
     
     

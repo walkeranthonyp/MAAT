@@ -93,43 +93,46 @@ parsinit_n      <- NULL
 
 # run options
 # meteorological data file name
-metdata       <- NULL
+metdata          <- NULL
 
 # evaluation data file name
-evaldata      <- NULL 
+evaldata         <- NULL 
 
 # load standard error from evaluation data file (T/F)
-evalse        <- F
+evalse           <- F
 
 # pass code snippets as strings to generate parameter samples, see init_MAAT.R and wrapper for use
-eval_strings  <- F
+eval_strings     <- F
 
 # initialise in the configuration of the below specified model
 # options are: clm40,
-mod_mimic     <- NULL
+mod_mimic        <- NULL
 
 # static and dynamic initialisation files are XMLs, if false init file is the R script named below
-xml           <- F
+xml              <- F
 
 # initialisation data file name if not an XML
-init          <- 'init_MAAT'
+init             <- 'init_MAAT'
+
+# initialise model in steadystate if relevant
+init_steadystate <- F
 
 # run i.d. - used as suffix/prefix for in/out files
-runid         <- NULL
+runid            <- NULL
 
 # basic output file name
-of_main       <- 'out'
+of_main          <- 'out'
 
 # model output switch
-mod_out       <- 'run'
+mod_out          <- 'run'
 
 # output file format.  supported: rds, csv (default)
-of_format     <- 'csv'
+of_format        <- 'csv'
 
 # verbose - ouput various things during runtime for diagnostics
-verbose       <- F
-cverbose      <- F
-diag          <- F
+verbose          <- F
+cverbose         <- F
+diag             <- F
 
 # parameters for SA run
 # ensemble number for an SA/UQ style ensemble, not used if -uq- is false
@@ -321,13 +324,13 @@ if((runtype=='mcmc') & is.null(parsinit_mcmc)) {
 }
 
 # build maat and model objects
-maat$build(mod_mimic=mod_mimic, mod_out=mod_out )
+maat$build(mod_mimic=mod_mimic, mod_out=mod_out, switches=c(diag,verbose,cverbose), iss=init_steadystate  )
 
 # set debugging flags
 # APW: these could now be set as an argument to build 
-maat$model$cpars$verbose  <- verbose
-maat$model$cpars$cverbose <- cverbose
-maat$model$cpars$diag     <- diag
+#maat$model$cpars$verbose  <- verbose
+#maat$model$cpars$cverbose <- cverbose
+#maat$model$cpars$diag     <- diag
 
 
 
@@ -585,16 +588,23 @@ if(!mcmc_restart & !is.null(metdata)) {
       names(metdf)[2:length(metdf)] <- paste(mod_obj,names(met_trans)[-tcol],sep='.')
 
       # due to matrix data structure a character time vector will mess the numeric matrix up
-      # - could do something with posix convention
+      # APW: could do something with posix convention, and add 0 for steadystate or similar
       if(!is.numeric(metdf[,1])) metdf <- metdf[,-1,drop=F ]
 
     } else {
       names(metdf) <- paste(mod_obj,names(met_trans),sep='.')
     }
 
+    # add mean if init_steadystate 
+    if(init_steadystate) {
+      metdf  <- as.matrix(metdf)
+      metdfx <- apply(metdf, 2, mean )
+      metdf  <- rbind(metdfx, metdf, deparse.level=0 ) 
+    }
+ 
     # add to MAAT object
     print(head(metdf), quote=F )
-    maat$dataf$met <- t(as.matrix(metdf))
+    maat$dataf$met <- t(metdf)
 
     # remove met data file
     rm(metdf)

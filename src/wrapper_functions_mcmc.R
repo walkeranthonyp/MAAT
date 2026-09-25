@@ -101,16 +101,18 @@ boundary_handling_fold <- function(.) {
 
 # expects model output to be probability
 # - as in the output from the mixture model
-f_proposal_lklihood_log <- function(.) {
-  log(.$dataf$out)
+f_proposal_lklihood_log <- function(., outdf ) {
+  #log(.$dataf$out)
+  log(outdf)
 }
 
 
 # standard error probability density function with i.i.d. error residuals
-f_proposal_lklihood_ssquared <- function(.) {
+f_proposal_lklihood_ssquared <- function(., outdf ) {
 
   obs_n                 <- length(.$dataf$obs)
-  error_residual_matrix <- t(.$dataf$out) - .$dataf$obs
+  #error_residual_matrix <- t(.$dataf$out) - .$dataf$obs
+  error_residual_matrix <- t(outdf) - .$dataf$obs
   SSR                   <- apply(error_residual_matrix, 2, function(v) sum(v^2) )
 
   # log-likelihood vector corresponding to each chain/column in .$dataf$pars matrix
@@ -120,7 +122,7 @@ f_proposal_lklihood_ssquared <- function(.) {
 
 # standard error probability density function with i.i.d. error residuals
 # - incorporates measurement errors (unlike "ssquared" option)
-f_proposal_lklihood_ssquared_se <- function(.) {
+f_proposal_lklihood_ssquared_se <- function(., outdf ) {
 
   # remove obs with zero measurement error
   sspos <- which(.$dataf$obsse>1e-9)
@@ -131,7 +133,8 @@ f_proposal_lklihood_ssquared_se <- function(.) {
            else                      .$dataf$obsse[sspos]
 
   # calculate error residual
-  error_residual_matrix <- ( t(.$dataf$out)[sspos,]-.$dataf$obs[sspos] ) / obsse
+  #error_residual_matrix <- ( t(.$dataf$out)[sspos,]-.$dataf$obs[sspos] ) / obsse
+  error_residual_matrix <- ( t(outdf)[sspos,]-.$dataf$obs[sspos] ) / obsse
   SSR                   <- apply(error_residual_matrix, 2, function(v) sum(v^2) )
 
   # log-likelihood vector corresponding to each chain/column in .$dataf$pars matrix
@@ -430,71 +433,18 @@ mcmc_handle_iter_final <- function(., R_hat ) {
   names(R_hat)[1] <- 'iterations since outlier detection'
   print('',quote=F); print('',quote=F)
   print(paste("At (final) iteration:", .$mcmc$j_true, ", R-statistic of Gelman and Rubin:"), quote=F )
-  print(R_hat,quote=F); print('',quote=F)
 
-  R_hat <- R_hat[2:length(R_hat)]
-  if((sum(R_hat<1.2)) == length(R_hat)) print('ALL PARAMETERS CONVERGED.',quote=F)
-  else                                  print('NON-CONVERGENCE, RESTART RECOMMENDED.',quote=F)
+  if(R_hat[1]==0) {
+    print(NA,quote=F); print('',quote=F)  
+    print('OUTLIER DETECTED ON FINAL ITERATION. NON-CONVERGENCE, RESTART RECOMMENDED.',quote=F)
+  } else {
+    print(R_hat,quote=F); print('',quote=F)  
+    R_hat <- R_hat[2:length(R_hat)]
+    if((sum(R_hat<1.2)) == length(R_hat)) print('ALL PARAMETERS CONVERGED.',quote=F)
+    else                                  print('NON-CONVERGENCE, RESTART RECOMMENDED.',quote=F)
+  }
   print('',quote=F); print('',quote=F); print('',quote=F)
 } 
-
-
-
-# DEMC functions
-# APW: not currrently in use as during development it became clear that this algorithm is not computationally parallel 
-################################
-
-#init_mcmc_demc <- function(.) NULL
-#
-## generate proposal using DE-MC algorithm
-#proposal_generate_mcmc_demc <- function(., j ) {
-#
-#  # scaling factor
-#  # APW: can be calculated once I think, fix
-#  d          <- dim(.$dataf$pars)[1]
-#  gamma_star <- 2.38 / sqrt(d + d)
-#
-#  # b-value should be small compared to width of target distribution; specifies range for drawn "randomization" value
-#  b_rand  <- 0.01
-#  uniform_r <- runif(1, min=(-b_rand), max=b_rand)
-#
-#  # evaluate for each chain
-#  for(ii in 1:.$dataf$lp) {
-#
-#    # randomly select two different numbers R1 and R2 unequal to j, from uniform distribution without replacement
-#    chain_pair <- sample((1:.$dataf$lp)[-.$dataf$lp], 2, F )
-#
-#    # evaluate for each parameter
-#    for(jj in 1:d) {
-#
-#      # generate proposal via Differential Evolution
-#      .$dataf$pars[jj,ii] <- .$dataf$pars_array[jj,ii,j-1] + uniform_r + 
-#        gamma_star*( .$dataf$pars_array[jj,chain_pair[1],j-1] - .$dataf$pars_array[jj,chain_pair[2],j-1] )
-#
-#      # boundary handling 
-#      .$boundary_handling(ii=ii, jj=jj )
-#    }
-#  }
-#}
-#
-#
-## calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
-## - this is the same as DREAM
-#proposal_accept_mcmc_demc <- function(., j, lklihood ) {
-#
-#  # Metropolis ratio
-#  metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[,j-1])
-#  alpha        <- pmin(1, metrop_ratio)
-#
-#  # evaluate for each chain
-#  for(ii in 1:.$dataf$lp) {
-#    # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
-#    accept <- log(alpha[ii]) > log(runif(1, min = 0, max = 1))
-#    .$dataf$pars_array[,ii,j]   <- if(accept)          .$dataf$pars[,ii] else .$dataf$pars_array[,ii,j-1]
-#    .$dataf$pars_lklihood[ii,j] <- if(accept)          lklihood[ii]      else .$dataf$pars_lklihood[ii,j-1]
-#    .$dataf$out_mcmc[ii,,j]     <- if(accept | j == 1) .$dataf$out[ii,]  else .$dataf$out_mcmc[ii,,(j-1)]
-#  }
-#}
 
 
 

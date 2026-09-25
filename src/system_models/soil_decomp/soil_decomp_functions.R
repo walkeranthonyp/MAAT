@@ -149,14 +149,15 @@ f_micturn_sulman_dd <- function(., C, t, i, of=i )
 
 # saturating sorption
 f_sorp_sat <- function(., C, t, i, of=i, sat_pool=.super$pars$sat_pool )
-  C[i]*.super$state_pars$k[[of]] * (1-C[sat_pool]/.super$state_pars$poolmax[[sat_pool]])
+  C[i] * (1-C[sat_pool]/.super$state_pars$poolmax[[sat_pool]]) * .super$state_pars$k[[of]]
 
 
 # desorption from a saturating pool
 # - i in this case should be the same as sat_pool in the above
 # - because this is desorption from the pool that saturates
 f_desorp_sat <- function(., C, t, i, of=i, ... ) 
-  .super$state_pars$k[[of]] * (C[i]/.super$state_pars$poolmax[[i]])
+  (C[i]/.super$state_pars$poolmax[[i]]) * .super$state_pars$k[[of]]
+
 
 
 

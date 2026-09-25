@@ -108,11 +108,7 @@ mcmc_test_object$state_pars <- list(
 
 # run control parameters
 ####################################
-mcmc_test_object$cpars <- list(
-  verbose      = F,          # write diagnostic output during runtime
-  cverbose     = F,          # write diagnostic output from configure function
-  output       = 'mixture'   # type of output from run function
-)
+mcmc_test_object$cpars$output <- 'mixture'     # type of output from run function
 
 
 

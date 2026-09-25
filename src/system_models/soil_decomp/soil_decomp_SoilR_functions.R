@@ -252,19 +252,21 @@ f_mass_balance <- function(., steadystate=T ) {
       print('input:') 
       print(input) 
       print('output:') 
-      print(output) 
-      print('current state sum:') 
-      print(current) 
-      print('previous state sum:') 
-      print(previous) 
-      print('delta state sum:') 
-      print(current-previous) 
+      print(output)
+      if(!steadystate) { 
+        print('current state sum:') 
+        print(current) 
+        print('previous state sum:') 
+        print(previous) 
+        print('delta state sum:') 
+        print(current-previous)
+      } 
       print('mass imbalance (absolute):') 
       print(mass_imbalance) 
       print('mass imbalance (proportion of input):') 
       print(mass_imbalance/input) 
     }
-    if(error) stop(paste('ERROR:: mass imbalance (should be zero) = ', mass_imbalance )) 
+    if(error) stop(paste('ERROR:: mass imbalance (should be zero), absolute  = ', signif(mass_imbalance,4), ', proportion = ', signif(mass_imbalance/input,4) )) 
   }
 }
 
